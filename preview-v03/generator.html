@@ -301,17 +301,31 @@ function applyEmbeddedMode() {
       window.addEventListener('load',reportHeight);
       window.addEventListener('message',event=>{
         if(event.source!==window.parent || event.origin!==location.origin || !event.data)return;
-        if(event.data.type==='oaktown-import-property'){
-          const p=event.data.property;
-          if(!p||typeof p!=='object'||!p.id||!p.street||!p.cityline||!p.tenant)return;
-          const existing=data.properties.find(x=>x.id===p.id);
-          if(existing){existing.street=p.street;existing.cityline=p.cityline;existing.owner=p.owner||'';}
-          else data.properties.push({id:p.id,street:p.street,cityline:p.cityline,owner:p.owner||''});
-          const n=blankNotice();
-          n.tenant=p.tenant;n.street=p.street;n.cityline=p.cityline;n.owner=p.owner||'';
-          n.charges=[{id:uid(),dueDate:'',category:'RENT',description:'',status:'DUE',amount:'',amountDue:''}];
-          data.notices.push(n);data.selected=n.id;persist();renderForm();
-          window.parent.postMessage({type:'oaktown-import-confirmed',propertyId:p.id},location.origin);
+        if(event.data.type==='oaktown-import-properties' || event.data.type==='oaktown-import-property'){
+          const items=event.data.type==='oaktown-import-properties'?event.data.properties:[event.data.property];
+          if(!Array.isArray(items)||items.length<1||items.length>250)return;
+          let added=0,updated=0,skipped=0;
+          for(const p of items){
+            if(!p||typeof p!=='object'||typeof p.id!=='string'||typeof p.street!=='string'||typeof p.cityline!=='string'||typeof p.tenant!=='string'||!p.id||!p.street||!p.cityline||!p.tenant){skipped++;continue}
+            let saved=data.properties.find(x=>x.id===p.id);
+            if(saved){saved.street=p.street;saved.cityline=p.cityline;saved.owner=p.owner||'';}
+            else data.properties.push({id:p.id,street:p.street,cityline:p.cityline,owner:p.owner||''});
+            let notice=data.notices.find(x=>x.sourcePropertyId===p.id);
+            if(notice){
+              notice.street=p.street;notice.cityline=p.cityline;notice.tenant=p.tenant;
+              if(p.owner)notice.owner=p.owner;
+              updated++;
+            }else{
+              notice=blankNotice();
+              notice.sourcePropertyId=p.id;
+              notice.tenant=p.tenant;notice.street=p.street;notice.cityline=p.cityline;notice.owner=p.owner||'';
+              notice.charges=[{id:uid(),dueDate:'',category:'RENT',description:'',status:'DUE',amount:'',amountDue:''}];
+              data.notices.push(notice);added++;
+            }
+            data.selected=notice.id;
+          }
+          if(added||updated){persist();renderForm()}
+          window.parent.postMessage({type:'oaktown-import-confirmed',added,updated,skipped,total:items.length},location.origin);
           requestAnimationFrame(reportHeight);
           return;
         }
