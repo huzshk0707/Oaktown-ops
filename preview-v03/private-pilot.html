@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Oaktown Ops · Private Property Pilot</title>
+<style>
+:root{font:15px/1.5 system-ui,-apple-system,sans-serif;color:#183a31;background:#edf3ec}*{box-sizing:border-box}body{margin:0}header{background:#143e34;color:#fff;padding:18px max(20px,calc((100vw - 1040px)/2))}header strong{font-size:21px}main{max-width:1040px;margin:32px auto;padding:0 20px}.card{background:#fff;border:1px solid #cbdccf;border-radius:15px;padding:24px;box-shadow:0 5px 20px #163d3010;margin-bottom:18px}h1{font-size:27px;margin:0 0 8px}h2{font-size:20px;margin:0 0 10px}p{color:#53685c}label{display:block;font-weight:650;font-size:13px;margin:13px 0 5px}input,select{width:100%;border:1px solid #b4c8b8;border-radius:9px;padding:12px;font:inherit;background:#fff;color:#16372d}button{background:#22664c;border:1px solid #22664c;color:#fff;border-radius:9px;padding:11px 17px;font:600 14px system-ui;cursor:pointer;margin:8px 7px 0 0}button.secondary{background:#fff;color:#22573e}button:disabled{opacity:.55;cursor:not-allowed}.status{white-space:pre-wrap;background:#f0f5ed;border-radius:9px;padding:12px;color:#244d3c;margin-top:14px}.warning{background:#fff8e6;border:1px solid #ead69e;border-radius:9px;padding:12px;color:#70561c}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.small{font-size:12px}.row{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}a{color:#216749}[hidden]{display:none!important}@media(max-width:650px){.grid{grid-template-columns:1fr}} 
+</style></head><body>
+<header><strong>Oaktown Ops</strong> <span> · Private property pilot v0.3</span></header>
+<main>
+<section id="loginPanel" class="card">
+<h1>Administrator sign in</h1><p>Only your approved Supabase administrator account can load Oaktown property and notice addressee records.</p>
+<label for="email">Email</label><input id="email" type="email" autocomplete="username" value="huzaifashaikhmaths@gmail.com">
+<label for="password">Password</label><input id="password" type="password" autocomplete="current-password" placeholder="Your Supabase Auth password">
+<button id="signIn">Sign in</button><button id="sendLink" class="secondary">Email me a sign-in link</button>
+<p class="small">Sign-in links require the Supabase Auth redirect URL allowlist to include this preview page. If the email link redirects elsewhere, use password sign-in or update the Supabase redirect settings.</p>
+</section>
+<section id="propertyPanel" class="card" hidden>
+<div class="row"><div><h1>Property database</h1><p id="account"></p></div><button id="signOut" class="secondary">Sign out</button></div>
+<div class="warning">Pilot only. These notice addressees and property addresses have not been independently verified. The landlord/entity is missing for all imported properties. Verify the landlord, tenant names, ledger and dates before generating or sending any legal notice.</div>
+<label for="property">Select a property</label><select id="property"></select>
+<div id="detail" class="card" style="margin-top:15px"></div>
+<button id="openGenerator" disabled>Load selected record into notice generator</button><button id="reload" class="secondary">Refresh from Supabase</button>
+<p class="small">This handoff copies the selected record into the existing generator's browser-local workspace. It does not upload notices or ledger amounts to Supabase. The generator itself remains a separate local tool and should not be treated as a secure tenant database.</p>
+</section>
+<div id="status" class="status" role="status" aria-live="polite">Ready.</div>
+<p class="small">Private pilot URL only. The existing production site and v0.2.2 notice generator have not been replaced. Do not share screenshots containing tenant names or leave this session open on shared computers.</p>
+</main>
+<script>
+(()=>{
+'use strict';
+const URL='https://wjdzaexhhjsjtdgxivyw.supabase.co';
+const KEY='sb_publishable_urQMXLaHY5J2ALLmCRoCjA_47yOehbD';
+const EXPECTED='huzaifashaikhmaths@gmail.com';
+const STORAGE='oaktown-pilot-session-v03';
+const NOTICE_STORAGE='oaktown_7day_notice_generator_v1';
+const $=id=>document.getElementById(id);
+let session=null,records=[];
+const status=t=>{$('status').textContent=t};
+const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function request(path,options={}){
+ const response=await fetch(URL+path,{...options,headers:{'apikey':KEY,'Content-Type':'application/json',...(session?.access_token?{'Authorization':'Bearer '+session.access_token}:{}),...(options.headers||{})}});
+ let body;try{body=await response.json()}catch{body={}};
+ if(!response.ok)throw Error(body.msg||body.message||body.error_description||body.error||'Request failed ('+response.status+')');
+ return body;
+}
+function storeSession(s){session=s;if(s)sessionStorage.setItem(STORAGE,JSON.stringify(s));else sessionStorage.removeItem(STORAGE)}
+async function verifyAndLoad(){
+ if(!session?.access_token)throw Error('Please sign in.');
+ const user=await request('/auth/v1/user');
+ if(user.email?.toLowerCase()!==EXPECTED)throw Error('This email is not the approved Oaktown administrator.');
+ const staff=await request('/rest/v1/staff_memberships?select=role,is_active&user_id=eq.'+encodeURIComponent(user.id));
+ if(staff.length!==1||staff[0].role!=='admin'||!staff[0].is_active)throw Error('Your account has not been approved as administrator.');
+ $('account').textContent='Signed in as '+user.email;
+ $('loginPanel').hidden=true;$('propertyPanel').hidden=false;
+ await loadProperties();
+}
+async function loadProperties(){
+ const [properties,addressees]=await Promise.all([
+  request('/rest/v1/properties?select=id,street_address,unit,city,state,postal_code,landlord_entity,verification_status&order=street_address.asc'),
+  request('/rest/v1/property_addressees?select=property_id,notice_addressee_text,verification_status')
+ ]);
+ const byId=new Map(addressees.map(a=>[a.property_id,a]));
+ records=properties.map(p=>({...p,addressee:byId.get(p.id)||null}));
+ $('property').replaceChildren(new Option('Select a property',''),...records.map((p,i)=>new Option(p.street_address+', '+p.city+' '+p.postal_code,String(i))));
+ $('openGenerator').disabled=true;$('detail').textContent='Select a property to view its stored notice addressee.';
+ status('Securely loaded '+records.length+' properties and '+addressees.length+' addressee records from Supabase.');
+}
+$('property').addEventListener('change',()=>{
+ const p=records[Number($('property').value)];
+ if(!p||$('property').value===''){$('openGenerator').disabled=true;$('detail').textContent='Select a property.';return}
+ $('detail').innerHTML='<h2>'+escapeHtml(p.street_address)+'</h2><p>'+escapeHtml([p.city,p.state,p.postal_code].join(' '))+'</p><p><strong>Notice addressee:</strong> '+escapeHtml(p.addressee?.notice_addressee_text||'Missing')+'</p><p><strong>Landlord:</strong> '+escapeHtml(p.landlord_entity||'Not verified — must be entered manually')+'</p><p class="small">Property: '+escapeHtml(p.verification_status)+' · Addressee: '+escapeHtml(p.addressee?.verification_status||'missing')+'</p>';
+ $('openGenerator').disabled=!p.addressee;
+});
+$('openGenerator').addEventListener('click',()=>{
+ const p=records[Number($('property').value)];if(!p?.addressee)return;
+ const confirmText='This will replace the currently selected local notice with the selected address and notice addressee. Unsaved local changes to that notice may be overwritten. The landlord will be left blank for verification. Continue?';
+ if(!confirm(confirmText))return;
+ let data;try{data=JSON.parse(localStorage.getItem(NOTICE_STORAGE)||'null')}catch{}
+ if(!data||!Array.isArray(data.notices)||!data.notices.length){data={properties:[],notices:[],selected:null}}
+ const id='pilot-'+Date.now().toString(36);
+ const date=new Date();const today=new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,10);
+ const notice={id,tenant:p.addressee.notice_addressee_text,street:p.street_address+(p.unit?' '+p.unit:''),cityline:p.city+', '+p.state+' '+p.postal_code,owner:'',noticeDate:today,refNumber:'',firmSender:'',charges:[{id:'charge-'+Date.now().toString(36),dueDate:'',category:'RENT',description:'',status:'DUE',amount:'',amountDue:''}]};
+ data.notices.push(notice);data.selected=id;
+ if(!Array.isArray(data.properties))data.properties=[];
+ if(!data.properties.some(x=>x.street===notice.street&&x.cityline===notice.cityline))data.properties.push({id:p.id,street:notice.street,cityline:notice.cityline,owner:''});
+ try{localStorage.setItem(NOTICE_STORAGE,JSON.stringify(data));location.href='../preview-v02/generator.html'}catch(e){status('Could not save local notice: '+e.message)}
+});
+$('signIn').addEventListener('click',async()=>{
+ $('signIn').disabled=true;
+ try{
+  const email=$('email').value.trim().toLowerCase();if(email!==EXPECTED)throw Error('Use the approved administrator email.');
+  const s=await request('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password:$('password').value})});
+  storeSession(s);$('password').value='';await verifyAndLoad();
+ }catch(e){storeSession(null);status('Sign in failed: '+e.message)}
+ finally{$('signIn').disabled=false}
+});
+$('sendLink').addEventListener('click',async()=>{
+ try{
+  if($('email').value.trim().toLowerCase()!==EXPECTED)throw Error('Use the approved administrator email.');
+  await request('/auth/v1/otp',{method:'POST',body:JSON.stringify({email:EXPECTED,create_user:false,email_redirect_to:location.href.split('#')[0].split('?')[0]})});
+  status('If email sign-in is enabled, check your inbox. Complete the sign-in using the link.');
+ }catch(e){status('Could not send link: '+e.message)}
+});
+$('signOut').addEventListener('click',async()=>{
+ try{await request('/auth/v1/logout',{method:'POST'})}catch{}
+ storeSession(null);records=[];$('propertyPanel').hidden=true;$('loginPanel').hidden=false;status('Signed out.');
+});
+$('reload').addEventListener('click',()=>loadProperties().catch(e=>status('Refresh failed: '+e.message)));
+(async()=>{
+ try{
+  const hash=new URLSearchParams(location.hash.slice(1));
+  if(hash.has('access_token')){storeSession({access_token:hash.get('access_token'),refresh_token:hash.get('refresh_token')});history.replaceState(null,'',location.pathname);await verifyAndLoad();return}
+  const params=new URLSearchParams(location.search);
+  if(params.has('code')){const code=params.get('code');const s=await request('/auth/v1/token?grant_type=pkce',{method:'POST',body:JSON.stringify({auth_code:code,code_verifier:sessionStorage.getItem('oaktown-pkce-verifier')||''})});storeSession(s);history.replaceState(null,'',location.pathname);await verifyAndLoad();return}
+  const saved=sessionStorage.getItem(STORAGE);
+  if(saved){session=JSON.parse(saved);try{await verifyAndLoad()}catch(e){if(session.refresh_token){const s=await request('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});storeSession(s);await verifyAndLoad()}else throw e}}
+ }catch(e){storeSession(null);$('loginPanel').hidden=false;$('propertyPanel').hidden=true;status('Please sign in: '+e.message)}
+})();
+})();
+</script></body></html>
