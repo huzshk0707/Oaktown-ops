@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#153e35">
+  <meta name="description" content="Oaktown Ops: a working space for notice drafts, mailing preparation, and court follow-up.">
+  <title>Oaktown Ops — Notice workspace</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23153e35'/%3E%3Cpath d='M32 10c-13 9-21 22-13 30 4 4 9 4 13 0 4 4 9 4 13 0 8-8 0-21-13-30Zm0 18v25' stroke='%23dfc892' stroke-width='4' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./model.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to workspace</a>
+  <aside class="sidebar" aria-label="Workspace navigation">
+    <a class="brand" href="./"><span class="brand-mark">O</span><span>OAKTOWN<span class="brand-sub">OPERATIONS WORKSPACE</span></span></a>
+    <div class="workspace-label">YOUR WORKSPACE</div>
+    <nav aria-label="Main">
+      <button data-view="notices" class="nav-button active" aria-current="page"><span aria-hidden="true">▤</span> Notice studio <span class="nav-count" id="nav-count">3</span></button>
+      <button data-view="mailing" class="nav-button"><span aria-hidden="true">▱</span> Mailing worksheet</button>
+      <button data-view="filing" class="nav-button"><span aria-hidden="true">◷</span> Court follow-up</button>
+    </nav>
+    <div class="sidebar-footer"><span class="version">FIRST RELEASE · v0.1</span><p>A little more organized.<br>One step at a time.</p><a href="https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Share feedback ↗</a><small>Public feedback: omit personal details.</small></div>
+  </aside>
+  <div class="shell">
+    <header class="topbar"><span>Oaktown Ops <span class="slash">/</span> <span id="breadcrumb">Notice studio</span></span><span class="session"><span class="dot"></span> Practice session</span></header>
+    <main id="main" tabindex="-1">
+      <div class="page-heading"><div><div class="eyebrow">A CLEARER DAY AT THE OFFICE</div><h1 id="page-title">Notice studio</h1><p id="page-description">Turn the details into a clear, reviewable draft.</p></div><button class="button primary" id="new-notice">+ New notice</button></div>
+      <div class="session-banner"><span class="banner-icon" aria-hidden="true">i</span><div><strong>Try it with sample data.</strong> Changes stay in this tab and are lost on refresh. Nothing you type is saved to GitHub.</div></div>
+      <section class="stats" aria-label="Session overview"><div><span>Working drafts</span><strong id="stat-count">3</strong></div><div><span>Statement balance</span><strong id="stat-total">$3,300.00</strong></div><div><span>Selected for mailing</span><strong id="stat-mail">3</strong></div></section>
+      <div class="notice-switcher"><label for="notice-picker">Working notice</label><select id="notice-picker"></select><span class="muted" id="notice-id"></span></div>
+      <section id="notices-view" class="view">
+        <div class="studio-grid">
+          <div class="editor">
+            <section class="card"><div class="card-title"><span class="step">01</span><h2>People & place</h2></div>
+              <div class="fields two"><label>Sender name<input id="sender-name" data-sender="name" maxlength="200" autocomplete="off"></label><label>Notice date<input id="notice-date" data-notice="date" type="date"></label></div>
+              <label>Return address<textarea id="sender-address" data-sender="address" rows="2" maxlength="600"></textarea></label>
+              <label>Recipient names<input id="recipient" data-notice="recipient" maxlength="500" autocomplete="off" placeholder="Names as they should appear"></label>
+              <label class="checkbox-label"><input id="occupants" data-notice="occupants" type="checkbox"> Include “& All Occupants”</label>
+              <label>Recipient address<textarea id="address" data-notice="address" rows="2" maxlength="600" placeholder="Street, unit, city, state and ZIP"></textarea></label>
+            </section>
+            <section class="card"><div class="card-title"><span class="step">02</span><h2>Current statement</h2><button class="text-button" id="add-line">+ Add line</button></div><div id="charge-editor"></div><div class="total-line"><span>Total amount due</span><strong id="editor-total"></strong></div></section>
+            <section class="card"><div class="card-title"><span class="step">03</span><h2>Wording & sign-off</h2></div>
+              <label>Notice heading<input id="notice-title" data-notice="title" maxlength="300"></label>
+              <label>Message<textarea id="notice-body" data-notice="body" rows="6" maxlength="12000"></textarea></label><p class="field-hint">Use {{total}} for the balance and {{date}} for the notice date. Start with a payment reminder; approved legal wording can be added later.</p>
+              <label>Sign-off<textarea id="signoff" data-notice="signoff" rows="2" maxlength="500"></textarea></label>
+            </section>
+          </div>
+          <section class="preview-column" aria-labelledby="preview-heading"><div class="preview-toolbar"><div><span class="eyebrow">LIVE DOCUMENT</span><h2 id="preview-heading">Draft preview</h2></div><button class="button" id="print-notice">Print draft</button></div><div id="validation" class="validation" aria-live="polite"></div><div id="notice-preview"></div><p class="preview-note">Drafts are for review. Notice wording, amounts, and service requirements need approval before use.</p></section>
+        </div>
+      </section>
+      <section id="mailing-view" class="view" hidden>
+        <section class="card"><div class="card-title"><span class="step">01</span><h2>Build your mailing list</h2></div><p class="muted">Choose notices and add tracking numbers when available. The worksheet keeps their order.</p><div id="mailing-editor"></div></section>
+        <div class="section-heading"><div><h2>Mailing worksheet</h2><p class="muted">A preparation aid, not an approved USPS Form 3877 or proof of mailing.</p></div><button class="button" id="print-mailing">Print worksheet</button></div>
+        <div id="mailing-validation" class="validation" aria-live="polite"></div><div id="mailing-preview"></div>
+      </section>
+      <section id="filing-view" class="view" hidden>
+        <div class="filing-grid"><section class="card"><div class="card-title"><span class="step">09</span><h2>Attorney filing confirmation</h2></div><p class="muted">Record the filing update received by email.</p><label class="checkbox-label"><input type="checkbox" id="filing-confirmed" data-filing="confirmed"> Attorney has confirmed the filing</label>
+          <label>Confirmation date<input id="filing-confirmedDate" data-filing="confirmedDate" type="date"></label><label>Email reference<input id="filing-reference" data-filing="reference" maxlength="500" placeholder="Subject or internal reference"></label><p class="field-hint">Manual record only. No inbox connection or court filing is performed.</p>
+        </section><section class="card"><div class="card-title"><span class="step">10</span><h2>Court date & reminder plan</h2></div><fieldset id="court-fields"><legend class="visually-hidden">Court and reminder details</legend><div class="fields two"><label>Court date<input id="filing-courtDate" data-filing="courtDate" type="date"></label><label>Court time (optional)<input id="filing-courtTime" data-filing="courtTime" type="time"></label></div><label>Court timezone<input id="filing-timezone" data-filing="timezone" maxlength="100" placeholder="e.g. America/New_York"></label><div class="fields two"><label>Reminder date<input id="filing-reminderDate" data-filing="reminderDate" type="date"></label><label>Responsible person<input id="filing-owner" data-filing="owner" maxlength="200"></label></div><label>Plan / notes<textarea id="filing-notes" data-filing="notes" rows="4" maxlength="4000"></textarea></label></fieldset><p class="field-hint"><strong>No notifications are sent.</strong> This is a plan you must carry out manually.</p></section></div><div id="filing-validation" class="validation" aria-live="polite"></div><section id="filing-summary" class="card"></section>
+      </section>
+      <footer class="page-footer"><span>Oaktown Ops · Built around the way you work.</span><a href="https://github.com/huzshk0707/Oaktown-ops/blob/main/docs/RELEASE-0.1.md" target="_blank" rel="noopener noreferrer">What’s in this version ↗</a></footer>
+    </main>
+  </div>
+  <div id="print-root"></div><div id="announcement" class="visually-hidden" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Enable JavaScript to use this workspace.</p></noscript>
+</body>
+</html>

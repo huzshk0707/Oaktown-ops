@@ -1,6 +1,10 @@
 # Requirements and decision register
 
-Status: partial baseline, 2026-10-25.
+Status: partial baseline with v0.1 update, 2026-10-25.
+
+## Subsequent instruction and first release
+
+The user has now authorized implementation with available material and iterative testing/feedback. PROJECT-004's documentation-first phase is complete. v0.1 provisionally implements the candidate features below as a browser prototype; the proposals are not presented as recovered historical decisions. See [release notes](RELEASE-0.1.md) for exact behavior and limits.
 
 Evidence labels:
 - **Confirmed**: explicitly stated by the user in the current chat or recovered source exchange.
@@ -15,7 +19,7 @@ Evidence labels:
 | PROJECT-001 | Confirmed | Project name is Oaktown Ops; repository is Oaktown-ops. | Current chat |
 | PROJECT-002 | Confirmed | Work directly on GitHub without a local project clone. | Current chat |
 | PROJECT-003 | Confirmed | Repository is public. | Current chat and repository metadata |
-| PROJECT-004 | Confirmed | Prepare documentation before starting the software build. | Current request |
+| PROJECT-004 | Completed phase | Prepare documentation before starting the software build; now superseded by the instruction to begin implementation and iterate. | Current chat |
 | PROJECT-005 | Confirmed | Use the referenced project chat as the planning source. | Current request |
 | NOTICE-001 | Confirmed | Notice generation is an intended area of work. | Source exchange T1 |
 | NOTICE-002 | Confirmed | The three supplied notices illustrate the intended kind of notice. | T2 |

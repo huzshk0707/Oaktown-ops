@@ -1,6 +1,6 @@
 # Oaktown Ops: project brief
 
-Status: discovery and documentation only. Last updated: 2026-10-25.
+Status: v0.1 implementation underway under the user's subsequent instruction. The original discovery baseline remains below for context. Last updated: 2026-10-25.
 
 ## Introduction
 
@@ -8,7 +8,11 @@ Oaktown Ops is a planned operations application. The recoverable source material
 
 The immediate area of interest is a notice generator based on existing past-due notice examples. A firm mailing book is also part of the existing process. Two later steps in an eviction workflow are explicitly documented.
 
-## Current instructions
+## Updated direction
+
+The user has instructed us to begin building with available information, then refine through use, tests, and feedback. v0.1 uses a provisional buildless browser app with in-memory sample data and GitHub Pages hosting. See [release notes](RELEASE-0.1.md). This supersedes the earlier pause on implementation; missing source decisions remain unknown.
+
+## Original documentation-phase instructions
 
 - Keep project files and future code directly on GitHub, with no local project checkout.
 - The repository is public.
@@ -32,7 +36,7 @@ No verified decision is available for hosting, framework, database, authenticati
 
 ## Project disclaimer
 
-This repository currently contains an incomplete discovery baseline, not a working application or a complete reconstruction of the original conversation. Confirmed user statements, observations from supplied documents, and proposed requirements are distinguished throughout.
+This repository contains an early working prototype and an incomplete discovery baseline. It is not a complete reconstruction of the original conversation or a production-ready application. Confirmed user statements, observations from supplied documents, and proposed requirements are distinguished throughout.
 
 Existing notice language is a historical source example. Its inclusion in requirements does not establish legal validity, current statutory compliance, correct service, an enforceable deadline, or authorization to send a notice or initiate an eviction. No legal or postal rules have been independently validated in this documentation pass. Appropriate review is needed before any future operational use.
 

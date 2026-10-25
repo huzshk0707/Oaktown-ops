@@ -1,0 +1,46 @@
+name: First-release feedback
+description: Report what happened while trying Oaktown Ops.
+title: "[Feedback] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing! This is a public repository. Use sample names and amounts.
+        Do not include tenant details, private addresses, legal documents, or credentials.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Notice studio
+        - Statement calculations
+        - Printing
+        - Mailing worksheet
+        - Court follow-up
+        - General experience
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: What did you try?
+      description: Include steps using synthetic data.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: e.g. Chrome on Windows, Safari on iPhone

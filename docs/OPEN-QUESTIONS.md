@@ -1,6 +1,6 @@
 # Open questions and next steps
 
-Status: documentation only; implementation has not started.
+Status: v0.1 implementation authorized; outstanding discovery questions remain.
 
 ## First priority: recover the missing discussion
 
@@ -24,7 +24,11 @@ Recover the earlier module list, decisions, LEGAL-001 Steps 1-8, any later workf
 
 These questions record gaps; they do not override choices that may already exist in the missing source.
 
-## Proposed next sequence
+## Updated sequence
+
+The user has chosen to start building with the information available and refine through use and feedback. The first-release browser app is a provisional implementation; the missing-source questions above remain open and should be reconciled when more information arrives.
+
+## Earlier proposed sequence (superseded by the instruction to begin building)
 
 1. Recover and reconcile the full original discussion.
 2. Review the consolidated scope and distinguish confirmed requirements from proposals.
