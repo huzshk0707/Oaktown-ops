@@ -1,6 +1,6 @@
 # Oaktown Ops v0.2 — exact-layout notice integration
 
-Status: feature branch for review; **not** yet merged or published on the production GitHub Pages URL.
+Status: development branch for review; **not merged into the main application**. A separate test preview is published at https://huzshk0707.github.io/Oaktown-ops/preview-v02/ while the original homepage still serves v0.1.
 
 ## What changed
 - Retained the v0.1 Oaktown Ops green sidebar, navigation language, responsive shell, and feedback access.
@@ -30,3 +30,24 @@ Status: feature branch for review; **not** yet merged or published on the produc
 7. Open court follow-up and confirm it clearly remains a separate, manual legacy prototype.
 
 No migration of actual tenant case records has been performed.
+
+## User feedback incorporated — tenant message and navigation (v0.2.1)
+
+- Removed the redundant top-level Firm Mailing Book navigation item. The same notice generator still provides its internal Firm Book preview and printing.
+- Removed the "Open full-screen generator" link from the app shell. All primary actions remain inside Oaktown Ops.
+- Added a dedicated **Tenant message** tab with a visible read-only text preview and **Copy text** button.
+- The message is extracted directly from the same generated notice's rendered HTML (no separate maintained wording): tenant/occupants name and property address, past-due heading, date, greeting, 7-day heading, all notice paragraphs, and the existing sign-off.
+- The message excludes only the **sender/owner return-address block** and **Current statement title and charge table**, as requested.
+- Copy is disabled if tenant name, property address, date, or amount-due entries are incomplete; the app shows the reason.
+- Clipboard copy occurs only when the user presses the button. No email or TurboTenant message is sent automatically.
+- Tenant email identifiers, contact records, message workflow checklists, and delivery automation are **future features**, not implied to exist in this build.
+- Original notice PDF and USPS Firm Book rendering rules were not changed as part of these updates.
+
+### Manual testing still needed
+
+1. In **7-day notices**, select a fictional tenant and add a verified amount.
+2. Open **Tenant message**; verify the names, full property address, greeting, heading, notice body and sign-off match the notice PDF.
+3. Verify there is **no P.O. Box sender block and no Current statement table** in the copied message.
+4. Select **Copy text** and paste into a blank local note. Confirm paragraph breaks and the highlighted amount render as ordinary text with the exact dollar amount.
+5. Edit the notice amount or switch selected notice, return to **Tenant message**, and ensure the text refreshes correctly.
+6. Confirm the Firm Book preview/print remains available inside **7-day notices**.
