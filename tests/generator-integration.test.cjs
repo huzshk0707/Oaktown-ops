@@ -28,7 +28,7 @@ test('Firm Book uses original embedded form with eight entries per sheet', () =>
   assert.ok(generator.includes('formEntry(n,j)'));
   assert.ok(generator.includes('11in 8.5in'));
 });
-test('shell preserves full screen generator and separate legacy court notes', () => {
+test('shell retains the integrated generator and separate legacy court notes', () => {
   assert.ok(shell.includes('generator.html?embedded=1'));
   assert.ok(shell.includes('legacy.html'));
   assert.ok(shell.includes('oaktown-view'));
@@ -38,4 +38,25 @@ test('document data is not fetched from or posted to an external service', () =>
   assert.ok(!/<script[^>]+src=/i.test(generator));
   assert.ok(!/\bfetch\s*\(/.test(generator));
   assert.ok(!/XMLHttpRequest/.test(generator));
+});
+
+test('tenant message uses live printed notice blocks and excludes the return address and statement', () => {
+  const fn = generator.slice(generator.indexOf('function tenantMessageFromNotice('), generator.indexOf('function tenantMessageIssues('));
+  assert.ok(fn.startsWith('function tenantMessageFromNotice('));
+  for(const selector of ["'.recipient'","'.overdue'","'.notice-date'","'.greeting'","'.headline'","'.letter p'"])
+    assert.ok(fn.includes(selector),selector);
+  assert.ok(fn.includes('noticePages(n)[0]'), 'must read the printed notice HTML');
+  assert.ok(!fn.includes('.sender'), 'must exclude owner return address');
+  assert.ok(!fn.includes('.statement'), 'must exclude current statement table');
+  assert.ok(fn.includes(String.raw`join('\\n\\n')`), 'must preserve paragraph breaks');
+});
+test('tenant message has one working copy button and no duplicate Firm Book tab', () => {
+  assert.ok(shell.includes('data-workspace="message"'));
+  assert.ok(shell.includes('id="copy-message"'));
+  assert.ok(shell.includes('navigator.clipboard.writeText'));
+  assert.ok(shell.includes('tenant-message-text'));
+  assert.ok(!shell.includes('data-workspace="firm"'));
+  assert.ok(!shell.includes('id="fullscreen-link"'));
+  assert.ok(generator.includes("event.data.type==='oaktown-tenant-message-request'"));
+  assert.ok(generator.includes("type:'oaktown-tenant-message'"));
 });
