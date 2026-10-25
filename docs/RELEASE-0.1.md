@@ -71,4 +71,4 @@ Browser and print checks must be recorded separately; passing pure-model tests a
 
 GitHub Pages should use main and /(root), with the included .nojekyll file. Repository-relative assets support the /Oaktown-ops/ project URL.
 
-The first release is ready for iterative feedback once the Pages build completes.
+The first release is live on GitHub Pages. See [verification results and remaining manual checks](TESTING.md).
