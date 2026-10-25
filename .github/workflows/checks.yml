@@ -16,3 +16,29 @@ jobs:
           node --check app.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
+
+  browser-downloads:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install browser test tooling
+        run: npm install --no-save --no-fund --no-audit @playwright/test@1.56.1
+      - name: Install Chromium for visual PDF download tests
+        run: npx playwright install --with-deps chromium
+      - name: Serve app locally
+        run: |
+          nohup python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/oaktown-browser-server.log 2>&1 &
+          sleep 2
+          curl --fail http://127.0.0.1:8765/generator.html >/dev/null
+      - name: Test single PDFs and batch ZIP
+        run: npx playwright test tests/downloads.e2e.spec.cjs --reporter=line --workers=1
+      - name: Upload browser test diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oaktown-pdf-download-debug
+          path: |
+            test-results/
+            /tmp/oaktown-browser-server.log
+          if-no-files-found: ignore
