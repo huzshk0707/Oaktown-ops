@@ -44,7 +44,7 @@ test('single notice PDF uses property filename and correct PDF page geometry', a
   expect(pdfSummary(bytes).pageCount).toBe(1);
   expect(bytes.length).toBeGreaterThan(5000);
   const text=bytes.toString('latin1');
-  expect(text).toContain('/MediaBox [0 0 612 792]');
+  expect(text).toMatch(/\/MediaBox\s*\[\s*0(?:\.0*)?\s+0(?:\.0*)?\s+612(?:\.0*)?\s+792(?:\.0*)?\s*\]/);
   await expect(page.locator('#downloadStatus')).toContainText('PDF downloaded');
 });
 
