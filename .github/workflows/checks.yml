@@ -1,7 +1,7 @@
-name: Check first release
+name: Check Oaktown Ops
 on:
   push:
-    branches: [main]
+    branches: [main, feature/**]
   pull_request:
 permissions:
   contents: read
@@ -15,4 +15,4 @@ jobs:
           node --check model.js
           node --check app.js
       - name: Test calculations and workflow validation
-        run: node --test tests/model.test.cjs
+        run: node --test tests/*.test.cjs
