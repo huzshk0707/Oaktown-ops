@@ -55,7 +55,7 @@
     return '<article class="document"><div class="draft-strip"><span>OAKTOWN OPS · WORKING DRAFT</span><span>FOR REVIEW ONLY</span></div>' +
       '<div class="sender">' + e(state.sender.name || 'Sender name') + '<span>' + lines(state.sender.address || 'Return address') + '</span></div>' +
       '<div class="date-line">' + e(M.displayDate(n.date)) + '</div><div class="recipient">' + e(n.recipient ? recipient(n) : 'Recipient names') + '<br>' + lines(n.address || 'Recipient address') + '</div>' +
-      '<h2>' + e(n.title || 'Notice heading') + '</h2><p>Dear Tenant(s) and all occupants,</p><p>' + lines(body) + '</p>' +
+      '<h2>' + e(n.title || 'Notice heading') + '</h2><p>' + (n.occupants ? 'Dear Tenant(s) and all occupants,' : 'Dear Tenant(s),') + '</p><p>' + lines(body) + '</p>' +
       '<div class="balance"><span>Current amount due</span><strong>' + e(M.money(amount)) + '</strong></div><p>Sincerely,<br>' + lines(n.signoff) + '</p><h3>Current statement</h3>' +
       '<table class="statement"><thead><tr><th scope="col">Due date</th><th scope="col">Description</th><th scope="col">Status</th><th class="numeric" scope="col">Amount</th><th class="numeric" scope="col">Due</th></tr></thead><tbody>' +
       n.charges.map(r => '<tr><td>' + e(M.displayDate(r.date)) + '</td><td>' + e(r.description) + '<small>' + e(r.category) + '</small></td><td>' + M.rowStatus(r) + '</td><td class="numeric">' + e(M.money(M.cents(r.amount))) + '</td><td class="numeric">' + e(M.money(M.cents(r.due))) + '</td></tr>').join('') +
