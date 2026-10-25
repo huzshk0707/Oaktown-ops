@@ -31,7 +31,13 @@
 </div>
 <div class="intro-note" id="studio-alert"><strong>Private information:</strong> This pilot signs in to Supabase for property lookup, but the notice editor still stores drafts in browser storage. The entire document studio is not yet access-gated. Use only a trusted device. Verify wording, dates, charges, legal requirements, landlord identity and postal acceptance before use.</div>
 <section id="pilot-auth" class="message-card" style="margin-bottom:16px"><h2>Administrator sign in</h2><p>Sign in to load your private Supabase property database directly into Notice Studio.</p><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end"><label style="flex:1;min-width:220px">Email<input id="pilot-email" type="email" value="huzaifashaikhmaths@gmail.com" style="display:block;width:100%;padding:10px;margin-top:5px"></label><label style="flex:1;min-width:220px">Supabase password<input id="pilot-password" type="password" autocomplete="current-password" style="display:block;width:100%;padding:10px;margin-top:5px"></label><button class="button primary" id="pilot-login">Sign in</button></div><p id="pilot-auth-status" role="status" style="font-size:12px;margin-top:10px"></p></section>
-<section id="pilot-properties" class="message-card" hidden style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Supabase property database</h2><button class="button" id="pilot-logout">Sign out</button></div><p>Choose an existing property and load it directly into the notice below. The landlord and charges must be verified.</p><label for="pilot-property">Saved properties in Supabase</label><select id="pilot-property" style="display:block;width:100%;padding:11px;margin:8px 0"></select><button class="button primary" id="pilot-load">Load into Notice Studio</button><p id="pilot-status" role="status" style="font-size:12px"></p><p style="font-size:12px">This loads records from Supabase, not from the browser's saved-property list. The older Save Property button below still saves only to this browser.</p></section>
+<section id="pilot-properties" class="message-card" hidden style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Supabase property database</h2><button class="button" id="pilot-logout">Sign out</button></div><p>Choose an existing property and load it directly into the notice below. The landlord and charges must be verified.</p><label for="pilot-property">Saved properties in Supabase</label><select id="pilot-property" style="display:block;width:100%;padding:11px;margin:8px 0"></select><button class="button primary" id="pilot-load">Load into Notice Studio</button><div style="border:1px solid #d6dfd2;border-radius:9px;padding:13px;margin:13px 0">
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between"><strong>Choose multiple properties</strong><span id="pilot-count" style="font-size:12px">0 selected</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:9px 0"><button class="button" type="button" id="pilot-select-all">Select all</button><button class="button" type="button" id="pilot-clear-all">Clear selection</button></div>
+<div id="pilot-checklist" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;max-height:290px;overflow:auto"></div>
+<button class="button primary" type="button" id="pilot-load-selected">Load selected properties into notices</button>
+<button class="button" type="button" id="pilot-load-all">Load all 13 properties</button>
+</div><p id="pilot-status" role="status" style="font-size:12px"></p><p style="font-size:12px">This loads records from Supabase, not from the browser's saved-property list. The older Save Property button below still saves only to this browser.</p></section>
 <div id="generator-area"><iframe class="studio-frame" id="studio-frame" title="Notice and Firm Mailing Book generator" src="generator.html?embedded=1&amp;view=notices&amp;v=0.3" loading="eager"></iframe></div>
 <section id="message-area" class="message-card" hidden aria-labelledby="message-title">
   <div class="message-top">
@@ -141,6 +147,14 @@ async function load(){
  const [props,people]=await Promise.all([api('/rest/v1/properties?select=id,street_address,unit,city,state,postal_code,landlord_entity&order=street_address.asc'),api('/rest/v1/property_addressees?select=property_id,notice_addressee_text')]);
  const map=new Map(people.map(x=>[x.property_id,x.notice_addressee_text]));
  records=props.map(x=>({...x,tenant:map.get(x.id)||''}));
+ const list=$('pilot-checklist');list.replaceChildren();
+ records.forEach((p,i)=>{
+  const label=document.createElement('label');label.style.cssText='display:flex;gap:8px;align-items:center;padding:8px;border:1px solid #d6dfd2;border-radius:8px;font-size:13px';
+  const check=document.createElement('input');check.type='checkbox';check.dataset.propertyIndex=String(i);check.style.width='auto';
+  const name=document.createElement('span');name.textContent=p.street_address+', '+p.postal_code;
+  label.append(check,name);list.append(label);
+ });
+ updateCount();$('pilot-load-all').textContent='Load all '+records.length+' properties';
  $('pilot-property').replaceChildren(new Option('Select a property',''),...records.map((p,i)=>new Option(p.street_address+', '+p.city+' '+p.postal_code,String(i))));
  $('pilot-auth').hidden=true;$('pilot-properties').hidden=false;
  msg('pilot-status',records.length+' properties loaded from Supabase. Landlord/entity information remains unverified.');
@@ -154,6 +168,23 @@ $('pilot-login').addEventListener('click',async()=>{
  finally{$('pilot-login').disabled=false}
 });
 $('pilot-logout').addEventListener('click',async()=>{try{await api('/auth/v1/logout',{method:'POST'})}catch{}store(null);records=[];$('pilot-properties').hidden=true;$('pilot-auth').hidden=false;msg('pilot-auth-status','Signed out.');});
+function selectedIndices(){return [...$('pilot-checklist').querySelectorAll('input[type="checkbox"]:checked')].map(x=>Number(x.dataset.propertyIndex))}
+function updateCount(){const el=$('pilot-count');if(el)el.textContent=selectedIndices().length+' selected'}
+$('pilot-checklist').addEventListener('change',updateCount);
+$('pilot-select-all').addEventListener('click',()=>{$('pilot-checklist').querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=true);updateCount()});
+$('pilot-clear-all').addEventListener('click',()=>{$('pilot-checklist').querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=false);updateCount()});
+function importMany(items){
+ if(!items.length){msg('pilot-status','Select at least one property.');return}
+ const valid=items.filter(x=>x.tenant);
+ if(valid.length!==items.length){msg('pilot-status','Some properties have no notice addressee. Nothing imported.');return}
+ if(!confirm('Load '+valid.length+' properties into the notice batch? Existing database-linked notices will be refreshed without replacing their charges. Check every landlord, tenant, date and balance before use.'))return;
+ const payload=valid.map(p=>({id:p.id,street:p.street_address+(p.unit?' '+p.unit:''),cityline:p.city+', '+p.state+' '+p.postal_code,tenant:p.tenant,owner:p.landlord_entity||''}));
+ $('studio-frame').contentWindow?.postMessage({type:'oaktown-import-properties',properties:payload},location.origin);
+ msg('pilot-status','Loading '+valid.length+' properties into Notice Studio…');
+ document.querySelector('[data-workspace="notices"]').click();
+}
+$('pilot-load-selected').addEventListener('click',()=>importMany(selectedIndices().map(i=>records[i]).filter(Boolean)));
+$('pilot-load-all').addEventListener('click',()=>importMany(records));
 $('pilot-load').addEventListener('click',()=>{
  const index=$('pilot-property').value;if(index===''){msg('pilot-status','Select a property first.');return}
  const p=records[Number(index)];if(!p?.tenant){msg('pilot-status','This property has no notice addressee.');return}
@@ -165,7 +196,7 @@ $('pilot-load').addEventListener('click',()=>{
  msg('pilot-status','Sending selected property to the Notice Studio…');
  document.querySelector('[data-workspace="notices"]').click();
 });
-window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('studio-frame').contentWindow)return;if(e.data?.type==='oaktown-import-confirmed')msg('pilot-status','Property loaded into a new notice. Verify landlord, dates and charges.');});
+window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('studio-frame').contentWindow)return;if(e.data?.type==='oaktown-import-confirmed')msg('pilot-status',(e.data.added||0)+' new notices, '+(e.data.updated||0)+' existing notices refreshed. Verify landlord, dates and charges.');});
 (async()=>{try{const saved=sessionStorage.getItem(SESSION_KEY);if(!saved)return;store(JSON.parse(saved));try{await load()}catch(e){if(!session.refresh_token)throw e;const s=await api('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});store(s);await load()}}catch(e){store(null);msg('pilot-auth-status','Please sign in again: '+e.message)}})();
 })();
 </script></body></html>
