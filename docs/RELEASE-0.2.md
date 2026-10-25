@@ -51,3 +51,22 @@ No migration of actual tenant case records has been performed.
 4. Select **Copy text** and paste into a blank local note. Confirm paragraph breaks and the highlighted amount render as ordinary text with the exact dollar amount.
 5. Edit the notice amount or switch selected notice, return to **Tenant message**, and ensure the text refreshes correctly.
 6. Confirm the Firm Book preview/print remains available inside **7-day notices**.
+
+
+## Downloadable notice PDFs and ZIP batches (v0.2.2)
+
+Requested by the user during testing:
+- **Download property PDF** generates and downloads one US Letter PDF for the current notice. Its filename is the property's street address, for example 11 Edmonia Ave.pdf.
+- **Download batch ZIP** produces one separate PDF file per notice, inside a single Oaktown_7_Day_Notices_YYYY-MM-DD.zip download.
+- If two notices have the same street-address filename, the latter uses a (2), (3), etc. suffix. Invalid Windows filename characters are removed.
+- Both buttons use the existing noticePages() markup. The current letterhead, yellow balance, charge table, and multi-page continuation logic are unchanged.
+- The browser converts each notice page to a print-resolution image and puts it in a standard 8.5 × 11-inch PDF. This is a rasterized PDF, so its text may not be selectable or searchable. The previously existing browser-print route remains available under **Print options** for selectable text and troubleshooting.
+- No server receives notice data. The app includes locally vendored versions of html2canvas, jsPDF and JSZip, with retained upstream licenses; no CDN connection is needed at runtime.
+- Blank or incomplete notices are blocked from export, and staff must confirm a review warning before downloading.
+
+### Testing and limits
+- JavaScript/unit checks cover filenames, required local libraries, and preservation of original markup.
+- Headless Chromium end-to-end tests additionally download one property PDF, a two-page notice and a three-notice ZIP with duplicate-property names.
+- Generated PDFs must still be visually inspected against the original reference PDFs on the user's browser, including yellow highlighting, exact body wording, and multi-page tables.
+- Browser download permissions, the exact local download directory, and antivirus/network controls vary; in-browser download failures should offer print fallback.
+- Batches may require memory/time proportional to the number of PDF pages, since PDF rendering occurs on the device.
