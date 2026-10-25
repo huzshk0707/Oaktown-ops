@@ -110,8 +110,8 @@ function tenantMessageFromNotice(n) {
     if(element) parts.push(element.textContent.trim());
   }
   const paragraphs=wrapper.querySelectorAll('.letter p');
-  for(const paragraph of paragraphs) parts.push(paragraph.textContent.replace(/\\s+/g,' ').trim());
-  return parts.filter(Boolean).join('\\n\\n');
+  for(const paragraph of paragraphs) parts.push(paragraph.textContent.replace(/\s+/g,' ').trim());
+  return parts.filter(Boolean).join('\n\n');
 }
 function tenantMessageIssues(n) {
   const issues=[];
