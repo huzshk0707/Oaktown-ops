@@ -1,12 +1,12 @@
 # Oaktown Ops
 
-**v0.1 — a working prototype for testing and feedback.**
+**v0.2 feature branch — notice and Firm Book integration, under review.**
 
-[Open the workspace](https://huzshk0707.github.io/Oaktown-ops/) · [Share feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml)
+[Open the deployed v0.1 workspace](https://huzshk0707.github.io/Oaktown-ops/) · [Share feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml)
 
-Oaktown Ops is a planned rental-operations application. The first release focuses on notice drafts, mailing preparation, and manual court follow-up, based on the material recovered from the project discussion.
+Oaktown Ops is a planned rental-operations application. The current review branch integrates the original standalone 7-day notice and USPS Firm Mailing Book renderer into the Oaktown Ops shell while preserving the separate v0.1 court-follow-up prototype.
 
-## Try the first version
+## Try the current version
 
 1. Open the workspace and use the three fictional example notices.
 2. Change a recipient, address, or statement line and watch the draft update.
@@ -17,7 +17,9 @@ Oaktown Ops is a planned rental-operations application. The first release focuse
 
 **Edits are held in this browser tab only and disappear on refresh.** There is no shared saving, login, database, email connection, or notification delivery. Nothing entered into the workspace is sent to GitHub. Use fictional data while evaluating this prototype.
 
-## Included
+For the new work see [v0.2 integration and review checklist](docs/RELEASE-0.2.md). This branch has **not been merged**, and the public Pages link still serves the v0.1 release.
+
+## v0.1 included
 
 - Editable sender, recipient, address, date, wording, and sign-off.
 - Editable statement lines with exact-cent totals and validation.
