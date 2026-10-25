@@ -48,7 +48,7 @@ test('tenant message uses live printed notice blocks and excludes the return add
   assert.ok(fn.includes('noticePages(n)[0]'), 'must read the printed notice HTML');
   assert.ok(!fn.includes('.sender'), 'must exclude owner return address');
   assert.ok(!fn.includes('.statement'), 'must exclude current statement table');
-  assert.ok(fn.includes(String.raw`join('\\n\\n')`), 'must preserve paragraph breaks');
+  assert.ok(fn.includes('return parts.filter(Boolean).join('), 'must preserve paragraph breaks');
 });
 test('tenant message has one working copy button and no duplicate Firm Book tab', () => {
   assert.ok(shell.includes('data-workspace="message"'));
