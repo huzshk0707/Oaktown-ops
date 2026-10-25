@@ -96,6 +96,43 @@ let sender=esc(n.owner||'Joe Burnett Jr. dba Oaktown Rental')+'\nPo Box 7\nHillv
 let recipients=esc((n.tenant||'TENANT NAME REQUIRED')+' & All Occupants')+'\n'+esc(n.street||'PROPERTY ADDRESS REQUIRED')+'\n'+esc(n.cityline||'CITY, STATE ZIP REQUIRED');
 let p1=`<article class="sheet"><div class="sheet-inner"><div class="sender">${sender}</div><div class="recipient">${recipients}</div><div class="overdue">Your account is past due</div><div class="notice-date">${esc(dateDisplay(n.noticeDate))}</div><div class="greeting">Dear Tenant(s) and all occupants,</div><div class="headline">7 DAY NOTICE PAY OR DELIVER POSSESSION</div><div class="letter"><p class="tight">Your payment for this month's rent that was due on the 1st has not been received. Please make your payment immediately in accordance with the terms and conditions of your Rental Agreement and avoid late payment credit reporting.</p><p>If rent and late charge are not received within 7 (SEVEN) days of this letter, YOU will unfortunately cause legal eviction action to be initiated and additional legal expenses will accrue. Eviction actions are reported to National Tenant Network and to credit bureaus. This notice is being delivered via U.S. Postal Service Certified Mail.</p><p class="certified">ONLY CERTIFIED FUNDS from a LOCAL BANK can be accepted after the 10th day.</p><p class="due-line">Please note that your account is currently due in the amount of <span class="highlight">${esc(t)}</span></p><p>If payment has not already been sent, please do so immediately to avoid receiving late fees, additional notices and a possible eviction.</p><p class="sincerely">Sincerely,</p><p class="signature">Thanks and have a great day! Leslie w/ Joe Burnett Jr. dba Oaktown Rentals</p></div><div class="statement-title">Current statement</div>${tableMarkup(rows.slice(0,1))}</div></article>`;
 let rest=rows.slice(1), result=[p1];if(rest.length){for(let i=0;i<rest.length;i+=17){result.push(`<article class="sheet continuation"><div class="sheet-inner">${tableMarkup(rest.slice(i,i+17))}</div></article>`)}}return result;}
+// The tenant message is extracted from the actual notice markup, not a
+// separately maintained version of the letter. This keeps wording, date,
+// total, salutation, and sign-off in sync with the printed notice.
+function tenantMessageFromNotice(n) {
+  const wrapper=document.createElement('div');
+  wrapper.innerHTML=noticePages(n)[0];
+  const recipient=wrapper.querySelector('.recipient');
+  const fields=['.overdue','.notice-date','.greeting','.headline'];
+  const parts=[recipient ? recipient.textContent.trim() : ''];
+  for(const selector of fields) {
+    const element=wrapper.querySelector(selector);
+    if(element) parts.push(element.textContent.trim());
+  }
+  const paragraphs=wrapper.querySelectorAll('.letter p');
+  for(const paragraph of paragraphs) parts.push(paragraph.textContent.replace(/\\s+/g,' ').trim());
+  return parts.filter(Boolean).join('\\n\\n');
+}
+function tenantMessageIssues(n) {
+  const issues=[];
+  if(!String(n.tenant||'').trim())issues.push('Enter the tenant name.');
+  if(!String(n.street||'').trim()||!String(n.cityline||'').trim())issues.push('Enter the full property address.');
+  if(!String(n.noticeDate||'').trim())issues.push('Choose a notice date.');
+  if(!Array.isArray(n.charges)||!n.charges.length||n.charges.some(r=>!String(r.amountDue??'').trim()||!Number.isFinite(Number(r.amountDue))||Number(r.amountDue)<0))
+    issues.push('Complete and verify each statement amount due.');
+  return issues;
+}
+function sendTenantMessageToShell() {
+  if(window.parent===window)return;
+  const n=active();
+  window.parent.postMessage({
+    type:'oaktown-tenant-message',
+    noticeId:String(n.id),
+    recipient:String(n.tenant||''),
+    content:tenantMessageFromNotice(n),
+    issues:tenantMessageIssues(n)
+  },location.origin);
+}
 let previewAll=false;
 function renderPreview(){let notices=previewAll?data.notices:[active()];let pages=notices.flatMap(noticePages);$('printPages').innerHTML=pages.join('');$('pageInfo').textContent=`${notices.length} notice${notices.length!==1?'s':''} · ${pages.length} page${pages.length!==1?'s':''}`;renderFirmPreview();}
 
@@ -145,7 +182,12 @@ function applyEmbeddedMode() {
       if (typeof ResizeObserver !== 'undefined') new ResizeObserver(reportHeight).observe(document.querySelector('.workspace'));
       window.addEventListener('load',reportHeight);
       window.addEventListener('message',event=>{
-        if(event.source!==window.parent || event.origin!==location.origin || !event.data || event.data.type!=='oaktown-view') return;
+        if(event.source!==window.parent || event.origin!==location.origin || !event.data)return;
+        if(event.data.type==='oaktown-tenant-message-request'){
+          sendTenantMessageToShell();
+          return;
+        }
+        if(event.data.type!=='oaktown-view')return;
         showPreview(event.data.view==='firm'?'firm':'notices');
         requestAnimationFrame(reportHeight);
       });
