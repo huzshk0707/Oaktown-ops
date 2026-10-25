@@ -75,9 +75,9 @@ body.embedded .paper-stage{overflow:auto}
 <section class="panel preview-panel"><div class="toolbar"><span class="pages-info" id="pageInfo"></span><button class="btn" id="viewNotice">Notice preview</button><button class="btn" id="viewFirm">Firm Book preview</button><button class="btn btn-primary" type="button" id="downloadOne">Download property PDF</button><button class="btn btn-primary" type="button" id="downloadBatch">Download batch ZIP</button><details class="export-details"><summary>Print options</summary><button class="btn" id="printOne" type="button">Print current</button><button class="btn" id="printBatch" type="button">Print batch</button></details><span id="downloadStatus" class="export-feedback" role="status" aria-live="polite"></span></div><div class="paper-stage" id="noticeStage"><div id="printPages" class="paper-scale"></div><div class="no-print-notice">Print settings: <b>Letter</b> paper, <b>scale 100%</b>, <b>headers and footers OFF</b>, and <b>background graphics ON</b> so the yellow amount remains highlighted. A notice with multiple charge rows may continue onto the next page, as in the Wintergreen reference.</div></div><div id="firmStage" class="paper-stage" hidden><div id="firmPages" class="firm-scale"></div><div class="no-print-notice">Firm Mailing Book: <b>US Letter landscape (11 × 8.5 in)</b>, 100% scale, <b>headers/footers off</b>, with original scale. The sheet artwork reproduces the supplied PS Form 3877 sheet. Confirm with the accepting Post Office whether its form-approval requirements apply to this computer-generated printout.</div></div></section>
 </main>
 <style id="dynamicPrintPageSize"></style>
-<script src="vendor/html2canvas-1.4.1.min.js"></script>
-<script src="vendor/jspdf-2.5.1.umd.min.js"></script>
-<script src="vendor/jszip-3.10.1.min.js"></script>
+<script src="../preview-v02/vendor/html2canvas-1.4.1.min.js"></script>
+<script src="../preview-v02/vendor/jspdf-2.5.1.umd.min.js"></script>
+<script src="../preview-v02/vendor/jszip-3.10.1.min.js"></script>
 <script>
 (()=>{'use strict';
 const KEY='oaktown_7day_notice_generator_v1';
