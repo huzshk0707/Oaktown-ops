@@ -31,10 +31,10 @@
 </div>
 <div class="intro-note" id="studio-alert"><strong>Private information:</strong> This pilot signs in to Supabase for property lookup, but the notice editor still stores drafts in browser storage. The entire document studio is not yet access-gated. Use only a trusted device. Verify wording, dates, charges, legal requirements, landlord identity and postal acceptance before use.</div>
 <section id="pilot-auth" class="message-card" style="margin-bottom:16px"><h2>Administrator sign in</h2><p>Sign in to load your private Supabase property database directly into Notice Studio.</p><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end"><label style="flex:1;min-width:220px">Email<input id="pilot-email" type="email" value="huzaifashaikhmaths@gmail.com" style="display:block;width:100%;padding:10px;margin-top:5px"></label><label style="flex:1;min-width:220px">Supabase password<input id="pilot-password" type="password" autocomplete="current-password" style="display:block;width:100%;padding:10px;margin-top:5px"></label><button class="button primary" id="pilot-login">Sign in</button></div><p id="pilot-auth-status" role="status" style="font-size:12px;margin-top:10px"></p></section>
-<section id="pilot-properties" class="message-card" hidden style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Supabase property database</h2><button class="button" id="pilot-logout">Sign out</button></div><p>Choose an existing property and load it directly into the notice below. The landlord and charges must be verified.</p><label for="pilot-property">Saved properties in Supabase</label><select id="pilot-property" style="display:block;width:100%;padding:11px;margin:8px 0"></select><button class="button primary" id="pilot-load">Load into Notice Studio</button><div style="border:1px solid #d6dfd2;border-radius:9px;padding:13px;margin:13px 0">
+<section id="pilot-properties" class="message-card" hidden style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Supabase property database</h2><button class="button" id="pilot-logout">Sign out</button></div><p>Choose an existing property and load it directly into the notice below. The landlord and charges must be verified.</p><label for="pilot-search">Search address</label><input id="pilot-search" type="search" placeholder="Search address..." autocomplete="off" spellcheck="false" aria-describedby="pilot-results" style="display:block;width:100%;padding:11px;margin:8px 0;border:1px solid #c7d6c6;border-radius:8px"><p id="pilot-results" role="status" aria-live="polite" style="font-size:12px;margin:3px 0 10px"></p><label for="pilot-property">Saved properties in Supabase</label><select id="pilot-property" style="display:block;width:100%;padding:11px;margin:8px 0"></select><button class="button primary" id="pilot-load">Load into Notice Studio</button><div style="border:1px solid #d6dfd2;border-radius:9px;padding:13px;margin:13px 0">
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between"><strong>Choose multiple properties</strong><span id="pilot-count" style="font-size:12px">0 selected</span></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin:9px 0"><button class="button" type="button" id="pilot-select-all">Select all</button><button class="button" type="button" id="pilot-clear-all">Clear selection</button></div>
-<div id="pilot-checklist" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;max-height:290px;overflow:auto"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:9px 0"><button class="button" type="button" id="pilot-select-all">Select matching</button><button class="button" type="button" id="pilot-clear-all">Clear selection</button></div>
+<p style="font-size:12px;margin:0 0 8px">Search filters this list too. Previously checked properties stay selected when the search changes.</p><div id="pilot-checklist" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;max-height:290px;overflow:auto"></div>
 <button class="button primary" type="button" id="pilot-load-selected">Load selected properties into notices</button>
 <button class="button" type="button" id="pilot-load-all">Load all 13 properties</button>
 </div><p id="pilot-status" role="status" style="font-size:12px"></p><p style="font-size:12px">This loads records from Supabase, not from the browser's saved-property list. The older Save Property button below still saves only to this browser.</p></section>
@@ -139,6 +139,31 @@ async function api(path,options={}){
  const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.msg||data.message||data.error_description||data.error||'Request failed: '+res.status);return data;
 }
 function store(s){session=s;if(s)sessionStorage.setItem(SESSION_KEY,JSON.stringify(s));else sessionStorage.removeItem(SESSION_KEY)}
+
+function propertySearchMatches(property,search){
+ const query=String(search||'').toLowerCase().trim().replace(/\s+/g,' ');
+ if(!query)return true;
+ const address=[property.street_address,property.unit,property.city,property.state,property.postal_code].filter(Boolean).join(' ').toLowerCase().replace(/\s+/g,' ');
+ return query.split(' ').every(token=>address.includes(token));
+}
+function filterProperties(){
+ const dropdown=$('pilot-property'),previous=dropdown.value;
+ const matches=records.map((p,i)=>({p,i})).filter(({p})=>propertySearchMatches(p,$('pilot-search').value));
+ dropdown.replaceChildren(new Option(matches.length?'Select a property':'No matching properties',''),
+  ...matches.map(({p,i})=>new Option([p.street_address,p.unit].filter(Boolean).join(' ')+', '+p.city+' '+p.postal_code,String(i))));
+ dropdown.value=matches.some(({i})=>String(i)===previous)?previous:'';
+ const list=$('pilot-checklist');
+ if(list){
+  const ids=new Set(matches.map(({i})=>i));
+  list.querySelectorAll('input[data-property-index]').forEach(check=>{
+   const row=check.closest('label');
+   if(row)row.style.display=ids.has(Number(check.dataset.propertyIndex))?'flex':'none';
+  });
+ }
+ $('pilot-results').textContent=matches.length+' of '+records.length+' properties shown'+(matches.length===0?' — try another street or ZIP.':'');
+}
+$('pilot-search').addEventListener('input',filterProperties);
+
 async function load(){
  const user=await api('/auth/v1/user');
  if(user.email?.toLowerCase()!==EMAIL)throw Error('Not the approved administrator.');
@@ -155,7 +180,8 @@ async function load(){
   label.append(check,name);list.append(label);
  });
  updateCount();$('pilot-load-all').textContent='Load all '+records.length+' properties';
- $('pilot-property').replaceChildren(new Option('Select a property',''),...records.map((p,i)=>new Option(p.street_address+', '+p.city+' '+p.postal_code,String(i))));
+ $('pilot-search').value='';
+ filterProperties();
  $('pilot-auth').hidden=true;$('pilot-properties').hidden=false;
  msg('pilot-status',records.length+' properties loaded from Supabase. Landlord/entity information remains unverified.');
 }
@@ -167,11 +193,11 @@ $('pilot-login').addEventListener('click',async()=>{
  }catch(e){store(null);msg('pilot-auth-status',e.message)}
  finally{$('pilot-login').disabled=false}
 });
-$('pilot-logout').addEventListener('click',async()=>{try{await api('/auth/v1/logout',{method:'POST'})}catch{}store(null);records=[];$('pilot-properties').hidden=true;$('pilot-auth').hidden=false;msg('pilot-auth-status','Signed out.');});
+$('pilot-logout').addEventListener('click',async()=>{try{await api('/auth/v1/logout',{method:'POST'})}catch{}store(null);records=[];$('pilot-property').replaceChildren();$('pilot-search').value='';$('pilot-results').textContent='';if($('pilot-checklist'))$('pilot-checklist').replaceChildren();$('pilot-properties').hidden=true;$('pilot-auth').hidden=false;msg('pilot-auth-status','Signed out.');});
 function selectedIndices(){return [...$('pilot-checklist').querySelectorAll('input[type="checkbox"]:checked')].map(x=>Number(x.dataset.propertyIndex))}
 function updateCount(){const el=$('pilot-count');if(el)el.textContent=selectedIndices().length+' selected'}
 $('pilot-checklist').addEventListener('change',updateCount);
-$('pilot-select-all').addEventListener('click',()=>{$('pilot-checklist').querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=true);updateCount()});
+$('pilot-select-all').addEventListener('click',()=>{$('pilot-checklist').querySelectorAll('input[type="checkbox"]').forEach(x=>{if(x.closest('label')?.style.display!=='none')x.checked=true});updateCount()});
 $('pilot-clear-all').addEventListener('click',()=>{$('pilot-checklist').querySelectorAll('input[type="checkbox"]').forEach(x=>x.checked=false);updateCount()});
 function importMany(items){
  if(!items.length){msg('pilot-status','Select at least one property.');return}
