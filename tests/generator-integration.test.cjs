@@ -35,7 +35,7 @@ test('shell retains the integrated generator and separate legacy court notes', (
   assert.ok(generator.includes("event.origin!==location.origin"));
 });
 test('document data is not fetched from or posted to an external service', () => {
-  assert.ok(!/<script[^>]+src=/i.test(generator));
+  assert.ok(!/<script[^>]+src=["']https?:/i.test(generator), 'no remote JavaScript dependencies');
   assert.ok(!/\bfetch\s*\(/.test(generator));
   assert.ok(!/XMLHttpRequest/.test(generator));
 });
@@ -59,4 +59,29 @@ test('tenant message has one working copy button and no duplicate Firm Book tab'
   assert.ok(!shell.includes('id="fullscreen-link"'));
   assert.ok(generator.includes("event.data.type==='oaktown-tenant-message-request'"));
   assert.ok(generator.includes("type:'oaktown-tenant-message'"));
+});
+
+
+test('single and batch download controls are connected to local PDF and ZIP generation', () => {
+  for(const name of ['downloadOne','downloadBatch','downloadStatus'])assert.ok(generator.includes('id="'+name+'"'));
+  for(const localFile of ['vendor/html2canvas-1.4.1.min.js','vendor/jspdf-2.5.1.umd.min.js','vendor/jszip-3.10.1.min.js']){
+    assert.ok(generator.includes('src="'+localFile+'"'), 'script is loaded locally: '+localFile);
+    assert.ok(fs.existsSync(localFile), 'vendored script exists: '+localFile);
+  }
+  assert.ok(generator.includes("zip.file(filename,pdf"), 'each property notice is a separate PDF entry');
+  assert.ok(generator.includes("Oaktown_7_Day_Notices_"), 'batch ZIP has a predictable name');
+  assert.ok(generator.includes("safePropertyFilename(notices[0])+'.pdf'"), 'single PDF is property named');
+  assert.ok(generator.includes("const pages=noticePages(notice)"), 'download uses the same layout as the print preview');
+});
+test('property PDF filename is sanitized for Windows without using tenant identity', () => {
+  const beginning=generator.indexOf('function safePropertyFilename(notice) {');
+  const ending=generator.indexOf('function saveDownloadedBlob(',beginning);
+  assert.ok(beginning>=0&&ending>beginning);
+  const snippet=generator.slice(beginning,ending);
+  const filename=vm.runInNewContext(snippet+'\nsafePropertyFilename', {});
+  assert.equal(filename({street:'11 Edmonia Ave',tenant:'Private Tenant'}),'11 Edmonia Ave');
+  assert.equal(filename({street:'1715 Baird Ave.'}),'1715 Baird Ave');
+  assert.equal(filename({street:'A/B: C*?\\ D|E'}),'A B C D E');
+  assert.equal(filename({street:'CON'}),'Property CON');
+  assert.equal(filename({street:''}),'Property');
 });
