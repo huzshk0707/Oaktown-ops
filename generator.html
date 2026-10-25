@@ -25,6 +25,16 @@ body{margin:0}.app-header{background:#12253b;color:#fff;padding:17px 25px;displa
 .firm-sheet:last-child{break-after:auto;page-break-after:auto}
 @media print{body.firm-print #noticeStage{display:none!important}body.firm-print #firmStage{display:block!important}body.firm-print #firmPages{display:block!important}body.firm-print .firm-scale{width:11in!important;margin:0!important}body.firm-print .firm-sheet{box-shadow:none!important;margin:0!important;width:11in!important;height:8.5in!important;break-after:page;page-break-after:always;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}body.firm-print .firm-sheet:last-child{break-after:auto;page-break-after:auto}body:not(.firm-print) #firmStage{display:none!important}}
 
+/* Browser-local PDF rendering uses the same Letter-size notice pages shown in print preview. */
+#pdf-export-root{position:fixed;inset:0 auto auto 0;width:816px;height:1056px;z-index:-10;pointer-events:none}
+#pdf-export-root .sheet{margin:0!important;box-shadow:none!important;border:0!important;page-break-after:auto!important;break-after:auto!important}
+#pdf-export-root .sheet-inner{padding:90px 95px 76px 95px!important;font-size:18.667px!important}
+#pdf-export-root .statement{font-size:14.667px!important}
+.export-feedback{font-size:11px;line-height:1.6;color:#44658a;min-width:150px}
+.export-details{font-size:11px;color:#52647a;white-space:nowrap}
+.export-details summary{cursor:pointer;font-weight:600}
+.export-details .btn{margin:5px 5px 0 0}
+.toolbar{flex-wrap:wrap}
 /* Embedded in the Oaktown Ops workspace: standalone PDF printing is unchanged. */
 body.embedded .app-header{display:none!important}
 body.embedded .workspace{padding:9px;max-width:none;grid-template-columns:minmax(290px,390px) minmax(0,1fr);gap:14px}
@@ -62,9 +72,12 @@ body.embedded .paper-stage{overflow:auto}
 <div class="hint" style="margin-top:10px">Save an exported JSON copy as a backup. Browser storage may vary when opening a local HTML file. The Firm Book is generated from the <b>same notice batch</b>. Its design follows the supplied PS Form 3877; verify acceptance requirements with the post office.</div>
 <div class="alert"><b>Required checks before use:</b> Confirm the property, correct landlord/entity, tenant names, lease, charges, notice text, legally applicable timing, and method of delivery. The wording below is reproduced from the supplied examples, not independently certified as legally valid. Do not claim certified mailing occurred unless it did.</div>
 </div></section>
-<section class="panel preview-panel"><div class="toolbar"><span class="pages-info" id="pageInfo"></span><button class="btn" id="viewNotice">Notice preview</button><button class="btn" id="viewFirm">Firm Book preview</button><button class="btn" id="printOne">Print / Save Current PDF</button><button class="btn btn-primary" id="printBatch">Print / Save Batch PDF</button></div><div class="paper-stage" id="noticeStage"><div id="printPages" class="paper-scale"></div><div class="no-print-notice">Print settings: <b>Letter</b> paper, <b>scale 100%</b>, <b>headers and footers OFF</b>, and <b>background graphics ON</b> so the yellow amount remains highlighted. A notice with multiple charge rows may continue onto the next page, as in the Wintergreen reference.</div></div><div id="firmStage" class="paper-stage" hidden><div id="firmPages" class="firm-scale"></div><div class="no-print-notice">Firm Mailing Book: <b>US Letter landscape (11 × 8.5 in)</b>, 100% scale, <b>headers/footers off</b>, with original scale. The sheet artwork reproduces the supplied PS Form 3877 sheet. Confirm with the accepting Post Office whether its form-approval requirements apply to this computer-generated printout.</div></div></section>
+<section class="panel preview-panel"><div class="toolbar"><span class="pages-info" id="pageInfo"></span><button class="btn" id="viewNotice">Notice preview</button><button class="btn" id="viewFirm">Firm Book preview</button><button class="btn btn-primary" type="button" id="downloadOne">Download property PDF</button><button class="btn btn-primary" type="button" id="downloadBatch">Download batch ZIP</button><details class="export-details"><summary>Print options</summary><button class="btn" id="printOne" type="button">Print current</button><button class="btn" id="printBatch" type="button">Print batch</button></details><span id="downloadStatus" class="export-feedback" role="status" aria-live="polite"></span></div><div class="paper-stage" id="noticeStage"><div id="printPages" class="paper-scale"></div><div class="no-print-notice">Print settings: <b>Letter</b> paper, <b>scale 100%</b>, <b>headers and footers OFF</b>, and <b>background graphics ON</b> so the yellow amount remains highlighted. A notice with multiple charge rows may continue onto the next page, as in the Wintergreen reference.</div></div><div id="firmStage" class="paper-stage" hidden><div id="firmPages" class="firm-scale"></div><div class="no-print-notice">Firm Mailing Book: <b>US Letter landscape (11 × 8.5 in)</b>, 100% scale, <b>headers/footers off</b>, with original scale. The sheet artwork reproduces the supplied PS Form 3877 sheet. Confirm with the accepting Post Office whether its form-approval requirements apply to this computer-generated printout.</div></div></section>
 </main>
 <style id="dynamicPrintPageSize"></style>
+<script src="vendor/html2canvas-1.4.1.min.js"></script>
+<script src="vendor/jspdf-2.5.1.umd.min.js"></script>
+<script src="vendor/jszip-3.10.1.min.js"></script>
 <script>
 (()=>{'use strict';
 const KEY='oaktown_7day_notice_generator_v1';
@@ -171,6 +184,111 @@ $('importJson').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let j=JSON.parse(await f.text());if(!Array.isArray(j.notices)||!j.notices.length||!j.notices.every(n=>Array.isArray(n.charges)))throw Error('Invalid notice batch format');if(!confirm('Replace the current notice batch with the imported file?'))return;data={notices:j.notices,selected:j.notices[0].id,properties:Array.isArray(j.properties)?j.properties:seedProperties};previewAll=false;persist();renderForm()}catch(err){alert('Unable to import: '+err.message)}e.target.value=''};
 $('exportCsv').onclick=()=>{let escCsv=x=>'"'+String(x??'').replace(/"/g,'""')+'"';let rows=[['Notice date','Tenant','Property address','City state ZIP','Total due','Landlord','Internal reference'],...data.notices.map(n=>[dateDisplay(n.noticeDate),n.tenant,n.street,n.cityline,money(n.charges.reduce((s,r)=>s+(asNum(r.amountDue)||0),0)),n.owner,n.refNumber])];download('Oaktown_Notice_Mailing_List_DRAFT_'+todayISO()+'.csv',rows.map(row=>row.map(escCsv).join(',')).join('\r\n'),'text/csv')};
 function validateNotice(n){if(!n.tenant.trim()||!n.street.trim()||!n.cityline.trim()||!n.owner.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(n.noticeDate))return 'Missing tenant, property, landlord, or valid notice date for '+(n.street||'a notice');if(!n.charges.length||n.charges.some(r=>!r.dueDate||!r.category.trim()||!r.description.trim()||!r.status.trim()||!Number.isFinite(asNum(r.amount))||!Number.isFinite(asNum(r.amountDue))||r.amountDue===''))return 'Incomplete charge rows for '+n.street;const due=n.charges.reduce((v,r)=>v+asNum(r.amountDue),0);if(due<=0)return 'The total due must be greater than zero for '+n.street;return null}
+
+// Oaktown notice PDF and ZIP exports. All rendering and archiving happen
+// locally in the browser; no tenant data is uploaded to a server.
+// PDF pages are rendered from the SAME noticePages() markup used for printing.
+function safePropertyFilename(notice) {
+  let base=String(notice.street||'Property').normalize('NFKC')
+    .replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g,' ')
+    .replace(/\s+/g,' ').replace(/^\.+|\.+$/g,'').trim().slice(0,120);
+  if(!base)base='Property';
+  if(/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$/i.test(base))base='Property '+base;
+  if(/\.pdf$/i.test(base))base=base.slice(0,-4);
+  return base.trim()||'Property';
+}
+function saveDownloadedBlob(blob,filename) {
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;link.download=filename;link.style.display='none';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function setDownloadBusy(busy,caption) {
+  $('downloadOne').disabled=busy;
+  $('downloadBatch').disabled=busy;
+  $('downloadStatus').textContent=caption||'';
+}
+async function createNoticePdf(notice) {
+  if(typeof window.html2canvas!=='function'||!window.jspdf||typeof window.jspdf.jsPDF!=='function')
+    throw new Error('Local PDF libraries did not load. Reload the page and try again.');
+  const pdf=new window.jspdf.jsPDF({unit:'pt',format:[612,792],orientation:'portrait',compress:true});
+  const sandbox=document.createElement('div');
+  sandbox.id='pdf-export-root';
+  document.body.appendChild(sandbox);
+  try{
+    if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    const pages=noticePages(notice);
+    for(let i=0;i<pages.length;i++){
+      sandbox.innerHTML=pages[i];
+      const sheet=sandbox.querySelector('.sheet');
+      if(!sheet)throw new Error('Notice page '+(i+1)+' could not be rendered.');
+      await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+      const canvas=await window.html2canvas(sheet,{
+        backgroundColor:'#ffffff',scale:2,logging:false,
+        scrollX:0,scrollY:0,useCORS:false,width:816,height:1056
+      });
+      if(canvas.width<816||canvas.height<1056)
+        throw new Error('The PDF page was rendered incompletely.');
+      if(i)pdf.addPage([612,792],'portrait');
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',0,0,612,792,undefined,'FAST');
+      canvas.width=0;canvas.height=0;
+    }
+    return pdf.output('blob');
+  }finally{
+    sandbox.remove();
+  }
+}
+function checkedDownloadNotices(which) {
+  const notices=which==='all'?data.notices:[active()];
+  const errors=notices.map(validateNotice).filter(Boolean);
+  if(errors.length)throw new Error('Complete the following before downloading:\n'+errors.join('\n'));
+  if(!confirm('Verify tenant names, property addresses, itemized amounts, notice date, landlord name, applicable notice language and the statement about USPS Certified Mail before using these notices. Continue with download?'))
+    return null;
+  return notices;
+}
+async function downloadNoticeFiles(which) {
+  if($('downloadOne').disabled)return;
+  let notices;
+  try{notices=checkedDownloadNotices(which);}
+  catch(error){$('downloadStatus').textContent='Review the incomplete notice fields.';alert(error.message);return;}
+  if(!notices)return;
+  setDownloadBusy(true,which==='all'?'Preparing ZIP…':'Preparing PDF…');
+  try{
+    if(which==='one'){
+      const pdf=await createNoticePdf(notices[0]);
+      saveDownloadedBlob(pdf,safePropertyFilename(notices[0])+'.pdf');
+      $('downloadStatus').textContent='PDF downloaded · '+safePropertyFilename(notices[0])+'.pdf';
+    }else{
+      if(typeof window.JSZip!=='function')throw new Error('Local ZIP library did not load. Reload the page and retry.');
+      const zip=new window.JSZip(),used=new Map();
+      for(let i=0;i<notices.length;i++){
+        const n=notices[i],name=safePropertyFilename(n),key=name.toLocaleLowerCase('en-US');
+        const count=(used.get(key)||0)+1;
+        used.set(key,count);
+        const filename=name+(count===1?'':' ('+count+')')+'.pdf';
+        $('downloadStatus').textContent='Preparing '+(i+1)+' of '+notices.length+' PDFs…';
+        const pdf=await createNoticePdf(n);
+        zip.file(filename,pdf,{binary:true});
+      }
+      $('downloadStatus').textContent='Building ZIP…';
+      const archive=await zip.generateAsync({type:'blob',compression:'STORE'});
+      saveDownloadedBlob(archive,'Oaktown_7_Day_Notices_'+todayISO()+'.zip');
+      $('downloadStatus').textContent='ZIP downloaded · '+notices.length+' notice PDF'+(notices.length===1?'':'s');
+    }
+  }catch(error){
+    console.error('Notice download failed:',error);
+    $('downloadStatus').textContent='Download failed. Try print options or retry.';
+    alert('Could not create the download: '+error.message);
+  }finally{
+    $('downloadOne').disabled=false;$('downloadBatch').disabled=false;
+  }
+}
+$('downloadOne').addEventListener('click',()=>downloadNoticeFiles('one'));
+$('downloadBatch').addEventListener('click',()=>downloadNoticeFiles('all'));
+
 function print(which){let target=which==='all'?data.notices:[active()];let invalid=target.map(validateNotice).filter(Boolean);if(invalid.length){alert('Cannot print yet:\n'+invalid.join('\n'));return}if(!confirm('Before printing, have you verified the tenant, landlord, balances, dates, and applicability of the notice wording? The template states the notice is delivered via USPS Certified Mail; ensure the actual delivery process supports that statement.'))return;previewAll=which==='all';renderPreview();showPreview('notices');$('dynamicPrintPageSize').textContent='@page {size:8.5in 11in;margin:0}';window.print();setTimeout(()=>{previewAll=false;renderPreview()},1000)}$('printOne').onclick=()=>print('one');$('printBatch').onclick=()=>print('all');window.addEventListener('afterprint',()=>{previewAll=false;$('dynamicPrintPageSize').textContent='';renderPreview()});
 renderForm();persist();
 const pageParams = new URLSearchParams(location.search);
