@@ -32,7 +32,7 @@ async function getDownload(page, button) {
 }
 
 test('single notice PDF uses property filename and correct PDF page geometry', async ({page}) => {
-  await page.goto('file://'+path.resolve('generator.html'));
+  await page.goto('http://127.0.0.1:8765/generator.html');
   await page.evaluate(()=>localStorage.clear());
   await page.reload();
   await fillNotice(page,{tenant:'Example Tenant',street:'11 Edmonia Ave',amount:'950.00'});
@@ -49,7 +49,7 @@ test('single notice PDF uses property filename and correct PDF page geometry', a
 });
 
 test('multi-charge notice yields a continuation page', async ({page}) => {
-  await page.goto('file://'+path.resolve('generator.html'));
+  await page.goto('http://127.0.0.1:8765/generator.html');
   await page.evaluate(()=>localStorage.clear());
   await page.reload();
   await fillNotice(page,{tenant:'Second Example',street:'5413 Wintergreen Road',amount:'1000.00'});
@@ -66,7 +66,7 @@ test('multi-charge notice yields a continuation page', async ({page}) => {
 });
 
 test('batch ZIP contains individual property-named PDFs, and handles duplicate property names', async ({page}) => {
-  await page.goto('file://'+path.resolve('generator.html'));
+  await page.goto('http://127.0.0.1:8765/generator.html');
   await page.evaluate(()=>localStorage.clear());
   await page.reload();
   await fillNotice(page,{tenant:'Example One',street:'11 Edmonia Ave',amount:'900.00'});
