@@ -190,7 +190,7 @@ function validateNotice(n){if(!n.tenant.trim()||!n.street.trim()||!n.cityline.tr
 // PDF pages are rendered from the SAME noticePages() markup used for printing.
 function safePropertyFilename(notice) {
   let base=String(notice.street||'Property').normalize('NFKC')
-    .replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g,' ')
+    .replace(/[<>:"\/\\|?*\u0000-\u001f\u007f]/g,' ')
     .replace(/\s+/g,' ').replace(/^\.+|\.+$/g,'').trim().slice(0,120);
   if(!base)base='Property';
   if(/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\..*)?$/i.test(base))base='Property '+base;
