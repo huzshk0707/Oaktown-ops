@@ -22,32 +22,37 @@ async function refresh(){
  };
  refreshing=(navigator.locks?navigator.locks.request('oaktown-session-refresh',run):run()).finally(()=>{refreshing=null});return refreshing;
 }
+function superseded(){const error=Error('Account changed. Please retry.');error.cancelled=true;return error;}
 async function api(path,options={}){
+ const started=epoch;
  if(!session)throw Error('Sign in to use Supabase.');
  if(session.expires_at*1000<Date.now()+60000)await refresh();
- try{return await raw(path,options)}catch(e){if(e.status!==401)throw e;session.expires_at=0;localStorage.setItem(STORE,JSON.stringify(session));await refresh();return raw(path,options);}
+ if(started!==epoch||!session)throw superseded();
+ try{const data=await raw(path,options);if(started!==epoch)throw superseded();return data;}catch(e){if(started!==epoch||!session)throw superseded();if(e.status!==401)throw e;session.expires_at=0;localStorage.setItem(STORE,JSON.stringify(session));await refresh();if(started!==epoch||!session)throw superseded();const data=await raw(path,options);if(started!==epoch)throw superseded();return data;}
 }
 async function verify(){
+ const started=epoch;
  const who=await api('/auth/v1/user');
  const rows=await api('/rest/v1/staff_memberships?select=role,is_active&user_id=eq.'+encodeURIComponent(who.id));
  if(rows.length!==1||!rows[0].is_active||!['admin','editor'].includes(rows[0].role)){const e=Error('Administrator or editor access not approved.');e.status=403;throw e;}
- user=who;signal();return who;
+ if(started!==epoch)throw superseded();user=who;signal();return who;
 }
 async function signIn(email,password){
- ++epoch;const next=await raw('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
- remember(next);try{return await verify()}catch(e){remember(null);user=null;signal(e.message);throw e;}
+ const started=++epoch;const next=await raw('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});
+ if(started!==epoch)throw superseded();remember(next);try{return await verify()}catch(e){if(started===epoch){remember(null);user=null;signal(e.message);}throw e;}
 }
 async function signOut(){
- ++epoch;let error='';try{if(session)await raw('/auth/v1/logout',{method:'POST'})}catch{error='Signed out on this device. Server sign-out could not be confirmed.';}
- remember(null);sessionStorage.removeItem('oaktown-pilot-session-v03');user=null;signal(error);
+ const started=++epoch;const remote=session?raw('/auth/v1/logout',{method:'POST'}):Promise.resolve();
+ remember(null);sessionStorage.removeItem('oaktown-pilot-session-v03');user=null;signal();
+ try{await remote}catch{if(started===epoch)signal('Signed out on this device. Server sign-out could not be confirmed.');}
 }
 async function start(){
- session=read();
+ const started=epoch;session=read();
  if(!session){try{const old=JSON.parse(sessionStorage.getItem('oaktown-pilot-session-v03')||'null');if(old)remember(old)}catch{}}
  if(!session){signal();return;}
- schedule();try{await verify()}catch(e){if([400,401,403].includes(e.status)){remember(null);user=null;}signal(e.message);}
+ schedule();try{await verify()}catch(e){if(started!==epoch)return;if([400,401,403].includes(e.status)){remember(null);user=null;}signal(e.message);}
 }
-window.addEventListener('storage',event=>{if(event.key!==STORE)return;++epoch;session=read();if(!session){clearTimeout(timer);user=null;signal();}else{schedule();verify().catch(e=>{user=null;signal(e.message)})}});
+window.addEventListener('storage',event=>{if(event.key!==STORE)return;++epoch;session=read();if(!session){clearTimeout(timer);user=null;signal();}else{schedule();verify().catch(e=>{if(!e.cancelled){user=null;signal(e.message)}})}});
 window.addEventListener('online',()=>{if(session)verify().catch(e=>signal(e.message))});
 window.OpsCloud={api,signIn,signOut,start,get user(){return user;}};
 })();

@@ -10,7 +10,17 @@ function frameRequest(type,extra={}){
  const requestId=crypto.randomUUID();
  return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('The notice editor is still loading. Please retry.'))},10000);pending.set(requestId,{resolve,reject,timer});post({type,requestId,...extra});});
 }
-async function busy(button,action){button.disabled=true;try{return await action()}finally{button.disabled=false}}
+async function busy(button,action){
+ const controls=button.id==='property-save'?[...$('property-form').querySelectorAll('input,button'),$('property-new'),$('property-edit'),$('properties-refresh')]:[button];
+ const states=controls.map(control=>control.disabled);controls.forEach(control=>control.disabled=true);
+ try{return await action()}finally{controls.forEach((control,i)=>control.disabled=states[i])}
+}
+let batchBusy=false;
+async function batchOperation(action){
+ if(batchBusy)return;batchBusy=true;
+ for(const id of ['cloud-save','cloud-open','cloud-load'])$(id).disabled=true;
+ try{return await action()}finally{batchBusy=false;$('cloud-save').disabled=false;$('cloud-open').disabled=false;$('cloud-load').disabled=!$('cloud-batches').value;}
+}
 function account(){if(!$('account-dialog').open)$('account-dialog').showModal()}
 function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in once to use the shared property directory and cloud saves.');return false;}
 function rememberBatch(){if(cloudBatch)localStorage.setItem(META,JSON.stringify({...cloudBatch,owner:cloud.user?.id,title:$('batch-title').value}));}
@@ -135,7 +145,7 @@ $('copy-message').onclick=async()=>{const box=$('tenant-message-text');try{await
 $('batch-title').oninput=cloudDirty;
 $('cloud-save').onclick=async()=>{
  if(!requireUser())return;
- await busy($('cloud-save'),async()=>{
+ await batchOperation(async()=>{
   try{
    if(courtDirty)await saveCourt();
    const {payload}=await frameRequest('oaktown-workspace-request'),atRevision=revision,userId=cloud.user.id;
@@ -150,6 +160,7 @@ $('cloud-save').onclick=async()=>{
 };
 $('cloud-open').onclick=async()=>{
  if(!requireUser())return;
+ await batchOperation(async()=>{
  $('batch-dialog').showModal();$('cloud-load').disabled=true;say('batch-status','Loading saved batches…');
  try{
   const userId=cloud.user.id,rows=await cloud.api('/rest/v1/notice_batches?select=id,title,version,updated_at&order=updated_at.desc');
@@ -157,9 +168,10 @@ $('cloud-open').onclick=async()=>{
   $('cloud-batches').replaceChildren(...rows.map(x=>new Option(x.title+' · '+new Date(x.updated_at).toLocaleDateString(),x.id)));
   $('cloud-load').disabled=!rows.length;say('batch-status',rows.length?'Choose a batch to open.':'No cloud batches yet. Save your current batch first.');
  }catch(e){say('batch-status',e.message);}
+ });
 };
 $('batch-close').onclick=()=>$('batch-dialog').close();
-$('cloud-load').onclick=()=>busy($('cloud-load'),async()=>{
+$('cloud-load').onclick=()=>batchOperation(async()=>{
  try{
   const id=$('cloud-batches').value;if(!id)return;
   if(!confirm('Replace this browser batch with the saved batch? Unsaved local changes will be replaced.'))return;
