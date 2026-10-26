@@ -16,15 +16,17 @@
   ];
   const known = v => typeof v === 'string' && v.trim().length > 0;
   const norm = v => String(v || '').trim();
-  function parseMonthlyIncome(value, basis) {
-    const raw = norm(value).replace(/,/g, '');
-    const m = raw.match(/\$?\s*(\d+(?:\.\d+)?)\s*(k)?/i);
-    if (!m) return null;
-    let amount = Number(m[1]) * (m[2] ? 1000 : 1);
-    if (!Number.isFinite(amount) || amount <= 0) return null;
-    if (/\b(annual|yearly|per year|\/yr|a year)\b/i.test(raw)) amount /= 12;
-    else if (/\b(weekly|per week)\b/i.test(raw)) amount *= 52 / 12;
-    else if (/\b(biweekly|bi-weekly|every two weeks)\b/i.test(raw)) amount *= 26 / 12;
+  function parseMonthlyIncome(value) {
+    // Only an unambiguous amount and period; never pick the first number in a story.
+    const raw=norm(value).toLowerCase();
+    const match=raw.match(/^\$?\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(k)?\s*(?:(?:\/|per\s+|a\s+)?(month|monthly|mo|year|yearly|annual|annually|yr|week|weekly|wk|biweekly|bi-weekly|every two weeks))?$/);
+    if(!match)return null;
+    let amount=Number(match[1].replace(/,/g,''))*(match[2]?1000:1);
+    if(!Number.isFinite(amount)||amount<=0)return null;
+    const period=match[3]||'monthly';
+    if(/^(year|yearly|annual|annually|yr)$/.test(period))amount/=12;
+    else if(/^(week|weekly|wk)$/.test(period))amount*=52/12;
+    else if(/^(biweekly|bi-weekly|every two weeks)$/.test(period))amount*=26/12;
     return Number(amount.toFixed(2));
   }
   function extractCandidates(message) {
@@ -37,7 +39,7 @@
     ];
     for (const pattern of incomePhrases) {
       const hit = s.match(pattern);
-      if (hit) { result.push({ field: 'income', value: hit[1].trim(), reason: 'Income amount mentioned; confirm period, gross/net, and household scope.' }); break; }
+      if (hit) { result.push({ field: 'income', value: (hit[1].trim() + ((s.slice(hit.index+hit[0].length).match(/^\s*(?:per\s+|a\s+|\/)?(month|monthly|year|yearly|annual|week|weekly|biweekly|bi-weekly|every two weeks)\b/i)||[])[0]||'')).trim(), reason: 'Income amount mentioned; confirm period, gross/net, and household scope.' }); break; }
     }
     if (/\b(no|none|don't|do not|without)\s+(?:have |own )?(?:any )?(?:pets|animals|dogs|cats)\b/i.test(s)) result.push({ field: 'pets', value: 'None', reason: 'No animals reported.' });
     else {
@@ -56,13 +58,16 @@
   function assess(input) {
     const a = input.answers || {};
     const p = input.property || {};
-    const missing = FIELDS.filter(([key]) => !known(a[key]));
+    const incomplete=key=>!known(a[key]) || /length to verify|verify full list|reason to verify|\b(?:unknown|unsure|uncertain|not sure)\b/i.test(norm(a[key]));
+    const missing = FIELDS.filter(([key]) => incomplete(key));
     const flags = [];
     const statuses = { holding: 'We currently have a holding deposit on this property, so it is pending at the moment.', rented: 'This property is no longer available.' };
-    const available = ['ready', 'not_ready'].includes(p.availability);
+    const available = p.availability === 'ready';
     const amount = p.rentVerified && Number.isFinite(Number(p.askingRent)) && Number(p.askingRent) > 0 ? Number(p.askingRent) : null;
     const monthly = a.incomeBasis === 'gross_monthly_household' ? parseMonthlyIncome(a.income, 'gross') : null;
-    const incomeMinimum = amount && Number(p.incomeMultiplier) > 0 ? Number((amount * Number(p.incomeMultiplier)).toFixed(2)) : null;
+    const incomeMinimum = norm(a.voucher).toLowerCase() === 'no' && amount && Number(p.incomeMultiplier) > 0 ? Number((amount * Number(p.incomeMultiplier)).toFixed(2)) : null;
+    if (known(a.income) && monthly === null) flags.push('Income amount or period is ambiguous; confirm it manually before using the illustration.');
+    if (norm(a.voucher).toLowerCase() !== 'no') flags.push('No full-rent income comparison while voucher status is unknown or disclosed.');
     if (!amount) flags.push('Asking rent is unverified or missing; no income threshold can be confirmed.');
     if (known(a.income) && a.incomeBasis !== 'gross_monthly_household') flags.push('Income basis is not confirmed as gross monthly household income.');
     if (known(a.adverse) && !/^(no|none|never|no known history)$/i.test(norm(a.adverse))) flags.push('Disclosed financial history requires a manual, policy-reviewed decision. Do not assume a double deposit.');
@@ -71,7 +76,8 @@
     if (norm(a.voucher).toLowerCase() === 'yes') flags.push('Housing voucher: verify applicable program rules and tenant-paid portion; do not apply 3× full rent mechanically.');
     if (known(a.walkthrough) && /^no/i.test(norm(a.walkthrough))) flags.push('Walkthrough unavailable: ask why and consider approved alternatives, not an automatic rejection.');
     if (incomeMinimum && monthly !== null && monthly < incomeMinimum) flags.push('Reported gross household income is below the illustrative multiplier; request review, not an automatic rejection.');
-    if (p.availability === 'unknown') flags.push('Property availability has not been verified.');
+    if (p.availability === 'not_ready') flags.push('Property is not ready; staff must verify readiness before arranging a viewing.');
+    if (!['ready','not_ready','occupied','holding','rented'].includes(p.availability)) flags.push('Property availability has not been verified.');
     if (p.availability === 'occupied') flags.push('Unit is occupied; no viewing instructions should be issued.');
     if (!p.propertyId) flags.push('No linked Property Master record selected.');
     let draft = '';
@@ -79,7 +85,7 @@
     if (statuses[p.availability]) { draft = statuses[p.availability] + ' If anything changes, we can let you know.'; step = 'Property unavailable — review alternatives'; }
     else if (missing.length === FIELDS.length && !['yes','no'].includes(norm(a.voucher).toLowerCase())) {
       const prefix = p.availability === 'ready' ? 'Home is available and ready to go. ' : p.availability === 'not_ready' ? 'Home is available and almost ready to go. ' : '';
-      draft = prefix + OPENING;
+      draft = prefix + 'Before we discuss next steps, I have a few questions. ' + FIELDS.map(([,question])=>question).join(' ');
       step = 'Send initial prequalification questions (after confirming availability)';
     } else if (missing.length) {
       const labels = missing.map(([,q]) => q);
@@ -88,20 +94,20 @@
     } else if (norm(a.voucher).toLowerCase() === 'yes' && !known(a.voucherDetails)) {
       draft = "Thanks for the information. What is your voucher bedroom size and the voucher amount or applicable payment standard? We can then review the next step.";
       step = 'Review housing voucher details';
-    } else if (/\byes\b/i.test(norm(a.pets)) && !known(a.petDetails)) {
+    } else if (!/^(none|no|no animals|no pets)$/i.test(norm(a.pets)) && !known(a.petDetails) && !(/^yes$/i.test(norm(a.assistanceAnimal))||/\b(esa|service|assistance)\b/i.test(norm(a.pets)))) {
       draft = "Thanks for the information. What breed and weight are the animals? Please also let us know if any are assistance animals so we can review the appropriate requirements.";
       step = 'Clarify animal information';
     } else if (flags.some(f => /review|below|unavailable|occupied|unverified|not confirmed|not been verified/i.test(f))) {
       draft = "Thank you for the information. I have the details you've shared and will confirm the next steps after reviewing the property's requirements.";
       step = 'Leslie review required';
     } else if (available) {
-      draft = "Sounds good. Please send a picture of your driver's license, and I'll send you the viewing instructions and code.";
-      step = 'Request ID for staff-managed showing';
+      draft = "Thanks for answering the questions. Leslie will review the information and confirm the next step.";
+      step = 'Leslie review required';
     } else {
       draft = "Thanks for the information. I'll confirm the property's availability and let you know the next step.";
       step = 'Confirm property readiness';
     }
-    return { draft, step, missing: missing.map(([key]) => key), flags, monthly, incomeMinimum, canCopy: true, reviewRequired: flags.length > 0 || !available };
+    return { draft, step, missing: missing.map(([key]) => key), flags, monthly, incomeMinimum, canCopy: true, reviewRequired: true };
   }
   return Object.freeze({ OPENING, FIELDS, extractCandidates, parseMonthlyIncome, assess });
 });

@@ -7,13 +7,13 @@ Work on a **different GitHub branch** from `feature/v0.5-lead-copilot`. Do not m
 ## Shared identifiers and single source of truth
 
 - `properties`: stable physical address/building or legacy property records. Preserve legacy identifiers and document any merged/split records.
-- `units` (name TBD in Portfolio Master chat): a durable unique identifier per rentable apartment/house; unit examples: Cherokee #1, #4 and #6.
+- `public.units` (structure present; inventory still empty at review): a durable unique identifier per rentable apartment/house; unit examples: Cherokee #1, #4 and #6.
 - `leases` / `tenancies`: existing contractual rents, periods, landlord/tenant relationships.
 - `listings` / `availability`: advertised asking rent, readiness and market status, separately from contracted rent.
 - `leads`: one prospect record independent of any one property; potentially many property interests.
 - `lead_property_interests`: many-to-many links to an address and eventually its rentable unit.
 
-The staged v0.5 lead schema uses `leads.primary_property_id` and `lead_property_interests.property_id` referencing existing `public.properties(id)` because **the Portfolio Master schema has not been finalized**. Before applying this schema, map those references to confirmed `unit_id` and create proper foreign keys. Do not guess the final unit table name, rent type, or validation status.
+The staged v0.5 lead schema uses `leads.primary_property_id` and `lead_property_interests.property_id` referencing existing `public.properties(id)` because **the populated Portfolio Master unit/listing contract has not been reconciled**. The live `public.units` table now exists; this does not establish usable inventory or current listing availability. Before applying this schema, map those references to confirmed `unit_id` and create proper foreign keys. Do not guess the final unit table name, rent type, or validation status.
 
 ## Authoritative data rules
 
@@ -36,3 +36,7 @@ The staged v0.5 lead schema uses `leads.primary_property_id` and `lead_property_
 8. Then adjust the v0.5 lead migration/frontend and run GitHub CI + database advisors before deployment.
 
 Do **not** use default `public` table permissions without explicit RLS and `GRANT` verification. All application examples and fixtures must use fictional data.
+
+## Release boundary after PR #6 review
+
+The test UI is deployable independently; real lead persistence and screening are disabled. `CLOUD_LEADS_ENABLED` remains false. Staged SQL has a fail-closed guard intended solely for disposable CI role tests; its test marker is not a production rollout mechanism. Produce a replacement reviewed migration with stable unit/listing FKs before enabling lead writes. Saved legacy availability/rent snapshots are reset on opening and must never count as fresh verification. Existing v0.4 property IDs, notice links and editor API contracts must be preserved.

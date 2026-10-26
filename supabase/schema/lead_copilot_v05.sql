@@ -1,11 +1,20 @@
 -- Oaktown Ops v0.5 Lead Copilot draft schema.
 -- STAGED / NOT YET APPLIED TO LIVE SUPABASE.
 -- Apply after the master property/unit migration is reconciled. These references
--- intentionally target public.properties (v0.4); switch/extend to units when the
--- portfolio's final unit identifiers have been introduced.
+-- intentionally target public.properties (v0.4); switch/extend to units after the
+-- portfolio's unit identifiers, populated inventory and listing contract are verified.
 -- No personal transcripts, access credentials or ID images belong in GitHub.
 
 begin;
+
+-- Fail closed: this file is an integration draft, not a deployable migration.
+-- Only the disposable CI database sets this test marker. Deployment requires a
+-- separate reviewed migration after stable unit and listing IDs are reconciled.
+do $ begin
+  if current_setting('oaktown.staged_test_only', true) is distinct from 'isolated_ci' then
+    raise exception 'STAGED ONLY: reconcile Portfolio Master and approve a replacement migration before deployment.';
+  end if;
+end $;
 
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),
