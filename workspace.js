@@ -30,11 +30,11 @@ function showWorkflow(name){
  if(name!==workflow)courtDirty=false;
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
- $('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('future-workflow').hidden=['notices','properties'].includes(name);
- const titles={notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',maintenance:'Maintenance'};
- const descriptions={notices:'Prepare the notice, communicate with the tenant, and keep court follow-ups together.',properties:'One shared property directory. Import records into notices and save property changes to Supabase.',leases:'Lease generation and renewal preparation will live here.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
+ $('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('leads-workflow').hidden=name!=='leads';$('future-workflow').hidden=['notices','properties','leads'].includes(name);
+ const titles={notices:'Notices',properties:'Properties',leads:'Lead Copilot',leases:'Leases & renewals',listings:'Listings',maintenance:'Maintenance'};
+ const descriptions={notices:'Prepare the notice, communicate with the tenant, and keep court follow-ups together.',properties:'One shared property directory. Import records into notices and save property changes to Supabase.',leads:'Prequalify prospects with confirmed facts and Leslie-style reviewed drafts.',leases:'Lease generation and renewal preparation will live here.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
  say('workspace-title',titles[name]);say('breadcrumb',titles[name]);say('workspace-summary',descriptions[name]);
- if(!['notices','properties'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
+ if(!['notices','properties','leads'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
  if(name==='notices')showTab(tab);
 }
 function showTab(next){
