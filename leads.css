@@ -30,3 +30,8 @@
 #leads-workflow .status { font-size:12px; margin:9px 0; overflow-wrap:anywhere; }
 @media(max-width:1050px){ .lead-layout { grid-template-columns:1fr; } }
 @media(max-width:650px){ .lead-grid { grid-template-columns:1fr; } .lead-candidate { flex-direction:column; } }
+
+.lead-history { max-height:340px; overflow:auto; }
+.lead-history-item { margin:8px 0; border:1px solid #dbe4da; border-radius:8px; padding:9px 11px; background:#f9faf7; }
+.lead-history-item strong { text-transform:capitalize; font-size:12px; }
+.lead-history-item p { font-size:12px; white-space:pre-wrap; overflow-wrap:anywhere; max-height:120px; overflow:auto; margin:6px 0; }
