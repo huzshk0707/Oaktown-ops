@@ -47,7 +47,7 @@
     if (/\b(live|living|stay|staying)\s+with\s+(?:my\s+)?(?:family|parents|mother|father|relatives)\b/i.test(s)) result.push({ field: 'residence', value: 'Living with family', reason: 'Current living situation described.' });
     else if (/\b(?:currently |now )?rent(?:ing)?\b/i.test(s) && !/\b(?:do not|don't|not)\s+(?:currently\s+)?rent\b/i.test(s)) result.push({ field: 'residence', value: 'Currently renting — length to verify', reason: 'Current rental mentioned.' });
     if (/\b(no|never|none)\s+(?:bankruptcies|bankruptcy|evictions|foreclosures|repos)\b/i.test(s) && /(evict|bankrupt|foreclos|repo)/i.test(s)) result.push({ field: 'adverse', value: 'Negative history denied — verify full list', reason: 'Partial or full negative-history denial; confirm all four categories.' });
-    else if (/\b(bankrupt|foreclos|evict|repossession|repo)\b/i.test(s)) result.push({ field: 'adverse', value: 'History disclosed — review details', reason: 'Possible adverse item mentioned; human review required.' });
+    else if (/\b(bankrupt\w*|foreclos\w*|evict\w*|repossession\w*|repo)\b/i.test(s)) result.push({ field: 'adverse', value: 'History disclosed — review details', reason: 'Possible adverse item mentioned; human review required.' });
     if (/\b(?:yes|sure|of course|absolutely)\b.{0,80}\bwalk.?through\b/i.test(s)) result.push({ field: 'walkthrough', value: 'Yes', reason: 'Walkthrough agreement reported.' });
     if (/\b(?:no|cannot|can't|not possible|wouldn't)\b.{0,80}\bwalk.?through\b/i.test(s)) result.push({ field: 'walkthrough', value: 'No — reason to verify', reason: 'Walkthrough concern reported.' });
     if (/\b(section\s*8|housing (?:choice )?voucher|\bHCV\b)\b/i.test(s)) result.push({ field: 'voucher', value: 'Yes', reason: 'Voucher program mentioned; use assistance-aware workflow.' });
@@ -77,7 +77,7 @@
     let draft = '';
     let step = '';
     if (statuses[p.availability]) { draft = statuses[p.availability] + ' If anything changes, we can let you know.'; step = 'Property unavailable — review alternatives'; }
-    else if (missing.length === FIELDS.length && !known(a.voucher)) {
+    else if (missing.length === FIELDS.length && !['yes','no'].includes(norm(a.voucher).toLowerCase())) {
       const prefix = p.availability === 'ready' ? 'Home is available and ready to go. ' : p.availability === 'not_ready' ? 'Home is available and almost ready to go. ' : '';
       draft = prefix + OPENING;
       step = 'Send initial prequalification questions (after confirming availability)';
@@ -91,7 +91,7 @@
     } else if (/\byes\b/i.test(norm(a.pets)) && !known(a.petDetails)) {
       draft = "Thanks for the information. What breed and weight are the animals? Please also let us know if any are assistance animals so we can review the appropriate requirements.";
       step = 'Clarify animal information';
-    } else if (flags.some(f => /review|below|unavailable|occupied/i.test(f))) {
+    } else if (flags.some(f => /review|below|unavailable|occupied|unverified|not confirmed|not been verified/i.test(f))) {
       draft = "Thank you for the information. I have the details you've shared and will confirm the next steps after reviewing the property's requirements.";
       step = 'Leslie review required';
     } else if (available) {
