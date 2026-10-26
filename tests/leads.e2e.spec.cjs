@@ -23,8 +23,8 @@ test('Lead Copilot is a distinct tab; Notices remains unchanged', async ({page})
 test('initial reply is Leslie script, but does not claim unverified availability', async ({page}) => {
   await openDraft(page);
   await page.locator('#lead-draft').click();
-  await expect(page.locator('#lead-response')).toContainText('DO NOT SEND ME YOUR LICENSE BEFORE THE QUESTIONS ARE ANSWERED AND I ASK FOR IT!');
-  await expect(page.locator('#lead-response')).not.toContainText('Home is available and ready to go.');
+  await expect(page.locator('#lead-response')).toHaveValue(/DO NOT SEND ME YOUR LICENSE BEFORE THE QUESTIONS ARE ANSWERED AND I ASK FOR IT!/);
+  await expect(page.locator('#lead-response')).not.toHaveValue(/Home is available and ready to go\./);
   await expect(page.locator('#lead-flags')).toContainText('availability has not been verified');
 });
 
