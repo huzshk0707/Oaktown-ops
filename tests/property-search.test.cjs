@@ -3,7 +3,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-const shell=fs.readFileSync('index.html','utf8');
+const shell=fs.readFileSync('index.html','utf8')+'\n'+fs.readFileSync('workspace.js','utf8');
 const preview=fs.readFileSync('preview-v03/index.html','utf8');
 
 function matcherFrom(html){

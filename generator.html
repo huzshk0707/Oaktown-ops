@@ -51,7 +51,7 @@ body.embedded .paper-stage{overflow:auto}
 <div id="noticeList" class="notice-list"></div>
 <div class="section-heading">Property and recipient</div>
 <div class="form-grid">
-<div class="span2"><label for="propertySelect">Saved property</label><select id="propertySelect"></select><button class="btn btn-sm" id="saveProperty" style="margin-top:6px">Save current address to property database</button></div>
+<div class="span2"><label for="propertySelect">Saved property</label><select id="propertySelect"></select><button class="btn btn-sm" id="saveProperty" style="margin-top:6px">Save address in this browser</button></div>
 <div class="span2"><label for="tenant">Tenant name(s)</label><input id="tenant" placeholder="Enter names as they appear on lease"></div>
 <div class="span2"><label for="street">Property line 1 — street address</label><input id="street"></div>
 <div class="span2"><label for="cityline">Property line 2 — city, state ZIP</label><input id="cityline"></div>
@@ -96,9 +96,36 @@ const blankNotice=()=>({id:uid(),tenant:'',street:'11 Edmonia Ave',cityline:'Lou
 let data={properties:seedProperties,notices:[blankNotice()],selected:null};data.selected=data.notices[0].id;
 try{let s=localStorage.getItem(KEY);if(s){let j=JSON.parse(s);if(Array.isArray(j.notices)&&j.notices.length){data=j;if(!Array.isArray(data.properties))data.properties=seedProperties;if(!data.notices.some(n=>n.id===data.selected))data.selected=data.notices[0].id;}}}catch(e){}
 const $=id=>document.getElementById(id), active=()=>data.notices.find(n=>n.id===data.selected)||data.notices[0];
-function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));$('status').textContent='Saved locally'}catch(e){$('status').textContent='Export JSON to save'}};
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));$('status').textContent='Saved locally'}catch(e){$('status').textContent='Export JSON to save'}postToShell({type:'oaktown-workspace-changed'});};
+
+function postToShell(message){if(window.parent!==window)window.parent.postMessage(message,location.origin)}
+function cleanCourt(value={}){
+ if(!value||typeof value!=='object'||Array.isArray(value))throw Error('Invalid court record');
+ const out={authorized:value.authorized===true,confirmed:value.confirmed===true};
+ for(const key of ['reference','courtDate','courtTime','timezone','reminderDate','owner','notes']){
+  const v=value[key]??'';if(typeof v!=='string'||v.length>(key==='notes'?4000:500))throw Error('Invalid court '+key);out[key]=v;
+ }return out;
+}
+function sendNoticeContext(){const n=active();postToShell({type:'oaktown-notice-context',noticeId:n.id,tenant:n.tenant,street:n.street,court:cleanCourt(n.court||{})})}
+function cleanWorkspace(input){
+ if(!input||typeof input!=='object'||!Array.isArray(input.notices)||input.notices.length<1||input.notices.length>250||!Array.isArray(input.properties)||input.properties.length>1000)throw Error('Invalid workspace');
+ const text=(value,key,max=2000)=>{if(value===undefined||value===null)return '';if(typeof value!=='string'||value.length>max)throw Error('Invalid '+key);return value};
+ const ids=new Set();
+ const notices=input.notices.map(item=>{
+  if(!item||typeof item!=='object')throw Error('Invalid notice');
+  const n={};for(const key of ['id','tenant','street','cityline','owner','noticeDate','refNumber','firmSender'])n[key]=text(item[key],key);
+  if(!n.id||ids.has(n.id))throw Error('Missing or duplicate notice ID');ids.add(n.id);
+  if(item.sourcePropertyId!==undefined)n.sourcePropertyId=text(item.sourcePropertyId,'sourcePropertyId',200);
+  if(!Array.isArray(item.charges)||item.charges.length>200)throw Error('Invalid charges');
+  const rowIds=new Set();n.charges=item.charges.map(row=>{if(!row||typeof row!=='object')throw Error('Invalid charge');const r={};for(const key of ['id','dueDate','category','description','status'])r[key]=text(row[key],key);if(!r.id||rowIds.has(r.id))throw Error('Invalid charge ID');rowIds.add(r.id);for(const key of ['amount','amountDue']){const v=row[key]??'';if(typeof v!=='string'&&!(typeof v==='number'&&Number.isFinite(v)))throw Error('Invalid '+key);r[key]=v;}return r});
+  n.court=cleanCourt(item.court||{});return n;
+ });
+ const propertyIds=new Set();const properties=input.properties.map(item=>{if(!item||typeof item!=='object')throw Error('Invalid property');const p={};for(const key of ['id','street','cityline','owner'])p[key]=text(item[key],key);if(!p.id||propertyIds.has(p.id))throw Error('Invalid property ID');propertyIds.add(p.id);return p});
+ return {notices,properties,selected:ids.has(input.selected)?input.selected:notices[0].id};
+}
+
 function makeInput(label,key,value,extra=''){return `<div class="${extra}"><label>${label}</label><input data-key="${key}" value="${esc(value)}"></div>`}
-function renderForm(){let n=active();$('noticeList').innerHTML=data.notices.map((x,i)=>`<button class="chip ${x.id===n.id?'active':''}" data-select="${esc(x.id)}">${i+1}. ${esc(x.street||'Untitled')}</button>`).join('');
+function renderForm(){sendNoticeContext();let n=active();$('noticeList').innerHTML=data.notices.map((x,i)=>`<button class="chip ${x.id===n.id?'active':''}" data-select="${esc(x.id)}">${i+1}. ${esc(x.street||'Untitled')}</button>`).join('');
 const choices=[`<option value="">Custom / manually entered address</option>`].concat(data.properties.map(p=>`<option value="${esc(p.id)}" ${p.street===n.street&&p.cityline===n.cityline?'selected':''}>${esc(p.street)}, ${esc(p.cityline)}</option>`));$('propertySelect').innerHTML=choices.join('');
 for(const k of ['tenant','street','cityline','owner','noticeDate','refNumber'])$(k).value=n[k]||'';$('firmSender').value=n.firmSender||'';
 $('charges').innerHTML=n.charges.map((r,i)=>`<div class="row-card" data-row="${esc(r.id)}"><div class="row-actions"><strong style="font-size:12px">Charge ${i+1}</strong><button class="btn btn-sm btn-danger" data-remove-charge="${esc(r.id)}">Remove</button></div><div class="form-grid">${makeInput('Due date (MM/DD/YYYY)','dueDate',dateDisplay(r.dueDate))}${makeInput('Category','category',r.category)}${makeInput('Description','description',r.description,'span2')}${makeInput('Status','status',r.status)}${makeInput('Amount ($)','amount',r.amount)}${makeInput('Amount due ($)','amountDue',r.amountDue,'span2')}</div></div>`).join('');renderPreview();}
@@ -106,7 +133,7 @@ function chargeMarkup(r){return `<tr><td>${esc(dateDisplay(r.dueDate))}</td><td>
 function tableMarkup(rows){return `<table class="statement"><colgroup><col><col><col><col><col><col></colgroup><thead><tr><th>Due Date</th><th>Category</th><th>Description</th><th>Status</th><th>Amount</th><th>Amount Due</th></tr></thead><tbody>${rows.map(chargeMarkup).join('')}</tbody></table>`;}
 function noticePages(n){let total=n.charges.reduce((s,r)=>s+(asNum(r.amountDue)||0),0), t=money(total),rows=n.charges.length?n.charges:[];
 let sender=esc(n.owner||'Joe Burnett Jr. dba Oaktown Rental')+'\nPo Box 7\nHillview, KY 40129';
-let recipients=esc((n.tenant||'TENANT NAME REQUIRED')+' & All Occupants')+'\n'+esc(n.street||'PROPERTY ADDRESS REQUIRED')+'\n'+esc(n.cityline||'CITY, STATE ZIP REQUIRED');
+let recipients=esc(formRecipient(n))+'\n'+esc(n.street||'PROPERTY ADDRESS REQUIRED')+'\n'+esc(n.cityline||'CITY, STATE ZIP REQUIRED');
 let p1=`<article class="sheet"><div class="sheet-inner"><div class="sender">${sender}</div><div class="recipient">${recipients}</div><div class="overdue">Your account is past due</div><div class="notice-date">${esc(dateDisplay(n.noticeDate))}</div><div class="greeting">Dear Tenant(s) and all occupants,</div><div class="headline">7 DAY NOTICE PAY OR DELIVER POSSESSION</div><div class="letter"><p class="tight">Your payment for this month's rent that was due on the 1st has not been received. Please make your payment immediately in accordance with the terms and conditions of your Rental Agreement and avoid late payment credit reporting.</p><p>If rent and late charge are not received within 7 (SEVEN) days of this letter, YOU will unfortunately cause legal eviction action to be initiated and additional legal expenses will accrue. Eviction actions are reported to National Tenant Network and to credit bureaus. This notice is being delivered via U.S. Postal Service Certified Mail.</p><p class="certified">ONLY CERTIFIED FUNDS from a LOCAL BANK can be accepted after the 10th day.</p><p class="due-line">Please note that your account is currently due in the amount of <span class="highlight">${esc(t)}</span></p><p>If payment has not already been sent, please do so immediately to avoid receiving late fees, additional notices and a possible eviction.</p><p class="sincerely">Sincerely,</p><p class="signature">Thanks and have a great day! Leslie w/ Joe Burnett Jr. dba Oaktown Rentals</p></div><div class="statement-title">Current statement</div>${tableMarkup(rows.slice(0,1))}</div></article>`;
 let rest=rows.slice(1), result=[p1];if(rest.length){for(let i=0;i<rest.length;i+=17){result.push(`<article class="sheet continuation"><div class="sheet-inner">${tableMarkup(rest.slice(i,i+17))}</div></article>`)}}return result;}
 // The tenant message is extracted from the actual notice markup, not a
@@ -176,7 +203,7 @@ $('charges').addEventListener('input',e=>{const input=e.target.closest('input[da
 $('charges').addEventListener('click',e=>{let b=e.target.closest('[data-remove-charge]');if(!b)return;let n=active();if(n.charges.length<=1){alert('Keep at least one charge row.');return}n.charges=n.charges.filter(x=>x.id!==b.dataset.removeCharge);persist();renderForm()});
 $('addCharge').onclick=()=>{active().charges.push({id:uid(),dueDate:todayISO(),category:'',description:'',status:'DUE',amount:'',amountDue:''});persist();renderForm()};
 $('addNotice').onclick=()=>{let n=blankNotice();data.notices.push(n);data.selected=n.id;previewAll=false;persist();renderForm()};
-$('duplicate').onclick=()=>{let n=JSON.parse(JSON.stringify(active()));n.id=uid();n.charges=n.charges.map(r=>({...r,id:uid()}));data.notices.push(n);data.selected=n.id;previewAll=false;persist();renderForm()};
+$('duplicate').onclick=()=>{let n=JSON.parse(JSON.stringify(active()));n.id=uid();delete n.court;delete n.sourcePropertyId;n.charges=n.charges.map(r=>({...r,id:uid()}));data.notices.push(n);data.selected=n.id;previewAll=false;persist();renderForm()};
 $('removeNotice').onclick=()=>{if(data.notices.length===1){alert('Keep at least one notice.');return}if(!confirm('Remove this notice from the batch?'))return;data.notices=data.notices.filter(n=>n.id!==data.selected);data.selected=data.notices[0].id;previewAll=false;persist();renderForm()};
 const download=(filename,contents,type)=>{let a=document.createElement('a'),url=URL.createObjectURL(new Blob([contents],{type}));a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('saveJson').onclick=()=>download('Oaktown_Notice_Batch_'+todayISO()+'.json',JSON.stringify(data,null,2),'application/json');
@@ -301,17 +328,42 @@ function applyEmbeddedMode() {
       window.addEventListener('load',reportHeight);
       window.addEventListener('message',event=>{
         if(event.source!==window.parent || event.origin!==location.origin || !event.data)return;
-        if(event.data.type==='oaktown-import-property'){
-          const p=event.data.property;
-          if(!p||typeof p!=='object'||!p.id||!p.street||!p.cityline||!p.tenant)return;
-          const existing=data.properties.find(x=>x.id===p.id);
-          if(existing){existing.street=p.street;existing.cityline=p.cityline;existing.owner=p.owner||'';}
-          else data.properties.push({id:p.id,street:p.street,cityline:p.cityline,owner:p.owner||''});
-          const n=blankNotice();
-          n.tenant=p.tenant;n.street=p.street;n.cityline=p.cityline;n.owner=p.owner||'';
-          n.charges=[{id:uid(),dueDate:'',category:'RENT',description:'',status:'DUE',amount:'',amountDue:''}];
-          data.notices.push(n);data.selected=n.id;persist();renderForm();
-          window.parent.postMessage({type:'oaktown-import-confirmed',propertyId:p.id},location.origin);
+        if(event.data.type==='oaktown-context-request'){sendNoticeContext();return;}
+        if(event.data.type==='oaktown-court-save'){
+          try{const n=data.notices.find(x=>x.id===event.data.noticeId);if(!n||n.id!==data.selected)throw Error('Selected notice changed. Reopen court follow-up before saving.');n.court=cleanCourt(event.data.court);persist();sendNoticeContext();postToShell({type:'oaktown-court-saved',requestId:event.data.requestId,noticeId:n.id});}catch(error){postToShell({type:'oaktown-court-error',requestId:event.data.requestId,message:error.message});}return;
+        }
+        if(event.data.type==='oaktown-workspace-request'){
+          try{postToShell({type:'oaktown-workspace-snapshot',requestId:event.data.requestId,payload:cleanWorkspace(data)});}catch(error){postToShell({type:'oaktown-workspace-error',requestId:event.data.requestId,message:error.message});}return;
+        }
+        if(event.data.type==='oaktown-workspace-load'){
+          try{const incoming=cleanWorkspace(event.data.payload);data=incoming;previewAll=false;persist();renderForm();postToShell({type:'oaktown-workspace-loaded',requestId:event.data.requestId});}catch(error){postToShell({type:'oaktown-workspace-error',requestId:event.data.requestId,message:error.message});}return;
+        }
+
+        if(event.data.type==='oaktown-import-properties' || event.data.type==='oaktown-import-property'){
+          const items=event.data.type==='oaktown-import-properties'?event.data.properties:[event.data.property];
+          if(!Array.isArray(items)||items.length<1||items.length>250)return;
+          let added=0,updated=0,skipped=0;
+          for(const p of items){
+            if(!p||typeof p!=='object'||typeof p.id!=='string'||typeof p.street!=='string'||typeof p.cityline!=='string'||typeof p.tenant!=='string'||!p.id||!p.street||!p.cityline||!p.tenant){skipped++;continue}
+            let saved=data.properties.find(x=>x.id===p.id);
+            if(saved){saved.street=p.street;saved.cityline=p.cityline;saved.owner=p.owner||'';}
+            else data.properties.push({id:p.id,street:p.street,cityline:p.cityline,owner:p.owner||''});
+            let notice=data.notices.find(x=>x.sourcePropertyId===p.id);
+            if(notice){
+              notice.street=p.street;notice.cityline=p.cityline;notice.tenant=p.tenant;
+              if(p.owner)notice.owner=p.owner;
+              updated++;
+            }else{
+              notice=blankNotice();
+              notice.sourcePropertyId=p.id;
+              notice.tenant=p.tenant;notice.street=p.street;notice.cityline=p.cityline;notice.owner=p.owner||'';
+              notice.charges=[{id:uid(),dueDate:'',category:'RENT',description:'',status:'DUE',amount:'',amountDue:''}];
+              data.notices.push(notice);added++;
+            }
+            data.selected=notice.id;
+          }
+          if(added||updated){persist();renderForm()}
+          window.parent.postMessage({type:'oaktown-import-confirmed',added,updated,skipped,total:items.length},location.origin);
           requestAnimationFrame(reportHeight);
           return;
         }
