@@ -1,38 +1,20 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Oaktown Ops — Notice Studio</title><link rel="stylesheet" href="styles.css?v=0.3.2">
-<style>
-.workspace-main{max-width:1800px;padding:28px 30px}.workspace-intro{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;flex-wrap:wrap;margin-bottom:16px}.workspace-intro h1{font-size:31px}.workspace-intro p{font-size:13px;color:var(--muted);margin-top:8px;max-width:730px;line-height:1.6}.workspace-actions{display:flex;gap:8px;flex-wrap:wrap}.intro-note{background:#eaf0e5;border:1px solid #cfdcc9;border-radius:9px;padding:11px 15px;margin:13px 0 17px;font-size:12px;line-height:1.6;color:#425e4e}.studio-frame{width:100%;height:1550px;border:1px solid var(--line);border-radius:10px;background:#fff;display:block}.nav-button .nav-label{flex:1}
-.message-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:24px;max-width:1050px;box-shadow:0 2px 3px #153e3503}
-.message-top{display:flex;gap:18px;justify-content:space-between;align-items:start;flex-wrap:wrap;margin-bottom:15px}
-.message-top h2{font-size:20px;margin-bottom:6px}
-.message-top p{color:var(--muted);font-size:12px;line-height:1.7;max-width:650px}
-.message-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.message-text{font:14px/1.65 Georgia,"Times New Roman",serif;white-space:pre-wrap;width:100%;min-height:500px;background:#fbfcf9;padding:21px;border:1px solid #d6dfd2;border-radius:9px;resize:vertical;color:#263d35}
-.message-status{font-size:12px;color:var(--forest);min-height:22px}
-.message-hint{font-size:12px;color:var(--muted);line-height:1.7;margin-top:14px}
-.message-alert{border:1px solid #e7d3b4;background:#fff6e8;color:#765020;font-size:12px;line-height:1.7;padding:12px;border-radius:8px;margin:12px 0}
-.preview-only-note{background:#fff;border:1px solid var(--line);border-radius:12px;padding:25px;max-width:850px;font-size:14px;line-height:1.8}.preview-only-note h2{font-size:20px;margin-bottom:12px}.preview-only-note p{margin:10px 0}.preview-only-note a{color:var(--forest);font-weight:600}@media(max-width:1150px){.workspace-main{padding:25px 22px}}@media(max-width:740px){.workspace-main{padding:20px 12px}.workspace-intro h1{font-size:26px}.sidebar nav{flex-wrap:wrap}.nav-button{flex:1}}
-</style></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#153e35"><title>Oaktown Ops — Operations workspace</title><link rel="stylesheet" href="styles.css?v=0.4"><link rel="stylesheet" href="workspace.css?v=0.4"><script src="cloud.js?v=0.4" defer></script><script src="workspace.js?v=0.4" defer></script></head>
 <body><a href="#main" class="skip">Skip to main content</a>
-<aside class="sidebar">
-<a class="brand" href="./"><span class="brand-mark" aria-hidden="true">O</span><span>OAKTOWN<span class="brand-sub">RENTALS · OPERATIONS</span></span></a>
-<div class="workspace-label">WORKSPACE · v0.3</div>
-<nav aria-label="Main navigation">
-<button class="nav-button active" type="button" data-workspace="notices" aria-current="page"><span aria-hidden="true">▤</span><span class="nav-label">7-day notices</span></button>
-<button class="nav-button" type="button" data-workspace="message"><span aria-hidden="true">✉</span><span class="nav-label">Tenant message</span></button>
-<button class="nav-button" type="button" data-workspace="court"><span aria-hidden="true">◷</span><span class="nav-label">Court follow-up</span></button>
-</nav>
-<div class="sidebar-footer"><span class="version">DOCUMENT STUDIO · v0.3</span><p>The familiar workflow.<br> The right documents.</p><a href="https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Share feedback ↗</a><small>Public feedback: do not include tenant information.</small></div>
-</aside>
-<div class="shell"><header class="topbar"><span>Oaktown Ops <span class="slash">/</span> <span id="breadcrumb">7-day notices</span></span><span class="session"><span class="dot"></span>Supabase-connected preview</span></header>
-<main class="workspace-main" id="main" tabindex="-1">
-<div class="workspace-intro"><div><div class="eyebrow">OAKTOWN OPS · LEGAL-001</div><h1 id="workspace-title">7-day notice generator</h1><p id="workspace-summary">Create and review notices in the supplied reference layout. Prepare matching Firm Mailing Book sheets from the same batch.</p></div>
-</div>
-<div class="intro-note" id="studio-alert"><strong>Private information:</strong> This pilot signs in to Supabase for property lookup, but the notice editor still stores drafts in browser storage. The entire document studio is not yet access-gated. Use only a trusted device. Verify wording, dates, charges, legal requirements, landlord identity and postal acceptance before use.</div>
-<section id="pilot-auth" class="message-card" style="margin-bottom:16px"><h2>Administrator sign in</h2><p>Sign in to load your private Supabase property database directly into Notice Studio.</p><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end"><label style="flex:1;min-width:220px">Email<input id="pilot-email" type="email" value="huzaifashaikhmaths@gmail.com" style="display:block;width:100%;padding:10px;margin-top:5px"></label><label style="flex:1;min-width:220px">Supabase password<input id="pilot-password" type="password" autocomplete="current-password" style="display:block;width:100%;padding:10px;margin-top:5px"></label><button class="button primary" id="pilot-login">Sign in</button></div><p id="pilot-auth-status" role="status" style="font-size:12px;margin-top:10px"></p></section>
-<section id="pilot-properties" class="message-card" hidden style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Supabase property database</h2><button class="button" id="pilot-logout">Sign out</button></div><p>Choose an existing property and load it directly into the notice below. The landlord and charges must be verified.</p><label for="pilot-search">Search address</label><input id="pilot-search" type="search" placeholder="Search address..." autocomplete="off" spellcheck="false" aria-describedby="pilot-results" style="display:block;width:100%;padding:11px;margin:8px 0;border:1px solid #c7d6c6;border-radius:8px"><p id="pilot-results" role="status" aria-live="polite" style="font-size:12px;margin:3px 0 10px"></p><label for="pilot-property">Saved properties in Supabase</label><select id="pilot-property" style="display:block;width:100%;padding:11px;margin:8px 0"></select><button class="button primary" id="pilot-load">Load into Notice Studio</button><p id="pilot-status" role="status" style="font-size:12px"></p><p style="font-size:12px">This loads records from Supabase, not from the browser's saved-property list. The older Save Property button below still saves only to this browser.</p></section>
-<div id="generator-area"><iframe class="studio-frame" id="studio-frame" title="Notice and Firm Mailing Book generator" src="generator.html?embedded=1&amp;view=notices&amp;v=0.3" loading="eager"></iframe></div>
+<aside class="sidebar"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">O</span><span>OAKTOWN<span class="brand-sub">RENTALS · OPERATIONS</span></span></a><div class="workspace-label">YOUR WORKSPACE</div>
+<nav aria-label="Main workflows">
+<button class="nav-button active" data-workspace="notices" aria-current="page"><span aria-hidden="true">▤</span><span class="nav-label">Notices</span></button>
+<button class="nav-button" data-workspace="properties"><span aria-hidden="true">⌂</span><span class="nav-label">Properties</span></button>
+<button class="nav-button" data-workspace="leases"><span aria-hidden="true">▱</span><span class="nav-label">Leases & renewals</span><small>Next</small></button>
+<button class="nav-button" data-workspace="listings"><span aria-hidden="true">◇</span><span class="nav-label">Listings</span><small>Next</small></button>
+<button class="nav-button" data-workspace="maintenance"><span aria-hidden="true">⚒</span><span class="nav-label">Maintenance</span><small>Next</small></button>
+</nav><div class="sidebar-footer"><span class="version">OAKTOWN OPS · v0.4</span><p>One workspace.<br>Every property, in order.</p><a href="https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer">Share feedback ↗</a><small>Keep tenant information out of public feedback.</small></div></aside>
+<div class="shell"><header class="topbar"><span>Oaktown Ops <span class="slash">/</span> <span id="breadcrumb">Notices</span></span><button id="account-button" class="button"><span class="account-dot"></span><span id="account-label">Sign in</span></button></header>
+<main id="main" class="workspace-main" tabindex="-1"><div class="workspace-intro"><div><div class="eyebrow">PROPERTY OPERATIONS</div><h1 id="workspace-title">Notices</h1><p id="workspace-summary">Prepare the notice, communicate with the tenant, and keep court follow-ups together.</p></div></div>
+<section id="notices-workflow">
+<div class="workspace-bar"><label for="batch-title">CURRENT NOTICE BATCH<input id="batch-title" maxlength="120" value="Notice batch"></label><button class="button" id="open-properties">Import properties</button><button class="button" id="cloud-open">Open saved batch</button><button class="button primary" id="cloud-save">Save to Supabase</button><span class="status" id="cloud-status" role="status">Drafts save in this browser. Sign in to save a cloud copy.</span></div>
+<nav class="workflow-tabs" aria-label="Notice workflow"><button data-notice-tab="notices" class="active" aria-current="page">1 · Notice & mailing</button><button data-notice-tab="message">2 · Tenant message</button><button data-notice-tab="court">3 · Court follow-up</button></nav>
+<div id="generator-area"><iframe class="studio-frame" id="studio-frame" title="Notice and Firm Mailing Book generator" src="generator.html?embedded=1&amp;view=notices&amp;v=0.4"></iframe></div>
 <section id="message-area" class="message-card" hidden aria-labelledby="message-title">
   <div class="message-top">
     <div><h2 id="message-title">Message for the selected tenant</h2>
@@ -40,158 +22,28 @@
     <div class="message-actions"><button class="button primary" type="button" id="copy-message" disabled><span aria-hidden="true">▤</span> Copy text</button></div>
   </div>
   <div id="message-checks" class="message-alert" role="status" hidden></div>
-  <label for="tenant-message-text">Message text — select a notice in the 7-day notices tab first</label>
-  <textarea id="tenant-message-text" class="message-text" readonly spellcheck="false" placeholder="Select a notice in 7-day notices, then return here to copy its text."></textarea>
+  <label for="tenant-message-text">Message text — select a notice in the Notice & mailing sub-tab first</label>
+  <textarea id="tenant-message-text" class="message-text" readonly spellcheck="false" placeholder="Select a notice in Notice & mailing, then return here to copy its text."></textarea>
   <div id="message-copy-status" class="message-status" aria-live="polite"></div>
   <p class="message-hint">Copy and paste this into TurboTenant or your email manually, along with the corresponding notice PDF. No messages are sent automatically. Verify charges, dates and statements about delivery before sending.</p>
 </section>
-<section id="court-area" class="preview-only-note" hidden><h2>Court follow-up — v0.1 preserved</h2><p>The existing court-follow-up prototype is still available, but it is not connected to the new notice batches. We are keeping those notes separate rather than implying filing or reminders are tracked automatically.</p><p><a href="legacy.html" target="_blank" rel="noopener noreferrer">Open original court-follow-up prototype ↗</a></p><p>Leslie authorizes eviction-attorney referrals. Filing confirmation comes from attorney email; court dates and reminders are recorded manually. No notifications are sent.</p></section>
-<footer class="page-footer"><span>Oaktown Ops · Document layouts adapted from the standalone generator</span><a href="https://github.com/huzshk0707/Oaktown-ops" target="_blank" rel="noopener noreferrer">Source ↗</a></footer>
-</main></div>
-<script>
-(() => {'use strict';
-const frame=document.getElementById('studio-frame');
-const messageBox=document.getElementById('tenant-message-text');
-const copyButton=document.getElementById('copy-message');
-const copyStatus=document.getElementById('message-copy-status');
-const messageChecks=document.getElementById('message-checks');
-const names={
- notices:['7-day notices','7-day notice generator','Create and review notices in the supplied reference layout. The same generator also prepares the Firm Mailing Book.'],
- message:['Tenant message','Copy the 7-day notice message','Copy the selected notice from tenant name through the sign-off, without the sender address or statement table.'],
- court:['Court follow-up','Attorney & court follow-up','The original manual court-follow-up prototype remains available separately.']
-};
-let currentView='notices';
-function requestMessage(){
- copyButton.disabled=true;
- copyStatus.textContent='Loading the selected notice…';
- frame.contentWindow?.postMessage({type:'oaktown-tenant-message-request'},location.origin);
-}
-function switchView(view){
- if(!names[view])return;
- currentView=view;
- document.querySelectorAll('[data-workspace]').forEach(b=>{
-   const on=b.dataset.workspace===view;
-   b.classList.toggle('active',on);
-   if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
- });
- const [crumb,title,summary]=names[view];
- document.getElementById('breadcrumb').textContent=crumb;
- document.getElementById('workspace-title').textContent=title;
- document.getElementById('workspace-summary').textContent=summary;
- document.getElementById('generator-area').hidden=view!=='notices';
- document.getElementById('message-area').hidden=view!=='message';
- document.getElementById('court-area').hidden=view!=='court';
- document.getElementById('studio-alert').hidden=view==='court';
- if(view==='notices')frame.contentWindow?.postMessage({type:'oaktown-view',view:'notices'},location.origin);
- if(view==='message')requestMessage();
-}
-document.querySelectorAll('[data-workspace]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.workspace)));
-window.addEventListener('message',event=>{
- if(event.origin!==location.origin||event.source!==frame.contentWindow||!event.data)return;
- const message=event.data;
- if(message.type==='oaktown-studio-size'){
-   const h=Number(message.height);
-   if(Number.isFinite(h)&&h>=700&&h<=30000)frame.style.height=Math.ceil(h+15)+'px';
- }
- if(message.type==='oaktown-tenant-message'){
-   if(currentView!=='message')return;
-   const errors=Array.isArray(message.issues)?message.issues:[];
-   messageBox.value=String(message.content||'');
-   copyButton.disabled=errors.length>0||!messageBox.value.trim();
-   messageChecks.hidden=!errors.length;
-   messageChecks.textContent=errors.length?'Complete the selected notice before copying: '+errors.join(' '):'';
-   copyStatus.textContent=copyButton.disabled?'':'Ready to copy · '+(message.recipient||'Selected tenant');
- }
-});
-copyButton.addEventListener('click',async()=>{
- if(copyButton.disabled||!messageBox.value.trim())return;
- const text=messageBox.value;
- try{
-   if(navigator.clipboard && navigator.clipboard.writeText){
-     await navigator.clipboard.writeText(text);
-   }else{
-     messageBox.focus();
-     messageBox.select();
-     if(!document.execCommand('copy'))throw Error('Clipboard copy unavailable');
-   }
-   copyStatus.textContent='Copied! Paste the message into TurboTenant or email.';
- }catch(error){
-   messageBox.focus();messageBox.select();
-   copyStatus.textContent='Automatic copy was blocked. The text is selected—use your device’s Copy command.';
- }
-});
-frame.addEventListener('load',()=>{if(currentView==='message')requestMessage();else switchView(currentView);});
-})();
-</script><script>
-(()=>{'use strict';
-const BASE='https://wjdzaexhhjsjtdgxivyw.supabase.co',KEY='sb_publishable_urQMXLaHY5J2ALLmCRoCjA_47yOehbD',EMAIL='huzaifashaikhmaths@gmail.com',SESSION_KEY='oaktown-pilot-session-v03';
-const $=id=>document.getElementById(id);
-let session=null,records=[];
-const msg=(id,t)=>$(id).textContent=t;
-async function api(path,options={}){
- const res=await fetch(BASE+path,{...options,headers:{apikey:KEY,'Content-Type':'application/json',...(session?.access_token?{Authorization:'Bearer '+session.access_token}:{}),...(options.headers||{})}});
- const data=await res.json().catch(()=>({}));if(!res.ok)throw Error(data.msg||data.message||data.error_description||data.error||'Request failed: '+res.status);return data;
-}
-function store(s){session=s;if(s)sessionStorage.setItem(SESSION_KEY,JSON.stringify(s));else sessionStorage.removeItem(SESSION_KEY)}
-
-function propertySearchMatches(property,search){
- const query=String(search||'').toLowerCase().trim().replace(/\s+/g,' ');
- if(!query)return true;
- const address=[property.street_address,property.unit,property.city,property.state,property.postal_code].filter(Boolean).join(' ').toLowerCase().replace(/\s+/g,' ');
- return query.split(' ').every(token=>address.includes(token));
-}
-function filterProperties(){
- const dropdown=$('pilot-property'),previous=dropdown.value;
- const matches=records.map((p,i)=>({p,i})).filter(({p})=>propertySearchMatches(p,$('pilot-search').value));
- dropdown.replaceChildren(new Option(matches.length?'Select a property':'No matching properties',''),
-  ...matches.map(({p,i})=>new Option([p.street_address,p.unit].filter(Boolean).join(' ')+', '+p.city+' '+p.postal_code,String(i))));
- dropdown.value=matches.some(({i})=>String(i)===previous)?previous:'';
- const list=$('pilot-checklist');
- if(list){
-  const ids=new Set(matches.map(({i})=>i));
-  list.querySelectorAll('input[data-property-index]').forEach(check=>{
-   const row=check.closest('label');
-   if(row)row.style.display=ids.has(Number(check.dataset.propertyIndex))?'flex':'none';
-  });
- }
- $('pilot-results').textContent=matches.length+' of '+records.length+' properties shown'+(matches.length===0?' — try another street or ZIP.':'');
-}
-$('pilot-search').addEventListener('input',filterProperties);
-
-async function load(){
- const user=await api('/auth/v1/user');
- if(user.email?.toLowerCase()!==EMAIL)throw Error('Not the approved administrator.');
- const membership=await api('/rest/v1/staff_memberships?select=role,is_active&user_id=eq.'+encodeURIComponent(user.id));
- if(membership.length!==1||membership[0].role!=='admin'||!membership[0].is_active)throw Error('Administrator access not approved.');
- const [props,people]=await Promise.all([api('/rest/v1/properties?select=id,street_address,unit,city,state,postal_code,landlord_entity&order=street_address.asc'),api('/rest/v1/property_addressees?select=property_id,notice_addressee_text')]);
- const map=new Map(people.map(x=>[x.property_id,x.notice_addressee_text]));
- records=props.map(x=>({...x,tenant:map.get(x.id)||''}));
- $('pilot-search').value='';
- filterProperties();
- $('pilot-auth').hidden=true;$('pilot-properties').hidden=false;
- msg('pilot-status',records.length+' properties loaded from Supabase. Landlord/entity information remains unverified.');
-}
-$('pilot-login').addEventListener('click',async()=>{
- $('pilot-login').disabled=true;
- try{if($('pilot-email').value.trim().toLowerCase()!==EMAIL)throw Error('Use your approved email.');
- const s=await api('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:EMAIL,password:$('pilot-password').value})});
- store(s);$('pilot-password').value='';await load();msg('pilot-auth-status','');
- }catch(e){store(null);msg('pilot-auth-status',e.message)}
- finally{$('pilot-login').disabled=false}
-});
-$('pilot-logout').addEventListener('click',async()=>{try{await api('/auth/v1/logout',{method:'POST'})}catch{}store(null);records=[];$('pilot-property').replaceChildren();$('pilot-search').value='';$('pilot-results').textContent='';if($('pilot-checklist'))$('pilot-checklist').replaceChildren();$('pilot-properties').hidden=true;$('pilot-auth').hidden=false;msg('pilot-auth-status','Signed out.');});
-$('pilot-load').addEventListener('click',()=>{
- const index=$('pilot-property').value;if(index===''){msg('pilot-status','Select a property first.');return}
- const p=records[Number(index)];if(!p?.tenant){msg('pilot-status','This property has no notice addressee.');return}
- const frame=$('studio-frame');
- if(!frame.contentWindow){msg('pilot-status','Generator is not ready.');return}
- const payload={id:p.id,street:p.street_address+(p.unit?' '+p.unit:''),cityline:p.city+', '+p.state+' '+p.postal_code,tenant:p.tenant,owner:p.landlord_entity||''};
- if(!confirm('Create a new notice using '+p.street_address+'? Verify tenant, landlord and charges before printing.'))return;
- frame.contentWindow.postMessage({type:'oaktown-import-property',property:payload},location.origin);
- msg('pilot-status','Sending selected property to the Notice Studio…');
- document.querySelector('[data-workspace="notices"]').click();
-});
-window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==$('studio-frame').contentWindow)return;if(e.data?.type==='oaktown-import-confirmed')msg('pilot-status','Property loaded into a new notice. Verify landlord, dates and charges.');});
-(async()=>{try{const saved=sessionStorage.getItem(SESSION_KEY);if(!saved)return;store(JSON.parse(saved));try{await load()}catch(e){if(!session.refresh_token)throw e;const s=await api('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});store(s);await load()}}catch(e){store(null);msg('pilot-auth-status','Please sign in again: '+e.message)}})();
-})();
-</script></body></html>
+<section id="court-area" class="message-card" hidden><div class="section-head"><div><h2>Attorney & court follow-up</h2><p>Record the next steps for this notice. No filings or reminders are sent automatically.</p></div></div><div class="selected-notice" id="court-notice">Select a notice in Notice & mailing.</div>
+<form id="court-form"><div class="form-grid"><label class="check-label wide"><input type="checkbox" id="court-authorized">Leslie has authorized the attorney referral</label><label class="check-label wide"><input type="checkbox" id="court-confirmed">Filing confirmation received from the attorney</label>
+<label>Attorney confirmation reference<input id="court-reference" type="text" maxlength="500"></label><label>Court date<input id="court-courtDate" type="date" maxlength="500"></label><label>Court time<input id="court-courtTime" type="time" maxlength="500"></label><label>Time zone<input id="court-timezone" type="text" maxlength="500" placeholder="e.g. America/New_York"></label><label>Reminder date<input id="court-reminderDate" type="date" maxlength="500"></label><label>Follow-up owner<input id="court-owner" type="text" maxlength="500"></label>
+<label class="wide">Follow-up notes<textarea id="court-notes" rows="5" maxlength="4000"></textarea></label></div><div class="button-row"><button class="button primary" id="court-save" type="submit">Save follow-up</button></div><p class="status" id="court-status" role="status"></p><p class="subtle">Saved with the selected notice in this browser. Use Save to Supabase above to keep a cloud copy of the batch.</p></form></section>
+<p class="notice-help">Review recipients, landlord identity, charges, dates and notice wording before use. Printing and copying do not send notices, prove mailing or file a court case.</p></section>
+<section id="properties-workflow" hidden><div id="properties-locked" class="message-card"><h2>Your property directory</h2><p class="subtle">Sign in once to read and update the shared Supabase records.</p><button class="button primary" id="properties-signin">Sign in</button></div><div class="property-layout"><section id="pilot-properties" class="message-card" hidden><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>Property directory</h2><button class="button" id="properties-refresh" type="button">Refresh</button></div><p>Choose an existing property and load it directly into the notice below. The landlord and charges must be verified.</p><label for="pilot-search">Search address</label><input id="pilot-search" type="search" placeholder="Search address..." autocomplete="off" spellcheck="false" aria-describedby="pilot-results" style="display:block;width:100%;padding:11px;margin:8px 0;border:1px solid #c7d6c6;border-radius:8px"><p id="pilot-results" role="status" aria-live="polite" style="font-size:12px;margin:3px 0 10px"></p><label for="pilot-property">Saved properties in Supabase</label><select id="pilot-property" style="display:block;width:100%;padding:11px;margin:8px 0"></select><button class="button primary" id="pilot-load">Load into Notice Studio</button><div style="border:1px solid #d6dfd2;border-radius:9px;padding:13px;margin:13px 0">
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between"><strong>Choose multiple properties</strong><span id="pilot-count" style="font-size:12px">0 selected</span></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:9px 0"><button class="button" type="button" id="pilot-select-all">Select matching</button><button class="button" type="button" id="pilot-clear-all">Clear selection</button></div>
+<p style="font-size:12px;margin:0 0 8px">Search filters this list too. Previously checked properties stay selected when the search changes.</p><div id="pilot-checklist" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;max-height:290px;overflow:auto"></div>
+<button class="button primary" type="button" id="pilot-load-selected">Load selected properties into notices</button>
+<button class="button" type="button" id="pilot-load-all">Load all 13 properties</button>
+</div><div class="button-row"><button class="button" id="property-edit" type="button">Edit selected property</button><button class="button" id="property-new" type="button">Add property</button></div><p id="pilot-status" role="status" style="font-size:12px"></p><p class="subtle">Import refreshes address details on linked notices and keeps their charges. Review every record before use.</p></section>
+<section id="property-editor" class="message-card" hidden><div class="section-head"><div><h2 id="property-editor-title">Add property</h2><p>Save address and notice addressee together to Supabase.</p></div></div><form id="property-form"><div class="form-grid">
+<label>Street address<input id="prop-street_address" required maxlength="500"></label><label>Unit<input id="prop-unit" maxlength="500"></label><label>City<input id="prop-city" required maxlength="500"></label><label>State<input id="prop-state" required maxlength="2" pattern="[A-Za-z]{2}"></label><label>ZIP<input id="prop-postal_code" required maxlength="500" pattern="[0-9]{5}(-[0-9]{4})?"></label><label>Legal landlord / entity<input id="prop-landlord_entity" maxlength="500"></label><label class="wide">Notice addressee<input id="prop-tenant" required maxlength="500"></label>
+</div><p class="subtle">Enter the addressee as it should appear on notices. Records remain unverified until reviewed. Editing a property does not rewrite existing notice drafts; import it again when ready.</p><div class="button-row"><button class="button primary" id="property-save">Save property to Supabase</button></div><p id="property-status" class="status" role="status"></p></form></section></div></section>
+<section id="future-workflow" hidden><div class="roadmap"><article><span class="stage">UPCOMING WORKFLOW</span><h2 id="future-title"></h2><p id="future-description"></p><p>It will use the same account and property directory. This workflow is planned; no records are created here yet.</p><button class="button" id="future-properties">Open property directory</button></article></div></section>
+<footer class="page-footer"><span>Oaktown Ops · Operations workspace</span><a href="https://github.com/huzshk0707/Oaktown-ops" target="_blank" rel="noopener noreferrer">Source ↗</a></footer></main></div>
+<dialog id="account-dialog" aria-labelledby="account-title"><h2 id="account-title">Welcome to Oaktown Ops</h2><p>One account for your properties and workflows.</p><form id="pilot-auth"><label>Email<input id="pilot-email" type="email" value="huzaifashaikhmaths@gmail.com" autocomplete="username" required></label><label>Password<input id="pilot-password" type="password" autocomplete="current-password" required></label><p class="subtle">Stay signed in on this browser until you sign out. Use a trusted device.</p><button class="button primary" id="pilot-login">Sign in</button></form><div id="account-signed-in" hidden><p id="account-email"></p><button class="button" id="pilot-logout">Sign out</button><p class="subtle">Signing out disconnects cloud access. Local notice drafts remain on this browser.</p></div><p id="pilot-auth-status" role="status"></p><div class="button-row"><button class="button" id="account-close">Continue with local drafts</button></div></dialog>
+<dialog id="batch-dialog" aria-labelledby="batch-dialog-title"><h2 id="batch-dialog-title">Your saved notice batches</h2><p>Opening replaces the current browser batch. Save or export any work you want to keep first.</p><select class="cloud-list" id="cloud-batches" aria-label="Saved batches"></select><p class="status" id="batch-status" role="status"></p><div class="button-row"><button class="button primary" id="cloud-load">Open selected batch</button><button class="button" id="batch-close">Cancel</button></div></dialog>
+<noscript>Enable JavaScript to use Oaktown Ops.</noscript></body></html>

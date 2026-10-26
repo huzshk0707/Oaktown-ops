@@ -31,6 +31,7 @@ async function login(page){
  await mockSupabase(page);
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
+ if(!page.url().includes('/preview-v03/'))await page.locator('[data-workspace="properties"]').click();
  await expect(page.locator('#pilot-properties')).toBeVisible();
  await expect(page.locator('#pilot-results')).toContainText('55 of 55 properties shown');
 }

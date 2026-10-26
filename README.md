@@ -1,39 +1,40 @@
 # Oaktown Ops
 
-**v0.3 — Oaktown Ops Notice Studio with Supabase property lookup.**
+[Open the workspace](https://huzshk0707.github.io/Oaktown-ops/)
 
-[Open Oaktown Ops](https://huzshk0707.github.io/Oaktown-ops/) · [Earlier v0.2 studio](https://huzshk0707.github.io/Oaktown-ops/preview-v02/) · [v0.3 release notes](docs/RELEASE-0.3.md)
+Oaktown Ops brings property records and operational workflows together. v0.4 keeps the green Ops design and groups notice creation, tenant messages and court follow-up inside one **Notices** workflow.
 
-## What is available
+## Available now
 
-- Green Oaktown Ops workspace with seven-day notice creation, Tenant Message copy, and separate Court Follow-up prototype.
-- Original reference-layout seven-day notice and USPS PS Form 3877 Firm Mailing Book previews, printing, single notice PDF downloads, and batch ZIP downloads.
-- Administrator sign-in to Supabase and a selector for the **13** pilot properties already stored in the Supabase database (provided the signed-in account has approved staff membership).
-- Select a property in the workspace and click **Load into Notice Studio** to create a new notice with its address and unverified notice addressee prefilled.
-- JSON import/export and existing browser-local drafting tools in the embedded generator.
+- Notice & mailing: reference-layout seven-day notices, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
+- Tenant message: copy text from the selected notice.
+- Court follow-up: authorization, attorney confirmation, dates, owner and notes attached to the selected notice, retained after refresh.
+- Properties: search, select one or several, import into notices, add and edit records in Supabase.
+- One shared account: persistent Supabase session with refresh; sign in at launch or use local drafts. No separate login for each workflow.
+- Explicit **Save to Supabase** / **Open saved batch** for notices and their court records. Conflicting saves are rejected. Cloud batches belong to the signed-in user; properties are shared with approved staff.
 
-## Data and security limitations
+Leases & renewals, listings and maintenance have navigation destinations marked upcoming. Their operational forms and task systems are not implemented yet.
 
-**This is an early pilot, not a fully private tenant-management system.**
-- Supabase property and addressee records are behind authenticated row-level-security policies. The public website includes only a publishable Supabase key, not a service-role secret.
-- The document generator page is still directly available to anyone with the site URL, though it cannot fetch the protected property data without authorized credentials.
-- Notice drafts are kept in **browser localStorage**, not Supabase; they persist on the current browser profile only and could be exposed to people who use that device.
-- The older **Save current address to property database** button in the embedded generator saves to **localStorage**, not Supabase.
-- Landlord names for the imported pilot records were not verified. Confirm the legal landlord, tenant, amounts, notice wording and legal applicability before printing or serving notices.
-- Neither email delivery nor USPS submission nor court filings are automated.
+## Working with data
 
-## Repository layout
+Draft edits save in browser storage immediately. They reach Supabase only when you choose **Save to Supabase**. Property form saves write the property and addressee together. Opening a saved batch replaces the local batch after confirmation; export JSON first if needed.
 
-- `index.html`: current v0.3 Oaktown Ops workspace (GitHub Pages root).
-- `generator.html`: embedded 7-day notices and USPS Firm Book generator.
-- `styles.css`, `vendor/`: workspace styles and local PDF/ZIP libraries.
-- `legacy.html`: preserved v0.1 manual court-follow-up prototype.
-- `preview-v02/`: preserved v0.2 preview and vendored assets.
-- `preview-v03/`: preserved v0.3 preview and initial isolated sign-in pilot.
-- `docs/RELEASE-0.3.md`: release and verification notes.
+Signing out disconnects cloud access but keeps local drafts on that browser. Use a trusted device. The static website and standalone generator remain publicly accessible; protected database records require approved staff membership and row-level security. Only a publishable key is in the client.
 
-## Testing
+Existing address uniqueness excludes the unit field, so separate unit records at the same address cannot yet be added. Conflicting addresses produce an error rather than overwriting a property.
 
-GitHub Actions runs Node integration tests and Chromium Playwright checks for single PDF and batch ZIP downloads. Live Supabase login and property imports require manual testing with an authorized account; no credentials are stored in the repository.
+This software assists preparation and recordkeeping. Verify legal applicability, recipients, landlord identity, charges, dates and postal requirements before use. Messages, notices, filings and reminders are not sent automatically.
 
-[Report an issue](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml) — do **not** include tenant information in public issues.
+## Source and checks
+
+All project development is kept in GitHub. Root files serve the current app; historical previews and legacy files remain available in the repository.
+
+- `index.html`, `workspace.css`, `workspace.js`: navigation, account UI, property editing, court follow-up and cloud batch controls.
+- `cloud.js`: shared Supabase session and API client.
+- `generator.html`, `vendor/`: document layouts and local download tools.
+- `supabase/schema/ops_workspace_v04.sql`: applied additive schema/RPC reference.
+- `docs/RELEASE-0.4.md`: release scope and verification.
+
+GitHub Actions runs Node checks and Chromium tests for downloads, address search, shared sign-in, court persistence, property writes, batch restore and conflicting saves. Browser tests use fictional API mocks; database write/access tests run inside a rolled-back transaction.
+
+[Share feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml). Do not include tenant information in public issues.
