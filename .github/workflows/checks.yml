@@ -16,6 +16,8 @@ jobs:
           node --check app.js
           node --check cloud.js
           node --check workspace.js
+          node --check lead-rules.js
+          node --check leads.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 
