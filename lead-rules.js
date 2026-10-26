@@ -39,7 +39,7 @@
     ];
     for (const pattern of incomePhrases) {
       const hit = s.match(pattern);
-      if (hit) { result.push({ field: 'income', value: (hit[1].trim() + ((s.slice(hit.index+hit[0].length).match(/^\s*(?:per\s+|a\s+|\/)?(month|monthly|year|yearly|annual|week|weekly|biweekly|bi-weekly|every two weeks)\b/i)||[])[0]||'')).trim(), reason: 'Income amount mentioned; confirm period, gross/net, and household scope.' }); break; }
+      if (hit) { result.push({ field: 'income', value: (hit[1].trim() + ' ' + ((s.slice(hit.index+hit[0].length).match(/^\s*(?:per\s+|a\s+|\/)?(month|monthly|year|yearly|annual|week|weekly|biweekly|bi-weekly|every two weeks)\b/i)||[])[0]||'')).trim(), reason: 'Income amount mentioned; confirm period, gross/net, and household scope.' }); break; }
     }
     if (/\b(no|none|don't|do not|without)\s+(?:have |own )?(?:any )?(?:pets|animals|dogs|cats)\b/i.test(s)) result.push({ field: 'pets', value: 'None', reason: 'No animals reported.' });
     else {

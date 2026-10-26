@@ -10,10 +10,11 @@ const complete = {
   assistanceAnimal:'no', voucher:'no'
 };
 
-test('initial Leslie script is unchanged and asks for ID only after questions', () => {
+test('historical opening remains a reference; active draft asks the five questions without ID handoff', () => {
   const result=rules.assess(base);
-  assert.equal(result.draft, 'Home is available and ready to go. '+rules.OPENING);
-  assert.match(result.draft,/DO NOT SEND ME YOUR LICENSE BEFORE THE QUESTIONS ARE ANSWERED AND I ASK FOR IT!/);
+  assert.match(rules.OPENING,/DO NOT SEND ME YOUR LICENSE/);
+  for(const [,question] of rules.FIELDS)assert.ok(result.draft.includes(question));
+  assert.doesNotMatch(result.draft,/license|lock ?box|code|sounds good/i);
   assert.equal(result.missing.length,5);
 });
 
@@ -85,4 +86,42 @@ test('monthly income utility supports annual, monthly, and weekly strings', () =
 test('missing candidate evidence remains blank and never infers a denial', () => {
   assert.deepEqual(rules.extractCandidates('I would like to schedule a tour.'),[]);
   assert.equal(rules.assess(base).missing.length,5);
+});
+
+test('complete answers never advance to ID or showing instructions',()=>{
+ for(const availability of ['ready','not_ready','occupied','unknown','holding','rented']){
+  const r=rules.assess({property:{...base.property,availability,askingRent:1000,rentVerified:true},answers:{...complete,income:'9000'}});
+  assert.equal(r.reviewRequired,true);assert.doesNotMatch(r.draft,/send.*license|viewing instructions|lock ?box|code|approved|sounds good/i);
+ }
+});
+test('unlinked and ambiguous financial answers never imply readiness',()=>{
+ for(const income of ['not sure','4000-5000','$4000 + $2000','-5000','my partner earns 6000']){
+  const r=rules.assess({property:{...base.property,propertyId:'',askingRent:1000,rentVerified:true},answers:{...complete,income}});
+  assert.equal(r.monthly,null);assert.equal(r.reviewRequired,true);assert.doesNotMatch(r.draft,/license|code|approved/);
+ }
+});
+test('income parser rejects compound, negative and malformed amounts',()=>{
+ for(const value of ['-$3000','$3,00','4000-6000','4000 + 2000','2 people earning 5000','Infinity','0','5000 net']){
+  assert.equal(rules.parseMonthlyIncome(value),null,value);
+ }
+ assert.equal(rules.parseMonthlyIncome('72k/yr'),6000);
+ assert.equal(rules.parseMonthlyIncome('1200 biweekly'),2600);
+});
+test('voucher and unknown voucher status suppress full-rent threshold',()=>{
+ for(const voucher of ['yes','unknown']){
+  const r=rules.assess({property:{...base.property,askingRent:1850,rentVerified:true},answers:{...complete,voucher,income:'2000'}});
+  assert.equal(r.incomeMinimum,null);assert.ok(!r.flags.some(x=>x.includes('below')));
+ }
+});
+test('partial confirmed extraction remains an unanswered follow-up',()=>{
+ const r=rules.assess({...base,answers:{...complete,residence:'Currently renting — length to verify',adverse:'Negative history denied — verify full list'}});
+ assert.deepEqual(r.missing,['residence','adverse']);assert.match(r.draft,/how long|bankruptcies/);assert.doesNotMatch(r.draft,/monthly income/);
+});
+test('income candidates retain a stated pay period',()=>{
+ const c=rules.extractCandidates('I earn $600 weekly.').find(c=>c.field==='income');
+ assert.equal(c.value,'600 weekly');
+});
+test('ordinary animal descriptions still request missing detail',()=>{
+ const r=rules.assess({...base,answers:{...complete,pets:'1 dog',petDetails:''}});
+ assert.match(r.draft,/breed and weight/);
 });

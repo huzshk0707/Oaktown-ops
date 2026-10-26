@@ -10,11 +10,11 @@ begin;
 -- Fail closed: this file is an integration draft, not a deployable migration.
 -- Only the disposable CI database sets this test marker. Deployment requires a
 -- separate reviewed migration after stable unit and listing IDs are reconciled.
-do $ begin
+do $staged_guard$ begin
   if current_setting('oaktown.staged_test_only', true) is distinct from 'isolated_ci' then
     raise exception 'STAGED ONLY: reconcile Portfolio Master and approve a replacement migration before deployment.';
   end if;
-end $;
+end $staged_guard$;
 
 create table if not exists public.leads (
   id uuid primary key default gen_random_uuid(),

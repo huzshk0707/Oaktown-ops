@@ -54,7 +54,7 @@
       }
     });
     say('lead-next-step',result.step);
-    if(!replyDirty||regenerate){set('lead-response','[TEST DRAFT — not approved for applicant use]\n'+result.draft);replyDirty=false;}
+    if(!replyDirty||regenerate===true){set('lead-response','[TEST DRAFT — not approved for applicant use]\n'+result.draft);replyDirty=false;}
     else say('lead-copy-status','Your edited reply is preserved. Generate explicitly to replace it.');
     $('lead-flags').replaceChildren();
     const alerts = [...result.flags];
@@ -236,11 +236,11 @@
     });
     $('lead-incoming').addEventListener('input',()=>{clearCandidates();});
     $('lead-response').addEventListener('input',()=>{replyDirty=true;dirty=true;});
-    $('leads-workflow').addEventListener('input',event=>{if(event.target.matches('input,select,textarea'))dirty=true;});
+    $('leads-workflow').addEventListener('input',event=>{if(event.target.matches('input,select,textarea')&&event.target.id!=='lead-saved-list')dirty=true;});
     window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
     for(const el of $('leads-workflow').querySelectorAll('input,select')) {
       if(['lead-property','lead-saved-list'].includes(el.id))continue;
-      el.addEventListener('change',preview);
+      el.addEventListener('change',()=>preview());
     }
     document.querySelector('[data-workspace="leads"]')?.addEventListener('click',async ()=>{
       if(!cloud.user || cloudLoaded)return;
