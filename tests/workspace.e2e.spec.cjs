@@ -17,19 +17,19 @@ async function setup(page){
   if(p==='/auth/v1/token'){url.searchParams.get('grant_type')==='password'?s.logins++:s.refreshes++;return reply({access_token:'fictional-access',refresh_token:'fictional-refresh',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,user:{id:USER,email:s.email}})}
   if(p==='/auth/v1/user')return reply({id:USER,email:s.email});
   if(p==='/auth/v1/logout')return reply({});
-  if(p==='/rest/v1/staff_memberships')return reply([{role:'admin',is_active:s.approved}]);
+  if(p==='/rest/v1/staff_memberships'){if(s.holdMembership){s.membershipWaiting=true;await s.holdMembership;}return reply([{role:'admin',is_active:s.approved}]);}
   if(p==='/rest/v1/properties')return reply(s.properties);
   if(p==='/rest/v1/property_addressees')return reply(s.people);
   if(p==='/rest/v1/notice_batches'){if(!s.batch)return reply([]);if(url.searchParams.has('id'))return reply([s.batch]);const{id,title,version,updated_at}=s.batch;return reply([{id,title,version,updated_at}]);}
   if(p==='/rest/v1/rpc/save_notice_batch'){
-   const b=req.postDataJSON();s.writes.push(clone(b));
+   const b=req.postDataJSON();s.writes.push(clone(b));if(s.holdSave)await s.holdSave;
    if(s.conflict)return reply({code:'40001',message:'This batch changed elsewhere. Open the latest saved batch before saving again.'},409);
    s.batch={id:b.p_id||BATCH,title:b.p_title,payload:clone(b.p_payload),version:(s.batch?.version||0)+1,updated_at:'2026-10-26T10:00:00Z'};
    const{id,title,version,updated_at}=s.batch;return reply({id,title,version,updated_at});
   }
   if(p==='/rest/v1/rpc/save_property'){
    if(s.offline)return route.abort('internetdisconnected');
-   const b=req.postDataJSON();s.propertyWrites.push(clone(b));const d=b.p_data;
+   const b=req.postDataJSON();s.propertyWrites.push(clone(b));if(s.holdProperty)await s.holdProperty;const d=b.p_data;
    const property={id:b.p_id||CREATED,...d,updated_at:'2026-10-26T10:00:00Z'};delete property.tenant;
    s.properties=s.properties.filter(p=>p.id!==property.id).concat(property);s.people=s.people.filter(p=>p.property_id!==property.id).concat({property_id:property.id,notice_addressee_text:d.tenant});
    return reply({property,notice_addressee_text:d.tenant});
@@ -91,4 +91,28 @@ test('property writes validate fields and retain edits on network failure',async
 test('revoked membership blocks a restored session',async({page})=>{
  const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#pilot-login')).toBeVisible();
  await expect(page.locator('#pilot-auth-status')).toContainText('not approved');await expect(page.locator('#pilot-properties')).not.toBeVisible();
+});
+test('pending cloud and property saves lock actions that could switch their targets',async({page})=>{
+ const s=await setup(page);await importProperty(page);let release;
+ s.holdSave=new Promise(resolve=>release=resolve);await page.locator('#cloud-save').click();
+ await expect.poll(()=>s.writes.length).toBe(1);await expect(page.locator('#cloud-open')).toBeDisabled();await expect(page.locator('#cloud-save')).toBeDisabled();
+ release();await expect(page.locator('#cloud-status')).toContainText('Saved to Supabase');s.holdSave=null;
+ await page.locator('[data-workspace="properties"]').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
+ await page.locator('#prop-unit').fill('Test unit');s.holdProperty=new Promise(resolve=>release=resolve);await page.locator('#property-save').click();
+ await expect.poll(()=>s.propertyWrites.length).toBe(1);await expect(page.locator('#property-new')).toBeDisabled();await expect(page.locator('#property-edit')).toBeDisabled();await expect(page.locator('#prop-street_address')).toBeDisabled();
+ release();await expect(page.locator('#property-status')).toContainText('Saved to Supabase');await expect(page.locator('#property-new')).toBeEnabled();
+});
+test('a delayed account verification cannot restore a signed-out session',async({page})=>{
+ const s=await setup(page);let release;s.holdMembership=new Promise(resolve=>release=resolve);
+ await page.reload();await expect.poll(()=>s.membershipWaiting).toBe(true);
+ await page.evaluate(()=>window.OpsCloud.signOut());release();
+ await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#pilot-login')).toBeVisible();
+ await page.reload();await expect(page.locator('#pilot-login')).toBeVisible();expect(s.logins).toBe(1);
+});
+test('workflow navigation fits a narrow screen',async({page})=>{
+ await page.setViewportSize({width:390,height:844});await setup(page);
+ await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-form')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.locator('[data-workspace="properties"]').click();await expect(page.locator('#property-form')).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
