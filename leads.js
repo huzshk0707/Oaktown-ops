@@ -225,10 +225,12 @@
         $('lead-property').replaceChildren(option('','Unlinked draft — sign in for properties'));
         $('lead-saved-list').replaceChildren(option('','Sign in to open saved leads'));
         $('lead-message-history').replaceChildren();
+        clearLead();
         say('lead-workflow-status','Local drafting only. Sign in for private cloud records.');
         return;
       }
       if(user===loadedUser)return;
+      if(loadedUser && loadedUser!==user)clearLead();
       loadedUser=user; cloudLoaded=false;
       if($('leads-workflow').hidden){say('lead-workflow-status','Signed in. Open Lead Copilot to load private lead records.');return;}
       try{await loadProperties();await loadLeads();cloudLoaded=true;}
