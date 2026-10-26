@@ -6,7 +6,7 @@
   const rules = window.OpsLeadRules;
   const keys = ['income','incomeBasis','residence','pets','petDetails','assistanceAnimal','adverse','adverseDetails','walkthrough','walkthroughDetails','voucher','voucherDetails'];
   let selectedId = null, selectedUpdated = null, properties = [], leads = [], loadedUser = null;
-  let loadEpoch = 0, savedIncoming = '';
+  let loadEpoch = 0, savedIncoming = '', cloudLoaded = false;
   const say = (id, message) => { const el = $(id); if(el) el.textContent = message; };
   const v = id => $(id).value.trim();
   const set = (id, value) => { $(id).value = value == null ? '' : String(value); };
@@ -213,10 +213,15 @@
       if(['lead-property','lead-saved-list'].includes(el.id))continue;
       el.addEventListener('change',preview);
     }
+    document.querySelector('[data-workspace="leads"]')?.addEventListener('click',async ()=>{
+      if(!cloud.user || cloudLoaded)return;
+      try{await loadProperties();await loadLeads();cloudLoaded=true;}
+      catch(e){say('lead-workflow-status','Cloud lead loading unavailable: '+e.message+'. Local drafting still works.');}
+    });
     window.addEventListener('ops-auth-change',async event=>{
       const user=event.detail.user?.id||null;
       if(!user){
-        ++loadEpoch;loadedUser=null;properties=[];leads=[];selectedId=null;selectedUpdated=null;
+        ++loadEpoch;loadedUser=null;cloudLoaded=false;properties=[];leads=[];selectedId=null;selectedUpdated=null;
         $('lead-property').replaceChildren(option('','Unlinked draft — sign in for properties'));
         $('lead-saved-list').replaceChildren(option('','Sign in to open saved leads'));
         $('lead-message-history').replaceChildren();
@@ -224,8 +229,9 @@
         return;
       }
       if(user===loadedUser)return;
-      loadedUser=user;
-      try{await loadProperties();await loadLeads();}
+      loadedUser=user; cloudLoaded=false;
+      if($('leads-workflow').hidden){say('lead-workflow-status','Signed in. Open Lead Copilot to load private lead records.');return;}
+      try{await loadProperties();await loadLeads();cloudLoaded=true;}
       catch(e){say('lead-workflow-status','Cloud lead loading unavailable: '+e.message+'. Local drafting still works.');}
     });
     clearLead();
