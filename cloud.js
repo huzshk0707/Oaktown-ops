@@ -25,7 +25,7 @@ async function refresh(){
 function superseded(){const error=Error('Account changed. Please retry.');error.cancelled=true;return error;}
 async function api(path,options={}){
  const started=epoch;
- if(!session)throw Error('Sign in to use Supabase.');
+ if(!session)throw Error('Sign in to use your workspace.');
  if(session.expires_at*1000<Date.now()+60000)await refresh();
  if(started!==epoch||!session)throw superseded();
  try{const data=await raw(path,options);if(started!==epoch)throw superseded();return data;}catch(e){if(started!==epoch||!session)throw superseded();if(e.status!==401)throw e;session.expires_at=0;localStorage.setItem(STORE,JSON.stringify(session));await refresh();if(started!==epoch||!session)throw superseded();const data=await raw(path,options);if(started!==epoch)throw superseded();return data;}
