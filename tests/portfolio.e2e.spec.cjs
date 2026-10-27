@@ -77,3 +77,26 @@ test('renewal preparation uses selected unit, validates choices and formats late
  await expect(page.locator('#renewal-preview')).toContainText('Water [X Tenant]');
  await expect(page.locator('#renewal-output')).toContainText('No PDF was created');
 });
+
+
+test('renewal generator downloads a five-page unsigned PDF from approved inputs',async({page})=>{
+ await login(page);
+ await page.locator('[data-workspace="leases"]').click();
+ await page.locator('#renewal-unit').selectOption(U8);
+ await expect(page.locator('#renewal-lease')).toHaveValue(H);
+ await page.locator('#renewal-rent').fill('4,000.00');
+ for(let i=0;i<5;i++)await page.locator('#renewal-utility-'+i).selectOption('Tenant');
+ for(let i=0;i<7;i++)await page.locator('#renewal-appliance-'+i).selectOption(i===4?'Yes':'No');
+ await page.locator('#renewal-verified').check();
+ await page.locator('#renewal-form button[type="submit"]').click();
+ await expect(page.locator('#renewal-download-pdf')).toBeVisible();
+ const downloadEvent=page.waitForEvent('download');
+ await page.locator('#renewal-download-pdf').click();
+ const download=await downloadEvent;
+ expect(download.suggestedFilename()).toMatch(/Renewal Rental Lease.*\.pdf$/);
+ const fs=require('node:fs'),buf=fs.readFileSync(await download.path());
+ expect(buf.subarray(0,5).toString('ascii')).toBe('%PDF-');
+ const text=buf.toString('latin1');
+ expect((text.match(/\/Type\s*\/Page\b/g)||[]).length).toBe(5);
+ await expect(page.locator('#renewal-pdf-status')).toContainText('Five-page unsigned PDF downloaded');
+});
