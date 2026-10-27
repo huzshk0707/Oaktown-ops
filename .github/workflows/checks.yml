@@ -17,6 +17,9 @@ jobs:
           node --check cloud.js
           node --check workspace.js
           node --check portfolio.js
+          node --check renewal-rules.js
+          node --check renewal-pdf.js
+          node --check renewal-generator.js
           node --check notice-picker.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
