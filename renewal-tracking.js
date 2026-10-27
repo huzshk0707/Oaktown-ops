@@ -29,7 +29,7 @@ function show(){
  host.append(el('h3','Update renewal · '+(data.oak_record_id||'Selected case')));
  const hint=el('p','A confirmed update changes the active tracker status for this case. Imported Master records and signed leases are preserved.','ops-muted');host.append(hint);
  const form=node('form',{id:'tracker-form'});
- const latestStatus=prior?.status||'not_started';
+ const latestStatus=prior?.status||'unreviewed';
  const message=node('textarea',{id:'tracker-message',rows:2,maxLength:500,placeholder:'e.g. Just sent the renewal lease to the tenant for signature'});
  form.append(lineField('One-line update (optional if editing status manually)',message));
  const suggestion=el('p','Type an update to see a suggested status. Review it before saving.','tracker-suggestion');suggestion.id='tracker-suggestion';form.append(suggestion);
