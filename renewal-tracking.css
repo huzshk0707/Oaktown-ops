@@ -1,0 +1,16 @@
+/* Renewal status tracker — staff-only, event-backed edits. */
+.ops-tracker{margin-top:15px;border:1px solid #b9d0c0;background:#f8faf6;border-radius:12px;padding:17px}
+.ops-tracker h3{margin:0 0 7px;font-size:18px;color:#153e35}
+.ops-tracker h4{margin:18px 0 8px;font-size:14px;color:#1e4437}
+.tracker-field{display:block;font-size:13px;font-weight:700;color:#315344;margin-top:12px}
+.tracker-field textarea,.tracker-field input,.tracker-field select{display:block;width:100%;border:1px solid #b9cfc0;border-radius:8px;padding:10px;margin-top:6px;font:14px Arial,sans-serif;background:white;color:#1e4034;box-sizing:border-box}
+.tracker-field textarea{resize:vertical;min-height:56px}
+.tracker-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:15px}
+.tracker-actions .status{font-size:12px;max-width:520px}
+.tracker-suggestion{background:#eaf3ec;border-left:3px solid #6c987c;padding:9px;margin:10px 0 0;font-size:12px;color:#345741}
+.tracker-error{color:#9b2626!important}
+.tracker-history{margin-top:14px;border-top:1px solid #d5e3d8;padding-top:4px}
+.tracker-event{background:#fff;border:1px solid #d7e2d6;border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:12px;overflow-wrap:anywhere}
+.tracker-event strong{display:block;color:#204b37}
+.tracker-event p{margin:6px 0 0;white-space:pre-wrap}
+@media(max-width:700px){.ops-tracker{padding:12px}.tracker-actions{align-items:stretch;flex-direction:column}.tracker-actions .button{width:100%}}
