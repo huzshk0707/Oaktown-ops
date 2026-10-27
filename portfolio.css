@@ -1,0 +1,14 @@
+/* Authenticated portfolio workbench (v0.5). Source values are presented as unverified unless explicitly confirmed. */
+#ops-portfolio-panel,#ops-renewals-panel{background:white;border:1px solid #d6dfd2;border-radius:12px;padding:20px;margin:0 0 22px}
+#ops-portfolio-panel h2,#ops-renewals-panel h2{font-size:22px;color:#153e35;margin:0 0 6px}
+.ops-muted{color:#607266;font-size:12px;line-height:1.6}
+.ops-search{display:block;width:100%;border:1px solid #c7d6c6;background:#fbfcf9;padding:12px;border-radius:9px;margin:14px 0 6px;color:#1e4034}
+.ops-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:14px 0}
+.ops-kpi{border:1px solid #d6dfd2;border-radius:10px;padding:12px;background:#f6f9f4;display:flex;flex-direction:column;gap:6px}
+.ops-kpi strong{font-size:23px;color:#153e35}.ops-kpi span{font-size:11px;color:#587062}
+#ops-portfolio-list,#ops-renewals-list{max-height:460px;overflow:auto}
+.ops-detail{border:1px solid #c6d5c7;border-radius:10px;padding:18px;background:#f8faf6;margin-top:12px;max-height:600px;overflow:auto}
+.ops-detail:empty{display:none}.ops-detail h3{font-size:18px;color:#153e35;margin-bottom:10px}.ops-detail h4{font-size:14px;color:#254d40;margin:16px 0 8px}
+.ops-detail-line{display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px;border-bottom:1px solid #e1eadf;padding:7px 0;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ops-detail-line strong{color:#445d4e}.ops-history{border-left:3px solid #86a189;padding:8px 12px;margin:10px 0;background:white;font-size:12px;overflow-wrap:anywhere}.ops-history p{margin:5px 0}
+@media(max-width:700px){#ops-portfolio-panel,#ops-renewals-panel{padding:13px}.ops-detail-line{grid-template-columns:1fr;gap:3px}}
