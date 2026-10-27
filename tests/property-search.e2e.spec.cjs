@@ -36,7 +36,7 @@ async function mockSupabase(page){
 }
 async function login(page){
  await mockSupabase(page);
- await page.locator('#staff-access-signin').click();
+ if(!page.url().includes('/preview-v03/'))await page.locator('#staff-access-signin').click();
  await page.locator('#pilot-email').fill('tester@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
