@@ -13,8 +13,17 @@ const unitName=u=>{
 const labelOf=item=>[item.prop.street_address,unitName(item.unit)].filter(Boolean).join(' · ');
 const line=(tag,value,cls)=>{const e=document.createElement(tag);e.textContent=String(value??'');if(cls)e.className=cls;return e};
 function matching(){
- const q=$('notice-picker-search').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
- return items.filter(item=>q.every(word=>item.search.includes(word)));
+ const raw=$('notice-picker-search').value.trim().toLowerCase();
+ const q=raw.split(/\s+/).filter(Boolean);
+ // For phrases such as "1106 Unit 1", require that exact unit number.
+ // Otherwise house number "1106" would also match "Unit 8" by token.
+ const explicitUnit=raw.match(/(?:^|\s)unit\s+(\d+[a-z]?)(?=\s|$)/);
+ const explicitLot=raw.match(/(?:^|\s)lot\s+(\d+[a-z]?)(?=\s|$)/);
+ return items.filter(item=>{
+  if(explicitUnit&&unitName(item.unit).toLowerCase()!=='unit '+explicitUnit[1])return false;
+  if(explicitLot&&unitName(item.unit).toLowerCase()!=='lot '+explicitLot[1])return false;
+  return q.every(word=>item.search.includes(word));
+ });
 }
 function draw(){
  const matches=matching(),host=$('notice-picker-list');host.replaceChildren();
