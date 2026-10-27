@@ -13,7 +13,7 @@ Oaktown Ops brings property records and operational workflows together. v0.4 kee
 - One shared account: persistent Supabase session with refresh; sign in at launch or use local drafts. No separate login for each workflow.
 - Explicit **Save to Supabase** / **Open saved batch** for notices and their court records. Conflicting saves are rejected. Cloud batches belong to the signed-in user; properties are shared with approved staff.
 
-Leases & renewals retains its read-only imported case/task browser and now includes a **Renewal Lease Generator preparation form** (property/unit and expiring-lease selection, suggested editable dates, rent/late fees, occupants/pets, utility and appliance choices, verified field review). **It does not yet generate PDFs, save renewals, send signatures, or alter leases.** See [renewal implementation stages](docs/RENEWAL-LEASE-GENERATOR.md). Listings and maintenance remain upcoming.
+Leases & renewals retains its read-only imported case/task browser and now includes a **Renewal Lease Generator** (property/unit and expiring-lease selection, suggested editable dates, rent/late fees, occupants/pets, utility and appliance choices, verified field review). After confirming the fields, staff can **download an unsigned five-page renewal lease PDF** from the sanitized document master. **The PDF is not saved to Supabase, signed, sent, or applied to the active lease.** See [renewal generator limitations and document QA](docs/RENEWAL-LEASE-GENERATOR.md). Listings and maintenance remain upcoming.
 
 ## Working with data
 
@@ -31,7 +31,7 @@ All project development is kept in GitHub. Root files serve the current app; his
 
 - `index.html`, `workspace.css`, `workspace.js`: navigation, account UI, property editing, court follow-up and cloud batch controls.
 - `cloud.js`: shared Supabase session and API client.
-- `renewal-generator.js`, `renewal-rules.js`, `renewal.css`: protected renewal preparation UI and testable field calculations.
+- `renewal-generator.js`, `renewal-rules.js`, `renewal-pdf.js`, `renewal.css`, `renewal-assets/`: protected renewal UI, field calculations, five-page unsigned PDF renderer and sanitized master pages.
 - `notice-picker.js` / `notice-picker.css`: signed-in property/unit search, multi-selection, and Make Notices action.
 - `generator.html`, `vendor/`: document layouts and local download tools.
 - `supabase/schema/ops_workspace_v04.sql`: applied additive schema/RPC reference.
