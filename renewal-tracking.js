@@ -68,9 +68,9 @@ function show(){
  host.append(history);
 }
 async function reload(){
+ if(loading)return loading;
  const ticket=++epoch;
  if(!cloud.user){events=[];caseId=null;failed=false;show();fire();return}
- if(loading)return loading;
  loading=cloud.api('/rest/v1/ops_events?select=id,entity_type,entity_id,event_type,occurred_at,summary,event_metadata&entity_type=eq.renewal_case&event_type=eq.renewal_progress_updated&order=occurred_at.desc&limit=1000')
   .then(rows=>{if(ticket!==epoch||!cloud.user)return;events=Array.isArray(rows)?rows:[];failed=false;show();fire()})
   .catch(e=>{if(ticket!==epoch)return;failed=true;show();fire()})
