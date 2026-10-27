@@ -1,7 +1,7 @@
 
 (()=>{'use strict';
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
-let workflow='notices',tab='notices',records=[],editing=null,context=null,courtDirty=false,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0;
+let workflow='notices',tab='notices',records=[],editing=null,context=null,courtDirty=false,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0,preOpenUndo=null;
 const courtKeys=['reference','courtDate','courtTime','timezone','reminderDate','owner','notes'];
 const pending=new Map(),META='oaktown-batch-meta-v04';
 const say=(id,text)=>$(id).textContent=text;
@@ -24,7 +24,8 @@ async function batchOperation(action){
 function account(){if(!$('account-dialog').open)$('account-dialog').showModal()}
 function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in once to use the shared property directory and cloud saves.');return false;}
 function rememberBatch(){if(cloudBatch)localStorage.setItem(META,JSON.stringify({...cloudBatch,owner:cloud.user?.id,title:$('batch-title').value}));}
-function cloudDirty(){revision++;say('cloud-status',cloud.user?'Changes saved in this browser · use Save to Supabase for a cloud copy.':'Local draft · sign in to save a cloud copy.');}
+function timeLabel(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
+function cloudDirty(){revision++;say('cloud-status','Saved locally · '+timeLabel()+(cloud.user?' · unsynced changes (Save to cloud)':' · only on this browser'));}
 function showWorkflow(name){
  if(courtDirty&&workflow==='notices'&&tab==='court'&&name!=='notices'&&!confirm('Leave without saving these follow-up edits?'))return;
  if(name!==workflow)courtDirty=false;
@@ -32,9 +33,9 @@ function showWorkflow(name){
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
  $('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('future-workflow').hidden=['notices','properties'].includes(name);
  const titles={notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',maintenance:'Maintenance'};
- const descriptions={notices:'Prepare the notice, communicate with the tenant, and keep court follow-ups together.',properties:'One shared property directory. Import records into notices and save property changes to Supabase.',leases:'Lease generation and renewal preparation will live here.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
+ const descriptions={notices:'Prepare the notice, communicate with the tenant, and keep court follow-ups together.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
  say('workspace-title',titles[name]);say('breadcrumb',titles[name]);say('workspace-summary',descriptions[name]);
- if(!['notices','properties'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
+ if(['listings','maintenance'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
 }
@@ -54,23 +55,61 @@ $('open-properties').onclick=$('future-properties').onclick=()=>showWorkflow('pr
 $('notices-load-all').onclick=()=>busy($('notices-load-all'),async()=>{if(!requireUser())return;try{await loadProperties();importMany(records)}catch(e){say('cloud-status','Could not load the property directory: '+e.message)}});
 $('property-add-top').onclick=()=>{if(!requireUser())return;showWorkflow('properties');newProperty();$('property-editor').scrollIntoView({behavior:'smooth',block:'start'});$('prop-street_address').focus();};
 $('account-button').onclick=$('properties-signin').onclick=account;
+$('staff-access-signin').onclick=account;
 $('account-close').onclick=()=>$('account-dialog').close();
+$('forgot-password').onclick=()=>{
+ $('password-request').hidden=!$('password-request').hidden;
+ $('recovery-email').value=$('pilot-email').value.trim();
+ say('recovery-status','');
+};
+$('password-request').onsubmit=async e=>{
+ e.preventDefault();
+ await busy($('password-request').querySelector('button'),async()=>{
+  try{
+   await cloud.requestPasswordReset($('recovery-email').value);
+   say('recovery-status','If this is an approved account, a password reset link will arrive by email. Check your spam folder if needed.');
+   $('password-request').hidden=true;
+  }catch(error){say('recovery-status','Could not send reset request: '+error.message)}
+ });
+};
+window.addEventListener('ops-password-recovery',()=>{
+ $('password-change').hidden=false;
+ $('password-request').hidden=true;
+ $('pilot-auth').hidden=true;
+ $('forgot-password').hidden=true;
+ say('recovery-status','Reset link opened. Enter a new password below.');
+ account();
+});
+$('password-change').onsubmit=async e=>{
+ e.preventDefault();
+ await busy($('password-change').querySelector('button'),async()=>{
+  try{
+   await cloud.completePasswordRecovery($('recovery-new-password').value);
+   $('recovery-new-password').value='';
+   $('password-change').hidden=true;
+   $('forgot-password').hidden=false;
+   $('pilot-auth').hidden=false;
+   say('recovery-status','Password updated. Sign in with your new password.');
+  }catch(error){say('recovery-status','Password update failed: '+error.message)}
+ });
+};
 $('pilot-auth').onsubmit=async event=>{event.preventDefault();await busy($('pilot-login'),async()=>{try{say('pilot-auth-status','Signing in…');await cloud.signIn($('pilot-email').value.trim(),$('pilot-password').value);$('pilot-password').value='';$('account-dialog').close();say('pilot-auth-status','');}catch(e){say('pilot-auth-status',e.message);}})};
 $('pilot-logout').onclick=()=>busy($('pilot-logout'),()=>cloud.signOut());
 window.addEventListener('ops-auth-change',event=>{
  const user=event.detail.user,changed=currentUser!==user?.id;currentUser=user?.id||null;
- $('pilot-auth').hidden=!!user;$('account-signed-in').hidden=!user;$('properties-locked').hidden=!!user;
+ $('pilot-auth').hidden=!!user||!$('password-change').hidden;$('account-signed-in').hidden=!user;
+ $('staff-access').hidden=!!user;document.body.classList.toggle('ops-signed-out',!user);$('properties-locked').hidden=!!user;
  $('pilot-properties').hidden=!user;$('property-editor').hidden=!user;
  say('account-label',user?'Signed in':'Sign in');document.querySelector('#account-button .account-dot')?.classList?.toggle('online',!!user);
  say('account-close',user?'Return to workspace':'Continue with local drafts');say('account-email',user?.email||'');
  if(event.detail.error)say('pilot-auth-status',event.detail.error);
  if(!user){
   propertyLoad++;records=[];editing=null;cloudBatch=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('property-record-list').replaceChildren();say('property-directory-count','');$('cloud-batches').replaceChildren();$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');$('batch-dialog').close();
-  say('cloud-status','Local drafts remain on this browser. Sign in to reconnect to Supabase.');
+  say('cloud-status','Saved locally on this browser · sign in to sync to cloud.');preOpenUndo=null;$('undo-batch').hidden=true;
  }else if(changed){
   try{const saved=JSON.parse(localStorage.getItem(META)||'null');if(saved?.owner===user.id){cloudBatch=saved;$('batch-title').value=saved.title||'Notice batch';}}catch{}
   newProperty();loadProperties().catch(e=>say('pilot-status',e.message));
-  say('cloud-status','Connected · local changes are saved to Supabase when you choose Save.');
+  say('cloud-status','Saved locally · select Save to cloud to sync this batch.');
  }
 });
 function propertySearchMatches(property,search){
@@ -122,7 +161,7 @@ function importMany(items){
  if(!items.length){say('pilot-status','No properties found. Add a property in the Properties tab.');return;}
  const ready=items.filter(p=>p.tenant&&String(p.tenant).trim());
  const skipped=items.length-ready.length;
- if(!ready.length){say('pilot-status','No selected properties have a notice recipient yet. Add notice addressees to those properties before creating notices.');say('cloud-status','No notices imported: notice recipients are missing.');return;}
+ if(!ready.length){say('pilot-status','No selected properties have a notice recipient yet. Add notice addressees to those properties before creating notices.');say('cloud-status','No notices imported: verified notice recipients are missing.');return;}
  if(!confirm('Create or refresh '+ready.length+' notices'+(skipped?'? '+skipped+' vacant/unverified properties will be skipped.':'?')+' Existing linked notices keep their charges. Verify all addressees, landlords, dates and balances.'))return;
  post({type:'oaktown-import-properties',properties:ready.map(p=>({id:p.id,street:[p.street_address,p.unit].filter(Boolean).join(' '),cityline:p.city+', '+p.state+' '+p.postal_code,tenant:p.tenant,owner:p.landlord_entity||''}))});
  say('cloud-status','Loading '+ready.length+' properties into notices'+(skipped?' · '+skipped+' without addressees skipped':'')+'…');
@@ -154,7 +193,7 @@ $('property-form').onsubmit=async event=>{
    $('pilot-search').value='';await loadProperties();
    const savedIndex=records.findIndex(p=>p.id===editing.id);
    if(savedIndex>=0)$('pilot-property').value=String(savedIndex);
-   say('property-status','Saved to Supabase. It is now available in the property database and will be included in future notice imports once it has an addressee.');
+   say('property-status','Saved to shared property records. It will be available for future notice drafts once a recipient is verified.');
   }catch(e){say('property-status',e.code==='23505'?'This address already exists. Select and edit its existing record. Separate units at one address are not supported yet.':e.message);}
  });
 };
@@ -166,7 +205,7 @@ async function saveCourt(){
  if(court.confirmed&&(!court.authorized||!court.reference))throw Error('Record referral authorization and the attorney confirmation reference first.');
  if(court.courtDate&&!court.confirmed)throw Error('Record the attorney filing confirmation before adding a court date.');
  if(court.reminderDate&&court.courtDate&&court.reminderDate>court.courtDate)throw Error('The reminder date must be on or before the court date.');
- await frameRequest('oaktown-court-save',{noticeId:context.noticeId,court});courtDirty=false;say('court-status','Follow-up saved with this notice. Save the batch to Supabase for a cloud copy.');
+ await frameRequest('oaktown-court-save',{noticeId:context.noticeId,court});courtDirty=false;say('court-status','Follow-up saved locally with this notice. Select Save to cloud for a shared copy.');
 }
 $('court-form').onsubmit=async e=>{e.preventDefault();await busy($('court-save'),async()=>{try{await saveCourt()}catch(error){say('court-status',error.message)}})};
 $('copy-message').onclick=async()=>{const box=$('tenant-message-text');try{await navigator.clipboard.writeText(box.value);say('message-copy-status','Copied. Paste the message into TurboTenant or email.');}catch{box.focus();box.select();say('message-copy-status','Text selected. Use your device’s Copy command.');}};
@@ -178,11 +217,11 @@ $('cloud-save').onclick=async()=>{
    if(courtDirty)await saveCourt();
    const {payload}=await frameRequest('oaktown-workspace-request'),atRevision=revision,userId=cloud.user.id;
    const title=$('batch-title').value.trim();if(!title)throw Error('Give this notice batch a name before saving.');
-   say('cloud-status','Saving to Supabase…');
+   say('cloud-status','Syncing to cloud…');
    const saved=await cloud.api('/rest/v1/rpc/save_notice_batch',{method:'POST',body:JSON.stringify({p_id:cloudBatch?.id||null,p_expected_version:cloudBatch?.version||null,p_title:title,p_payload:payload})});
    if(cloud.user?.id!==userId)return;
    cloudBatch=saved;rememberBatch();
-   say('cloud-status',revision===atRevision?'Saved to Supabase · '+title:'Saved the earlier snapshot. Newer edits are still local; save again.');
+   say('cloud-status',revision===atRevision?'Synced to cloud · '+timeLabel()+' · '+title:'Earlier snapshot synced · newer edits still saved locally. Save to cloud again.');
   }catch(e){say('cloud-status',e.message);}
  });
 };
@@ -199,6 +238,21 @@ $('cloud-open').onclick=async()=>{
  });
 };
 $('batch-close').onclick=()=>$('batch-dialog').close();
+$('cloud-undo').onclick=async()=>{
+ if(!preOpenUndo)return;
+ const backup=preOpenUndo;
+ await busy($('cloud-undo'),async()=>{
+  try{
+   await frameRequest('oaktown-workspace-load',{payload:backup.payload});
+   cloudBatch=backup.cloudBatch;
+   $('batch-title').value=backup.title;
+   if(cloudBatch)rememberBatch();else localStorage.removeItem(META);
+   preOpenUndo=null;$('undo-batch').hidden=true;courtDirty=false;
+   showWorkflow('notices');showTab('notices');
+   say('cloud-status','Previous local batch restored · '+timeLabel()+'. Save to cloud to sync if needed.');
+  }catch(e){say('cloud-status','Could not undo opening the batch: '+e.message)}
+ });
+};
 $('cloud-load').onclick=()=>batchOperation(async()=>{
  try{
   const id=$('cloud-batches').value;if(!id)return;
@@ -206,8 +260,8 @@ $('cloud-load').onclick=()=>batchOperation(async()=>{
   const userId=cloud.user?.id,rows=await cloud.api('/rest/v1/notice_batches?id=eq.'+encodeURIComponent(id)+'&select=*');
   if(cloud.user?.id!==userId)return;
   if(rows.length!==1)throw Error('This saved batch is no longer available.');
-  const saved=rows[0];await frameRequest('oaktown-workspace-load',{payload:saved.payload});
-  courtDirty=false;cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;rememberBatch();$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened saved batch · '+saved.title);
+  const saved=rows[0];const old=await frameRequest('oaktown-workspace-request');const backup={payload:old.payload,title:$('batch-title').value,cloudBatch:cloudBatch?{...cloudBatch}:null};await frameRequest('oaktown-workspace-load',{payload:saved.payload});
+  courtDirty=false;cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;rememberBatch();preOpenUndo=backup;$('undo-batch').hidden=false;$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened cloud batch · '+saved.title+' · previous local batch can be restored.');
  }catch(e){say('batch-status',e.message);}
 });
 window.addEventListener('message',event=>{
@@ -223,5 +277,5 @@ window.addEventListener('message',event=>{
  }
 });
 frame.addEventListener('load',()=>{post({type:'oaktown-context-request'});if(workflow==='notices')showTab(tab)});
-cloud.start().then(()=>{if(!cloud.user)account()}).catch(e=>{account();say('pilot-auth-status',e.message)});
+cloud.start().catch(e=>{say('pilot-auth-status',e.message);$('staff-access').hidden=false;document.body.classList.add('ops-signed-out')});
 })();
