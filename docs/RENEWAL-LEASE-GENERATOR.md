@@ -1,33 +1,29 @@
-# Renewal Lease Generator — Phase 1 (PR #10 follow-up)
+# Renewal Lease Generator — five-page PDF patch on PR #10
 
-## Scope added to the existing Leases & renewals workspace
+## Available on the PR branch
 
-The new staff-only Renewal Lease Generator · Preparation form connects to the existing authenticated portfolio and requires explicit verification before displaying the populated field summary. It neither creates nor overwrites current leases and does not send anything for signature.
+The **Leases & renewals** workspace has a staff-only Renewal Lease Generator. Select the exact unit and existing lease; the form suggests new dates, auto-fills recorded tenants/emails, and lets the operator enter new rent, occupants, pets, utility responsibility (Landlord or Tenant), and appliance answers (Yes or No).
 
-1. Select a property unit (not just an address) and the expiring lease record.
-2. Show the Kentucky-local generation date. Suggest new start and end dates based on the previous lease while keeping both dates editable.
-3. Enter monthly rent and calculate 5% and 10% charges formatted with commas and two cents digits (example $4,000.00).
-4. Prepopulate tenant name and email plus up to five occupants from tenancy-linked records, for verification and editing. Enter pets manually.
-5. Choose exactly one Landlord or Tenant responsibility for Water, Electric, Gas, Trash and Internet; the eventual lease will display one X per utility.
-6. Choose Yes or No for Range, Refrigerator, Dishwasher, Blinds, Microwave, Garage Door Opener and Washer & Dryer.
-7. Display the fixed security deposit wording "Amt: carried over" instead of inventing a verified amount.
-8. Require confirmation that the lease, tenant identity, unit and deposit have been independently checked. Imported values are suggestions, not certified current tenancy data.
+- Generation date uses `America/New_York` and prints `MM/DD/YYYY`.
+- Rent and both calculated late charges use USD commas and **two decimal places** (for example `$4,000.00`).
+- The document says **Amt: carried over** for the deposit; it does not invent a deposit balance.
+- The preview requires a signed-in staff user, confirmed tenancy details, a selected source unit/lease, valid dates, and all five utility and seven appliance selections.
+- After **Review renewal inputs**, select **Download five-page renewal lease PDF**. The download is unsigned and contains the original clauses and blank signature/initials spaces. No electronic signature, signing audit trail, tenant message, database write, or lease-status transition is performed.
 
-## Not implemented in Phase 1
+## PDF master and reference comparison
 
-- **Final PDF generation is disabled.** The original five-page Word master must be cleaned and compared at rendered-page level against the signing example. The sample has overlapping old/new text and its sixth page is an audit trail, not a lease page.
-- **No Supabase writes or renewal-status transitions.** Retained renewal documents and history will need additive RLS-protected schema, document storage and an approval plan.
-- **No persisted local copies of personally identifying tenant details.** The review summary is in memory only.
-- The appliance and automatic month-to-month renewal wording in the template need authorized review before final leases are issued.
+The five sanitized page images in `renewal-assets/lease-master-page-{1..5}.png` were prepared from the uploaded **Renewal Rental Blank Lease.docx** and rendered to US Letter at 1530 × 1980 pixels. Old example tenant names, emails, address and stray occupant initials were removed from page one before asset creation. Pages two through five retain the original clauses, headings, initials areas and signatures.
 
-## Phase 2 acceptance criteria
+The completed **6307 Price Lane, 2026** PDF is a layout/field-placement reference, **not a data source for new renewals**. The sample's sixth page is a third-party electronic-signature audit trail and is intentionally excluded from newly generated unsigned leases. The reference confirms that the output uses `Yes`/`No` appliance text, `X` marks for utilities, and calculated fees of **$71.25** and **$142.50** for **$1,425.00** rent.
 
-- Clean five-page PDF master with exactly placed values and blank signing spaces.
-- Visual regression checks for page layout, currency formatting, dates, long names/emails, address wrapping and pets.
-- Immutable document versions, renewal history linked to units and expiring leases, controlled status transitions and no auto-replacement of the current lease.
-- Private document storage and staff-only access policies.
-- Tests for rounding, expired-term edge cases, property/unit isolation, exact PDF and signing safety.
+The PDF overlays variable data onto the sanitized static page. It never copies reference tenant data; it blocks oversize fields rather than silently clipping them. The existing source Word document contains underline/line artifacts. Visual comparison can validate content, page size, principal field placement and page count, but pixel-identical output to the already e-signed sample is **not claimed** because e-signature highlights/audit markers and pre-existing source artifacts differ.
 
-## Verify Phase 1
+## Tests and release safety
 
-Run the Node renewal rules tests and Playwright portfolio tests. Sign in, open Leases & renewals, choose a unit and lease, review its auto-suggested data, select every utility and appliance, confirm verification, and choose Review renewal inputs. This shows the field summary only; it is not a PDF or lease.
+`tests/renewal-rules.test.cjs` verifies term suggestions, date/currency rules and required review; `tests/renewal-pdf.test.cjs` verifies five master assets, the completed-sample amounts, five-page output, one utility X per item, and rejection when the account changes during export; `tests/portfolio.e2e.spec.cjs` exercises a mock staff session, field review and browser PDF download.
+
+The PR is a **draft**, not merged or deployed. Do not treat a generated document as signed or legally approved. In particular, the template's appliance-supply language and automatic month-to-month renewal clause need an authorized owner/legal review before production issuance.
+
+## Later patch: renewal records and history
+
+The generated PDF currently downloads locally only. Saving immutable PDF versions against an existing renewal case (or creating a new case), private storage, staff-only RLS, signing progress and executed-lease transition is separate work. Do **not** silently replace the active lease or treat imported renewal-case rent offers as verified contractual amounts.
