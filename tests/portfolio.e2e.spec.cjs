@@ -41,6 +41,7 @@ async function login(page){
  await page.locator('#pilot-password').fill('fictional-password');
  await page.locator('#pilot-login').click();
  await expect(page.locator('#account-label')).toContainText('Signed in');
+ return activity;
 }
 test('full portfolio shows multiple units at one street and keeps historical contact distinct from notice addressee',async({page})=>{
  await login(page);
