@@ -3,7 +3,7 @@
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
 let workflow='notices',tab='notices',records=[],editing=null,context=null,courtDirty=false,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0,preOpenUndo=null;
 const courtKeys=['reference','courtDate','courtTime','timezone','reminderDate','owner','notes'];
-const pending=new Map(),META='oaktown-batch-meta-v04';
+const pending=new Map(),META='oaktown-batch-meta-v04',LOCAL_TITLE='oaktown-batch-title-v06';
 const say=(id,text)=>$(id).textContent=text;
 const post=message=>frame.contentWindow?.postMessage(message,location.origin);
 function frameRequest(type,extra={}){
@@ -24,8 +24,9 @@ async function batchOperation(action){
 function account(){if(!$('account-dialog').open)$('account-dialog').showModal()}
 function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in once to use the shared property directory and cloud saves.');return false;}
 function rememberBatch(){if(cloudBatch)localStorage.setItem(META,JSON.stringify({...cloudBatch,owner:cloud.user?.id,title:$('batch-title').value}));}
+function saveLocalTitle(){try{localStorage.setItem(LOCAL_TITLE,$('batch-title').value.slice(0,120));return true}catch{return false}}
 function timeLabel(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
-function cloudDirty(){revision++;say('cloud-status','Saved locally · '+timeLabel()+(cloud.user?' · unsynced changes (Save to cloud)':' · only on this browser'));}
+function cloudDirty(){revision++;if(!saveLocalTitle()){say('cloud-status','Local storage unavailable · export a JSON backup before leaving.');return}say('cloud-status','Saved locally · '+timeLabel()+(cloud.user?' · unsynced changes (Save to cloud)':' · only on this browser'));}
 function showWorkflow(name){
  if(courtDirty&&workflow==='notices'&&tab==='court'&&name!=='notices'&&!confirm('Leave without saving these follow-up edits?'))return;
  if(name!==workflow)courtDirty=false;
@@ -245,7 +246,7 @@ $('cloud-undo').onclick=async()=>{
   try{
    await frameRequest('oaktown-workspace-load',{payload:backup.payload});
    cloudBatch=backup.cloudBatch;
-   $('batch-title').value=backup.title;
+   $('batch-title').value=backup.title;saveLocalTitle();
    if(cloudBatch)rememberBatch();else localStorage.removeItem(META);
    preOpenUndo=null;$('undo-batch').hidden=true;courtDirty=false;
    showWorkflow('notices');showTab('notices');
@@ -261,7 +262,7 @@ $('cloud-load').onclick=()=>batchOperation(async()=>{
   if(cloud.user?.id!==userId)return;
   if(rows.length!==1)throw Error('This saved batch is no longer available.');
   const saved=rows[0];if(courtDirty)await saveCourt();const old=await frameRequest('oaktown-workspace-request');const backup={payload:old.payload,title:$('batch-title').value,cloudBatch:cloudBatch?{...cloudBatch}:null};await frameRequest('oaktown-workspace-load',{payload:saved.payload});
-  courtDirty=false;cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;rememberBatch();preOpenUndo=backup;$('undo-batch').hidden=false;$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened cloud batch · '+saved.title+' · previous local batch can be restored.');
+  courtDirty=false;cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;saveLocalTitle();rememberBatch();preOpenUndo=backup;$('undo-batch').hidden=false;$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened cloud batch · '+saved.title+' · previous local batch can be restored.');
  }catch(e){say('batch-status',e.message);}
 });
 window.addEventListener('message',event=>{
@@ -277,5 +278,6 @@ window.addEventListener('message',event=>{
  }
 });
 frame.addEventListener('load',()=>{post({type:'oaktown-context-request'});if(workflow==='notices')showTab(tab)});
+try{const previousTitle=localStorage.getItem(LOCAL_TITLE);if(previousTitle&&previousTitle.length<=120)$('batch-title').value=previousTitle}catch{}
 cloud.start().catch(e=>{say('pilot-auth-status',e.message);$('staff-access').hidden=false;document.body.classList.add('ops-signed-out')});
 })();
