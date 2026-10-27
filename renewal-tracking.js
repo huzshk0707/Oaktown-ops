@@ -6,7 +6,7 @@ if(!cloud||!R||!portfolio||!$('ops-renewals-detail'))return;
 const host=document.createElement('section');host.id='ops-renewal-tracker';host.className='ops-tracker';
 host.setAttribute('aria-label','Update selected renewal');
 $('ops-renewals-detail').after(host);
-let events=[],caseId=null,loading=null,epoch=0,failed=false,posting=false;
+let events=[],caseId=null,loading=null,loadingEpoch=0,epoch=0,failed=false,posting=false;
 const latest=id=>R.latest(events,id);
 const snapshot=id=>R.snapshot(latest(id));
 const selected=()=>portfolio.getData()?.renewals?.find(r=>r.id===caseId)||null;
@@ -68,13 +68,14 @@ function show(){
  host.append(history);
 }
 async function reload(){
- if(loading)return loading;
+ if(loading&&loadingEpoch===epoch)return loading;
  const ticket=++epoch;
+ loadingEpoch=ticket;
  if(!cloud.user){events=[];caseId=null;failed=false;show();fire();return}
  loading=cloud.api('/rest/v1/ops_events?select=id,entity_type,entity_id,event_type,occurred_at,summary,event_metadata&entity_type=eq.renewal_case&event_type=eq.renewal_progress_updated&order=occurred_at.desc&limit=1000')
   .then(rows=>{if(ticket!==epoch||!cloud.user)return;events=Array.isArray(rows)?rows:[];failed=false;show();fire()})
   .catch(e=>{if(ticket!==epoch)return;failed=true;show();fire()})
-  .finally(()=>{loading=null});
+  .finally(()=>{if(loadingEpoch===ticket)loading=null});
  return loading;
 }
 async function save(values,button){
