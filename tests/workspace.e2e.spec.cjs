@@ -174,6 +174,7 @@ test('staff password reset sends a link and can finish recovery without storing 
  await expect(page.locator('#recovery-status')).toContainText('If this is an approved account');
  expect(state.resetRequests).toHaveLength(1);
  await page.goto(ORIGIN+'/#access_token=example-recovery-token&type=recovery');
+ await page.reload(); // Same-origin hash navigation may not reload the app; emailed links start a new page.
  await expect(page.locator('#password-change')).toBeVisible();
  await expect(page).not.toHaveURL(/access_token/);
  await page.locator('#recovery-new-password').fill('safe-fictional-password-123');
