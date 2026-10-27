@@ -17,6 +17,44 @@ const APPLIANCE_SLOTS=[
  {name:'Garage Door Opener',x:512.3,y:613.4,w:38.5},
  {name:'Washer & Dryer',x:112.7,y:624.9,w:39.5}
 ];
+// Highlight coordinates are taken from the original five-page lease master.
+const INITIALS_HIGHLIGHTS=[
+ [[442,716,535,728]],
+ [[513,53,573,65],[432,145,535,157],[432,202,535,214],[448,570,553,582],[228,674,332,686]],
+ [[468,18,572,30],[77,133,156,145],[468,156,572,168],[468,225,572,237],[468,271,572,283],[231,340,335,352],[426,363,550,375],[440,421,564,433],[468,501,575,513],[252,559,359,571],[296,628,400,640],[468,697,566,709]],
+ [[468,7,566,19],[468,151,555,163],[432,197,519,209],[468,255,555,267],[468,347,572,359],[429,404,513,416],[432,473,516,485],[454,542,541,554],[468,588,555,600],[468,657,555,669]],
+ [[396,41,483,53],[417,110,504,122],[468,230,552,242]]
+];
+async function restoreInitialHighlights(bytes,pageNumber){
+ // The prepared master is monochrome. Multiply yellow with existing pixels so
+ // original black type, ruling, and underscored INITIALS remain perfectly visible.
+ if(typeof document==='undefined'||typeof createImageBitmap!=='function')return bytes;
+ const bitmap=await createImageBitmap(new Blob([bytes],{type:'image/png'}));
+ try{
+  const canvas=document.createElement('canvas');
+  canvas.width=bitmap.width;canvas.height=bitmap.height;
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw Error('Cannot restore renewal master highlights.');
+  ctx.drawImage(bitmap,0,0);
+  ctx.globalCompositeOperation='multiply';
+  ctx.fillStyle='#ffff00';
+  for(const [l,t,r,b] of INITIALS_HIGHLIGHTS[pageNumber-1]||[]){
+   ctx.fillRect(l*canvas.width/612,t*canvas.height/792,
+                (r-l)*canvas.width/612,(b-t)*canvas.height/792);
+  }
+  ctx.globalCompositeOperation='source-over';
+  return canvas.toDataURL('image/png');
+ }finally{if(typeof bitmap.close==='function')bitmap.close()}
+}
+function writeUnderlinedAnswer(pdf,value,x,y,w,h,textX,textY,textW,{size=9,minSize=7,lineY}={}){
+ // Erase only the template's underscores, then explicitly redraw the rule
+ // beneath the new text. Otherwise filling the answer makes the line disappear.
+ fillBox(pdf,x,y,w,h);
+ textFit(pdf,value,textX,textY,textW,{size,minSize});
+ pdf.setDrawColor(0,0,0);
+ pdf.setLineWidth(0.45);
+ pdf.line(x,lineY,x+w,lineY);
+}
 const removeUnsupported=s=>String(s??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim();
 function wrapMeasured(pdf,value,maxWidth,size,maxLines){
  const words=removeUnsupported(value).split(/\s+/).filter(Boolean),lines=[];let current='';
@@ -57,10 +95,10 @@ function overlay(pdf,model){
  textFit(pdf,model.cityline,200.5,300.7,244,{size:11,minSize:7.5,align:'center'});
  // Occupant A/B/C left, D/E right, with original underlines intact.
  const locations=[[105,499.5,207],[105,520.2,207],[105,540.9,207],[352,499.5,188],[352,520.2,188]];
- model.occupants.forEach((person,i)=>{if(person)textFit(pdf,person,...locations[i].slice(0,3),{size:9.5,minSize:7})});
+ model.occupants.forEach((person,i)=>{if(person)textFit(pdf,person,...locations[i].slice(0,3),{size:10.5,minSize:7})});
  // Pet field may use two small lines; do not print across Utility choices.
- const pets=wrapMeasured(pdf,model.pets||'None',170,8.1,2);
- pets.forEach((s,i)=>textFit(pdf,s,370.5,540.6+i*10,170,{size:8.1,minSize:7.1}));
+ const pets=wrapMeasured(pdf,model.pets||'None',170,9.1,2);
+ pets.forEach((s,i)=>textFit(pdf,s,370.5,540.6+i*10,170,{size:9.1,minSize:7.1}));
  // Each utility must appear on exactly one landlord or tenant line.
  const keys=['Water','Electric','Gas','Trash','Internet'];
  keys.forEach((name,i)=>{
@@ -73,14 +111,14 @@ function overlay(pdf,model){
  for(const field of APPLIANCE_SLOTS){
   const value=model.appliances[field.name];
   if(!['Yes','No'].includes(value))throw Error('Appliance choice missing for '+field.name);
-  fillBox(pdf,field.x-.3,field.y-.7,field.w+1.2,12.4);
-  textFit(pdf,value,field.x+1.5,field.y+8.7,field.w-3,{size:9,minSize:8});
+  writeUnderlinedAnswer(pdf,value,field.x-.3,field.y-.7,field.w+1.2,12.4,
+                       field.x+1.5,field.y+8.7,field.w-3,{size:9,minSize:8,lineY:field.y+10.7});
  }
  // Late fees sit beside the percentage clauses in the original paragraph.
- fillBox(pdf,217.0,693.0,40.4,12.6);
- textFit(pdf,model.fiveFormatted.slice(1),218,702.6,38,{size:9,minSize:7});
- fillBox(pdf,70,704.7,43.5,12.0);
- textFit(pdf,model.tenFormatted.slice(1),71.5,714.1,40.5,{size:9,minSize:7});
+ writeUnderlinedAnswer(pdf,model.fiveFormatted.slice(1),217.0,693.0,40.4,12.6,
+                      218,702.6,38,{size:9,minSize:7,lineY:704.6});
+ writeUnderlinedAnswer(pdf,model.tenFormatted.slice(1),70,704.7,43.5,12.0,
+                      71.5,714.1,40.5,{size:9,minSize:7,lineY:716.1});
 }
 function buildModel(state,rules,when){
  const errors=rules.validate(state);
@@ -111,7 +149,8 @@ async function generate(state,{rules,JsPDF,viewerUser,when,fetchAsset=fetch}={})
   if(!response.ok)throw Error('Missing renewal template page '+p+' ('+response.status+').');
   const png=new Uint8Array(await response.arrayBuffer());
   if(p>1)pdf.addPage([612,792],'portrait');
-  pdf.addImage(png,'PNG',0,0,612,792,undefined,'FAST');
+  const master=await restoreInitialHighlights(png,p);
+  pdf.addImage(master,'PNG',0,0,612,792,undefined,'FAST');
   if(p===1)overlay(pdf,model);
  }
  if(viewerUser()!==person)throw Error('Account changed. PDF generation was cancelled.');
@@ -121,5 +160,5 @@ function filename(model){
  const addr=removeUnsupported(model.address).replace(/[^A-Za-z0-9 _-]/g,'').replace(/\s+/g,' ').trim().slice(0,70);
  return 'Renewal Rental Lease - '+(addr||'Property')+' - '+model.generationDate.replace(/\//g,'-')+'.pdf';
 }
-return Object.freeze({PAGE_COUNT,BASE,CENTERS,UTILITY_X,APPLIANCE_SLOTS,buildModel,overlay,generate,filename});
+return Object.freeze({PAGE_COUNT,BASE,CENTERS,UTILITY_X,APPLIANCE_SLOTS,INITIALS_HIGHLIGHTS,restoreInitialHighlights,buildModel,overlay,generate,filename});
 });
