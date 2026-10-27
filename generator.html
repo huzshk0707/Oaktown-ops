@@ -344,14 +344,20 @@ function applyEmbeddedMode() {
           if(!Array.isArray(items)||items.length<1||items.length>250)return;
           let added=0,updated=0,skipped=0;
           for(const p of items){
-            if(!p||typeof p!=='object'||typeof p.id!=='string'||typeof p.street!=='string'||typeof p.cityline!=='string'||typeof p.tenant!=='string'||!p.id||!p.street||!p.cityline||!p.tenant){skipped++;continue}
+            if(!p||typeof p!=='object'||typeof p.id!=='string'||typeof p.street!=='string'||typeof p.cityline!=='string'||typeof p.tenant!=='string'||!p.id||!p.street||!p.cityline){skipped++;continue}
             let saved=data.properties.find(x=>x.id===p.id);
             if(saved){saved.street=p.street;saved.cityline=p.cityline;saved.owner=p.owner||'';}
             else data.properties.push({id:p.id,street:p.street,cityline:p.cityline,owner:p.owner||''});
             let notice=data.notices.find(x=>x.sourcePropertyId===p.id);
+            if(!notice&&typeof p.legacyPropertyId==='string'&&p.legacyPropertyId){
+              notice=data.notices.find(x=>x.sourcePropertyId===p.legacyPropertyId);
+            }
             if(notice){
-              notice.street=p.street;notice.cityline=p.cityline;notice.tenant=p.tenant;
-              if(p.owner)notice.owner=p.owner;
+              notice.sourcePropertyId=p.id;
+              notice.street=p.street;notice.cityline=p.cityline;
+              // Do not overwrite user-entered recipients or legal landlord names with unverified imports.
+              if(p.tenant&&!notice.tenant)notice.tenant=p.tenant;
+              if(p.owner&&!notice.owner)notice.owner=p.owner;
               updated++;
             }else{
               notice=blankNotice();
