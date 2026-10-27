@@ -40,12 +40,13 @@ test('invalid unreviewed inputs cannot export',()=>{
 });
 test('render overlays on only page 1 of five and preserves the original master images',async()=>{
  class FakePDF{
-  constructor(){this.pages=1;this.images=[];this.texts=[];this.size=10;}
+  constructor(){this.pages=1;this.images=[];this.texts=[];this.lines=[];this.size=10;}
   addPage(){this.pages++}
   addImage(bytes,type,x,y,w,h){assert.equal(type,'PNG');assert.equal(w,612);assert.equal(h,792);this.images.push({page:this.pages,bytes:bytes.length})}
-  setFont(){}setFontSize(size){this.size=size}setTextColor(){}setFillColor(){}
+  setFont(){}setFontSize(size){this.size=size}setTextColor(){}setFillColor(){}setDrawColor(){}setLineWidth(){}
   getTextWidth(value){return String(value).length*this.size*.45}
-  text(value,x,y,opts){this.texts.push({page:this.pages,value,x,y,opts})}
+  text(value,x,y,opts){this.texts.push({page:this.pages,value,x,y,opts,size:this.size})}
+  line(x1,y1,x2,y2){this.lines.push({page:this.pages,x1,y1,x2,y2})}
   rect(){}
  }
  const calls=[];
@@ -57,11 +58,42 @@ test('render overlays on only page 1 of five and preserves the original master i
  assert.equal(pdf.texts.filter(x=>x.value==='X').length,5);
  assert.ok(pdf.texts.some(x=>x.value==='$4,000.00'));
  assert.ok(pdf.texts.some(x=>x.value==='Yes'));
+ assert.equal(pdf.lines.length,9,'seven appliance and two late-charge underlines must remain');
+ assert.ok(pdf.lines.every(line=>line.page===1),'ruling is confined to fillable first page');
+ assert.ok(pdf.lines.some(line=>Math.abs(line.y1-704.6)<.001),'5% fee underline restored');
+ assert.ok(pdf.lines.some(line=>Math.abs(line.y1-716.1)<.001),'10% fee underline restored');
+ assert.equal(pdf.texts.find(x=>x.x===105&&x.y===499.5).size,10.5,'occupant font rises exactly one point');
+ assert.equal(pdf.texts.find(x=>x.x===370.5&&x.y===540.6).size,9.1,'pets font rises exactly one point');
  assert.equal(calls.length,5);
  assert.match(P.filename(model),/Renewal Rental Lease/);
 });
 test('account change while pages load aborts document',async()=>{
  let n=0;
  const fetchAsset=async()=>{n++;return {ok:true,arrayBuffer:async()=>new ArrayBuffer(10)}};
- await assert.rejects(()=>P.generate(example(),{rules:R,JsPDF:class{addImage(){} addPage(){} setFont(){}setFontSize(){}setTextColor(){}setFillColor(){}text(){}rect(){}getTextWidth(){return 1}},fetchAsset,viewerUser:()=>n>=1?'signed-out-user':'initial-user'}),/Account changed/);
+ await assert.rejects(()=>P.generate(example(),{rules:R,JsPDF:class{addImage(){} addPage(){} setFont(){}setFontSize(){}setTextColor(){}setFillColor(){}setDrawColor(){}setLineWidth(){}line(){}text(){}rect(){}getTextWidth(){return 1}},fetchAsset,viewerUser:()=>n>=1?'signed-out-user':'initial-user'}),/Account changed/);
+});
+
+
+test('the original initials highlights appear on every master page and preserve black ruling',async()=>{
+ assert.deepEqual(P.INITIALS_HIGHLIGHTS.map(r=>r.length),[1,5,12,10,3]);
+ const previousDocument=global.document,previousBitmap=global.createImageBitmap;
+ const fills=[],context={globalCompositeOperation:'source-over',fillStyle:'#000000',drawImage(){},
+  fillRect(...args){fills.push({args,mode:this.globalCompositeOperation,color:this.fillStyle})}};
+ let closes=0;
+ global.createImageBitmap=async()=>({width:1530,height:1980,close(){closes++}});
+ global.document={createElement(tag){assert.equal(tag,'canvas');return {
+  width:0,height:0,getContext(){return context},toDataURL(){return 'data:image/png;base64,example'}
+ }}};
+ try{
+  for(let page=1;page<=5;page++){
+   const returned=await P.restoreInitialHighlights(new Uint8Array([1,2,3]),page);
+   assert.equal(returned,'data:image/png;base64,example');
+  }
+  assert.equal(fills.length,31);
+  assert.ok(fills.every(x=>x.mode==='multiply'&&x.color==='#ffff00'));
+  assert.equal(closes,5);
+ }finally{
+  if(previousDocument===undefined)delete global.document;else global.document=previousDocument;
+  if(previousBitmap===undefined)delete global.createImageBitmap;else global.createImageBitmap=previousBitmap;
+ }
 });
