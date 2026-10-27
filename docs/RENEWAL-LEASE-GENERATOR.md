@@ -53,3 +53,15 @@ Cases must be selected from the existing renewal case list. For live staff usage
 Tests in tests/renewal-tracking.test.cjs and tests/portfolio.e2e.spec.cjs exercise classification, negation, manual notes, API event payloads, saved state after reload, and property/case linkage using fictional API fixtures. Status updates are append-only, so history is retained. If the newest history changed between load and save, the user must refresh and review before retrying. Do not add tenant identities or sensitive document contents to free-text notes unnecessarily.
 
 The event-journal list fetch currently loads the newest 1,000 renewal update events across the workspace and shows up to the latest 50 in the selected case; pagination can be added as volume grows. For cases never updated in Ops, the imported Master status remains as historical context and the tracker starts untracked.
+
+
+## PDF layout correction — late charges, appliances and initials
+
+A subsequent small rendering patch fixes four layout details while leaving the lease data, clauses and five-page master unchanged:
+
+- The existing 5% and 10% late-charge **form underlines are redrawn** after the values are inserted. Values retain two-decimal formatting; the preprinted dollar symbols are not duplicated.
+- All seven appliance **Yes/No lines retain visible underlines** beneath the inserted answers, instead of being erased by the white field knockout.
+- Occupants A–E render at **10.5 pt** (formerly 9.5); the pets description / "None" at **9.1 pt** (formerly 8.1), shrinking only when needed to fit approved field bounds.
+- The yellow **INITIALS** highlighting is restored on pages 1–5 using the original master's highlight coordinates. A multiply blend colors the white background while preserving the original black initials labels and underline ruling.
+
+The fix is applied at PDF-generation time. Neither the supplied example screenshots nor tenant/master database values are edited. The PDF continues to download locally; nothing is stored in Supabase.
