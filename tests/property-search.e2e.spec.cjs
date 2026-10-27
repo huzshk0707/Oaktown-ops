@@ -22,6 +22,7 @@ async function mockSupabase(page){
   else if(pathname==='/rest/v1/staff_memberships')data=[{role:'admin',is_active:true}];
   else if(pathname==='/rest/v1/properties')data=properties;
   else if(pathname==='/rest/v1/property_addressees')data=addressees;
+  else if(['/rest/v1/units','/rest/v1/leases','/rest/v1/bookings','/rest/v1/people','/rest/v1/tenancy_people','/rest/v1/renewal_cases','/rest/v1/ops_tasks'].includes(pathname))data=[];
   else if(pathname==='/auth/v1/logout')data={};
   else throw Error('Unmocked Supabase request: '+req.url());
   return route.fulfill({status:200,headers,body:JSON.stringify(data)});
