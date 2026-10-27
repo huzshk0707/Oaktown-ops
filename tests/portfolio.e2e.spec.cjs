@@ -144,10 +144,10 @@ test('renewal workflow never interprets not sent as sent and allows optional not
  await page.locator('[data-workspace="leases"]').click();
  await page.locator('#ops-renewals-list .property-record').click();
  await page.locator('#tracker-message').fill('I have not sent the lease yet');
- await expect(page.locator('#tracker-status')).toHaveValue('not_started');
+ await expect(page.locator('#tracker-status')).toHaveValue('unreviewed');
  await expect(page.locator('#tracker-suggestion')).toContainText('No confident status');
  await page.locator('#tracker-note').fill('Waiting on confirmation');
  await page.locator('#tracker-save').click();
  await expect(page.locator('#tracker-feedback')).toContainText('Saved');
- expect(activity[0].event_metadata.status).toBe('not_started');
+ expect(activity[0].event_metadata.status).toBe('unreviewed');
 });
