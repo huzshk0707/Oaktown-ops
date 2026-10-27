@@ -174,7 +174,7 @@ test('mobile layout fits 390px and existing v0.4 workflows still navigate',async
  await page.locator('[data-notice-tab="court"]').click();
  await expect(page.locator('#court-form')).toBeVisible();
  await page.locator('[data-workspace="properties"]').click();
- await expect(page.locator('#pilot-properties')).toBeVisible();
+ await expect(page.locator('#ops-portfolio-panel')).toBeVisible();
  expect(state.passwordLogins).toBe(1);
  expect(state.leadCalls).toEqual([]);
 });
