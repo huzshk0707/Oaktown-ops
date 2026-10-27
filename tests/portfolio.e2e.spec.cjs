@@ -52,3 +52,28 @@ test('renewals screen shows pending case and task from normalized Supabase table
  await expect(page.locator('#ops-renewals-detail')).toContainText('Ask sample tenant to sign');
  await expect(page.locator('#ops-renewals-detail')).toContainText('Contact example');
 });
+
+
+test('renewal preparation uses selected unit, validates choices and formats late fees without writing records',async({page})=>{
+ await login(page);
+ await page.locator('[data-workspace="leases"]').click();
+ await expect(page.locator('#ops-renewal-generator')).toBeVisible();
+ await page.locator('#renewal-unit').selectOption(U8);
+ await expect(page.locator('#renewal-lease')).toHaveValue(H);
+ await expect(page.locator('#renewal-tenant')).toHaveValue('Avery Example');
+ await expect(page.locator('#renewal-start')).toHaveValue('2026-01-01');
+ await expect(page.locator('#renewal-end')).toHaveValue('2026-12-31');
+ await page.locator('#renewal-rent').fill('4,000.00');
+ await expect(page.locator('#renewal-fees')).toHaveValue('$200.00 / $400.00');
+ await page.locator('#renewal-form button[type="submit"]').click();
+ await expect(page.locator('#renewal-output')).toBeHidden();
+ for(let i=0;i<5;i++)await page.locator('#renewal-utility-'+i).selectOption('Tenant');
+ for(let i=0;i<7;i++)await page.locator('#renewal-appliance-'+i).selectOption(i===4?'Yes':'No');
+ await page.locator('#renewal-verified').check();
+ await page.locator('#renewal-form button[type="submit"]').click();
+ await expect(page.locator('#renewal-output')).toBeVisible();
+ await expect(page.locator('#renewal-preview')).toContainText('$4,000.00');
+ await expect(page.locator('#renewal-preview')).toContainText('Microwave: Yes');
+ await expect(page.locator('#renewal-preview')).toContainText('Water [X Tenant]');
+ await expect(page.locator('#renewal-output')).toContainText('No PDF was created');
+});
