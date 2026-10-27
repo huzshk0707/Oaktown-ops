@@ -142,6 +142,6 @@ test('Make Notices supports multiple units at one address with missing recipient
  await expect(frame.locator('#tenant')).toHaveValue('');
  await expect(page.locator('#notice-picker-status')).toContainText('2 created');
  await expect(frame.locator('#noticeList .chip')).toHaveCount(3);
- await frame.locator('#noticeList .chip').nth(1).click();
+ await frame.locator('#noticeList .chip').filter({hasText:/1106 Fictional Road Unit 1$/}).click();
  await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 1');
 });
