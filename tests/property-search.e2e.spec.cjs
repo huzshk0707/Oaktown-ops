@@ -11,6 +11,11 @@ const properties=[
  }))
 ];
 const addressees=properties.map(p=>({property_id:p.id,notice_addressee_text:'Example Tenant & All Occupants'}));
+const units=properties.map((p,i)=>({
+ id:'55555555-5555-4555-8555-'+String(i).padStart(12,'0'),
+ property_id:p.id,unit_code:'UNIT-'+String(i).padStart(4,'0'),
+ unit_label:p.unit||'MAIN',unit_class:'residential',occupancy_status:'Leased'
+}));
 async function mockSupabase(page){
  await page.route('https://wjdzaexhhjsjtdgxivyw.supabase.co/**',route=>{
   const req=route.request(),pathname=new URL(req.url()).pathname;
@@ -22,7 +27,8 @@ async function mockSupabase(page){
   else if(pathname==='/rest/v1/staff_memberships')data=[{role:'admin',is_active:true}];
   else if(pathname==='/rest/v1/properties')data=properties;
   else if(pathname==='/rest/v1/property_addressees')data=addressees;
-  else if(['/rest/v1/units','/rest/v1/leases','/rest/v1/bookings','/rest/v1/people','/rest/v1/tenancy_people','/rest/v1/renewal_cases','/rest/v1/ops_tasks'].includes(pathname))data=[];
+  else if(pathname==='/rest/v1/units')data=units;
+  else if(['/rest/v1/leases','/rest/v1/bookings','/rest/v1/people','/rest/v1/tenancy_people','/rest/v1/renewal_cases','/rest/v1/ops_tasks'].includes(pathname))data=[];
   else if(pathname==='/auth/v1/logout')data={};
   else throw Error('Unmocked Supabase request: '+req.url());
   return route.fulfill({status:200,headers,body:JSON.stringify(data)});
@@ -32,29 +38,36 @@ async function login(page){
  await mockSupabase(page);
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
- if(!page.url().includes('/preview-v03/'))await page.locator('[data-workspace="properties"]').click();
- await expect(page.locator('#pilot-properties')).toBeVisible();
- await expect(page.locator('#pilot-results')).toContainText('55 of 55 properties shown');
+ if(!page.url().includes('/preview-v03/')){
+  await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(55);
+ }else{
+  await expect(page.locator('#pilot-properties')).toBeVisible();
+  await expect(page.locator('#pilot-results')).toContainText('55 of 55 properties shown');
+ }
 }
-test('main property search filters 55 properties and loads selected address into notice studio',async({page})=>{
+test('Notices search selects multiple of 55 portfolio records and creates editable notice drafts',async({page})=>{
  await page.goto('http://127.0.0.1:8765/');
  await login(page);
- const search=page.locator('#pilot-search');
+ await expect(page.locator('#notices-load-all')).toBeHidden();
+ const search=page.locator('#notice-picker-search');
  await search.fill('seQUOIA');
- await expect(page.locator('#pilot-results')).toContainText('1 of 55 properties shown');
- await expect(page.locator('#pilot-property option')).toHaveCount(2);
- await page.locator('#pilot-property').selectOption('1');
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
+ await page.locator('#notice-picker-list input[type="checkbox"]').check();
+ await expect(page.locator('#notice-picker-count')).toContainText('1 selected');
  await search.fill('no such address');
- await expect(page.locator('#pilot-property')).toHaveValue('');
- await expect(page.locator('#pilot-results')).toContainText('0 of 55 properties shown');
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(0);
+ await expect(page.locator('#notice-picker-count')).toContainText('1 selected');
  await search.fill('demo 40272');
- await expect(page.locator('#pilot-results')).toContainText('1 of 55 properties shown');
- await page.locator('#pilot-property').selectOption('0');
- page.once('dialog',dialog=>dialog.accept());
- await page.locator('#pilot-load').click();
- await expect(page.frameLocator('#studio-frame').locator('#street')).toHaveValue('1111 Demo Avenue');
- await expect(page.frameLocator('#studio-frame').locator('#tenant')).toHaveValue('Example Tenant & All Occupants');
- await expect(page.frameLocator('#studio-frame').locator('#owner')).toHaveValue('');
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
+ await page.locator('#notice-picker-list input[type="checkbox"]').check();
+ await expect(page.locator('#notice-picker-count')).toContainText('2 selected');
+ await page.locator('#notice-picker-make').click();
+ await expect(page.locator('#notice-picker-status')).toContainText('2 created');
+ const frame=page.frameLocator('#studio-frame');
+ await expect(frame.locator('#street')).toHaveValue('2222 Sequoia Example Way Apt 4');
+ await expect(frame.locator('#tenant')).toHaveValue('Example Tenant & All Occupants');
+ await expect(frame.locator('#owner')).toHaveValue('');
+ await expect(frame.locator('#noticeList .chip')).toHaveCount(3);
 });
 test('preview bulk selection searches matching addresses without losing checked items',async({page})=>{
  await page.goto('http://127.0.0.1:8765/preview-v03/');
