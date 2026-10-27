@@ -5,7 +5,7 @@ const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co';
 const USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',PROPERTY='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',BATCH='cccccccc-cccc-4ccc-8ccc-cccccccccccc',CREATED='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
 const clone=x=>JSON.parse(JSON.stringify(x));
 async function setup(page){
- const s={email:'',logins:0,refreshes:0,batch:null,writes:[],propertyWrites:[],conflict:false,offline:false,approved:true,
+ const s={email:'',logins:0,refreshes:0,batch:null,writes:[],propertyWrites:[],conflict:false,offline:false,approved:true,resetRequests:[],passwordUpdates:[],
  properties:[{id:PROPERTY,street_address:'100 Fictional Lane',unit:'',city:'Example City',state:'KY',postal_code:'40201',landlord_entity:null,updated_at:'2026-10-01T00:00:00Z'}],
  people:[{property_id:PROPERTY,notice_addressee_text:'Example Resident & All Occupants'}],
  units:[{id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',property_id:PROPERTY,unit_code:'UNIT-1000',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'}]};
@@ -16,6 +16,8 @@ async function setup(page){
   if(req.method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
   const p=url.pathname;
   if(p==='/auth/v1/token'){url.searchParams.get('grant_type')==='password'?s.logins++:s.refreshes++;return reply({access_token:'fictional-access',refresh_token:'fictional-refresh',expires_in:3600,expires_at:Math.floor(Date.now()/1000)+3600,user:{id:USER,email:s.email}})}
+  if(p==='/auth/v1/recover'){s.resetRequests.push(req.postDataJSON());return reply({})}
+  if(p==='/auth/v1/user'&&req.method()==='PUT'){s.passwordUpdates.push(req.postDataJSON());return reply({id:USER,email:s.email})}
   if(p==='/auth/v1/user')return reply({id:USER,email:s.email});
   if(p==='/auth/v1/logout')return reply({});
   if(p==='/rest/v1/staff_memberships'){if(s.holdMembership){s.membershipWaiting=true;await s.holdMembership;}return reply([{role:'admin',is_active:s.approved}]);}
@@ -146,4 +148,58 @@ test('Make Notices supports multiple units at one address with missing recipient
  await selectedChip.click();
  await expect(selectedChip).toHaveClass(/active/);
  await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 1');
+});
+
+
+test('signed-out staff first sees a useful access panel while local drafts stay available',async({page})=>{
+ await page.goto(ORIGIN+'/');
+ await expect(page.locator('#staff-access')).toBeVisible();
+ await expect(page.locator('#staff-access')).toContainText('Local notice drafts');
+ await expect(page.locator('#notice-picker')).toBeHidden();
+ await expect(page.locator('#studio-frame')).toBeVisible();
+ await expect(page.locator('#account-dialog')).not.toBeVisible();
+ await expect(page.locator('[data-notice-tab="notices"]')).toContainText('Select & draft');
+ await page.locator('#staff-access-signin').click();
+ await expect(page.locator('#account-dialog')).toBeVisible();
+});
+test('staff password reset sends a link and can finish recovery without storing token',async({page})=>{
+ const state=await setup(page);
+ await page.locator('#account-button').click();
+ await page.locator('#pilot-logout').click();
+ await page.locator('#staff-access-signin').click();
+ await page.locator('#forgot-password').click();
+ await expect(page.locator('#password-request')).toBeVisible();
+ await page.locator('#recovery-email').fill('tester@example.invalid');
+ await page.locator('#password-request button').click();
+ await expect(page.locator('#recovery-status')).toContainText('If this is an approved account');
+ expect(state.resetRequests).toHaveLength(1);
+ await page.goto(ORIGIN+'/#access_token=example-recovery-token&type=recovery');
+ await expect(page.locator('#password-change')).toBeVisible();
+ await expect(page).not.toHaveURL(/access_token/);
+ await page.locator('#recovery-new-password').fill('safe-fictional-password-123');
+ await page.locator('#password-change button').click();
+ await expect(page.locator('#recovery-status')).toContainText('Password updated');
+ expect(state.passwordUpdates).toHaveLength(1);
+ expect(state.passwordUpdates[0].password).toBe('safe-fictional-password-123');
+ expect(await page.evaluate(()=>Object.keys(localStorage).some(x=>/recovery/i.test(x)))).toBe(false);
+});
+test('opening a cloud batch offers a one-step undo that restores the previous local batch',async({page})=>{
+ await setup(page);
+ await importProperty(page);
+ const frame=page.frameLocator('#studio-frame');
+ await page.locator('#batch-title').fill('First local batch');
+ await frame.locator('#tenant').fill('Before replacement');
+ await page.locator('#cloud-save').click();
+ await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');
+ await frame.locator('#tenant').fill('Different local draft');
+ await page.locator('#batch-title').fill('Unsynced local work');
+ await page.locator('#cloud-open').click();
+ await page.locator('#cloud-batches').selectOption(BATCH);
+ await page.locator('#cloud-load').click();
+ await expect(frame.locator('#tenant')).toHaveValue('Before replacement');
+ await expect(page.locator('#undo-batch')).toBeVisible();
+ await page.locator('#cloud-undo').click();
+ await expect(frame.locator('#tenant')).toHaveValue('Different local draft');
+ await expect(page.locator('#batch-title')).toHaveValue('Unsynced local work');
+ await expect(page.locator('#undo-batch')).toBeHidden();
 });
