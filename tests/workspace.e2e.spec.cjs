@@ -85,7 +85,7 @@ test('explicit cloud save and open round-trip, conflict preserves local edits',a
  expect(s.batch).toEqual(saved);expect(s.writes[1].p_expected_version).toBe(1);
 });
 test('property writes validate fields and retain edits on network failure',async({page})=>{
- const s=await setup(page);await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager summary').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
+ const s=await setup(page);await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
  for(const[k,v]of Object.entries({street_address:'200 Fictional Court',unit:'Unit B',city:'Example City',state:'KY',postal_code:'40202',landlord_entity:'Example Property Company',tenant:'Fictional Household & All Occupants'}))await page.locator('#prop-'+k).fill(v);
  await page.locator('#property-save').click();await expect(page.locator('#property-status')).toContainText('Saved to Supabase');expect(s.propertyWrites).toHaveLength(1);
  await expect(page.locator('#pilot-property option')).toHaveCount(3);await page.locator('#pilot-property').selectOption('1');await page.locator('#property-edit').click();
@@ -101,7 +101,7 @@ test('pending cloud and property saves lock actions that could switch their targ
  s.holdSave=new Promise(resolve=>release=resolve);await page.locator('#cloud-save').click();
  await expect.poll(()=>s.writes.length).toBe(1);await expect(page.locator('#cloud-open')).toBeDisabled();await expect(page.locator('#cloud-save')).toBeDisabled();
  release();await expect(page.locator('#cloud-status')).toContainText('Saved to Supabase');s.holdSave=null;
- await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager summary').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
+ await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
  await page.locator('#prop-unit').fill('Test unit');s.holdProperty=new Promise(resolve=>release=resolve);await page.locator('#property-save').click();
  await expect.poll(()=>s.propertyWrites.length).toBe(1);await expect(page.locator('#property-new')).toBeDisabled();await expect(page.locator('#property-edit')).toBeDisabled();await expect(page.locator('#prop-street_address')).toBeDisabled();
  release();await expect(page.locator('#property-status')).toContainText('Saved to Supabase');await expect(page.locator('#property-new')).toBeEnabled();
@@ -117,7 +117,7 @@ test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
  await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-form')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager summary').click();await expect(page.locator('#property-form')).toBeVisible();
+ await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await expect(page.locator('#property-form')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 test('Make Notices supports multiple units at one address with missing recipients',async({page})=>{
