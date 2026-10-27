@@ -134,13 +134,13 @@ function filterProperties(){
   b.append(addr,meta);b.setAttribute('aria-label','Open property '+p.street_address);
   b.onclick=()=>openPropertyEditor(i);list.append(b);
  }
- say('property-directory-count',records.length+' properties saved in Supabase · '+records.filter(p=>p.tenant).length+' have a notice recipient.');
+ say('property-directory-count',records.length+' properties in shared records · '+records.filter(p=>p.tenant).length+' have a notice recipient.');
 }
 $('pilot-search').addEventListener('input',filterProperties);
 async function loadProperties(){
  if(!cloud.user)return;const ticket=++propertyLoad;
  const selectedId=records[Number($('pilot-property').value)]?.id;
- say('pilot-status','Refreshing Supabase property database…');
+ say('pilot-status','Refreshing shared property records…');
  const [props,people]=await Promise.all([cloud.api('/rest/v1/properties?select=id,street_address,unit,city,state,postal_code,landlord_entity,updated_at&order=street_address.asc'),cloud.api('/rest/v1/property_addressees?select=property_id,notice_addressee_text')]);
  if(ticket!==propertyLoad||!cloud.user)return;
  const peopleById=new Map(people.map(p=>[p.property_id,p.notice_addressee_text]));
