@@ -7,7 +7,8 @@ const clone=x=>JSON.parse(JSON.stringify(x));
 async function setup(page){
  const s={email:'',logins:0,refreshes:0,batch:null,writes:[],propertyWrites:[],conflict:false,offline:false,approved:true,
  properties:[{id:PROPERTY,street_address:'100 Fictional Lane',unit:'',city:'Example City',state:'KY',postal_code:'40201',landlord_entity:null,updated_at:'2026-10-01T00:00:00Z'}],
- people:[{property_id:PROPERTY,notice_addressee_text:'Example Resident & All Occupants'}]};
+ people:[{property_id:PROPERTY,notice_addressee_text:'Example Resident & All Occupants'}],
+ units:[{id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',property_id:PROPERTY,unit_code:'UNIT-1000',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'}]};
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(url.origin===ORIGIN)return route.continue();if(url.hostname!==HOST)return route.abort('blockedbyclient');
   const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
@@ -19,6 +20,7 @@ async function setup(page){
   if(p==='/auth/v1/logout')return reply({});
   if(p==='/rest/v1/staff_memberships'){if(s.holdMembership){s.membershipWaiting=true;await s.holdMembership;}return reply([{role:'admin',is_active:s.approved}]);}
   if(p==='/rest/v1/properties')return reply(s.properties);
+  if(p==='/rest/v1/units')return reply(s.units);
   if(p==='/rest/v1/property_addressees')return reply(s.people);
   if(p==='/rest/v1/notice_batches'){if(!s.batch)return reply([]);if(url.searchParams.has('id'))return reply([s.batch]);const{id,title,version,updated_at}=s.batch;return reply([{id,title,version,updated_at}]);}
   if(p==='/rest/v1/rpc/save_notice_batch'){
@@ -43,14 +45,16 @@ async function setup(page){
  await expect(page.locator('#account-dialog')).not.toBeVisible();await expect(page.locator('#account-button')).toContainText('Signed in');return s;
 }
 async function importProperty(page){
- await page.locator('[data-workspace="properties"]').click();await expect(page.locator('#pilot-property option')).toHaveCount(2);
- await page.locator('#pilot-property').selectOption('0');await page.locator('#pilot-load').click();
+ await page.locator('[data-workspace="notices"]').click();
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
+ await page.locator('#notice-picker-list input[type="checkbox"]').check();
+ await page.locator('#notice-picker-make').click();
  await expect(page.frameLocator('#studio-frame').locator('#tenant')).toHaveValue('Example Resident & All Occupants');
 }
 test('shared sign-in survives nested workflow navigation, reload and refresh',async({page})=>{
  const s=await setup(page);
  await expect(page.locator('.sidebar [data-workspace="message"],.sidebar [data-workspace="court"]')).toHaveCount(0);
- await page.locator('[data-workspace="properties"]').click();await expect(page.locator('#pilot-properties')).toBeVisible();
+ await page.locator('[data-workspace="properties"]').click();await expect(page.locator('#ops-portfolio-panel')).toBeVisible();
  await page.locator('[data-workspace="notices"]').click();await page.locator('[data-notice-tab="message"]').click();await expect(page.locator('#tenant-message-text')).toBeVisible();
  await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-form')).toBeVisible();
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.logins).toBe(1);
@@ -81,7 +85,7 @@ test('explicit cloud save and open round-trip, conflict preserves local edits',a
  expect(s.batch).toEqual(saved);expect(s.writes[1].p_expected_version).toBe(1);
 });
 test('property writes validate fields and retain edits on network failure',async({page})=>{
- const s=await setup(page);await page.locator('[data-workspace="properties"]').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
+ const s=await setup(page);await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager summary').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
  for(const[k,v]of Object.entries({street_address:'200 Fictional Court',unit:'Unit B',city:'Example City',state:'KY',postal_code:'40202',landlord_entity:'Example Property Company',tenant:'Fictional Household & All Occupants'}))await page.locator('#prop-'+k).fill(v);
  await page.locator('#property-save').click();await expect(page.locator('#property-status')).toContainText('Saved to Supabase');expect(s.propertyWrites).toHaveLength(1);
  await expect(page.locator('#pilot-property option')).toHaveCount(3);await page.locator('#pilot-property').selectOption('1');await page.locator('#property-edit').click();
@@ -97,7 +101,7 @@ test('pending cloud and property saves lock actions that could switch their targ
  s.holdSave=new Promise(resolve=>release=resolve);await page.locator('#cloud-save').click();
  await expect.poll(()=>s.writes.length).toBe(1);await expect(page.locator('#cloud-open')).toBeDisabled();await expect(page.locator('#cloud-save')).toBeDisabled();
  release();await expect(page.locator('#cloud-status')).toContainText('Saved to Supabase');s.holdSave=null;
- await page.locator('[data-workspace="properties"]').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
+ await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager summary').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
  await page.locator('#prop-unit').fill('Test unit');s.holdProperty=new Promise(resolve=>release=resolve);await page.locator('#property-save').click();
  await expect.poll(()=>s.propertyWrites.length).toBe(1);await expect(page.locator('#property-new')).toBeDisabled();await expect(page.locator('#property-edit')).toBeDisabled();await expect(page.locator('#prop-street_address')).toBeDisabled();
  release();await expect(page.locator('#property-status')).toContainText('Saved to Supabase');await expect(page.locator('#property-new')).toBeEnabled();
@@ -113,6 +117,31 @@ test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
  await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-form')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.locator('[data-workspace="properties"]').click();await expect(page.locator('#property-form')).toBeVisible();
+ await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager summary').click();await expect(page.locator('#property-form')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+test('Make Notices supports multiple units at one address with missing recipients',async({page})=>{
+ const data=await setup(page);
+ data.properties[0].street_address='1106 Fictional Road';
+ data.people=[];
+ data.units=[
+  {id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',property_id:PROPERTY,unit_code:'UNIT-A',unit_label:'1',unit_class:'residential',occupancy_status:'Leased'},
+  {id:'ffffffff-ffff-4fff-8fff-ffffffffffff',property_id:PROPERTY,unit_code:'UNIT-B',unit_label:'8',unit_class:'residential',occupancy_status:'Vacant'}
+ ];
+ await page.locator('#notice-picker-refresh').click();
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(2);
+ await page.locator('#notice-picker-search').fill('Unit 8');
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
+ await page.locator('#notice-picker-list input[type="checkbox"]').check();
+ await page.locator('#notice-picker-search').fill('Unit 1');
+ await expect(page.locator('#notice-picker-count')).toContainText('1 selected');
+ await page.locator('#notice-picker-list input[type="checkbox"]').check();
+ await page.locator('#notice-picker-make').click();
+ const frame=page.frameLocator('#studio-frame');
+ await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 8');
+ await expect(frame.locator('#tenant')).toHaveValue('');
+ await expect(page.locator('#notice-picker-status')).toContainText('2 created');
+ await expect(frame.locator('#noticeList .chip')).toHaveCount(3);
+ await frame.locator('#noticeList .chip').nth(1).click();
+ await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 1');
 });
