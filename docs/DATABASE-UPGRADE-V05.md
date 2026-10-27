@@ -33,13 +33,13 @@
 
 **This PR records already applied additive migrations. Merging the PR does not import tenant data or deploy the new app screens.**
 
-## PR #5 review against the merged Lead Copilot release
+## PR #5 historical migration verification
 
-The review compares this historical record with main after PR #6. Read-only inspection confirmed that both SQL files match the migration-history statements, all 16 tables still have RLS, active staff membership is required, and the existing 13 properties and 13 addressees remain. No live database writes were performed during this review.
+The review compares this historical record with the deployed portfolio schema. Read-only inspection confirmed that both SQL files match the migration-history statements, all 16 tables still have RLS, active staff membership is required, and the existing 13 properties and 13 addressees remain. No live database writes were performed during this review.
 
 These files are **historical migration records**, not a fresh-project bootstrap or instructions to rerun SQL. Earlier database setup is not a complete versioned migration chain in this repository. The core migration creates named policies/triggers without replay guards, so rerunning it manually is not idempotent. Reconcile migration history before any future deployment; do not replay already-applied versions.
 
-The GitHub Actions portfolio-schema job uses a disposable PostgreSQL service with fictional legacy records. It applies the actual v0.4 RPC/schema reference and these two migrations, then checks staff permissions, relational constraints, original record preservation and existing property/notice saves. The regular JavaScript, Playwright and staged Lead Copilot schema tests also run. CI has no live Supabase credentials and does not deploy migrations.
+The GitHub Actions portfolio-schema job uses a disposable PostgreSQL service with fictional legacy records. It applies the actual v0.4 RPC/schema reference and these two migrations, then checks staff permissions, relational constraints, original record preservation and existing property/notice saves. Regular JavaScript and Playwright suites also run. CI has no live Supabase credentials and does not deploy migrations.
 
 ## Blockers before real portfolio imports or workflow activation
 
@@ -51,4 +51,4 @@ Recording this schema does not certify it as ready for production portfolio work
 - **Import and listing contract:** normalize units without replacing legacy property UUIDs; distinguish contracted rent from advertised asking rent and confirm availability per unit. There is still no completed import or authoritative listing integration.
 - **Operational approval:** verify backups/restores, stage the role matrix in Supabase, and resolve the existing leaked-password-protection finding before expanded production use.
 
-The [Portfolio Master handoff](PORTFOLIO-MASTER-LEADS-HANDOFF.md) and [Lead Copilot review](PR-6-REVIEW.md) remain in force. Lead Copilot cloud persistence and real applicant screening stay disabled. Merging this PR neither activates them nor imports portfolio records.
+This historical schema record does not deploy new application workflows or import portfolio records.
