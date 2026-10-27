@@ -7,6 +7,7 @@
 })(typeof window!=='undefined'?window:null,function(){
  'use strict';
  const statuses=[
+  ['unreviewed','Not yet verified in Ops'],
   ['not_started','Not started'],
   ['preparing','Preparing lease'],
   ['ready_to_send','Ready to send'],
