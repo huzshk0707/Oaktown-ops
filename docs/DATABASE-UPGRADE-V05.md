@@ -13,12 +13,12 @@
 - Enabled RLS on all 16 tables. Only active staff have read access; authenticated editor/admin membership is required to insert or update. New tables grant no anonymous access and no client DELETE access.
 - Added indexes for frequent lookups and foreign keys.
 
-## Verification performed
+## Verification performed at application
 
 - Migration reported success; both versions appear in Supabase migration history.
 - 16/16 new tables have RLS enabled; anonymous users have zero SELECT/INSERT grants; authenticated clients have zero DELETE grants on these tables.
 - Rollback-only synthetic test validated unit uniqueness and lease/tenancy unit consistency. Test rows did not persist.
-- All existing 13 property and 13 notice-addressee records remain. New portfolio tables currently have **zero imported real records**.
+- All existing 13 property and 13 notice-addressee records remain. New portfolio tables had **zero imported real records**; read-only PR #5 review on October 27 confirmed all 16 remain empty.
 - Security advisor: no new database security findings. Existing warning: Auth leaked-password protection disabled (review before expanded production).
 - Performance advisor: missing foreign-key-index warnings resolved; unused-index notices are expected for empty new tables.
 
@@ -32,3 +32,23 @@
 6. Validate full production security, restored backups and operational workflows before rollout.
 
 **This PR records already applied additive migrations. Merging the PR does not import tenant data or deploy the new app screens.**
+
+## PR #5 review against the merged Lead Copilot release
+
+The review compares this historical record with main after PR #6. Read-only inspection confirmed that both SQL files match the migration-history statements, all 16 tables still have RLS, active staff membership is required, and the existing 13 properties and 13 addressees remain. No live database writes were performed during this review.
+
+These files are **historical migration records**, not a fresh-project bootstrap or instructions to rerun SQL. Earlier database setup is not a complete versioned migration chain in this repository. The core migration creates named policies/triggers without replay guards, so rerunning it manually is not idempotent. Reconcile migration history before any future deployment; do not replay already-applied versions.
+
+The GitHub Actions portfolio-schema job uses a disposable PostgreSQL service with fictional legacy records. It applies the actual v0.4 RPC/schema reference and these two migrations, then checks staff permissions, relational constraints, original record preservation and existing property/notice saves. The regular JavaScript, Playwright and staged Lead Copilot schema tests also run. CI has no live Supabase credentials and does not deploy migrations.
+
+## Blockers before real portfolio imports or workflow activation
+
+Recording this schema does not certify it as ready for production portfolio workflows. Resolve the following with reviewed additive changes and importer validation; preserve these historical files unchanged:
+
+- **Cross-record consistency:** leases enforce matching tenancy/unit pairs, but renewal_cases can reference a unit, tenancy and lease from different contexts. ops_tasks likewise accepts independently valid property, unit, tenancy and renewal-case references. Enforce a consistent context before importing or presenting these as a single tenancy's records.
+- **Trusted attribution and identity:** ops_events is an append-only staff-entered journal, not automatic or tamper-proof auditing. Its actor_id and occurred_at are caller-controlled. Broad UPDATE grants on other tables also permit changes to identity/provenance columns. Establish database-owned attribution and narrow column permissions before relying on these fields for audit or import history.
+- **Source integrity:** source_links uses a polymorphic entity_type/entity_id pair without a foreign key to its target. A dry-run importer must validate target existence, supported entity types, stable source keys and repeat-import behavior.
+- **Import and listing contract:** normalize units without replacing legacy property UUIDs; distinguish contracted rent from advertised asking rent and confirm availability per unit. There is still no completed import or authoritative listing integration.
+- **Operational approval:** verify backups/restores, stage the role matrix in Supabase, and resolve the existing leaked-password-protection finding before expanded production use.
+
+The [Portfolio Master handoff](PORTFOLIO-MASTER-LEADS-HANDOFF.md) and [Lead Copilot review](PR-6-REVIEW.md) remain in force. Lead Copilot cloud persistence and real applicant screening stay disabled. Merging this PR neither activates them nor imports portfolio records.

@@ -16,6 +16,8 @@ jobs:
           node --check app.js
           node --check cloud.js
           node --check workspace.js
+          node --check lead-rules.js
+          node --check leads.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 
@@ -44,3 +46,76 @@ jobs:
             test-results/
             /tmp/oaktown-browser-server.log
           if-no-files-found: ignore
+
+  lead-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: oaktown_schema_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ci-only-password
+      PGDATABASE: oaktown_schema_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install disposable database test tooling
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Verify staged guard and role permissions in disposable PostgreSQL
+        shell: bash
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/lead-schema-setup.sql
+          if psql -v ON_ERROR_STOP=1 -f supabase/schema/lead_copilot_v05.sql > /tmp/staged-guard.log 2>&1; then
+            echo 'Staged schema unexpectedly ran without the test marker'
+            exit 1
+          fi
+          grep -F 'STAGED ONLY: reconcile Portfolio Master' /tmp/staged-guard.log
+          psql -At -v ON_ERROR_STOP=1 -c "select to_regclass('public.leads') is null and to_regclass('public.lead_messages') is null and to_regclass('public.lead_property_interests') is null" | grep -qx t
+          psql -v ON_ERROR_STOP=1 -c "SET oaktown.staged_test_only = 'isolated_ci'" -f supabase/schema/lead_copilot_v05.sql -f tests/lead-schema-check.sql
+
+  portfolio-schema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: oaktown_portfolio_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d oaktown_portfolio_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ci-only-password
+      PGDATABASE: oaktown_portfolio_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install disposable database test tooling
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Verify historical portfolio migrations and existing workspace APIs
+        shell: bash
+        run: |
+          psql -v ON_ERROR_STOP=1 \
+            -f tests/portfolio-schema-setup.sql \
+            -f supabase/migrations/20261026171822_oaktown_portfolio_relational_core_v05.sql \
+            -f supabase/migrations/20261026171941_oaktown_portfolio_foreign_key_indexes_v05.sql \
+            -f tests/portfolio-schema-check.sql
