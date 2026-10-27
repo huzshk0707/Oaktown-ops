@@ -260,7 +260,7 @@ $('cloud-load').onclick=()=>batchOperation(async()=>{
   const userId=cloud.user?.id,rows=await cloud.api('/rest/v1/notice_batches?id=eq.'+encodeURIComponent(id)+'&select=*');
   if(cloud.user?.id!==userId)return;
   if(rows.length!==1)throw Error('This saved batch is no longer available.');
-  const saved=rows[0];const old=await frameRequest('oaktown-workspace-request');const backup={payload:old.payload,title:$('batch-title').value,cloudBatch:cloudBatch?{...cloudBatch}:null};await frameRequest('oaktown-workspace-load',{payload:saved.payload});
+  const saved=rows[0];if(courtDirty)await saveCourt();const old=await frameRequest('oaktown-workspace-request');const backup={payload:old.payload,title:$('batch-title').value,cloudBatch:cloudBatch?{...cloudBatch}:null};await frameRequest('oaktown-workspace-load',{payload:saved.payload});
   courtDirty=false;cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;rememberBatch();preOpenUndo=backup;$('undo-batch').hidden=false;$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened cloud batch · '+saved.title+' · previous local batch can be restored.');
  }catch(e){say('batch-status',e.message);}
 });
