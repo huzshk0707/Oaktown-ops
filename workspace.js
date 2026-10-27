@@ -36,6 +36,7 @@ function showWorkflow(name){
  say('workspace-title',titles[name]);say('breadcrumb',titles[name]);say('workspace-summary',descriptions[name]);
  if(!['notices','properties','leads'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
  if(name==='notices')showTab(tab);
+ if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
 }
 function showTab(next){
  if(courtDirty&&tab==='court'&&next!==tab&&!confirm('Leave without saving these follow-up edits?'))return;
@@ -50,6 +51,8 @@ function showTab(next){
 document.querySelectorAll('[data-workspace]').forEach(b=>b.addEventListener('click',()=>showWorkflow(b.dataset.workspace)));
 document.querySelectorAll('[data-notice-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.noticeTab)));
 $('open-properties').onclick=$('future-properties').onclick=()=>showWorkflow('properties');
+$('notices-load-all').onclick=()=>busy($('notices-load-all'),async()=>{if(!requireUser())return;try{await loadProperties();importMany(records)}catch(e){say('cloud-status','Could not load the property directory: '+e.message)}});
+$('property-add-top').onclick=()=>{if(!requireUser())return;showWorkflow('properties');newProperty();$('property-editor').scrollIntoView({behavior:'smooth',block:'start'});$('prop-street_address').focus();};
 $('account-button').onclick=$('properties-signin').onclick=account;
 $('account-close').onclick=()=>$('account-dialog').close();
 $('pilot-auth').onsubmit=async event=>{event.preventDefault();await busy($('pilot-login'),async()=>{try{say('pilot-auth-status','Signing in…');await cloud.signIn($('pilot-email').value.trim(),$('pilot-password').value);$('pilot-password').value='';$('account-dialog').close();say('pilot-auth-status','');}catch(e){say('pilot-auth-status',e.message);}})};
@@ -62,7 +65,7 @@ window.addEventListener('ops-auth-change',event=>{
  say('account-close',user?'Return to workspace':'Continue with local drafts');say('account-email',user?.email||'');
  if(event.detail.error)say('pilot-auth-status',event.detail.error);
  if(!user){
-  propertyLoad++;records=[];editing=null;cloudBatch=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('cloud-batches').replaceChildren();$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');$('batch-dialog').close();
+  propertyLoad++;records=[];editing=null;cloudBatch=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('property-record-list').replaceChildren();say('property-directory-count','');$('cloud-batches').replaceChildren();$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');$('batch-dialog').close();
   say('cloud-status','Local drafts remain on this browser. Sign in to reconnect to Supabase.');
  }else if(changed){
   try{const saved=JSON.parse(localStorage.getItem(META)||'null');if(saved?.owner===user.id){cloudBatch=saved;$('batch-title').value=saved.title||'Notice batch';}}catch{}
@@ -84,18 +87,30 @@ function filterProperties(){
  const ids=new Set(matches.map(({i})=>i));
  $('pilot-checklist').querySelectorAll('input[data-property-index]').forEach(check=>{const row=check.closest('label');if(row)row.style.display=ids.has(Number(check.dataset.propertyIndex))?'flex':'none'});
  say('pilot-results',matches.length+' of '+records.length+' properties shown'+(matches.length===0?' — try another street or ZIP.':''));
+ const list=$('property-record-list');list.replaceChildren();
+ for(const {p,i} of matches){
+  const b=document.createElement('button');b.type='button';b.className='property-record';
+  const addr=document.createElement('strong');addr.textContent=[p.street_address,p.unit].filter(Boolean).join(' ');
+  const meta=document.createElement('span');meta.className='property-record-meta';meta.textContent=[p.city+', '+p.state+' '+p.postal_code,p.tenant?'Notice recipient on file':'No notice recipient yet'].join(' · ');
+  b.append(addr,meta);b.setAttribute('aria-label','Open property '+p.street_address);
+  b.onclick=()=>openPropertyEditor(i);list.append(b);
+ }
+ say('property-directory-count',records.length+' properties saved in Supabase · '+records.filter(p=>p.tenant).length+' have a notice recipient.');
 }
 $('pilot-search').addEventListener('input',filterProperties);
 async function loadProperties(){
  if(!cloud.user)return;const ticket=++propertyLoad;
- say('pilot-status','Loading properties…');
+ const selectedId=records[Number($('pilot-property').value)]?.id;
+ say('pilot-status','Refreshing Supabase property database…');
  const [props,people]=await Promise.all([cloud.api('/rest/v1/properties?select=id,street_address,unit,city,state,postal_code,landlord_entity,updated_at&order=street_address.asc'),cloud.api('/rest/v1/property_addressees?select=property_id,notice_addressee_text')]);
  if(ticket!==propertyLoad||!cloud.user)return;
  const peopleById=new Map(people.map(p=>[p.property_id,p.notice_addressee_text]));
  records=props.map(p=>({...p,tenant:peopleById.get(p.id)||''}));
  const list=$('pilot-checklist');list.replaceChildren();
  records.forEach((p,i)=>{const label=document.createElement('label');label.style.cssText='display:flex;gap:8px;align-items:center;padding:8px;border:1px solid #d6dfd2;border-radius:8px;font-size:13px';const check=document.createElement('input');check.type='checkbox';check.dataset.propertyIndex=String(i);check.style.width='auto';const name=document.createElement('span');name.textContent=[p.street_address,p.unit,p.postal_code].filter(Boolean).join(' ');label.append(check,name);list.append(label);});
- updateCount();say('pilot-load-all','Load all '+records.length+' properties');filterProperties();say('pilot-status','Property directory is up to date.');
+ updateCount();say('pilot-load-all','Load all '+records.length+' properties');filterProperties();
+ if(selectedId){const i=records.findIndex(p=>p.id===selectedId);if(i>=0&&[...$('pilot-property').options].some(o=>o.value===String(i)))$('pilot-property').value=String(i)}
+ say('pilot-status','Property directory is up to date.');
 }
 $('properties-refresh').onclick=()=>busy($('properties-refresh'),async()=>{try{await loadProperties()}catch(e){say('pilot-status',e.message)}});
 function selectedIndices(){return [...$('pilot-checklist').querySelectorAll('input:checked')].map(x=>Number(x.dataset.propertyIndex))}
@@ -104,10 +119,13 @@ $('pilot-checklist').onchange=updateCount;
 $('pilot-select-all').onclick=()=>{$('pilot-checklist').querySelectorAll('input').forEach(x=>{if(x.closest('label').style.display!=='none')x.checked=true});updateCount()};
 $('pilot-clear-all').onclick=()=>{$('pilot-checklist').querySelectorAll('input').forEach(x=>x.checked=false);updateCount()};
 function importMany(items){
- if(!items.length){say('pilot-status','Select at least one property.');return;}
- if(items.some(p=>!p.tenant)){say('pilot-status','Every selected property needs a notice addressee. Edit the property first.');return;}
- if(!confirm('Load '+items.length+' properties into notices? Linked notices keep their charges. Verify landlord, addressee, dates and balances.'))return;
- post({type:'oaktown-import-properties',properties:items.map(p=>({id:p.id,street:[p.street_address,p.unit].filter(Boolean).join(' '),cityline:p.city+', '+p.state+' '+p.postal_code,tenant:p.tenant,owner:p.landlord_entity||''}))});
+ if(!items.length){say('pilot-status','No properties found. Add a property in the Properties tab.');return;}
+ const ready=items.filter(p=>p.tenant&&String(p.tenant).trim());
+ const skipped=items.length-ready.length;
+ if(!ready.length){say('pilot-status','No selected properties have a notice recipient yet. Add notice addressees to those properties before creating notices.');say('cloud-status','No notices imported: notice recipients are missing.');return;}
+ if(!confirm('Create or refresh '+ready.length+' notices'+(skipped?'? '+skipped+' vacant/unverified properties will be skipped.':'?')+' Existing linked notices keep their charges. Verify all addressees, landlords, dates and balances.'))return;
+ post({type:'oaktown-import-properties',properties:ready.map(p=>({id:p.id,street:[p.street_address,p.unit].filter(Boolean).join(' '),cityline:p.city+', '+p.state+' '+p.postal_code,tenant:p.tenant,owner:p.landlord_entity||''}))});
+ say('cloud-status','Loading '+ready.length+' properties into notices'+(skipped?' · '+skipped+' without addressees skipped':'')+'…');
  showWorkflow('notices');showTab('notices');
 }
 $('pilot-load').onclick=()=>{const i=$('pilot-property').value;importMany(i===''?[]:[records[Number(i)]])};
@@ -115,8 +133,15 @@ $('pilot-load-selected').onclick=()=>importMany(selectedIndices().map(i=>records
 $('pilot-load-all').onclick=()=>importMany(records);
 const propKeys=['street_address','unit','city','state','postal_code','landlord_entity','tenant'];
 function newProperty(){editing=null;$('property-form').reset();$('prop-state').value='KY';say('property-editor-title','Add property');say('property-status','');}
-$('property-new').onclick=newProperty;
-$('property-edit').onclick=()=>{const i=$('pilot-property').value;if(i===''){say('pilot-status','Select a property to edit.');return;}editing={...records[Number(i)]};for(const key of propKeys)$('prop-'+key).value=editing[key]||'';say('property-editor-title','Edit property');say('property-status','');$('property-editor').scrollIntoView({behavior:'smooth',block:'start'});};
+$('property-new').onclick=()=>{newProperty();$('prop-street_address').focus();};
+function openPropertyEditor(i){
+ const source=records[Number(i)];if(!source){say('pilot-status','Select a property to edit.');return;}
+ editing={...source};$('pilot-search').value='';filterProperties();
+ $('pilot-property').value=String(records.findIndex(p=>p.id===source.id));
+ for(const key of propKeys)$('prop-'+key).value=editing[key]||'';
+ say('property-editor-title','Edit property');say('property-status','');$('property-editor').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('property-edit').onclick=()=>{const i=$('pilot-property').value;if(i===''){say('pilot-status','Select a property to edit.');return;}openPropertyEditor(i)};
 $('property-form').onsubmit=async event=>{
  event.preventDefault();if(!requireUser())return;
  await busy($('property-save'),async()=>{
@@ -125,8 +150,11 @@ $('property-form').onsubmit=async event=>{
    say('property-status','Saving property…');
    const result=await cloud.api('/rest/v1/rpc/save_property',{method:'POST',body:JSON.stringify({p_id:editing?.id||null,p_expected_updated_at:editing?.updated_at||null,p_data})});
    if(cloud.user?.id!==userId)return;
-   editing={...result.property,tenant:result.notice_addressee_text};say('property-editor-title','Edit property');say('property-status','Saved to Supabase.');
-   await loadProperties();
+   editing={...result.property,tenant:result.notice_addressee_text};say('property-editor-title','Edit property');
+   $('pilot-search').value='';await loadProperties();
+   const savedIndex=records.findIndex(p=>p.id===editing.id);
+   if(savedIndex>=0)$('pilot-property').value=String(savedIndex);
+   say('property-status','Saved to Supabase. It is now available in the property database and will be included in future notice imports once it has an addressee.');
   }catch(e){say('property-status',e.code==='23505'?'This address already exists. Select and edit its existing record. Separate units at one address are not supported yet.':e.message);}
  });
 };
