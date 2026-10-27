@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const section=document.createElement('section');section.id='ops-renewal-generator';
 section.setAttribute('aria-label','Renewal lease preparation');
 section.innerHTML=[
-'<div class="section-head"><div><h2>Renewal Lease Generator · Preparation</h2><p>Select a unit, confirm the existing lease, and fill the new terms. Final five-page PDF export is not enabled until template QA is complete.</p></div></div>',
+'<div class="section-head"><div><h2>Renewal Lease Generator · Preparation</h2><p>Select a unit, confirm the existing lease, and fill the new terms. Review the exact five-page template, then download an unsigned PDF. Nothing is sent or saved to Supabase.</p></div></div>',
 '<p class="renewal-warning">Lease dates and residents may be imported or historical. Verify against the signed lease before proceeding. This draft field review is not a lease or signature request.</p>',
 '<form id="renewal-form"><div class="renewal-grid">',
 '<label class="renewal-span">Property / Unit<select id="renewal-unit" required><option value="">Select property / unit</option></select></label>',
@@ -27,7 +27,7 @@ section.innerHTML=[
 '<h3>Appliances · Yes / No</h3><div id="renewal-appliances"></div>',
 '<label class="renewal-check"><input id="renewal-verified" type="checkbox"><span>I verified the current tenants, property, expiring lease and carried-over deposit against the actual records. Imported values are suggestions only.</span></label>',
 '<div class="renewal-actions"><button type="submit" class="button primary">Review renewal inputs</button><span class="status" id="renewal-status" role="status"></span></div>',
-'</form><div class="renewal-summary" id="renewal-output" hidden><h3>Renewal field review · Not a lease</h3><div id="renewal-preview"></div><p class="ops-muted">No PDF was created and no renewal record was saved. The full document layout and signature lines must be validated before final export.</p></div>'
+'</form><div class="renewal-summary" id="renewal-output" hidden><h3>Renewal field review · Not a lease</h3><div id="renewal-preview"></div><p class="ops-muted">No renewal record is saved and no signature is added. Download only after checking all fields against the original records.</p></div>'
 ].join('');
 panel.insertBefore(section,panel.firstChild);
 function choice(id,label,values){
@@ -116,7 +116,7 @@ function review(event){
  lines.push('Utilities: '+R.utilities.map(k=>k+' ['+(s.utilities[k]==='Landlord'?'X Landlord':'X Tenant')+']').join('; '));
  lines.push('Appliances: '+R.appliances.map(k=>k+': '+s.appliances[k]).join('; '));
  $('renewal-preview').textContent=lines.join('\n');
- $('renewal-output').hidden=false;$('renewal-status').textContent='Review populated. PDF generation awaits template validation.';
+ $('renewal-output').hidden=false;$('renewal-status').textContent='Review populated. Download the unsigned five-page PDF after checking these values.';
  $('renewal-output').scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 $('renewal-unit').addEventListener('change',chooseUnit);
@@ -127,4 +127,38 @@ $('renewal-form').addEventListener('input',event=>{if(event.target.id!=='renewal
 window.addEventListener('ops-portfolio-loaded',refresh);
 window.addEventListener('ops-auth-change',event=>{if(!event.detail.user)refresh()});
 refresh();
+const pdfButton=document.createElement('button');
+pdfButton.id='renewal-download-pdf';pdfButton.type='button';pdfButton.className='button primary';
+pdfButton.textContent='Download five-page renewal lease PDF';pdfButton.hidden=true;
+const pdfStatus=document.createElement('span');pdfStatus.className='status';pdfStatus.id='renewal-pdf-status';
+const actions=document.createElement('div');actions.className='renewal-actions';actions.append(pdfButton,pdfStatus);
+$('renewal-output').append(actions);
+let reviewed=null;
+$('renewal-form').addEventListener('submit',()=>{
+ reviewed=$('renewal-output').hidden?null:JSON.stringify(state());
+ pdfButton.hidden=!reviewed;
+ pdfStatus.textContent='';
+});
+$('renewal-form').addEventListener('input',()=>{pdfButton.hidden=true;reviewed=null;});
+$('renewal-form').addEventListener('change',()=>{pdfButton.hidden=true;reviewed=null;});
+window.addEventListener('ops-auth-change',event=>{if(!event.detail.user){pdfButton.hidden=true;reviewed=null;}});
+window.addEventListener('ops-portfolio-loaded',()=>{pdfButton.hidden=true;reviewed=null;});
+pdfButton.onclick=async()=>{
+ if(!cloud.user||!reviewed||$('renewal-output').hidden||JSON.stringify(state())!==reviewed){
+  pdfStatus.textContent='Review and confirm the current fields before exporting.';return;
+ }
+ pdfButton.disabled=true;pdfStatus.textContent='Preparing all five lease pages…';
+ try{
+  const engine=window.OpsRenewalPDF;
+  if(!engine)throw Error('Renewal PDF renderer did not load. Reload the app.');
+  const userId=cloud.user.id;
+  const result=await engine.generate(state(),{
+   rules:R,JsPDF:window.jspdf?.jsPDF,viewerUser:()=>cloud.user?.id||null
+  });
+  if(cloud.user?.id!==userId)throw Error('Account changed; download cancelled.');
+  result.pdf.save(engine.filename(result.model));
+  pdfStatus.textContent='Five-page unsigned PDF downloaded. No database records or signatures were changed.';
+ }catch(error){pdfStatus.textContent='Could not generate PDF: '+error.message;}
+ finally{pdfButton.disabled=false;}
+};
 })();
