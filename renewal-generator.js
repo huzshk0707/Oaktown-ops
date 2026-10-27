@@ -6,7 +6,7 @@ const $=id=>document.getElementById(id);
 const section=document.createElement('section');section.id='ops-renewal-generator';
 section.setAttribute('aria-label','Renewal lease preparation');
 section.innerHTML=[
-'<div class="section-head"><div><h2>Renewal Lease Generator · Preparation</h2><p>Select a unit, confirm the existing lease, and fill the new terms. Review the exact five-page template, then download an unsigned PDF. Nothing is sent or saved to Supabase.</p></div></div>',
+'<div class="section-head"><div><h2>Renewal Lease Generator · Preparation</h2><p>Select a unit, confirm the existing lease, and fill the new terms. Review the five-page lease, then download an unsigned PDF. PDF files are not stored in Supabase. Renewal status updates and notes are saved separately in the tracker below.</p></div></div>',
 '<p class="renewal-warning">Lease dates and residents may be imported or historical. Verify against the signed lease before proceeding. This draft field review is not a lease or signature request.</p>',
 '<form id="renewal-form"><div class="renewal-grid">',
 '<label class="renewal-span">Property / Unit<select id="renewal-unit" required><option value="">Select property / unit</option></select></label>',
