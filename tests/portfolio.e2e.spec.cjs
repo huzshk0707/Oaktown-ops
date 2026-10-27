@@ -13,6 +13,7 @@ const fixtures={
  ops_tasks:[{id:'00000000-0000-4000-8000-000000000008',unit_id:U1,renewal_case_id:R,workflow_key:'renewal',task_title:'Contact example',status:'pending',assigned_label:'Ops'}]
 };
 async function login(page){
+ const activity=[];
  await page.route('https://wjdzaexhhjsjtdgxivyw.supabase.co/**',route=>{
   const u=new URL(route.request().url()),path=u.pathname,h={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'apikey,authorization,content-type','access-control-allow-methods':'GET,POST,OPTIONS'};
   if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers:h,body:''});
@@ -21,6 +22,17 @@ async function login(page){
   else if(path==='/auth/v1/user')body={id:'00000000-0000-4000-8000-000000000009',email:'sample@example.invalid'};
   else if(path==='/rest/v1/staff_memberships')body=[{role:'admin',is_active:true}];
   else if(path==='/auth/v1/logout')body={};
+  else if(path==='/rest/v1/ops_events'){
+   if(route.request().method()==='POST'){
+    const item=route.request().postDataJSON();
+    const id='00000000-0000-4000-8000-'+String(activity.length+10).padStart(12,'0');
+    const row={...item,id,occurred_at:new Date(Date.UTC(2026,9,27,12,0,activity.length)).toISOString()};
+    activity.unshift(row);body=[row];
+   }else{
+    const filter=u.searchParams.get('entity_id')?.replace(/^eq\./,'');
+    body=activity.filter(row=>!filter||row.entity_id===filter);
+   }
+  }
   else if(path.startsWith('/rest/v1/'))body=fixtures[path.split('/').pop()]||[];
   else throw Error('Unexpected test API: '+path);
   return route.fulfill({status:200,headers:h,body:JSON.stringify(body)});
@@ -99,4 +111,42 @@ test('renewal generator downloads a five-page unsigned PDF from approved inputs'
  const text=buf.toString('latin1');
  expect((text.match(/\/Type\s*\/Page\b/g)||[]).length).toBe(5);
  await expect(page.locator('#renewal-pdf-status')).toContainText('Five-page unsigned PDF downloaded');
+});
+
+
+test('one-line renewal update saves status, next action and optional note in the staff event journal',async({page})=>{
+ const activity=await login(page);
+ await page.locator('[data-workspace="leases"]').click();
+ await expect(page.locator('#ops-renewals-status')).toContainText('1 of 1');
+ await page.locator('#ops-renewals-list .property-record').click();
+ await expect(page.locator('#ops-renewal-tracker')).toBeVisible();
+ await page.locator('#tracker-message').fill('I just sent a lease to sign');
+ await expect(page.locator('#tracker-status')).toHaveValue('sent_for_signature');
+ await expect(page.locator('#tracker-suggestion')).toContainText('Sent for signature');
+ await page.locator('#tracker-note').fill('Tenant should check their email; follow up Wednesday.');
+ await page.locator('#tracker-save').click();
+ await expect(page.locator('#tracker-feedback')).toContainText('Saved to renewal history');
+ await expect(page.locator('.tracker-history')).toContainText('Tenant should check their email');
+ await expect(page.locator('#ops-renewals-list')).toContainText('Sent for signature');
+ expect(activity).toHaveLength(1);
+ expect(activity[0].event_metadata.status).toBe('sent_for_signature');
+ expect(activity[0].event_metadata.note).toContain('follow up Wednesday');
+ expect(activity[0].entity_id).toBe(R);
+ await page.reload();
+ await page.locator('[data-workspace="leases"]').click();
+ await page.locator('#ops-renewals-list .property-record').click();
+ await expect(page.locator('#ops-renewal-tracker')).toContainText('Tenant should check their email');
+ await expect(page.locator('#tracker-status')).toHaveValue('sent_for_signature');
+});
+test('renewal workflow never interprets not sent as sent and allows optional notes',async({page})=>{
+ const activity=await login(page);
+ await page.locator('[data-workspace="leases"]').click();
+ await page.locator('#ops-renewals-list .property-record').click();
+ await page.locator('#tracker-message').fill('I have not sent the lease yet');
+ await expect(page.locator('#tracker-status')).toHaveValue('not_started');
+ await expect(page.locator('#tracker-suggestion')).toContainText('No confident status');
+ await page.locator('#tracker-note').fill('Waiting on confirmation');
+ await page.locator('#tracker-save').click();
+ await expect(page.locator('#tracker-feedback')).toContainText('Saved');
+ expect(activity[0].event_metadata.status).toBe('not_started');
 });
