@@ -20,3 +20,6 @@
 .legacy-address-manager>summary{font-size:13px;cursor:pointer;font-weight:600;color:#244c3c}
 .legacy-address-manager[open]>summary{margin-bottom:14px}
 @media(max-width:740px){.notice-picker-list{grid-template-columns:1fr;max-height:250px}#notice-picker-make{width:100%;margin-left:0}}
+
+/* Hidden legacy notice import controls must stay hidden despite .button display rules. */
+#notices-load-all[hidden],#open-properties[hidden],#pilot-load[hidden],#property-batch-tools[hidden]{display:none!important}
