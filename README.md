@@ -2,22 +2,22 @@
 
 [Open the workspace](https://huzshk0707.github.io/Oaktown-ops/)
 
-Oaktown Ops brings property records and operational workflows together. v0.4 keeps the green Ops design and groups notice creation, tenant messages and court follow-up inside one **Notices** workflow.
+Oaktown Ops brings property records and operational workflows together. v0.6 retains the green Ops design and groups notice creation, tenant messages and court follow-up inside one **Notices** workflow.
 
 ## Available now
 
-- **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Make Notices**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
+- **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Create drafts**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
 - Tenant message: copy text from the selected notice.
 - Court follow-up: authorization, attorney confirmation, dates, owner and notes attached to the selected notice, retained after refresh.
-- **Properties:** Browse 112 property/land groups and 124 units in the protected portfolio view. The old duplicate directory and address editor are under a collapsed **Address management (advanced)** section; the previous notice-loading controls are hidden.
-- One shared account: persistent Supabase session with refresh; sign in at launch or use local drafts. No separate login for each workflow.
-- Explicit **Save to Supabase** / **Open saved batch** for notices and their court records. Conflicting saves are rejected. Cloud batches belong to the signed-in user; properties are shared with approved staff.
+- **Properties:** Browse 112 property/land groups and 124 units in the protected portfolio view. The original address-level editor remains under **Edit addresses & notice addressees** within Properties; the previous notice-loading controls are hidden.
+- One shared account: persistent Supabase session with refresh; sign in from the staff access panel or use local drafts. No separate login for each workflow.
+- Explicit **Save to cloud** / **Open cloud batch** for notices and their court records. Conflicting saves are rejected. Cloud batches belong to the signed-in user; properties are shared with approved staff.
 
 Leases & renewals retains its imported case/task browser and now includes a **Renewal Lease Generator** (property/unit and expiring-lease selection, suggested editable dates, rent/late fees, occupants/pets, utility and appliance choices, verified field review). After confirming the fields, staff can **download an unsigned five-page renewal lease PDF** from the sanitized document master. **The PDF is downloaded only—it is not saved to Supabase, signed, sent, or applied to the active lease.** Staff can separately select a renewal case to enter a one-line update (for example, “sent lease for signature”), verify or manually edit the suggested status, add an optional next action and notes, and save a dated update to the existing RLS-protected Supabase activity journal. Imported source status remains intact. See [renewal generator limitations and document QA](docs/RENEWAL-LEASE-GENERATOR.md). Listings and maintenance remain upcoming.
 
 ## Working with data
 
-Draft edits save in browser storage immediately. They reach Supabase only when you choose **Save to Supabase**. Property form saves write the property and addressee together. Opening a saved batch replaces the local batch after confirmation; export JSON first if needed.
+Draft edits save on this browser automatically and show **Saved locally**. They reach the shared cloud workspace only when staff select **Save to cloud**. Property form saves write the property and addressee together. Opening a saved cloud batch requires confirmation and offers a one-level **Undo opening batch** action. Export JSON for a durable independent backup.
 
 Signing out disconnects cloud access but keeps local drafts on that browser. Use a trusted device. The static website and standalone generator remain publicly accessible; protected database records require approved staff membership and row-level security. Only a publishable key is in the client.
 
@@ -40,4 +40,8 @@ All project development is kept in GitHub. Root files serve the current app; his
 
 GitHub Actions runs Node checks and Chromium tests for downloads, address search, shared sign-in, court persistence, property writes, batch restore and conflicting saves. Browser tests use fictional API mocks. Database regression tests use disposable PostgreSQL services with fictional fixtures; CI never applies migrations to live Supabase.
 
-[Share feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml). Do not include tenant information in public issues.
+[Share non-sensitive technical feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml). Do not include tenant information in public issues.
+
+## UX & security improvement review
+
+Staff entry, SVG navigation, notice selection/copy, local vs cloud status, cloud-batch undo, account password reset, and a read-only RLS/security audit are documented in [the October 2026 review](docs/OPS-UX-SECURITY-REVIEW-2026-10-27.md). Notice PDFs and Renewal PDFs remain unchanged. Password reset requires the deployed app URL to be allowed in Supabase Auth Redirect URLs; confirm that setting before relying on staff self-service recovery.
