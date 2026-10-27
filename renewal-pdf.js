@@ -46,11 +46,11 @@ async function restoreInitialHighlights(bytes,pageNumber){
   return canvas.toDataURL('image/png');
  }finally{if(typeof bitmap.close==='function')bitmap.close()}
 }
-function writeUnderlinedAnswer(pdf,value,x,y,w,h,textX,textY,textW,{size=9,minSize=7,lineY}={}){
+function writeUnderlinedAnswer(pdf,value,x,y,w,h,textX,textY,textW,{size=9,minSize=7,lineY,bold=false}={}){
  // Erase only the template's underscores, then explicitly redraw the rule
  // beneath the new text. Otherwise filling the answer makes the line disappear.
  fillBox(pdf,x,y,w,h);
- textFit(pdf,value,textX,textY,textW,{size,minSize});
+ textFit(pdf,value,textX,textY,textW,{size,minSize,bold});
  pdf.setDrawColor(0,0,0);
  pdf.setLineWidth(0.45);
  pdf.line(x,lineY,x+w,lineY);
@@ -114,11 +114,14 @@ function overlay(pdf,model){
   writeUnderlinedAnswer(pdf,value,field.x-.3,field.y-.7,field.w+1.2,12.4,
                        field.x+1.5,field.y+8.7,field.w-3,{size:9,minSize:8,lineY:field.y+10.7});
  }
- // Late fees sit beside the percentage clauses in the original paragraph.
- writeUnderlinedAnswer(pdf,model.fiveFormatted.slice(1),217.0,693.0,40.4,12.6,
-                      218,702.6,38,{size:9,minSize:7,lineY:704.6});
- writeUnderlinedAnswer(pdf,model.tenFormatted.slice(1),70,704.7,43.5,12.0,
-                      71.5,714.1,40.5,{size:9,minSize:7,lineY:716.1});
+ // The original template prints a dollar sign BEFORE each underscore field.
+ // Mask the ENTIRE old dollar-sign/underscore area (but not 5%= / 10% =),
+ // then draw the complete currency amount in bold. This avoids the half-hidden
+ // printed dollar sign and keeps the form underline beneath the amount.
+ writeUnderlinedAnswer(pdf,model.fiveFormatted,213.2,693.0,44.0,12.6,
+                      214.0,702.6,42.5,{size:9,minSize:7,lineY:704.6,bold:true});
+ writeUnderlinedAnswer(pdf,model.tenFormatted,67.2,704.7,46.0,12.0,
+                      68.0,714.1,44.6,{size:9,minSize:7,lineY:716.1,bold:true});
 }
 function buildModel(state,rules,when){
  const errors=rules.validate(state);

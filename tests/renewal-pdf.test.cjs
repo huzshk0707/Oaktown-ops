@@ -40,14 +40,14 @@ test('invalid unreviewed inputs cannot export',()=>{
 });
 test('render overlays on only page 1 of five and preserves the original master images',async()=>{
  class FakePDF{
-  constructor(){this.pages=1;this.images=[];this.texts=[];this.lines=[];this.size=10;}
+  constructor(){this.pages=1;this.images=[];this.texts=[];this.lines=[];this.boxes=[];this.size=10;this.fontWeight='normal';}
   addPage(){this.pages++}
   addImage(bytes,type,x,y,w,h){assert.equal(type,'PNG');assert.equal(w,612);assert.equal(h,792);this.images.push({page:this.pages,bytes:bytes.length})}
-  setFont(){}setFontSize(size){this.size=size}setTextColor(){}setFillColor(){}setDrawColor(){}setLineWidth(){}
+  setFont(family,weight){this.fontWeight=weight}setFontSize(size){this.size=size}setTextColor(){}setFillColor(){}setDrawColor(){}setLineWidth(){}
   getTextWidth(value){return String(value).length*this.size*.45}
-  text(value,x,y,opts){this.texts.push({page:this.pages,value,x,y,opts,size:this.size})}
+  text(value,x,y,opts){this.texts.push({page:this.pages,value,x,y,opts,size:this.size,fontWeight:this.fontWeight})}
   line(x1,y1,x2,y2){this.lines.push({page:this.pages,x1,y1,x2,y2})}
-  rect(){}
+  rect(x,y,w,h){this.boxes.push({x,y,w,h})}
  }
  const calls=[];
  const fetchAsset=async path=>{calls.push(path);return {ok:true,arrayBuffer:async()=>new Uint8Array([137,80,78,71,13,10,26,10]).buffer}};
@@ -58,6 +58,13 @@ test('render overlays on only page 1 of five and preserves the original master i
  assert.equal(pdf.texts.filter(x=>x.value==='X').length,5);
  assert.ok(pdf.texts.some(x=>x.value==='$4,000.00'));
  assert.ok(pdf.texts.some(x=>x.value==='Yes'));
+ const five=pdf.texts.find(x=>x.value==='$200.00'&&x.y===702.6);
+ const ten=pdf.texts.find(x=>x.value==='$400.00'&&x.y===714.1);
+ assert.ok(five&&ten,'both late-fee values must include their full $ signs');
+ assert.equal(five.fontWeight,'bold','5% fee text must be bold');
+ assert.equal(ten.fontWeight,'bold','10% fee text must be bold');
+ assert.ok(pdf.boxes.some(b=>b.x<=213.52&&b.x+b.w>=255.32&&b.y===693),'5% whiteout fully covers printed dollar/underscores');
+ assert.ok(pdf.boxes.some(b=>b.x<=67.47&&b.x+b.w>=111.91&&b.y===704.7),'10% whiteout fully covers printed dollar/underscores');
  assert.equal(pdf.lines.length,9,'seven appliance and two late-charge underlines must remain');
  assert.ok(pdf.lines.every(line=>line.page===1),'ruling is confined to fillable first page');
  assert.ok(pdf.lines.some(line=>Math.abs(line.y1-704.6)<.001),'5% fee underline restored');
