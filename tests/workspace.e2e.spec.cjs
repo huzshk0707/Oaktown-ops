@@ -39,8 +39,8 @@ async function setup(page){
   return reply({message:'Unexpected mocked request: '+p},500);
  });
  page.on('dialog',d=>d.accept());
- await page.goto(ORIGIN+'/');await expect(page.locator('#account-dialog')).toBeVisible();
- s.email=await page.locator('#pilot-email').inputValue();
+ await page.goto(ORIGIN+'/');await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
+ s.email='tester@example.invalid';await page.locator('#pilot-email').fill(s.email);
  await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();await expect(page.locator('#account-button')).toContainText('Signed in');return s;
 }
@@ -60,8 +60,8 @@ test('shared sign-in survives nested workflow navigation, reload and refresh',as
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.logins).toBe(1);
  await page.evaluate(()=>{const key='oaktown-session-v04',v=JSON.parse(localStorage.getItem(key));v.expires_at=1;localStorage.setItem(key,JSON.stringify(v))});
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.refreshes).toBe(1);expect(s.logins).toBe(1);
- await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#pilot-login')).toBeVisible();
- await page.reload();await expect(page.locator('#pilot-login')).toBeVisible();expect(s.logins).toBe(1);
+ await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#staff-access-signin')).toBeVisible();
+ await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();expect(s.logins).toBe(1);
 });
 test('court follow-up belongs to its notice and survives reload',async({page})=>{
  await setup(page);await importProperty(page);await page.locator('[data-notice-tab="court"]').click();
@@ -76,7 +76,7 @@ test('court follow-up belongs to its notice and survives reload',async({page})=>
 });
 test('explicit cloud save and open round-trip, conflict preserves local edits',async({page})=>{
  const s=await setup(page);await importProperty(page);await page.locator('#batch-title').fill('Fictional October batch');await page.locator('#cloud-save').click();
- await expect(page.locator('#cloud-status')).toContainText('Saved to Supabase');expect(s.writes).toHaveLength(1);
+ await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');expect(s.writes).toHaveLength(1);
  const frame=page.frameLocator('#studio-frame');await frame.locator('#tenant').fill('Unsaved local edit');
  await page.locator('#cloud-open').click();await page.locator('#cloud-batches').selectOption(BATCH);await page.locator('#cloud-load').click();
  await expect(page.locator('#batch-dialog')).not.toBeVisible();await expect(frame.locator('#tenant')).toHaveValue('Example Resident & All Occupants');
@@ -93,14 +93,14 @@ test('property writes validate fields and retain edits on network failure',async
  await expect(page.locator('#prop-unit')).toHaveValue('Unit C');expect(s.properties.find(p=>p.id===CREATED).unit).toBe('Unit B');
 });
 test('revoked membership blocks a restored session',async({page})=>{
- const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#pilot-login')).toBeVisible();
+ const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();
  await expect(page.locator('#pilot-auth-status')).toContainText('not approved');await expect(page.locator('#pilot-properties')).not.toBeVisible();
 });
 test('pending cloud and property saves lock actions that could switch their targets',async({page})=>{
  const s=await setup(page);await importProperty(page);let release;
  s.holdSave=new Promise(resolve=>release=resolve);await page.locator('#cloud-save').click();
  await expect.poll(()=>s.writes.length).toBe(1);await expect(page.locator('#cloud-open')).toBeDisabled();await expect(page.locator('#cloud-save')).toBeDisabled();
- release();await expect(page.locator('#cloud-status')).toContainText('Saved to Supabase');s.holdSave=null;
+ release();await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');s.holdSave=null;
  await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
  await page.locator('#prop-unit').fill('Test unit');s.holdProperty=new Promise(resolve=>release=resolve);await page.locator('#property-save').click();
  await expect.poll(()=>s.propertyWrites.length).toBe(1);await expect(page.locator('#property-new')).toBeDisabled();await expect(page.locator('#property-edit')).toBeDisabled();await expect(page.locator('#prop-street_address')).toBeDisabled();
@@ -110,8 +110,8 @@ test('a delayed account verification cannot restore a signed-out session',async(
  const s=await setup(page);let release;s.holdMembership=new Promise(resolve=>release=resolve);
  await page.reload();await expect.poll(()=>s.membershipWaiting).toBe(true);
  await page.evaluate(()=>window.OpsCloud.signOut());release();
- await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#pilot-login')).toBeVisible();
- await page.reload();await expect(page.locator('#pilot-login')).toBeVisible();expect(s.logins).toBe(1);
+ await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#staff-access-signin')).toBeVisible();
+ await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();expect(s.logins).toBe(1);
 });
 test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
