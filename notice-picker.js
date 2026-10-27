@@ -29,7 +29,7 @@ function draw(){
  const matches=matching(),host=$('notice-picker-list');host.replaceChildren();
  const cap=$('notice-picker-count');cap.textContent=matches.length+' of '+items.length+' units shown · '+chosen.size+' selected';
  $('notice-picker-make').disabled=!chosen.size||!cloud.user||making;
- $('notice-picker-make').textContent='Make Notices'+(chosen.size?' ('+chosen.size+')':'');
+ $('notice-picker-make').textContent='Create drafts'+(chosen.size?' ('+chosen.size+')':'');
  $('notice-picker-select-matching').disabled=!matches.length||making;
  $('notice-picker-clear').disabled=!chosen.size||making;
  for(const item of matches){
@@ -43,7 +43,7 @@ function draw(){
  if(!matches.length&&items.length)host.append(line('p','No properties match that search.','ops-muted'));
 }
 async function refresh(){
- if(!cloud.user){state('Sign in to select properties from the portfolio.');return}
+ if(!cloud.user){state('Sign in to access protected properties.');return}
  if(loading)return;loading=true;const gen=++generation,account=cloud.user.id;
  $('notice-picker-refresh').disabled=true;state('Loading the complete property and unit directory…');
  try{
@@ -63,7 +63,7 @@ async function refresh(){
    return {unit,prop,tenant,sole,search};
   }).sort((a,b)=>labelOf(a).localeCompare(labelOf(b),undefined,{numeric:true}));
   chosen=new Set([...chosen].filter(id=>items.some(x=>x.unit.id===id)));
-  state(items.length+' units and lots ready. Choose one or more, then tap Make Notices. Missing recipients will be completed in the editor.');
+  state(items.length+' units and lots ready. Choose one or more, then select Create drafts. Missing recipients will be completed in the editor.');
   draw();
  }catch(e){if(gen===generation)state('Could not load portfolio: '+e.message)}
  finally{if(gen===generation){loading=false;$('notice-picker-refresh').disabled=false}}
@@ -77,11 +77,11 @@ $('notice-picker-select-matching').onclick=()=>{
 $('notice-picker-clear').onclick=()=>{chosen.clear();draw()};
 $('notice-picker-make').onclick=()=>{
  if(making)return;
- if(!cloud.user){$('account-button').click();state('Sign in to make notices.');return}
+ if(!cloud.user){$('account-button').click();state('Sign in to create drafts.');return}
  const selected=items.filter(x=>chosen.has(x.unit.id));if(!selected.length){state('Select at least one property.');return}
  if(selected.length>250){state('Select 250 or fewer units in one batch.');return}
  const iframe=$('studio-frame');
- if(!iframe?.contentWindow||iframe.contentDocument?.readyState!=='complete'){state('The notice editor is loading. Try Make Notices again.');return}
+ if(!iframe?.contentWindow||iframe.contentDocument?.readyState!=='complete'){state('The notice editor is loading. Try Create drafts again.');return}
  const properties=selected.map(x=>({
    id:x.unit.id,legacyPropertyId:x.sole?x.prop.id:'',
    street:[x.prop.street_address,unitName(x.unit)].filter(Boolean).join(' '),
@@ -103,9 +103,9 @@ window.addEventListener('message',event=>{
 });
 window.addEventListener('ops-auth-change',event=>{
  generation++;loading=false;$('notice-picker-refresh').disabled=false;
- if(!event.detail.user){items=[];chosen.clear();making=false;draw();state('Sign in to search all portfolio properties and make notices.');}
+ if(!event.detail.user){items=[];chosen.clear();making=false;draw();state('Sign in to search protected units and create drafts.');}
  else refresh();
 });
-state('Sign in to search all portfolio properties and make notices.');
+state('Sign in to search protected units and create drafts.');
 draw();
 })();
