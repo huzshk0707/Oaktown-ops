@@ -4,6 +4,8 @@
 
 Oaktown Ops brings property records and operational workflows together. v0.4 keeps the green Ops design and groups notice creation, tenant messages and court follow-up inside one **Notices** workflow.
 
+The v0.5 Lead Copilot is available for fictional test drafting only. Its lead cloud storage and real applicant screening remain disabled; see [the release boundary](docs/PR-6-REVIEW.md).
+
 ## Available now
 
 - Notice & mailing: reference-layout seven-day notices, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
@@ -34,7 +36,8 @@ All project development is kept in GitHub. Root files serve the current app; his
 - `generator.html`, `vendor/`: document layouts and local download tools.
 - `supabase/schema/ops_workspace_v04.sql`: applied additive schema/RPC reference.
 - `docs/RELEASE-0.4.md`: release scope and verification.
+- `supabase/migrations/`: historical Portfolio Master migrations already applied; do not rerun them. See [database status and rollout blockers](docs/DATABASE-UPGRADE-V05.md).
 
-GitHub Actions runs Node checks and Chromium tests for downloads, address search, shared sign-in, court persistence, property writes, batch restore and conflicting saves. Browser tests use fictional API mocks; database write/access tests run inside a rolled-back transaction.
+GitHub Actions runs Node checks and Chromium tests for downloads, address search, shared sign-in, court persistence, property writes, batch restore and conflicting saves. Browser tests use fictional API mocks. Database regression tests use disposable PostgreSQL services with fictional fixtures; CI never applies migrations to live Supabase.
 
 [Share feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml). Do not include tenant information in public issues.
