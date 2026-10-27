@@ -1,0 +1,19 @@
+/* Renewal lease preparation; inherit Oaktown Ops green workspace styles. */
+#ops-renewal-generator{background:#fff;border:1px solid #d6dfd2;border-radius:12px;padding:20px;margin:0 0 22px}
+#ops-renewal-generator h2{color:#153e35;font-size:22px;margin:0 0 6px}
+.renewal-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.renewal-grid label,.renewal-field{font-size:12px;font-weight:700;color:#3a5547}
+.renewal-grid input,.renewal-grid select,.renewal-grid textarea{display:block;width:100%;padding:11px;margin-top:5px;border:1px solid #bfcfc2;border-radius:8px;color:#1e4034;font:14px Arial,sans-serif;background:#fbfcf9}
+.renewal-span{grid-column:1/-1}
+.renewal-check{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:10px 0}
+.renewal-check input{width:17px;height:17px;margin:0;flex:none}
+.renewal-choice-grid{display:grid;grid-template-columns:minmax(100px,1fr) minmax(170px,250px);align-items:center;gap:8px;border-bottom:1px solid #e6ebe3;padding:7px 0}
+.renewal-choice-grid label{font-weight:600;font-size:13px}
+.renewal-choice-grid select{font-size:13px;width:100%;padding:8px;border:1px solid #c2d2c4;border-radius:7px}
+.renewal-summary{background:#f5f9f4;padding:14px;border:1px solid #d4e2d5;border-radius:9px;margin:14px 0;overflow-wrap:anywhere}
+.renewal-summary dl{display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr);gap:8px;margin:0;font-size:13px}
+.renewal-summary dt{font-weight:700;color:#466451}.renewal-summary dd{margin:0}
+.renewal-warning{border-left:3px solid #aa7132;background:#fff8ec;padding:9px 12px;color:#674519;font-size:12px;line-height:1.5}
+.renewal-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:13px}
+#renewal-preview{white-space:pre-wrap;line-height:1.6;color:#1d3c30;font:13px/1.6 Arial,sans-serif}
+@media(max-width:700px){#ops-renewal-generator{padding:13px}.renewal-grid{grid-template-columns:1fr}.renewal-span{grid-column:auto}.renewal-summary dl{grid-template-columns:1fr}.renewal-choice-grid{grid-template-columns:minmax(0,1fr) minmax(120px,1fr)}}
