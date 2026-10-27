@@ -75,7 +75,7 @@ test('renewal preparation uses selected unit, validates choices and formats late
  await expect(page.locator('#renewal-preview')).toContainText('$4,000.00');
  await expect(page.locator('#renewal-preview')).toContainText('Microwave: Yes');
  await expect(page.locator('#renewal-preview')).toContainText('Water [X Tenant]');
- await expect(page.locator('#renewal-output')).toContainText('No PDF was created');
+ await expect(page.locator('#renewal-output')).toContainText('No renewal record is saved');
 });
 
 
