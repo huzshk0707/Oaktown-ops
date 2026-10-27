@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#153e35"><title>Oaktown Ops — Operations workspace</title><link rel="stylesheet" href="styles.css?v=0.4"><link rel="stylesheet" href="workspace.css?v=0.4.1"><link rel="stylesheet" href="leads.css?v=0.5.1"><link rel="stylesheet" href="portfolio.css?v=0.5"><link rel="stylesheet" href="notice-picker.css?v=0.6"><script src="cloud.js?v=0.4" defer></script><script src="workspace.js?v=0.4.1" defer></script><script src="lead-rules.js?v=0.5.1" defer></script><script src="leads.js?v=0.5.1" defer></script><script src="portfolio.js?v=0.5" defer></script><script src="notice-picker.js?v=0.6" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#153e35"><title>Oaktown Ops — Operations workspace</title><link rel="stylesheet" href="styles.css?v=0.4"><link rel="stylesheet" href="workspace.css?v=0.4.1"><link rel="stylesheet" href="portfolio.css?v=0.5"><link rel="stylesheet" href="renewal.css?v=0.6"><link rel="stylesheet" href="renewal-tracking.css?v=0.7"><link rel="stylesheet" href="notice-picker.css?v=0.6"><script src="cloud.js?v=0.4" defer></script><script src="workspace.js?v=0.4.1" defer></script><script src="portfolio.js?v=0.8" defer></script><script src="renewal-rules.js?v=0.6" defer></script><script src="vendor/jspdf-2.5.1.umd.min.js" defer></script><script src="renewal-pdf.js?v=0.7" defer></script><script src="renewal-generator.js?v=0.8" defer></script><script src="renewal-tracking-rules.js?v=0.7" defer></script><script src="renewal-tracking.js?v=0.7" defer></script><script src="notice-picker.js?v=0.6" defer></script></head>
 <body><a href="#main" class="skip">Skip to main content</a>
 <aside class="sidebar"><a class="brand" href="./"><span class="brand-mark" aria-hidden="true">O</span><span>OAKTOWN<span class="brand-sub">RENTALS · OPERATIONS</span></span></a><div class="workspace-label">YOUR WORKSPACE</div>
 <nav aria-label="Main workflows">
 <button class="nav-button active" data-workspace="notices" aria-current="page"><span aria-hidden="true">▤</span><span class="nav-label">Notices</span></button>
 <button class="nav-button" data-workspace="properties"><span aria-hidden="true">⌂</span><span class="nav-label">Properties</span></button>
-<button class="nav-button" data-workspace="leads"><span aria-hidden="true">☷</span><span class="nav-label">Lead Copilot</span><small>Beta</small></button>
+
 <button class="nav-button" data-workspace="leases"><span aria-hidden="true">▱</span><span class="nav-label">Leases & renewals</span><small>Portfolio</small></button>
 <button class="nav-button" data-workspace="listings"><span aria-hidden="true">◇</span><span class="nav-label">Listings</span><small>Next</small></button>
 <button class="nav-button" data-workspace="maintenance"><span aria-hidden="true">⚒</span><span class="nav-label">Maintenance</span><small>Next</small></button>
@@ -62,55 +62,9 @@
 <label>Street address<input id="prop-street_address" required maxlength="500"></label><label>Unit<input id="prop-unit" maxlength="500"></label><label>City<input id="prop-city" required maxlength="500"></label><label>State<input id="prop-state" required maxlength="2" pattern="[A-Za-z]{2}"></label><label>ZIP<input id="prop-postal_code" required maxlength="500" pattern="[0-9]{5}(-[0-9]{4})?"></label><label>Legal landlord / entity<input id="prop-landlord_entity" maxlength="500"></label><label class="wide">Notice addressee (optional; add when known)<input id="prop-tenant" maxlength="500" placeholder="Leave blank for vacant properties or when unverified"></label>
 </div><p class="subtle">An address can be saved without a tenant or lease. Enter a notice addressee only when known and verified. Leaving it blank when editing does not erase a previously saved addressee. Existing notice drafts are never silently rewritten.</p><div class="button-row"><button class="button primary" id="property-save">Save property to Supabase</button></div><p id="property-status" class="status" role="status"></p></form></section></div></details></section>
 
-<section id="leads-workflow" hidden aria-label="Lead Copilot">
-  <div class="lead-layout">
-    <section class="message-card lead-editor">
-      <div class="section-head"><div><h2>Lead Copilot · Test drafting</h2><p>Use fictional scenarios to review the response flow. Live applicant screening and cloud lead storage are disabled.</p></div></div>
-      <div class="lead-status" id="lead-workflow-status" role="status" aria-live="polite">Test drafts last only for this page session and are lost on reload. Use fictional data. No lead data is sent to Supabase or an AI API.</div>
-      <div class="lead-grid">
-        <label>Lead's name (optional)<input id="lead-name" type="text" maxlength="160" autocomplete="off" placeholder="Prospect name"></label>
-        <label>Property from Oaktown Ops<select id="lead-property"><option value="">Unlinked draft — select after signing in</option></select></label>
-        <label>Inquiry channel<select id="lead-source"><option>Zillow</option><option>Trulia</option><option>Email</option><option>Phone</option><option>Other</option></select></label>
-        <label>Lead status<select id="lead-status"><option value="new">New inquiry</option><option value="screening">Prequalification</option><option value="waiting">Waiting for tenant</option><option value="viewing">Viewing arranged</option><option value="viewed">Viewed</option><option value="application">Application started</option><option value="review">Application review</option><option value="closed">Closed</option></select></label>
-        <label>Simulated showing status<select id="lead-availability"><option value="unknown">Unverified</option><option value="ready">Available / ready to show</option><option value="not_ready">Available / still needs work</option><option value="occupied">Occupied / do not show</option><option value="holding">Holding deposit / pending</option><option value="rented">Rented / unavailable</option></select></label>
-        <label>Scenario asking rent (optional)<input id="lead-rent" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Fictional example amount"></label>
-        <label class="lead-check"><input type="checkbox" id="lead-rent-verified"> Use this amount for the test illustration</label>
-        <label>Income multiplier (reference only)<input id="lead-multiplier" type="number" min="0" step="0.25" value="3" readonly aria-describedby="lead-multiplier-help"></label>
-      </div>
-      <p class="subtle" id="lead-multiplier-help">3× is an illustrative reference from historical conversations, not an approved universal screening decision. Rent, fees and eligibility require independent verification.</p>
-      <label for="lead-incoming"><strong>Latest tenant message (optional)</strong></label>
-      <textarea class="lead-message-area" id="lead-incoming" rows="5" maxlength="16000" placeholder="Paste a tenant response here. Suggestions require your confirmation and aren't added to the record automatically."></textarea>
-      <div class="button-row"><button class="button" id="lead-detect" type="button">Review possible answers</button><button class="button" id="lead-clear" type="button">New blank lead</button></div>
-      <div id="lead-candidates" class="lead-candidates" role="status" aria-live="polite"></div>
-      <h3>Confirmed prequalification answers</h3>
-      <p class="subtle">Enter or confirm each answer. Blank means unknown, not “no.”</p>
-      <div class="lead-grid">
-        <label>Monthly household income as stated<input id="lead-income" maxlength="280" placeholder="e.g. $5,000/month"></label>
-        <label>Income interpretation<select id="lead-incomeBasis"><option value="unknown">Not verified</option><option value="gross_monthly_household">Gross monthly household income</option><option value="net_or_other">Net / individual / other</option></select></label>
-        <label>Current living situation / rental length<input id="lead-residence" maxlength="500" placeholder="e.g. renting for 2 years"></label>
-        <label>Animals<input id="lead-pets" maxlength="280" placeholder="None / Yes — specify below"></label>
-        <label>Animal details<input id="lead-petDetails" maxlength="500" placeholder="Count, species, breed, weight"></label>
-        <label>Assistance animal disclosed?<select id="lead-assistanceAnimal"><option value="unknown">Not established</option><option value="yes">Yes / possible — escalate</option><option value="no">No</option></select></label>
-        <label>Bankruptcy / foreclosure / eviction / repos<input id="lead-adverse" maxlength="500" placeholder="None / stated history"></label>
-        <label>Disclosed history details<input id="lead-adverseDetails" maxlength="500" placeholder="Type, year, status; review with Leslie"></label>
-        <label>Current-property walkthrough<input id="lead-walkthrough" maxlength="300" placeholder="Yes / No / uncertain"></label>
-        <label>Walkthrough explanation<input id="lead-walkthroughDetails" maxlength="500" placeholder="If unavailable, record explanation"></label>
-        <label>Housing voucher?<select id="lead-voucher"><option value="unknown">Unknown</option><option value="yes">Yes — review separately</option><option value="no">No</option></select></label>
-        <label>Voucher details<input id="lead-voucherDetails" maxlength="500" placeholder="Bedroom size, Box 6/payment standard"></label>
-      </div>
-      <div class="button-row"><button class="button primary" id="lead-draft" type="button">Generate suggested reply</button></div>
-    </section>
-    <section class="lead-side">
-      <div class="message-card"><h2>Recommended next step</h2><p id="lead-next-step" class="lead-next-step">Complete the lead details to begin.</p><div id="lead-flags" class="lead-flags" aria-live="polite"></div><label for="lead-response"><strong>Test draft — not approved for applicant use</strong></label><textarea id="lead-response" rows="8" maxlength="20000"></textarea><div class="button-row"><button class="button primary" id="lead-copy" type="button">Copy test draft</button></div><p id="lead-copy-status" class="status" role="status"></p></div>
-      <div class="message-card"><h2>Cloud lead records</h2><p class="subtle">Disabled for this release. Portfolio Master unit/listing reconciliation, isolated database tests and explicit approval are required before lead persistence is enabled.</p><div class="button-row"><button class="button primary" id="lead-save" type="button">Save lead to Supabase</button><button class="button" id="lead-save-message" type="button">Save tenant message</button></div><label for="lead-saved-list">Open existing lead</label><select id="lead-saved-list"><option value="">Select a saved lead</option></select><div class="button-row"><button class="button" id="lead-refresh" type="button">Refresh saved leads</button></div><p id="lead-save-status" class="status" role="status"></p><h3>Recent saved messages</h3><div id="lead-message-history" class="lead-history" aria-live="polite"></div></div>
-    </section>
-  </div>
-  <p class="notice-help">This is an advisory and human-review tool; it is not a screening approval engine. Do not paste driver's licenses, lockbox codes, medical documents or raw financial files. Housing vouchers and assistance animals require applicable compliance review.</p>
-</section>
-
 <section id="ops-renewals-panel" hidden aria-label="Oaktown renewal cases">
 <div class="section-head"><div><h2>Leases & renewals · Portfolio workload</h2><p>All 118 OAK case records, including fixed leases, pending signatures, vacant units and excluded development assets.</p></div><button id="ops-renewals-refresh" class="button" type="button">Refresh renewals</button></div>
-<p class="ops-muted">Operational workflow data is imported from the Renewal Master. Signed terms, tenant decisions and TurboTenant updates require source verification where flagged.</p>
+<p class="ops-muted">Imported Renewal Master records remain visible for reference. Select a case to save one-line updates, status changes, next actions and notes. Each confirmed update is dated and recorded; PDFs remain downloads only.</p>
 <div id="ops-renewals-summary" class="ops-summary" aria-live="polite"></div>
 <label for="ops-renewals-search">Search renewal ID, address, category or action</label><input id="ops-renewals-search" type="search" class="ops-search" placeholder="e.g. Pending, OAK-032, Unit 8">
 <p id="ops-renewals-status" class="status" role="status">Sign in to view protected renewals.</p>

@@ -19,3 +19,10 @@ test('notice workflow has three inner stages and one shared account dialog',()=>
  for(const view of ['notices','message','court'])assert.ok(shell.includes('data-notice-tab="'+view+'"'));
  assert.ok(!shell.includes('data-workspace="court"'));assert.ok(!shell.includes('v0.1 preserved'));
 });
+
+test('main navigation only exposes currently maintained Oaktown workflows',()=>{
+ const names=[...shell.matchAll(/data-workspace="([^"]+)"/g)].map(match=>match[1]);
+ assert.deepEqual(names,['notices','properties','leases','listings','maintenance']);
+ const localAssets=[...shell.matchAll(/<(?:script|link)\\b[^>]+(?:src|href)="([^"]+)"/g)].map(match=>match[1].split('?')[0]).filter(x=>!x.startsWith('http'));
+ for(const asset of localAssets)assert.ok(fs.existsSync(asset),asset+' must exist');
+});

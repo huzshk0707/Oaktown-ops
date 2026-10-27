@@ -4,8 +4,6 @@
 
 Oaktown Ops brings property records and operational workflows together. v0.4 keeps the green Ops design and groups notice creation, tenant messages and court follow-up inside one **Notices** workflow.
 
-The v0.5 Lead Copilot is available for fictional test drafting only. Its lead cloud storage and real applicant screening remain disabled; see [the release boundary](docs/PR-6-REVIEW.md).
-
 ## Available now
 
 - **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Make Notices**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
@@ -15,7 +13,7 @@ The v0.5 Lead Copilot is available for fictional test drafting only. Its lead cl
 - One shared account: persistent Supabase session with refresh; sign in at launch or use local drafts. No separate login for each workflow.
 - Explicit **Save to Supabase** / **Open saved batch** for notices and their court records. Conflicting saves are rejected. Cloud batches belong to the signed-in user; properties are shared with approved staff.
 
-Leases & renewals includes a read-only imported case/task browser. Listings and maintenance are upcoming; lease editing, renewal task completion and operational form workflows are not implemented yet.
+Leases & renewals retains its imported case/task browser and now includes a **Renewal Lease Generator** (property/unit and expiring-lease selection, suggested editable dates, rent/late fees, occupants/pets, utility and appliance choices, verified field review). After confirming the fields, staff can **download an unsigned five-page renewal lease PDF** from the sanitized document master. **The PDF is downloaded only—it is not saved to Supabase, signed, sent, or applied to the active lease.** Staff can separately select a renewal case to enter a one-line update (for example, “sent lease for signature”), verify or manually edit the suggested status, add an optional next action and notes, and save a dated update to the existing RLS-protected Supabase activity journal. Imported source status remains intact. See [renewal generator limitations and document QA](docs/RENEWAL-LEASE-GENERATOR.md). Listings and maintenance remain upcoming.
 
 ## Working with data
 
@@ -33,6 +31,7 @@ All project development is kept in GitHub. Root files serve the current app; his
 
 - `index.html`, `workspace.css`, `workspace.js`: navigation, account UI, property editing, court follow-up and cloud batch controls.
 - `cloud.js`: shared Supabase session and API client.
+- `renewal-generator.js`, `renewal-rules.js`, `renewal-pdf.js`, `renewal.css`, `renewal-assets/`: protected renewal UI, field calculations, five-page unsigned PDF renderer and sanitized master pages.
 - `notice-picker.js` / `notice-picker.css`: signed-in property/unit search, multi-selection, and Make Notices action.
 - `generator.html`, `vendor/`: document layouts and local download tools.
 - `supabase/schema/ops_workspace_v04.sql`: applied additive schema/RPC reference.
