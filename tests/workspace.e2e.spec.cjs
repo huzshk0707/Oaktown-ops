@@ -89,7 +89,7 @@ test('explicit cloud save and open round-trip, conflict preserves local edits',a
 test('property writes validate fields and retain edits on network failure',async({page})=>{
  const s=await setup(page);await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
  for(const[k,v]of Object.entries({street_address:'200 Fictional Court',unit:'Unit B',city:'Example City',state:'KY',postal_code:'40202',landlord_entity:'Example Property Company',tenant:'Fictional Household & All Occupants'}))await page.locator('#prop-'+k).fill(v);
- await page.locator('#property-save').click();await expect(page.locator('#property-status')).toContainText('Saved to Supabase');expect(s.propertyWrites).toHaveLength(1);
+ await page.locator('#property-save').click();await expect(page.locator('#property-status')).toContainText('Saved to shared property records.');expect(s.propertyWrites).toHaveLength(1);
  await expect(page.locator('#pilot-property option')).toHaveCount(3);await page.locator('#pilot-property').selectOption('1');await page.locator('#property-edit').click();
  await page.locator('#prop-unit').fill('Unit C');s.offline=true;await page.locator('#property-save').click();await expect(page.locator('#property-status')).toContainText(/failed|fetch|network/i);
  await expect(page.locator('#prop-unit')).toHaveValue('Unit C');expect(s.properties.find(p=>p.id===CREATED).unit).toBe('Unit B');
@@ -106,7 +106,7 @@ test('pending cloud and property saves lock actions that could switch their targ
  await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
  await page.locator('#prop-unit').fill('Test unit');s.holdProperty=new Promise(resolve=>release=resolve);await page.locator('#property-save').click();
  await expect.poll(()=>s.propertyWrites.length).toBe(1);await expect(page.locator('#property-new')).toBeDisabled();await expect(page.locator('#property-edit')).toBeDisabled();await expect(page.locator('#prop-street_address')).toBeDisabled();
- release();await expect(page.locator('#property-status')).toContainText('Saved to Supabase');await expect(page.locator('#property-new')).toBeEnabled();
+ release();await expect(page.locator('#property-status')).toContainText('Saved to shared property records.');await expect(page.locator('#property-new')).toBeEnabled();
 });
 test('a delayed account verification cannot restore a signed-out session',async({page})=>{
  const s=await setup(page);let release;s.holdMembership=new Promise(resolve=>release=resolve);
@@ -166,7 +166,7 @@ test('staff password reset sends a link and can finish recovery without storing 
  const state=await setup(page);
  await page.locator('#account-button').click();
  await page.locator('#pilot-logout').click();
- await page.locator('#staff-access-signin').click();
+ await expect(page.locator('#account-dialog')).toBeVisible();
  await page.locator('#forgot-password').click();
  await expect(page.locator('#password-request')).toBeVisible();
  await page.locator('#recovery-email').fill('tester@example.invalid');
