@@ -1,0 +1,25 @@
+/* Simple one-step notice creation from the full portfolio. */
+.notice-picker{background:white;border:1px solid #d3ded1;border-radius:12px;padding:18px;margin:18px 0 18px}
+.notice-picker .section-head{margin:0 0 9px}
+.notice-picker .section-head h2{font-size:18px;margin:0}
+.notice-picker .section-head p{font-size:12px;margin:4px 0 0;color:var(--muted);line-height:1.5}
+.notice-picker label[for="notice-picker-search"]{font-size:12px;font-weight:600}
+#notice-picker-search{width:100%;border:1px solid var(--line);border-radius:8px;padding:12px;margin:8px 0;font-size:14px;color:var(--ink);background:#fbfcf9}
+.notice-picker-count{color:var(--muted);font-size:12px;margin:4px 0 8px}
+.notice-picker-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:8px;max-height:275px;overflow:auto;padding:2px;margin-bottom:12px}
+.notice-picker-row{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #d6dfd2;border-radius:9px;cursor:pointer;background:#f8faf6;min-width:0}
+.notice-picker-row:has(input:checked){background:#edf5e9;border-color:#638970}
+.notice-picker-row input{margin:3px 0 0;flex:none;accent-color:#326a4c}
+.notice-picker-row-body{display:flex;flex-direction:column;min-width:0;gap:4px}
+.notice-picker-row-body strong{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.notice-picker-row-body small{font-size:11px;color:var(--muted);line-height:1.45}
+.notice-picker-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#notice-picker-make{margin-left:auto}
+.notice-picker .status{margin-top:8px}
+.legacy-address-manager{margin:20px 0;border:1px solid #d9e2d7;border-radius:12px;background:white;padding:14px}
+.legacy-address-manager>summary{font-size:13px;cursor:pointer;font-weight:600;color:#244c3c}
+.legacy-address-manager[open]>summary{margin-bottom:14px}
+@media(max-width:740px){.notice-picker-list{grid-template-columns:1fr;max-height:250px}#notice-picker-make{width:100%;margin-left:0}}
+
+/* Hidden legacy notice import controls must stay hidden despite .button display rules. */
+#notices-load-all[hidden],#open-properties[hidden],#pilot-load[hidden],#property-batch-tools[hidden]{display:none!important}

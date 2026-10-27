@@ -8,14 +8,14 @@ The v0.5 Lead Copilot is available for fictional test drafting only. Its lead cl
 
 ## Available now
 
-- Notice & mailing: reference-layout seven-day notices, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
+- **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Make Notices**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
 - Tenant message: copy text from the selected notice.
 - Court follow-up: authorization, attorney confirmation, dates, owner and notes attached to the selected notice, retained after refresh.
-- Properties: search, select one or several, import into notices, add and edit records in Supabase.
+- **Properties:** Browse 112 property/land groups and 124 units in the protected portfolio view. The old duplicate directory and address editor are under a collapsed **Address management (advanced)** section; the previous notice-loading controls are hidden.
 - One shared account: persistent Supabase session with refresh; sign in at launch or use local drafts. No separate login for each workflow.
 - Explicit **Save to Supabase** / **Open saved batch** for notices and their court records. Conflicting saves are rejected. Cloud batches belong to the signed-in user; properties are shared with approved staff.
 
-Leases & renewals, listings and maintenance have navigation destinations marked upcoming. Their operational forms and task systems are not implemented yet.
+Leases & renewals includes a read-only imported case/task browser. Listings and maintenance are upcoming; lease editing, renewal task completion and operational form workflows are not implemented yet.
 
 ## Working with data
 
@@ -23,7 +23,7 @@ Draft edits save in browser storage immediately. They reach Supabase only when y
 
 Signing out disconnects cloud access but keeps local drafts on that browser. Use a trusted device. The static website and standalone generator remain publicly accessible; protected database records require approved staff membership and row-level security. Only a publishable key is in the client.
 
-Existing address uniqueness excludes the unit field, so separate unit records at the same address cannot yet be added. Conflicting addresses produce an error rather than overwriting a property.
+The relational `units` table supports multiple rentable spaces at one property address, while the older advanced property editor still edits address-level records. Notice drafts use **unit IDs** to avoid combining tenants from different units. Unknown notice addressees remain blank and cannot produce a valid final notice until completed.
 
 This software assists preparation and recordkeeping. Verify legal applicability, recipients, landlord identity, charges, dates and postal requirements before use. Messages, notices, filings and reminders are not sent automatically.
 
@@ -33,6 +33,7 @@ All project development is kept in GitHub. Root files serve the current app; his
 
 - `index.html`, `workspace.css`, `workspace.js`: navigation, account UI, property editing, court follow-up and cloud batch controls.
 - `cloud.js`: shared Supabase session and API client.
+- `notice-picker.js` / `notice-picker.css`: signed-in property/unit search, multi-selection, and Make Notices action.
 - `generator.html`, `vendor/`: document layouts and local download tools.
 - `supabase/schema/ops_workspace_v04.sql`: applied additive schema/RPC reference.
 - `docs/RELEASE-0.4.md`: release scope and verification.

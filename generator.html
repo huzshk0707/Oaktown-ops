@@ -37,6 +37,7 @@ body{margin:0}.app-header{background:#12253b;color:#fff;padding:17px 25px;displa
 .toolbar{flex-wrap:wrap}
 /* Embedded in the Oaktown Ops workspace: standalone PDF printing is unchanged. */
 body.embedded .app-header{display:none!important}
+body.embedded #legacy-generator-property-picker{display:none!important} /* Properties are selected in Notices, not twice. */
 body.embedded .workspace{padding:9px;max-width:none;grid-template-columns:minmax(290px,390px) minmax(0,1fr);gap:14px}
 body.embedded .paper-stage{overflow:auto}
 @media(max-width:1100px){body.embedded .workspace{display:block}body.embedded .panel{margin-bottom:15px}}
@@ -51,7 +52,7 @@ body.embedded .paper-stage{overflow:auto}
 <div id="noticeList" class="notice-list"></div>
 <div class="section-heading">Property and recipient</div>
 <div class="form-grid">
-<div class="span2"><label for="propertySelect">Saved property</label><select id="propertySelect"></select><button class="btn btn-sm" id="saveProperty" style="margin-top:6px">Save address in this browser</button></div>
+<div class="span2" id="legacy-generator-property-picker"><label for="propertySelect">Saved property</label><select id="propertySelect"></select><button class="btn btn-sm" id="saveProperty" style="margin-top:6px">Save address in this browser</button></div>
 <div class="span2"><label for="tenant">Tenant name(s)</label><input id="tenant" placeholder="Enter names as they appear on lease"></div>
 <div class="span2"><label for="street">Property line 1 — street address</label><input id="street"></div>
 <div class="span2"><label for="cityline">Property line 2 — city, state ZIP</label><input id="cityline"></div>
@@ -344,14 +345,20 @@ function applyEmbeddedMode() {
           if(!Array.isArray(items)||items.length<1||items.length>250)return;
           let added=0,updated=0,skipped=0;
           for(const p of items){
-            if(!p||typeof p!=='object'||typeof p.id!=='string'||typeof p.street!=='string'||typeof p.cityline!=='string'||typeof p.tenant!=='string'||!p.id||!p.street||!p.cityline||!p.tenant){skipped++;continue}
+            if(!p||typeof p!=='object'||typeof p.id!=='string'||typeof p.street!=='string'||typeof p.cityline!=='string'||typeof p.tenant!=='string'||!p.id||!p.street||!p.cityline){skipped++;continue}
             let saved=data.properties.find(x=>x.id===p.id);
             if(saved){saved.street=p.street;saved.cityline=p.cityline;saved.owner=p.owner||'';}
             else data.properties.push({id:p.id,street:p.street,cityline:p.cityline,owner:p.owner||''});
             let notice=data.notices.find(x=>x.sourcePropertyId===p.id);
+            if(!notice&&typeof p.legacyPropertyId==='string'&&p.legacyPropertyId){
+              notice=data.notices.find(x=>x.sourcePropertyId===p.legacyPropertyId);
+            }
             if(notice){
-              notice.street=p.street;notice.cityline=p.cityline;notice.tenant=p.tenant;
-              if(p.owner)notice.owner=p.owner;
+              notice.sourcePropertyId=p.id;
+              notice.street=p.street;notice.cityline=p.cityline;
+              // Do not overwrite user-entered recipients or legal landlord names with unverified imports.
+              if(p.tenant&&!notice.tenant)notice.tenant=p.tenant;
+              if(p.owner&&!notice.owner)notice.owner=p.owner;
               updated++;
             }else{
               notice=blankNotice();

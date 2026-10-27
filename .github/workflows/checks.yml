@@ -19,6 +19,7 @@ jobs:
           node --check lead-rules.js
           node --check leads.js
           node --check portfolio.js
+          node --check notice-picker.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 
