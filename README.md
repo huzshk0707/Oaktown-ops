@@ -4,8 +4,6 @@
 
 Oaktown Ops brings property records and operational workflows together. v0.4 keeps the green Ops design and groups notice creation, tenant messages and court follow-up inside one **Notices** workflow.
 
-The v0.5 Lead Copilot is available for fictional test drafting only. Its lead cloud storage and real applicant screening remain disabled; see [the release boundary](docs/PR-6-REVIEW.md).
-
 ## Available now
 
 - **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Make Notices**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
