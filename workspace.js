@@ -1,8 +1,8 @@
 
 (()=>{'use strict';
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
-let workflow='notices',tab='notices',records=[],editing=null,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0,preOpenUndo=null,selectedMessage=null,noticeContactDirectory=null;
-const pending=new Map(),META='oaktown-batch-meta-v04',LOCAL_TITLE='oaktown-batch-title-v06';
+let workflow='notices',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null;
+const pending=new Map();
 const say=(id,text)=>$(id).textContent=text;
 const post=message=>frame.contentWindow?.postMessage(message,location.origin);
 function frameRequest(type,extra={}){
@@ -14,18 +14,8 @@ async function busy(button,action){
  const states=controls.map(control=>control.disabled);controls.forEach(control=>control.disabled=true);
  try{return await action()}finally{controls.forEach((control,i)=>control.disabled=states[i])}
 }
-let batchBusy=false;
-async function batchOperation(action){
- if(batchBusy)return;batchBusy=true;
- for(const id of ['cloud-save','cloud-open','cloud-load'])$(id).disabled=true;
- try{return await action()}finally{batchBusy=false;$('cloud-save').disabled=false;$('cloud-open').disabled=false;$('cloud-load').disabled=!$('cloud-batches').value;}
-}
 function account(){if(!$('account-dialog').open)$('account-dialog').showModal()}
-function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in once to use the shared property directory and cloud saves.');return false;}
-function rememberBatch(){if(cloudBatch)localStorage.setItem(META,JSON.stringify({...cloudBatch,owner:cloud.user?.id,title:$('batch-title').value}));}
-function saveLocalTitle(){try{localStorage.setItem(LOCAL_TITLE,$('batch-title').value.slice(0,120));return true}catch{return false}}
-function timeLabel(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
-function cloudDirty(){revision++;if(!saveLocalTitle()){say('cloud-status','Local storage unavailable · export a JSON backup before leaving.');return}say('cloud-status','Saved locally · '+timeLabel()+(cloud.user?' · unsynced changes (Save to cloud)':' · only on this browser'));}
+function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in to access shared property records.');return false;}
 function showWorkflow(name){
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
@@ -72,7 +62,7 @@ window.addEventListener('ops-notice-contacts-loaded',event=>{noticeContactDirect
 document.querySelectorAll('[data-workspace]').forEach(b=>b.addEventListener('click',()=>showWorkflow(b.dataset.workspace)));
 document.querySelectorAll('[data-notice-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.noticeTab)));
 $('open-properties').onclick=$('future-properties').onclick=()=>showWorkflow('properties');
-$('notices-load-all').onclick=()=>busy($('notices-load-all'),async()=>{if(!requireUser())return;try{await loadProperties();importMany(records)}catch(e){say('cloud-status','Could not load the property directory: '+e.message)}});
+$('notices-load-all').onclick=()=>busy($('notices-load-all'),async()=>{if(!requireUser())return;try{await loadProperties();importMany(records)}catch(e){say('notice-picker-status','Could not load the property directory: '+e.message)}});
 $('property-add-top').onclick=()=>{if(!requireUser())return;showWorkflow('properties');newProperty();$('property-editor').scrollIntoView({behavior:'smooth',block:'start'});$('prop-street_address').focus();};
 $('account-button').onclick=$('properties-signin').onclick=account;
 $('staff-access-signin').onclick=account;
@@ -125,12 +115,9 @@ window.addEventListener('ops-auth-change',event=>{
  if(event.detail.error)say('pilot-auth-status',event.detail.error);
  if(!user){
   selectedMessage=null;noticeContactDirectory=null;resetTenantEmail('Sign in to view tenant email.');
-  propertyLoad++;records=[];editing=null;cloudBatch=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('property-record-list').replaceChildren();say('property-directory-count','');$('cloud-batches').replaceChildren();$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');$('batch-dialog').close();
-  say('cloud-status','Saved locally on this browser · sign in to sync to cloud.');preOpenUndo=null;$('undo-batch').hidden=true;
+  propertyLoad++;records=[];editing=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('property-record-list').replaceChildren();say('property-directory-count','');$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');
  }else if(changed){
-  try{const saved=JSON.parse(localStorage.getItem(META)||'null');if(saved?.owner===user.id){cloudBatch=saved;$('batch-title').value=saved.title||'Notice batch';}}catch{}
   newProperty();loadProperties().catch(e=>say('pilot-status',e.message));
-  say('cloud-status','Saved locally · select Save to cloud to sync this batch.');
  }
 });
 function propertySearchMatches(property,search){
@@ -182,10 +169,10 @@ function importMany(items){
  if(!items.length){say('pilot-status','No properties found. Add a property in the Properties tab.');return;}
  const ready=items.filter(p=>p.tenant&&String(p.tenant).trim());
  const skipped=items.length-ready.length;
- if(!ready.length){say('pilot-status','No selected properties have a notice recipient yet. Add notice addressees to those properties before creating notices.');say('cloud-status','No notices imported: verified notice recipients are missing.');return;}
+ if(!ready.length){say('pilot-status','No selected properties have a notice recipient yet. Add notice addressees to those properties before creating notices.');say('notice-picker-status','No notices imported: verified notice recipients are missing.');return;}
  if(!confirm('Create or refresh '+ready.length+' notices'+(skipped?'? '+skipped+' vacant/unverified properties will be skipped.':'?')+' Existing linked notices keep their charges. Verify all addressees, landlords, dates and balances.'))return;
  post({type:'oaktown-import-properties',properties:ready.map(p=>({id:p.id,street:[p.street_address,p.unit].filter(Boolean).join(' '),cityline:p.city+', '+p.state+' '+p.postal_code,tenant:p.tenant,owner:p.landlord_entity||''}))});
- say('cloud-status','Loading '+ready.length+' properties into notices'+(skipped?' · '+skipped+' without addressees skipped':'')+'…');
+ say('notice-picker-status','Loading '+ready.length+' properties into notices'+(skipped?' · '+skipped+' without addressees skipped':'')+'…');
  showWorkflow('notices');showTab('notices');
 }
 $('pilot-load').onclick=()=>{const i=$('pilot-property').value;importMany(i===''?[]:[records[Number(i)]])};
@@ -219,68 +206,12 @@ $('property-form').onsubmit=async event=>{
  });
 };
 $('copy-message').onclick=async()=>{const box=$('tenant-message-text');try{await navigator.clipboard.writeText(box.value);say('message-copy-status','Copied. Paste the message into TurboTenant or email.');}catch{box.focus();box.select();say('message-copy-status','Text selected. Use your device’s Copy command.');}};
-$('batch-title').oninput=cloudDirty;
-$('cloud-save').onclick=async()=>{
- if(!requireUser())return;
- await batchOperation(async()=>{
-  try{
-   const {payload}=await frameRequest('oaktown-workspace-request'),atRevision=revision,userId=cloud.user.id;
-   const title=$('batch-title').value.trim();if(!title)throw Error('Give this notice batch a name before saving.');
-   say('cloud-status','Syncing to cloud…');
-   const saved=await cloud.api('/rest/v1/rpc/save_notice_batch',{method:'POST',body:JSON.stringify({p_id:cloudBatch?.id||null,p_expected_version:cloudBatch?.version||null,p_title:title,p_payload:payload})});
-   if(cloud.user?.id!==userId)return;
-   cloudBatch=saved;rememberBatch();
-   say('cloud-status',revision===atRevision?'Synced to cloud · '+timeLabel()+' · '+title:'Earlier snapshot synced · newer edits still saved locally. Save to cloud again.');
-  }catch(e){say('cloud-status',e.message);}
- });
-};
-$('cloud-open').onclick=async()=>{
- if(!requireUser())return;
- await batchOperation(async()=>{
- $('batch-dialog').showModal();$('cloud-load').disabled=true;say('batch-status','Loading saved batches…');
- try{
-  const userId=cloud.user.id,rows=await cloud.api('/rest/v1/notice_batches?select=id,title,version,updated_at&order=updated_at.desc');
-  if(cloud.user?.id!==userId)return;
-  $('cloud-batches').replaceChildren(...rows.map(x=>new Option(x.title+' · '+new Date(x.updated_at).toLocaleDateString(),x.id)));
-  $('cloud-load').disabled=!rows.length;say('batch-status',rows.length?'Choose a batch to open.':'No cloud batches yet. Save your current batch first.');
- }catch(e){say('batch-status',e.message);}
- });
-};
-$('batch-close').onclick=()=>$('batch-dialog').close();
-$('cloud-undo').onclick=async()=>{
- if(!preOpenUndo)return;
- const backup=preOpenUndo;
- await busy($('cloud-undo'),async()=>{
-  try{
-   await frameRequest('oaktown-workspace-load',{payload:backup.payload});
-   cloudBatch=backup.cloudBatch;
-   $('batch-title').value=backup.title;saveLocalTitle();
-   if(cloudBatch)rememberBatch();else localStorage.removeItem(META);
-   preOpenUndo=null;$('undo-batch').hidden=true;
-   showWorkflow('notices');showTab('notices');
-   say('cloud-status','Previous local batch restored · '+timeLabel()+'. Save to cloud to sync if needed.');
-  }catch(e){say('cloud-status','Could not undo opening the batch: '+e.message)}
- });
-};
-$('cloud-load').onclick=()=>batchOperation(async()=>{
- try{
-  const id=$('cloud-batches').value;if(!id)return;
-  if(!confirm('Replace this browser batch with the saved batch? Unsaved local changes will be replaced.'))return;
-  const userId=cloud.user?.id,rows=await cloud.api('/rest/v1/notice_batches?id=eq.'+encodeURIComponent(id)+'&select=*');
-  if(cloud.user?.id!==userId)return;
-  if(rows.length!==1)throw Error('This saved batch is no longer available.');
-  const saved=rows[0];const old=await frameRequest('oaktown-workspace-request');const backup={payload:old.payload,title:$('batch-title').value,cloudBatch:cloudBatch?{...cloudBatch}:null};await frameRequest('oaktown-workspace-load',{payload:saved.payload});
-  cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;saveLocalTitle();rememberBatch();preOpenUndo=backup;$('undo-batch').hidden=false;$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened cloud batch · '+saved.title+' · previous local batch can be restored.');
- }catch(e){say('batch-status',e.message);}
-});
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==frame.contentWindow||!event.data)return;
  const message=event.data;
  if(message.requestId&&pending.has(message.requestId)){const p=pending.get(message.requestId);clearTimeout(p.timer);pending.delete(message.requestId);message.type.endsWith('-error')?p.reject(Error(message.message)):p.resolve(message);}
  if(message.type==='oaktown-studio-size'){const h=Number(message.height);if(Number.isFinite(h)&&h>=700&&h<=30000)frame.style.height=Math.ceil(h+15)+'px';}
- if(message.type==='oaktown-workspace-changed')cloudDirty();
- if(message.type==='oaktown-import-confirmed')say('cloud-status',(message.added||0)+' new notices · '+(message.updated||0)+' refreshed. Review the details, then save the batch.');
- if(message.type==='oaktown-tenant-message'&&tab==='message'){
+  if(message.type==='oaktown-tenant-message'&&tab==='message'){
   selectedMessage={noticeId:String(message.noticeId||''),sourceUnitId:String(message.sourceUnitId||''),recipient:String(message.recipient||'')};
   const issues=Array.isArray(message.issues)?message.issues:[];
   $('tenant-message-text').value=String(message.content||'');
@@ -292,6 +223,5 @@ window.addEventListener('message',event=>{
  }
 });
 frame.addEventListener('load',()=>{if(workflow==='notices')showTab(tab)});
-try{const previousTitle=localStorage.getItem(LOCAL_TITLE);if(previousTitle&&previousTitle.length<=120)$('batch-title').value=previousTitle}catch{}
 cloud.start().catch(e=>{say('pilot-auth-status',e.message);$('staff-access').hidden=false;document.body.classList.add('ops-signed-out')});
 })();

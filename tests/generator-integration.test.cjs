@@ -24,7 +24,9 @@ test('Firm Book uses original embedded form with eight entries per sheet', () =>
   assert.ok(generator.includes('FIRM_BACKGROUND_DATA'));
   assert.ok(generator.includes('i+=8'));
   assert.ok(generator.includes('formEntry(n,j)'));
-  assert.ok(generator.includes('11in 8.5in'));
+  assert.ok(generator.includes("format:[792,612]"), 'US Letter landscape firm PDF format');
+  assert.ok(generator.includes('id="downloadFirm"'), 'Firm Book direct PDF download button');
+  assert.ok(!generator.includes('id="firmSender"'), 'redundant sender field removed');
 });
 test('shell retains the generator, hides court UI and preserves archived court data support', () => {
   assert.ok(shell.includes('generator.html?embedded=1'));

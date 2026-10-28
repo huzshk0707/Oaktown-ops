@@ -96,3 +96,20 @@ test('batch ZIP contains individual property-named PDFs, and handles duplicate p
   for(const name of names.names)expect(names.pdfHeaders[name]).toBe('%PDF-');
   expect(bytes.length).toBeGreaterThan(10000);
 });
+
+test('Firm Book downloads directly from top toolbar as US Letter landscape PDF',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/generator.html');
+ await page.evaluate(()=>localStorage.clear());await page.reload();
+ await fillNotice(page,{tenant:'Example Resident',street:'100 Example Street',amount:'900.00'});
+ await expect(page.locator('#viewFirm')).toBeVisible();
+ await expect(page.locator('#downloadFirm')).toBeVisible();
+ await expect(page.locator('#firmSender,#printFirm,#openFirm')).toHaveCount(0);
+ const download=await getDownload(page,'#downloadFirm');
+ expect(download.suggestedFilename()).toMatch(/^Oaktown_Firm_Book_\d{4}-\d{2}-\d{2}\.pdf$/);
+ const file=path.join(os.tmpdir(),'oaktown-firm-book-verified.pdf');await download.saveAs(file);
+ const bytes=fs.readFileSync(file),summary=pdfSummary(bytes);
+ expect(summary.pageCount).toBe(1);
+ expect(bytes.toString('latin1')).toMatch(/\/MediaBox\s*\[\s*0(?:\.0*)?\s+0(?:\.0*)?\s+792(?:\.0*)?\s+612(?:\.0*)?\s*\]/);
+ expect(summary.byteCount).toBeGreaterThan(10000);
+ await expect(page.locator('#downloadStatus')).toContainText('Firm Book PDF downloaded');
+});
