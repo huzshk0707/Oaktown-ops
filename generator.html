@@ -364,6 +364,39 @@ async function createNoticePdf(notice) {
     sandbox.remove();
   }
 }
+// Same PS Form 3877 preview, downloaded directly as a landscape Letter PDF.
+// This does not send mail or prove USPS acceptance.
+$('downloadFirm').addEventListener('click',async()=>{
+ if($('downloadFirm').disabled)return;
+ const invalid=validateFirm();
+ if(invalid.length){alert('Review Firm Book recipients and mailing addresses first:\n'+invalid.join('\n'));return}
+ if(!confirm('Verify every Firm Book recipient and sender address. This PDF does not prove mailing or USPS acceptance. Continue?'))return;
+ if(typeof window.html2canvas!=='function'||!window.jspdf?.jsPDF){alert('Local PDF libraries unavailable. Reload and try again.');return}
+ const previous=currentPreview;
+ $('downloadFirm').disabled=true;$('downloadStatus').textContent='Preparing Firm Book PDF…';
+ try{
+  showPreview('firm');
+  if(document.fonts?.ready)await document.fonts.ready;
+  const pdf=new window.jspdf.jsPDF({unit:'pt',format:[792,612],orientation:'landscape',compress:true});
+  const sheets=[...$('firmPages').querySelectorAll('.firm-sheet')];
+  if(!sheets.length)throw Error('No Firm Book sheets available.');
+  for(let i=0;i<sheets.length;i++){
+   const image=sheets[i].querySelector('.firm-template');
+   if(image?.decode)await image.decode();
+   const canvas=await window.html2canvas(sheets[i],{backgroundColor:'#fff',scale:2,logging:false,
+     scrollX:0,scrollY:0,useCORS:false,width:1056,height:816});
+   if(canvas.width<1056||canvas.height<816)throw Error('Firm Book sheet '+(i+1)+' rendered incompletely.');
+   if(i)pdf.addPage([792,612],'landscape');
+   pdf.addImage(canvas.toDataURL('image/jpeg',0.96),'JPEG',0,0,792,612,undefined,'FAST');
+   canvas.width=0;canvas.height=0;
+  }
+  saveDownloadedBlob(pdf.output('blob'),'Oaktown_Firm_Book_'+todayISO()+'.pdf');
+  $('downloadStatus').textContent='Firm Book PDF downloaded · '+sheets.length+' sheet(s).';
+ }catch(error){$('downloadStatus').textContent='Firm Book download failed: '+error.message;
+  alert('Could not generate Firm Book PDF: '+error.message)}
+ finally{showPreview(previous);$('downloadFirm').disabled=false}
+});
+
 function checkedDownloadNotices(which) {
   const notices=which==='all'?data.notices:[active()];
   const errors=notices.map(validateNotice).filter(Boolean);
