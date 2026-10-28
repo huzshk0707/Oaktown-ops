@@ -44,3 +44,14 @@ body.ops-signed-out .workspace-bar{opacity:.95}
 #password-help:not(:empty){margin:7px 0}
 #password-request,#password-change{margin-top:8px;padding:12px;border-radius:8px;background:#f4f8f2}
 @media(max-width:740px){.staff-access{padding:17px;flex-direction:column;align-items:stretch}.staff-access-actions{flex:initial}.nav-icon{width:17px;height:17px}.undo-batch{left:15px;right:15px}}
+
+
+/* Two-step Notices: protected tenant contact beside Copy message */
+.message-actions{display:flex;align-items:flex-start;justify-content:flex-end;gap:14px;flex-wrap:wrap}
+.tenant-email-panel{min-width:200px;max-width:360px;border:1px solid #d5e2d6;border-radius:9px;padding:9px 12px;background:#f7faf5;overflow-wrap:anywhere}
+.tenant-email-label{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:#4d6a57;margin-bottom:4px}
+.tenant-email-value{font-size:13px;font-weight:600;color:#183f33;line-height:1.5}
+.tenant-email-address{user-select:text}
+.tenant-email-note{font-size:11px;color:#536b5a;margin-top:4px;line-height:1.5}
+.message-actions .button{display:inline-flex;align-items:center;gap:7px;margin-top:4px;white-space:nowrap}
+@media(max-width:720px){.message-actions{justify-content:flex-start;width:100%}.tenant-email-panel{flex:1;max-width:none}.message-actions .button{width:auto}}
