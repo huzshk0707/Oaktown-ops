@@ -213,7 +213,7 @@ test('Make Notices supports multiple units at one address with missing recipient
 test('signed-out staff first sees a useful access panel while local drafts stay available',async({page})=>{
  await page.goto(ORIGIN+'/');
  await expect(page.locator('#staff-access')).toBeVisible();
- await expect(page.locator('#staff-access')).toContainText('Local notice drafts');
+ await expect(page.locator('#staff-access')).toContainText('Notice drafts remain on this browser');
  await expect(page.locator('#notice-picker')).toBeHidden();
  await expect(page.locator('#studio-frame')).toBeVisible();
  await expect(page.locator('#account-dialog')).not.toBeVisible();
