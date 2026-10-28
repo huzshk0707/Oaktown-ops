@@ -49,3 +49,10 @@ Staff entry, SVG navigation, notice selection/copy, local vs cloud status, cloud
 ## Notices follow-up patch — tenant emails and two-step UI
 
 The Tenant message tab now displays a read-only tenant email from existing authenticated property/lease/contact records **only** when the notice has a clear unit link and the recipient name matches its tenancy-linked person. No email is guessed by street address, and an unclear/missing match shows a warning. Sign-out removes the email from the screen. Court follow-up controls and their third tab are removed, but the Notice Studio continues to preserve previously saved court objects when batches are opened or saved. No Supabase schema changes, email sending, or generated-document changes.
+
+
+### Tenant name prefill for later-imported properties
+
+The historical notice selector populated \`tenant\` from \`property_addressees.notice_addressee_text\` only. Newer Portfolio Master imports linked tenant names through \`tenancies\`, \`tenancy_people\`, and \`people\`, so many otherwise occupied units showed a blank tenant name. This is a **data-source mismatch**, not evidence the people records were absent. For an unaddressed unit, Notices now suggests names from one unambiguous current/ending-soon tenancy with tenant-role people linked by **unit UUID**. An older address-level addressee is still supported for a sole-unit property; no contact is copied between multiple units or from past-tenancy records. The user must check all imported identities before using any legal notice.
+
+The **Correct landlord / sender name** and **Internal batch/reference (optional)** editor fields have been removed as requested, along with the unused reference CSV column. Previously stored sender/landlord values remain in the draft data and the original notice template still prints its existing sender identity and fixed PO Box. Historic reference values and court notes in old saved batches are not deleted. Mailing/Firm Book functionality remains unchanged. The statement section is unchanged pending separate instructions.
