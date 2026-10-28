@@ -38,7 +38,7 @@ All project development is kept in GitHub. Root files serve the current app; his
 - `docs/RELEASE-0.4.md`: release scope and verification.
 - `supabase/migrations/`: historical Portfolio Master migrations already applied; do not rerun them. See [database status and rollout blockers](docs/DATABASE-UPGRADE-V05.md).
 
-GitHub Actions runs Node checks and Chromium tests for downloads, address search, shared sign-in, legacy court-data preservation, tenant email privacy, property writes, batch restore and conflicting saves. Browser tests use fictional API mocks. Database regression tests use disposable PostgreSQL services with fictional fixtures; CI never applies migrations to live Supabase.
+GitHub Actions runs Node checks and Chromium tests for downloads, address search, shared sign-in, legacy court-data preservation, tenant email privacy, property writes, local statement CSV import and Firm Book PDF downloads. Browser tests use fictional API mocks. Database regression tests use disposable PostgreSQL services with fictional fixtures; CI never applies migrations to live Supabase.
 
 [Share non-sensitive technical feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml). Do not include tenant information in public issues.
 
