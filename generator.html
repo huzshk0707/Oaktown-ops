@@ -226,6 +226,75 @@ for(const key of ['tenant','street','cityline','noticeDate'])$(key).addEventList
 $('propertySelect').addEventListener('change',e=>{let p=data.properties.find(x=>x.id===e.target.value);if(p){let n=active();n.street=p.street;n.cityline=p.cityline;n.owner=p.owner;persist();renderForm();}});
 $('saveProperty').onclick=()=>{let n=active();if(!n.street.trim()||!n.cityline.trim()){alert('Fill the street address and city/state/ZIP first.');return}let match=data.properties.find(p=>p.street.toLowerCase()===n.street.toLowerCase()&&p.cityline.toLowerCase()===n.cityline.toLowerCase());if(match){if(!confirm('This property is already saved. Update its landlord name?'))return;match.owner=n.owner}else data.properties.push({id:uid(),street:n.street,cityline:n.cityline,owner:n.owner});persist();renderForm();};
 $('noticeList').addEventListener('click',e=>{const el=e.target.closest('button[data-select]');if(!el)return;e.preventDefault();const id=el.dataset.select;if(!data.notices.some(n=>n.id===id))return;data.selected=id;previewAll=false;persist();renderForm(true)});
+// The uploaded ledger is held only in memory while reviewing, and discarded
+// after applying. Only consolidated charge entries enter the local notice draft.
+let statementPending=null,statementTarget=null;
+function clearStatementReview(message=''){
+ statementPending=null;statementTarget=null;
+ $('statement-import-preview').replaceChildren();$('statement-import-preview').hidden=true;
+ $('statement-confirm-wrap').hidden=true;$('statement-confirm').checked=false;
+ $('statement-apply-button').hidden=true;$('statement-apply-button').disabled=true;
+ $('statement-import-status').textContent=message;
+}
+$('statement-csv-text').addEventListener('input',()=>clearStatementReview('Data changed. Preview again before applying.'));
+$('statement-csv-file').addEventListener('change',async event=>{
+ const file=event.target.files?.[0];if(!file)return;
+ clearStatementReview('Reading file locally…');
+ try{
+  if(file.size>1024*1024)throw Error('CSV exceeds the 1 MB local import limit.');
+  $('statement-csv-text').value=await file.text();
+  $('statement-import-status').textContent='CSV read locally. Select Preview statement to review its charges.';
+ }catch(error){$('statement-import-status').textContent=error.message}
+ finally{event.target.value=''}
+});
+$('statement-clear-button').onclick=()=>{
+ $('statement-csv-text').value='';$('statement-csv-file').value='';
+ clearStatementReview('Source CSV cleared from this form.');
+};
+$('statement-preview-button').onclick=()=>{
+ clearStatementReview();
+ try{
+  const target=active();
+  const summary=window.OpsStatement.summarize($('statement-csv-text').value,target.noticeDate,target.street);
+  statementPending=summary;statementTarget={id:target.id,noticeDate:target.noticeDate,street:target.street};
+  const preview=$('statement-import-preview'),table=document.createElement('table'),head=table.createTHead().insertRow();
+  for(const col of ['Due date','Category','Description','Status','Amount','Amount due']){
+   const th=document.createElement('th');th.textContent=col;head.append(th);
+  }
+  const body=table.createTBody();
+  for(const row of summary.charges){
+   const tr=body.insertRow();
+   for(const value of [dateDisplay(row.dueDate),row.category,row.description,row.status,money(row.amount),money(row.amountDue)])
+    tr.insertCell().textContent=value;
+  }
+  const total=body.insertRow();const label=total.insertCell();label.colSpan=5;label.textContent='Total outstanding';
+  total.insertCell().textContent=money(summary.totalDue);
+  preview.append(table);preview.hidden=false;
+  $('statement-confirm-wrap').hidden=false;$('statement-apply-button').hidden=false;
+  const match=summary.propertyMatch?'':' WARNING: Lease title does not match this notice property. Verify before applying.';
+  $('statement-import-status').textContent=summary.charges.length+' grouped rows from '+summary.included+
+   ' outstanding source entries. '+summary.ignoredSettled+' settled and '+summary.ignoredFuture+
+   ' future entries excluded as of '+dateDisplay(summary.noticeDate)+'.'+
+   (summary.leaseTitle?' Source lease: '+summary.leaseTitle+'.':'')+match;
+ }catch(error){clearStatementReview('Import not applied: '+error.message)}
+};
+$('statement-confirm').addEventListener('change',()=>{$('statement-apply-button').disabled=!$('statement-confirm').checked});
+$('statement-apply-button').onclick=()=>{
+ const target=active(),plan=statementPending;
+ if(!plan||!$('statement-confirm').checked){alert('Review and confirm this statement before applying.');return}
+ if(statementTarget.id!==target.id||statementTarget.noticeDate!==target.noticeDate||statementTarget.street!==target.street){
+  clearStatementReview('Selected notice, property or notice date changed. Preview this CSV again.');return;
+ }
+ if(!confirm('Replace '+target.charges.length+' existing statement row(s) for '+target.street+
+  ' with '+plan.charges.length+' CSV-derived rows totaling '+money(plan.totalDue)+
+  '? Verify balances before legal use.'))return;
+ target.charges=plan.charges.map(row=>({id:uid(),dueDate:row.dueDate,category:row.category,
+  description:row.description,status:row.status,amount:row.amount,amountDue:row.amountDue}));
+ $('statement-csv-text').value='';$('statement-csv-file').value='';
+ clearStatementReview('Statement applied. Raw CSV cleared; only grouped charges remain in the local draft.');
+ persist();renderForm();showPreview('notices');
+};
+
 $('charges').addEventListener('input',e=>{const input=e.target.closest('input[data-key]'),wrapper=e.target.closest('[data-row]');if(!input||!wrapper)return;let r=active().charges.find(x=>x.id===wrapper.dataset.row);if(!r)return;let val=input.value;if(input.dataset.key==='dueDate'){const m=val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);r.dueDate=m?`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`:val}else r[input.dataset.key]=val;persist();renderPreview()});
 $('charges').addEventListener('click',e=>{let b=e.target.closest('[data-remove-charge]');if(!b)return;let n=active();if(n.charges.length<=1){alert('Keep at least one charge row.');return}n.charges=n.charges.filter(x=>x.id!==b.dataset.removeCharge);persist();renderForm()});
 $('addCharge').onclick=()=>{active().charges.push({id:uid(),dueDate:todayISO(),category:'',description:'',status:'DUE',amount:'',amountDue:''});persist();renderForm()};
