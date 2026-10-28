@@ -182,16 +182,20 @@ test('Make Notices supports multiple units at one address with missing recipient
  await expect(frame.locator('#tenant')).toHaveValue('');
  await expect(page.locator('#notice-picker-status')).toContainText('2 created');
  await expect(frame.locator('#noticeList .chip')).toHaveCount(3);
- const selectedChip=frame.locator('#noticeList .chip').filter({hasText:/1106 Fictional Road Unit 1$/});
- const clickedId=await selectedChip.getAttribute('data-select');
- await frame.locator('#noticeList').evaluate(el=>{window.__noticeSelectionEvents=[];el.addEventListener('click',e=>{const chip=e.target.closest('[data-select]');window.__noticeSelectionEvents.push({id:chip?.dataset.select,phase:'capture'})},true)});
- await selectedChip.click();
- const diagnostics=await frame.locator('#noticeList').evaluate(el=>({
-  events:window.__noticeSelectionEvents,selectedId:[...Object.keys(localStorage)].filter(k=>/notice|oaktown/i.test(k)).map(k=>{try{const v=JSON.parse(localStorage.getItem(k));return {key:k,selected:v?.selected}}catch{return {key:k}}}),
-  active:[...el.querySelectorAll('.active')].map(n=>({id:n.dataset.select,text:n.textContent})),target:[...el.querySelectorAll('[data-select]')].find(n=>n.dataset.select===window.__noticeSelectionEvents.at(-1)?.id)?.outerHTML
- }));
- expect(diagnostics.active.some(x=>x.id===clickedId),JSON.stringify(diagnostics)).toBe(true);
- await expect(selectedChip).toHaveClass(/active/);
+ const unit1=frame.locator('#noticeList .chip').filter({hasText:/1106 Fictional Road Unit 1$/});
+ const unit8=frame.locator('#noticeList .chip').filter({hasText:/1106 Fictional Road Unit 8$/});
+ await unit1.evaluate(el=>{window.__unit1StableNode=el});
+ await unit1.click();
+ await expect(unit1).toHaveClass(/active/);
+ await expect(unit1).toHaveAttribute('aria-pressed','true');
+ expect(await unit1.evaluate(el=>el===window.__unit1StableNode),'selection must not destroy the clicked chip').toBe(true);
+ await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 1');
+ await unit8.click();
+ await expect(unit8).toHaveAttribute('aria-pressed','true');
+ await expect(unit1).toHaveAttribute('aria-pressed','false');
+ await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 8');
+ await unit1.click();
+ await expect(unit1).toHaveClass(/active/);
  await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 1');
 });
 
