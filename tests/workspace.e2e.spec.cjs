@@ -153,7 +153,7 @@ test('a delayed account verification cannot restore a signed-out session',async(
 });
 test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
- await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-form')).toBeVisible();
+ await page.locator('[data-notice-tab="message"]').click();await expect(page.locator('#tenant-email-value')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await expect(page.locator('#property-form')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
