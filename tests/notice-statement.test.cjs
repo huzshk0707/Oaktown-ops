@@ -48,5 +48,5 @@ test('old paid fees, future rents and names from another notice are never silent
  const x=S.summarize(source(),'2026-09-15','Unrelated Road');
  assert.equal(x.propertyMatch,false);
  assert.ok(x.charges.every(r=>r.dueDate<='2026-09-15'));
- assert.equal(x.ignoredFuture,1+20); // October/November transactions are future
+ assert.equal(x.ignoredFuture,35); // September after 15th plus all October and November
 });
