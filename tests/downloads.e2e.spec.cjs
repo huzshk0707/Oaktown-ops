@@ -75,6 +75,13 @@ test('notice statement status labels fit fully in first and continuation page PD
  await page.locator('#charges [data-key="status"]').nth(1).fill('PAST DUE');
  await page.locator('#addCharge').click();
  await page.locator('#charges [data-key="status"]').nth(2).fill('PARTIALLY PAID');
+ for(const i of [1,2]){
+  await page.locator('#charges [data-key="dueDate"]').nth(i).fill('10/06/2026');
+  await page.locator('#charges [data-key="category"]').nth(i).fill('LATE_FEE');
+  await page.locator('#charges [data-key="description"]').nth(i).fill('October late fees');
+  await page.locator('#charges [data-key="amount"]').nth(i).fill('47.75');
+  await page.locator('#charges [data-key="amountDue"]').nth(i).fill('47.75');
+ }
  const metrics=await page.locator('#printPages .statement tbody tr td:nth-child(4)').evaluateAll(cells=>cells.map(td=>{
   const range=document.createRange();range.selectNodeContents(td);
   const cell=td.getBoundingClientRect();
