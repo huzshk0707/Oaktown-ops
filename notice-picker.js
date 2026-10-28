@@ -37,7 +37,7 @@ function draw(){
   const check=document.createElement('input');check.type='checkbox';check.checked=chosen.has(item.unit.id);check.disabled=making;check.setAttribute('aria-label','Select '+labelOf(item));
   check.addEventListener('change',()=>{if(check.checked)chosen.add(item.unit.id);else chosen.delete(item.unit.id);draw()});
   const body=line('span','');body.className='notice-picker-row-body';
-  body.append(line('strong',labelOf(item)),line('small',[item.prop.city,item.prop.state,item.prop.postal_code,item.unit.occupancy_status].filter(Boolean).join(' · ')));
+  body.append(line('strong',labelOf(item)),line('small',[item.prop.city,item.prop.state,item.prop.postal_code,item.unit.occupancy_status].filter(Boolean).join(' · ')),line('small',item.tenant?(item.tenant+' · Verify imported recipient'):item.tenantSource));
   row.append(check,body);host.append(row);
  }
  if(!matches.length&&items.length)host.append(line('p','No properties match that search.','ops-muted'));
@@ -47,10 +47,13 @@ async function refresh(){
  if(loading)return;loading=true;const gen=++generation,account=cloud.user.id;
  $('notice-picker-refresh').disabled=true;state('Loading the complete property and unit directory…');
  try{
-  const [props,units,addressees]=await Promise.all([
+  const [props,units,addressees,tenancies,parties,people]=await Promise.all([
    cloud.api('/rest/v1/properties?select=id,street_address,city,state,postal_code,landlord_entity,portfolio_state&order=street_address.asc&limit=300'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_code,unit_label,unit_class,occupancy_status&order=unit_code.asc&limit=300'),
-   cloud.api('/rest/v1/property_addressees?select=property_id,notice_addressee_text&limit=300')
+   cloud.api('/rest/v1/property_addressees?select=property_id,notice_addressee_text&limit=300'),
+   cloud.api('/rest/v1/tenancies?select=id,unit_id,status&limit=300'),
+   cloud.api('/rest/v1/tenancy_people?select=tenancy_id,person_id,party_role,to_date&limit=400'),
+   cloud.api('/rest/v1/people?select=id,display_name&limit=300')
   ]);
   if(gen!==generation||cloud.user?.id!==account)return;
   const p=new Map(props.map(x=>[x.id,x])),counts=new Map();
@@ -58,12 +61,15 @@ async function refresh(){
   const recips=new Map(addressees.map(x=>[x.property_id,x.notice_addressee_text]));
   items=units.filter(u=>p.has(u.property_id)).map(unit=>{
    const prop=p.get(unit.property_id),sole=counts.get(unit.property_id)===1;
-   const tenant=sole?(recips.get(prop.id)||''):'';
+   const linked=window.OpsNoticeRecipient.fromUnit(unit.id,{tenancies,parties,people});
+   const existing=sole?String(recips.get(prop.id)||'').trim():'';
+   const tenant=existing||linked.name;
+   const tenantSource=existing?'Existing address addressee (verify)':linked.name?linked.reason:linked.reason;
    const search=[prop.street_address,prop.city,prop.state,prop.postal_code,unitName(unit),unit.unit_code,unit.unit_class,unit.occupancy_status].join(' ').toLowerCase();
-   return {unit,prop,tenant,sole,search};
+   return {unit,prop,tenant,tenantSource,sole,search};
   }).sort((a,b)=>labelOf(a).localeCompare(labelOf(b),undefined,{numeric:true}));
   chosen=new Set([...chosen].filter(id=>items.some(x=>x.unit.id===id)));
-  state(items.length+' units and lots ready. Choose one or more, then select Create drafts. Missing recipients will be completed in the editor.');
+  state(items.length+' units and lots ready. Current tenancy names are suggested when linked; verify them in each notice before use.');
   draw();
  }catch(e){if(gen===generation)state('Could not load portfolio: '+e.message)}
  finally{if(gen===generation){loading=false;$('notice-picker-refresh').disabled=false}}
@@ -98,7 +104,7 @@ window.addEventListener('message',event=>{
  const msg=event.data;
  if(msg.added||msg.updated){
   chosen.clear();$('studio-frame').scrollIntoView({behavior:'smooth',block:'start'});
-  state((msg.added||0)+' created, '+(msg.updated||0)+' existing notice(s) refreshed. Complete names, landlord, charges and dates in the editor below.');draw();
+  state((msg.added||0)+' created, '+(msg.updated||0)+' existing notice(s) refreshed. Verify names, charges and dates in the editor below.');draw();
  }else{state('No notices were created. Review the selection and retry.');draw()}
 });
 window.addEventListener('ops-auth-change',event=>{
