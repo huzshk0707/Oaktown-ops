@@ -1,6 +1,6 @@
 # Oaktown Ops v0.6 — Unit Detail: business rules and first-page specification
 
-**Status:** Proposed for owner review · design only · do not implement or merge without resolving decisions below.
+**Status:** Historical design proposal retained in the repository for reference. Merging this document is **not** approval of the proposed business rules; unresolved decisions below still require owner sign-off before implementation.
 **Relationship:** Designed against the live Portfolio Master database structure, with PR #5 retaining migration history. Independent of Lead Copilot PR #6.
 **Scope:** Read-first Unit Detail page. No production edits, imports, data conversion or schema changes in this design PR.
 
@@ -8,7 +8,7 @@
 
 In **Properties**, open a property, then choose a unit. Show a single accurate page with the unit's present occupancy, current tenancy participants, current lease terms, rent schedule, security deposit status, important dates, related notices, upcoming tasks, and history. Preserve the existing property dropdown, search and notice generator. Display real records only, never fictitious placeholders as if they were imported.
 
-The live database currently contains **13 properties, 0 units, 0 leases**. Until the verified portfolio import is completed, show "No units imported — portfolio onboarding pending", **not** "Vacant" or "No tenants". The 13 earlier `property_addressees` entries are unverified mailing addressees, **not** verified people/lease/occupancy records.
+**Historical baseline (October 26, 2026; no longer current):** This initial proposal recorded **13 properties, 0 units, 0 leases** before subsequent Portfolio Master imports. Current Oaktown Ops includes imported units and leases, so **do not use those historical counts as the present production state**. In any genuinely unimported or unverified case, show "No units imported — portfolio onboarding pending", **not** "Vacant" or "No tenants". Previously imported `property_addressees` mailing text must never be treated as verified people/lease/occupancy records.
 
 ### Intended navigation
 
