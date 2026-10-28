@@ -74,29 +74,34 @@ test('shared sign-in survives nested workflow navigation, reload and refresh',as
  await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#staff-access-signin')).toBeVisible();
  await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();expect(s.logins).toBe(1);
 });
-test('Court follow-up is absent but existing archived court details stay in saved notice batch JSON',async({page})=>{
+test('historical court details survive local JSON import and reload without cloud saving',async({page})=>{
  const state=await setup(page);await importProperty(page);
- await expect(page.locator('[data-notice-tab="court"],#court-form,#court-area')).toHaveCount(0);
- const payload=await page.evaluate(()=>new Promise((resolve,reject)=>{
-  const frame=document.getElementById('studio-frame').contentWindow,requestId='test-'+crypto.randomUUID();
-  const timeout=setTimeout(()=>{window.removeEventListener('message',onMessage);reject(Error('Snapshot timed out'))},4000);
-  function onMessage(event){
-   if(event.source!==frame||event.origin!==location.origin||event.data?.requestId!==requestId)return;
-   if(event.data.type!=='oaktown-workspace-snapshot')return;
-   clearTimeout(timeout);window.removeEventListener('message',onMessage);resolve(event.data.payload);
-  }
-  window.addEventListener('message',onMessage);
-  frame.postMessage({type:'oaktown-workspace-request',requestId},location.origin);
+ const frame=page.frameLocator('#studio-frame');
+ await expect(page.locator('[data-notice-tab="court"],#court-form,#cloud-open,#cloud-save,#batch-dialog')).toHaveCount(0);
+ const legacy={authorized:true,confirmed:true,reference:'Historical fictional court note',courtDate:'2026-11-20',
+  courtTime:'09:30',timezone:'America/New_York',reminderDate:'2026-11-18',owner:'Example Coordinator',notes:'Archived'};
+ const payload=await page.evaluate(()=>new Promise(resolve=>{
+  const child=document.getElementById('studio-frame').contentWindow,requestId='snapshot-test';
+  function on(event){if(event.data?.requestId===requestId&&event.data.type==='oaktown-workspace-snapshot'){
+   window.removeEventListener('message',on);resolve(event.data.payload);}}
+  window.addEventListener('message',on);child.postMessage({type:'oaktown-workspace-request',requestId},location.origin);
  }));
- const legacy={authorized:true,confirmed:true,reference:'Fictional court note',courtDate:'2026-11-20',courtTime:'09:30',timezone:'America/New_York',reminderDate:'2026-11-18',owner:'Example Coordinator',notes:'Archived record preserved'};
  payload.notices.at(-1).court=legacy;
- state.batch={id:BATCH,title:'Archived follow-up',version:1,updated_at:'2026-10-26T10:00:00Z',payload};
- await page.locator('#cloud-open').click();await page.locator('#cloud-batches').selectOption(BATCH);await page.locator('#cloud-load').click();
- await expect(page.locator('#batch-dialog')).not.toBeVisible();
- await page.locator('#cloud-save').click();
- await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');
- expect(state.writes.at(-1).p_payload.notices.at(-1).court).toEqual(legacy);
+ await frame.locator('#fileInput').setInputFiles({name:'historical-notice-batch.json',
+   mimeType:'application/json',buffer:Buffer.from(JSON.stringify(payload))});
+ await page.reload();
+ const persisted=await frame.locator('#noticeList .chip').count();
+ expect(persisted).toBeGreaterThan(0);
+ const court=await frame.locator('#noticeList').evaluate(()=>{
+  for(const key of Object.keys(localStorage)){
+   try{const p=JSON.parse(localStorage.getItem(key));if(Array.isArray(p?.notices))
+    return p.notices.at(-1).court;}catch{}
+  }
+ });
+ expect(court).toEqual(legacy);
+ expect(state.writes).toHaveLength(0);
 });
+
 test('Tenant message shows exact unit-linked email next to Copy message and clears it on sign-out',async({page})=>{
  await setup(page);await importProperty(page);
  const frame=page.frameLocator('#studio-frame');
@@ -114,16 +119,16 @@ test('Tenant message shows exact unit-linked email next to Copy message and clea
  await expect(page.locator('#tenant-email-value')).toContainText('Sign in to view tenant email');
  await expect(page.locator('#tenant-email-value')).not.toContainText('alex@example.invalid');
 });
-test('explicit cloud save and open round-trip, conflict preserves local edits',async({page})=>{
- const s=await setup(page);await importProperty(page);await page.locator('#batch-title').fill('Fictional October batch');await page.locator('#cloud-save').click();
- await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');expect(s.writes).toHaveLength(1);
- const frame=page.frameLocator('#studio-frame');await frame.locator('#tenant').fill('Unsaved local edit');
- await page.locator('#cloud-open').click();await page.locator('#cloud-batches').selectOption(BATCH);await page.locator('#cloud-load').click();
- await expect(page.locator('#batch-dialog')).not.toBeVisible();await expect(frame.locator('#tenant')).toHaveValue('Example Resident & All Occupants');
- const saved=clone(s.batch);s.conflict=true;await frame.locator('#tenant').fill('Local edit retained');await page.locator('#cloud-save').click();
- await expect(page.locator('#cloud-status')).toContainText('changed elsewhere');await expect(frame.locator('#tenant')).toHaveValue('Local edit retained');
- expect(s.batch).toEqual(saved);expect(s.writes[1].p_expected_version).toBe(1);
+test('Notices remain local without cloud actions and retain edits after reload',async({page})=>{
+ const state=await setup(page);await importProperty(page);
+ await expect(page.locator('#cloud-save,#cloud-open,#cloud-status,#batch-title')).toHaveCount(0);
+ const frame=page.frameLocator('#studio-frame');
+ await frame.locator('#tenant').fill('Updated fictional resident');
+ await page.reload();
+ await expect(frame.locator('#tenant')).toHaveValue('Updated fictional resident');
+ expect(state.writes).toHaveLength(0);
 });
+
 test('property writes validate fields and retain edits on network failure',async({page})=>{
  const s=await setup(page);await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
  for(const[k,v]of Object.entries({street_address:'200 Fictional Court',unit:'Unit B',city:'Example City',state:'KY',postal_code:'40202',landlord_entity:'Example Property Company',tenant:'Fictional Household & All Occupants'}))await page.locator('#prop-'+k).fill(v);
@@ -136,16 +141,21 @@ test('revoked membership blocks a restored session',async({page})=>{
  const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();
  await expect(page.locator('#pilot-auth-status')).toContainText('not approved');await expect(page.locator('#pilot-properties')).not.toBeVisible();
 });
-test('pending cloud and property saves lock actions that could switch their targets',async({page})=>{
- const s=await setup(page);await importProperty(page);let release;
- s.holdSave=new Promise(resolve=>release=resolve);await page.locator('#cloud-save').click();
- await expect.poll(()=>s.writes.length).toBe(1);await expect(page.locator('#cloud-open')).toBeDisabled();await expect(page.locator('#cloud-save')).toBeDisabled();
- release();await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');s.holdSave=null;
- await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
- await page.locator('#prop-unit').fill('Test unit');s.holdProperty=new Promise(resolve=>release=resolve);await page.locator('#property-save').click();
- await expect.poll(()=>s.propertyWrites.length).toBe(1);await expect(page.locator('#property-new')).toBeDisabled();await expect(page.locator('#property-edit')).toBeDisabled();await expect(page.locator('#prop-street_address')).toBeDisabled();
- release();await expect(page.locator('#property-status')).toContainText('Saved to shared property records.');await expect(page.locator('#property-new')).toBeEnabled();
+test('pending property saves lock actions that could switch their targets',async({page})=>{
+ const s=await setup(page);
+ await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();
+ await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
+ await page.locator('#prop-unit').fill('Test unit');
+ let release;s.holdProperty=new Promise(resolve=>release=resolve);
+ await page.locator('#property-save').click();
+ await expect.poll(()=>s.propertyWrites.length).toBe(1);
+ await expect(page.locator('#property-new')).toBeDisabled();
+ await expect(page.locator('#property-edit')).toBeDisabled();
+ await expect(page.locator('#prop-street_address')).toBeDisabled();
+ release();await expect(page.locator('#property-status')).toContainText('Saved to shared property records.');
+ await expect(page.locator('#property-new')).toBeEnabled();
 });
+
 test('a delayed account verification cannot restore a signed-out session',async({page})=>{
  const s=await setup(page);let release;s.holdMembership=new Promise(resolve=>release=resolve);
  await page.reload();await expect.poll(()=>s.membershipWaiting).toBe(true);
@@ -233,27 +243,31 @@ test('staff password reset sends a link and can finish recovery without storing 
  expect(state.passwordUpdates[0].password).toBe('safe-fictional-password-123');
  expect(await page.evaluate(()=>Object.keys(localStorage).some(x=>/recovery/i.test(x)))).toBe(false);
 });
-test('opening a cloud batch offers a one-step undo that restores the previous local batch',async({page})=>{
- await setup(page);
- await importProperty(page);
+test('statement CSV paste previews grouped fees, applies only on confirmation, then clears raw source',async({page})=>{
+ const state=await setup(page);await importProperty(page);
  const frame=page.frameLocator('#studio-frame');
- await page.locator('#batch-title').fill('First local batch');
- await frame.locator('#tenant').fill('Before replacement');
- await page.locator('#cloud-save').click();
- await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');
- await frame.locator('#tenant').fill('Different local draft');
- await page.locator('#batch-title').fill('Unsynced local work');
- await page.locator('#cloud-open').click();
- await page.locator('#cloud-batches').selectOption(BATCH);
- await page.locator('#cloud-load').click();
- await expect(frame.locator('#tenant')).toHaveValue('Before replacement');
- await expect(page.locator('#undo-batch')).toBeVisible();
- await page.locator('#cloud-undo').click();
- await expect(frame.locator('#tenant')).toHaveValue('Different local draft');
- await expect(page.locator('#batch-title')).toHaveValue('Unsynced local work');
- await expect(page.locator('#undo-batch')).toBeHidden();
+ await frame.locator('#noticeDate').fill('2026-10-28');
+ const csv='Due Date,Category,Description,Lease Title,Status,Amount,Amount Due\n'+
+ '09/01/2026,RENT,Rent,100 Fictional Lane - Example,PAST DUE,$955.00,$614.50\n'+
+ '10/01/2026,RENT,Rent,100 Fictional Lane - Example,PAST DUE,$955.00,$955.00\n'+
+ '10/06/2026,LATE_FEE,One-time,100 Fictional Lane - Example,PAST DUE,$47.75,$47.75\n'+
+ '10/11/2026,LATE_FEE,Daily,100 Fictional Lane - Example,PAST DUE,$5.00,$5.00\n'+
+ '10/28/2026,LATE_FEE,Daily,100 Fictional Lane - Example,UNPAID,$5.00,$5.00\n'+
+ '11/01/2026,RENT,Rent,100 Fictional Lane - Example,UNPAID,$955.00,$955.00';
+ await frame.locator('#statement-csv-text').fill(csv);
+ await frame.locator('#statement-preview-button').click();
+ await expect(frame.locator('#statement-import-preview')).toContainText('October late fees');
+ await expect(frame.locator('#statement-import-preview')).toContainText('$57.75');
+ await expect(frame.locator('#statement-import-status')).toContainText('1 future entries excluded');
+ await expect(frame.locator('#statement-apply-button')).toBeDisabled();
+ await frame.locator('#statement-confirm').check();
+ await frame.locator('#statement-apply-button').click();
+ await expect(frame.locator('#statement-csv-text')).toHaveValue('');
+ await expect(frame.locator('#charges [data-row]')).toHaveCount(3);
+ await expect(frame.locator('#charges')).toContainText('October late fees');
+ await expect(frame.locator('#printPages')).toContainText('September rent');
+ expect(state.writes).toHaveLength(0);
 });
-
 
 test('later-imported properties prefill current tenancy names even without legacy notice addressees',async({page})=>{
  const state=await setup(page);
