@@ -42,6 +42,20 @@ body.embedded .workspace{padding:9px;max-width:none;grid-template-columns:minmax
 body.embedded .paper-stage{overflow:auto}
 @media(max-width:1100px){body.embedded .workspace{display:block}body.embedded .panel{margin-bottom:15px}}
 @media print{body.embedded .workspace{display:block!important;padding:0!important;max-width:none!important}}
+
+.statement-import{padding:16px;border:1px solid #cfded5;border-radius:11px;background:#f8faf7;margin:13px 0 18px;color:#263d34}
+.statement-import h3{font-size:15px;margin:0 0 5px}.statement-import p{font-size:12px;margin:0 0 12px;line-height:1.5}
+.statement-import-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.statement-file-label{background:#fff;border:1px solid #acbcb1;padding:9px 12px;border-radius:6px;cursor:pointer;font-size:12px}
+#statement-csv-file{max-width:210px;font-size:11px}#statement-csv-text{display:block;box-sizing:border-box;width:100%;max-width:100%;resize:vertical;min-height:65px;margin:6px 0 9px;font:12px/1.5 monospace;border:1px solid #bdcdc0;border-radius:7px;padding:9px}
+#statement-import-status{font-size:12px;margin:8px 0}#statement-import-preview{overflow-x:auto;margin:12px 0}
+#statement-import-preview table{width:100%;border-collapse:collapse;background:white;font-size:11px}
+#statement-import-preview th,#statement-import-preview td{border:1px solid #d6ddd5;padding:5px 7px;text-align:left;white-space:nowrap}
+#statement-import-preview th{text-transform:none;background:#eaf2ea}
+#statement-confirm-wrap{display:block;font-size:12px;margin:10px 0}#statement-confirm-wrap[hidden],#statement-import-preview[hidden],#statement-apply-button[hidden]{display:none!important}
+.statement-backups{margin:12px 0;padding:9px 11px;border:1px solid #dde5da;border-radius:8px}
+.statement-backups summary{cursor:pointer;font-size:12px;font-weight:600}
+
 </style>
 </head>
 <body>
@@ -60,24 +74,32 @@ body.embedded .paper-stage{overflow:auto}
 <div><label for="noticeDate">Notice date</label><input id="noticeDate" type="date"></div>
 </div>
 <div class="section-heading">Current statement <button class="btn btn-sm" id="addCharge">+ Add charge row</button></div>
+<div class="statement-import no-print-notice" aria-labelledby="statement-import-title">
+ <h3 id="statement-import-title">Import a rent payment statement</h3>
+ <p>Paste CSV rows or choose a CSV file. Group the outstanding rent and late-fee charges by month, review them, and apply to this notice. The source CSV stays on your device and is cleared from this form after applying.</p>
+ <div class="statement-import-actions"><label for="statement-csv-file" class="statement-file-label">Choose CSV file</label><input id="statement-csv-file" type="file" accept=".csv,text/csv">
+ <button class="btn" type="button" id="statement-preview-button">Preview statement</button><button class="btn" type="button" id="statement-clear-button">Clear CSV</button></div>
+ <label for="statement-csv-text">Or paste CSV data</label><textarea id="statement-csv-text" rows="3" placeholder="Due Date,Category,Description,Lease Title,Status,Amount,Amount Due" spellcheck="false"></textarea>
+ <div id="statement-import-status" role="status" aria-live="polite"></div>
+ <div id="statement-import-preview" hidden></div>
+ <label id="statement-confirm-wrap" hidden><input type="checkbox" id="statement-confirm"> I verified the selected property/lease, fees, dates, and balances against the source statement.</label>
+ <button class="btn btn-primary" type="button" id="statement-apply-button" hidden disabled>Apply statement to this notice</button>
+</div>
 <div id="charges"></div>
 <div class="ok">The yellow total is calculated from the <b>Amount Due</b> column. Fee amounts must be checked against the actual tenant ledger; this tool does not calculate or impose late fees automatically.</div>
-<div class="section-heading">Firm Mailing Book · USPS PS Form 3877</div>
-<div class="no-print-notice" style="margin:0 0 12px">Generate the <b>same USPS mailing sheet</b> used in Leslie's filled reference. Every notice in your current batch becomes one recipient. The form has <b>8 rows per landscape page</b>; additional notices continue onto the next sheet. Tracking, postage, acceptance, and postmark fields remain blank.</div>
-<div class="form-grid"><div class="span2"><label for="firmSender">Mailing sender for current notice (first column)</label><input id="firmSender" placeholder="Defaults to the landlord name before 'dba'"><div class="hint">The street and ZIP come from the notice; the mailing sender and fixed PO Box 7 come from this field.</div></div></div>
-<div class="button-row" style="margin-top:12px"><button class="btn btn-primary" id="openFirm">Preview Firm Book</button><button class="btn" id="printFirm">Print / Save Firm Book PDF</button></div>
-<div class="section-heading">Data and records</div>
+<details class="statement-backups no-print-notice"><summary>Optional local exports &amp; backups</summary>
 <div class="button-row"><button class="btn" id="saveJson">Export batch JSON</button><button class="btn" id="importJson">Import batch JSON</button><button class="btn" id="exportCsv">Export mailing list CSV</button></div>
 <input id="fileInput" type="file" accept="application/json,.json">
-<div class="hint" style="margin-top:10px">Save an exported JSON copy as a backup. Browser storage may vary when opening a local HTML file. The Firm Book is generated from the <b>same notice batch</b>. Its design follows the supplied PS Form 3877; verify acceptance requirements with the post office.</div>
+<div class="hint" style="margin-top:10px">Exported JSON remains an optional offline backup; Oaktown Ops no longer uploads Notice batches. The Firm Book uses the same notices as the PDF download.</div></details>
 <div class="alert"><b>Required checks before use:</b> Confirm the property, correct landlord/entity, tenant names, lease, charges, notice text, legally applicable timing, and method of delivery. The wording below is reproduced from the supplied examples, not independently certified as legally valid. Do not claim certified mailing occurred unless it did.</div>
 </div></section>
-<section class="panel preview-panel"><div class="toolbar"><span class="pages-info" id="pageInfo"></span><button class="btn" id="viewNotice">Notice preview</button><button class="btn" id="viewFirm">Firm Book preview</button><button class="btn btn-primary" type="button" id="downloadOne">Download property PDF</button><button class="btn btn-primary" type="button" id="downloadBatch">Download batch ZIP</button><details class="export-details"><summary>Print options</summary><button class="btn" id="printOne" type="button">Print current</button><button class="btn" id="printBatch" type="button">Print batch</button></details><span id="downloadStatus" class="export-feedback" role="status" aria-live="polite"></span></div><div class="paper-stage" id="noticeStage"><div id="printPages" class="paper-scale"></div><div class="no-print-notice">Print settings: <b>Letter</b> paper, <b>scale 100%</b>, <b>headers and footers OFF</b>, and <b>background graphics ON</b> so the yellow amount remains highlighted. A notice with multiple charge rows may continue onto the next page, as in the Wintergreen reference.</div></div><div id="firmStage" class="paper-stage" hidden><div id="firmPages" class="firm-scale"></div><div class="no-print-notice">Firm Mailing Book: <b>US Letter landscape (11 × 8.5 in)</b>, 100% scale, <b>headers/footers off</b>, with original scale. The sheet artwork reproduces the supplied PS Form 3877 sheet. Confirm with the accepting Post Office whether its form-approval requirements apply to this computer-generated printout.</div></div></section>
+<section class="panel preview-panel"><div class="toolbar"><span class="pages-info" id="pageInfo"></span><button class="btn" id="viewNotice">Notice preview</button><button class="btn" id="viewFirm">Firm Book preview</button><button class="btn" id="downloadFirm" type="button" title="Download USPS PS Form 3877 PDF" aria-label="Download Firm Book PDF">↓ Firm Book PDF</button><button class="btn btn-primary" type="button" id="downloadOne">Download property PDF</button><button class="btn btn-primary" type="button" id="downloadBatch">Download batch ZIP</button><details class="export-details"><summary>Print options</summary><button class="btn" id="printOne" type="button">Print current</button><button class="btn" id="printBatch" type="button">Print batch</button></details><span id="downloadStatus" class="export-feedback" role="status" aria-live="polite"></span></div><div class="paper-stage" id="noticeStage"><div id="printPages" class="paper-scale"></div><div class="no-print-notice">Print settings: <b>Letter</b> paper, <b>scale 100%</b>, <b>headers and footers OFF</b>, and <b>background graphics ON</b> so the yellow amount remains highlighted. A notice with multiple charge rows may continue onto the next page, as in the Wintergreen reference.</div></div><div id="firmStage" class="paper-stage" hidden><div id="firmPages" class="firm-scale"></div><div class="no-print-notice">Firm Mailing Book: <b>US Letter landscape (11 × 8.5 in)</b>, 100% scale, <b>headers/footers off</b>, with original scale. The sheet artwork reproduces the supplied PS Form 3877 sheet. Confirm with the accepting Post Office whether its form-approval requirements apply to this computer-generated printout.</div></div></section>
 </main>
 <style id="dynamicPrintPageSize"></style>
 <script src="vendor/html2canvas-1.4.1.min.js"></script>
 <script src="vendor/jspdf-2.5.1.umd.min.js"></script>
 <script src="vendor/jszip-3.10.1.min.js"></script>
+<script src="notice-statement.js?v=1.0"></script>
 <script>
 (()=>{'use strict';
 const KEY='oaktown_7day_notice_generator_v1';
@@ -133,7 +155,7 @@ if(keepNoticeChips&&chips.length===data.notices.length){
  for(const chip of chips){const selected=chip.dataset.select===n.id;chip.classList.toggle('active',selected);chip.setAttribute('aria-pressed',String(selected));}
 }else list.innerHTML=data.notices.map((x,i)=>`<button type="button" aria-pressed="${x.id===n.id?'true':'false'}" class="chip ${x.id===n.id?'active':''}" data-select="${esc(x.id)}">${i+1}. ${esc(x.street||'Untitled')}</button>`).join('');
 const choices=[`<option value="">Custom / manually entered address</option>`].concat(data.properties.map(p=>`<option value="${esc(p.id)}" ${p.street===n.street&&p.cityline===n.cityline?'selected':''}>${esc(p.street)}, ${esc(p.cityline)}</option>`));$('propertySelect').innerHTML=choices.join('');
-for(const k of ['tenant','street','cityline','noticeDate'])$(k).value=n[k]||'';$('firmSender').value=n.firmSender||'';
+for(const k of ['tenant','street','cityline','noticeDate'])$(k).value=n[k]||'';
 $('charges').innerHTML=n.charges.map((r,i)=>`<div class="row-card" data-row="${esc(r.id)}"><div class="row-actions"><strong style="font-size:12px">Charge ${i+1}</strong><button class="btn btn-sm btn-danger" data-remove-charge="${esc(r.id)}">Remove</button></div><div class="form-grid">${makeInput('Due date (MM/DD/YYYY)','dueDate',dateDisplay(r.dueDate))}${makeInput('Category','category',r.category)}${makeInput('Description','description',r.description,'span2')}${makeInput('Status','status',r.status)}${makeInput('Amount ($)','amount',r.amount)}${makeInput('Amount due ($)','amountDue',r.amountDue,'span2')}</div></div>`).join('');renderPreview();}
 function chargeMarkup(r){return `<tr><td>${esc(dateDisplay(r.dueDate))}</td><td>${esc(r.category)}</td><td>${esc(r.description)}</td><td>${esc(r.status)}</td><td>${esc(money(r.amount))}</td><td>${esc(money(r.amountDue))}</td></tr>`;}
 function tableMarkup(rows){return `<table class="statement"><colgroup><col><col><col><col><col><col></colgroup><thead><tr><th>Due Date</th><th>Category</th><th>Description</th><th>Status</th><th>Amount</th><th>Amount Due</th></tr></thead><tbody>${rows.map(chargeMarkup).join('')}</tbody></table>`;}
@@ -194,15 +216,13 @@ return `<div class="firm-entry" style="top:${y.toFixed(2)}px"><div class="firm-s
 function renderFirmPreview(){let out=[];for(let i=0;i<data.notices.length;i+=8){let ns=data.notices.slice(i,i+8);out.push(`<article class="firm-sheet" aria-label="PS Form 3877 sheet ${Math.floor(i/8)+1}"><img class="firm-template" src="${FIRM_BACKGROUND_DATA}" alt="">${ns.map((n,j)=>formEntry(n,j)).join('')}<div class="firm-piece-count">${ns.length}</div></article>`)}$('firmPages').innerHTML=out.join('');}
 let currentPreview='notices';
 function showPreview(mode){currentPreview=mode;const isFirm=mode==='firm';$('noticeStage').hidden=isFirm;$('firmStage').hidden=!isFirm;if(isFirm)renderFirmPreview();$('pageInfo').textContent=isFirm?`${data.notices.length} piece${data.notices.length===1?'':'s'} · ${Math.ceil(data.notices.length/8)} firm sheet${data.notices.length<=8?'':'s'}`:`${(previewAll?data.notices:[active()]).length} notice(s) · ${(previewAll?data.notices:[active()]).flatMap(noticePages).length} page(s)`;}
-$('viewNotice').onclick=()=>showPreview('notices');$('viewFirm').onclick=()=>showPreview('firm');$('openFirm').onclick=()=>showPreview('firm');
+$('viewNotice').onclick=()=>showPreview('notices');$('viewFirm').onclick=()=>showPreview('firm');
 function validateFirm(){const problems=[];for(const n of data.notices){if(!String(n.tenant||'').trim()||!String(n.street||'').trim()||!String(n.cityline||'').trim()||!safeFirmSender(n))problems.push(n.street||'(unnamed notice)');}return problems;}
-$('printFirm').onclick=()=>{let invalid=validateFirm();if(invalid.length){alert('Fill tenant names, property addresses, city/ZIP, and sender on every notice before printing the Firm Book:\n'+invalid.join('\n'));return;}if(!confirm('Confirm all recipients and mailing addresses are correct. This form does NOT prove USPS acceptance or actual mailing. Use Letter landscape and print background graphics. The Post Office may require approval for computer-generated facsimiles.'))return;
-showPreview('firm');document.body.classList.add('firm-print');$('dynamicPrintPageSize').textContent='@page {size:11in 8.5in;margin:0}';window.print();};
 function resetPrintMode(){if(document.body.classList.contains('firm-print')){document.body.classList.remove('firm-print');$('dynamicPrintPageSize').textContent='';showPreview(currentPreview)}}
 window.addEventListener('afterprint',resetPrintMode);
 
 const update=(fn)=>{fn();persist();renderPreview()};
-for(const key of ['tenant','street','cityline','noticeDate','firmSender'])$(key).addEventListener('input',e=>update(()=>active()[key]=e.target.value));
+for(const key of ['tenant','street','cityline','noticeDate'])$(key).addEventListener('input',e=>update(()=>active()[key]=e.target.value));
 $('propertySelect').addEventListener('change',e=>{let p=data.properties.find(x=>x.id===e.target.value);if(p){let n=active();n.street=p.street;n.cityline=p.cityline;n.owner=p.owner;persist();renderForm();}});
 $('saveProperty').onclick=()=>{let n=active();if(!n.street.trim()||!n.cityline.trim()){alert('Fill the street address and city/state/ZIP first.');return}let match=data.properties.find(p=>p.street.toLowerCase()===n.street.toLowerCase()&&p.cityline.toLowerCase()===n.cityline.toLowerCase());if(match){if(!confirm('This property is already saved. Update its landlord name?'))return;match.owner=n.owner}else data.properties.push({id:uid(),street:n.street,cityline:n.cityline,owner:n.owner});persist();renderForm();};
 $('noticeList').addEventListener('click',e=>{const el=e.target.closest('button[data-select]');if(!el)return;e.preventDefault();const id=el.dataset.select;if(!data.notices.some(n=>n.id===id))return;data.selected=id;previewAll=false;persist();renderForm(true)});
