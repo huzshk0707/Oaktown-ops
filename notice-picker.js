@@ -47,13 +47,14 @@ async function refresh(){
  if(loading)return;loading=true;const gen=++generation,account=cloud.user.id;
  $('notice-picker-refresh').disabled=true;state('Loading the complete property and unit directory…');
  try{
-  const [props,units,addressees,tenancies,parties,people]=await Promise.all([
+  const [props,units,addressees,tenancies,parties,people,leases]=await Promise.all([
    cloud.api('/rest/v1/properties?select=id,street_address,city,state,postal_code,landlord_entity,portfolio_state&order=street_address.asc&limit=300'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_code,unit_label,unit_class,occupancy_status&order=unit_code.asc&limit=300'),
    cloud.api('/rest/v1/property_addressees?select=property_id,notice_addressee_text&limit=300'),
    cloud.api('/rest/v1/tenancies?select=id,unit_id,status&limit=300'),
    cloud.api('/rest/v1/tenancy_people?select=tenancy_id,person_id,party_role,to_date&limit=400'),
-   cloud.api('/rest/v1/people?select=id,display_name&limit=300')
+   cloud.api('/rest/v1/people?select=id,display_name,email&limit=300'),
+   cloud.api('/rest/v1/leases?select=unit_id,tenancy_id&limit=300')
   ]);
   if(gen!==generation||cloud.user?.id!==account)return;
   const p=new Map(props.map(x=>[x.id,x])),counts=new Map();
@@ -64,11 +65,13 @@ async function refresh(){
    const linked=window.OpsNoticeRecipient.fromUnit(unit.id,{tenancies,parties,people});
    const existing=sole?String(recips.get(prop.id)||'').trim():'';
    const tenant=existing||linked.name;
-   const tenantSource=existing?'Existing address addressee (verify)':linked.name?linked.reason:linked.reason;
+   const tenantSource=existing?'Existing address addressee (verify)':linked.reason;
    const search=[prop.street_address,prop.city,prop.state,prop.postal_code,unitName(unit),unit.unit_code,unit.unit_class,unit.occupancy_status].join(' ').toLowerCase();
    return {unit,prop,tenant,tenantSource,sole,search};
   }).sort((a,b)=>labelOf(a).localeCompare(labelOf(b),undefined,{numeric:true}));
   chosen=new Set([...chosen].filter(id=>items.some(x=>x.unit.id===id)));
+  // Share only this authenticated in-memory snapshot; never write contact emails into notice batches.
+  window.dispatchEvent(new CustomEvent('ops-notice-contacts-loaded',{detail:{units,leases,parties,people}}));
   state(items.length+' units and lots ready. Current tenancy names are suggested when linked; verify them in each notice before use.');
   draw();
  }catch(e){if(gen===generation)state('Could not load portfolio: '+e.message)}
@@ -109,7 +112,7 @@ window.addEventListener('message',event=>{
 });
 window.addEventListener('ops-auth-change',event=>{
  generation++;loading=false;$('notice-picker-refresh').disabled=false;
- if(!event.detail.user){items=[];chosen.clear();making=false;draw();state('Sign in to search protected units and create drafts.');}
+ if(!event.detail.user){items=[];chosen.clear();making=false;window.dispatchEvent(new CustomEvent('ops-notice-contacts-loaded',{detail:null}));draw();state('Sign in to search protected units and create drafts.');}
  else refresh();
 });
 state('Sign in to search protected units and create drafts.');
