@@ -264,7 +264,7 @@ test('statement CSV paste previews grouped fees, applies only on confirmation, t
  await frame.locator('#statement-apply-button').click();
  await expect(frame.locator('#statement-csv-text')).toHaveValue('');
  await expect(frame.locator('#charges [data-row]')).toHaveCount(3);
- await expect(frame.locator('#charges')).toContainText('October late fees');
+ await expect(frame.locator('#charges [data-key="description"]').last()).toHaveValue('October late fees');
  await expect(frame.locator('#printPages')).toContainText('September rent');
  expect(state.writes).toHaveLength(0);
 });
