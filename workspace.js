@@ -1,7 +1,7 @@
 
 (()=>{'use strict';
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
-let workflow='notices',tab='notices',records=[],editing=null,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0,preOpenUndo=null,selectedMessage=null;
+let workflow='notices',tab='notices',records=[],editing=null,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0,preOpenUndo=null,selectedMessage=null,noticeContactDirectory=null;
 const pending=new Map(),META='oaktown-batch-meta-v04',LOCAL_TITLE='oaktown-batch-title-v06';
 const say=(id,text)=>$(id).textContent=text;
 const post=message=>frame.contentWindow?.postMessage(message,location.origin);
@@ -58,7 +58,7 @@ function updateTenantEmail(){
  const e=$('tenant-email-value');e.replaceChildren();
  if(!cloud.user){resetTenantEmail('Sign in to view tenant email.');return;}
  if(!selectedMessage){resetTenantEmail('Select a notice first.');return;}
- const result=window.OpsNoticeContact?.lookup(window.OpsPortfolio?.getData(),selectedMessage.sourceUnitId,selectedMessage.recipient);
+ const result=window.OpsNoticeContact?.lookup(noticeContactDirectory||window.OpsPortfolio?.getData(),selectedMessage.sourceUnitId,selectedMessage.recipient);
  if(!result){resetTenantEmail('Tenant contact lookup unavailable.');return;}
  if(!result.emails.length){resetTenantEmail(result.message);return;}
  result.emails.forEach((email,i)=>{
@@ -67,7 +67,8 @@ function updateTenantEmail(){
  });
  say('tenant-email-note',result.message);
 }
-window.addEventListener('ops-portfolio-loaded',()=>{if(tab==='message')updateTenantEmail()});
+window.addEventListener('ops-portfolio-loaded',()=>{if(tab==='message'&&!noticeContactDirectory)updateTenantEmail()});
+window.addEventListener('ops-notice-contacts-loaded',event=>{noticeContactDirectory=event.detail||null;if(tab==='message')updateTenantEmail()});
 document.querySelectorAll('[data-workspace]').forEach(b=>b.addEventListener('click',()=>showWorkflow(b.dataset.workspace)));
 document.querySelectorAll('[data-notice-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.noticeTab)));
 $('open-properties').onclick=$('future-properties').onclick=()=>showWorkflow('properties');
@@ -123,7 +124,7 @@ window.addEventListener('ops-auth-change',event=>{
  say('account-close',user?'Return to workspace':'Continue with local drafts');say('account-email',user?.email||'');
  if(event.detail.error)say('pilot-auth-status',event.detail.error);
  if(!user){
-  selectedMessage=null;resetTenantEmail('Sign in to view tenant email.');
+  selectedMessage=null;noticeContactDirectory=null;resetTenantEmail('Sign in to view tenant email.');
   propertyLoad++;records=[];editing=null;cloudBatch=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('property-record-list').replaceChildren();say('property-directory-count','');$('cloud-batches').replaceChildren();$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');$('batch-dialog').close();
   say('cloud-status','Saved locally on this browser · sign in to sync to cloud.');preOpenUndo=null;$('undo-batch').hidden=true;
  }else if(changed){
