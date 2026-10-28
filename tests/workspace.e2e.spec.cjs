@@ -253,6 +253,7 @@ test('later-imported properties prefill current tenancy names even without legac
  state.properties.push({id:p,street_address:'507 Fictional Campbell Road',city:'Example City',state:'KY',postal_code:'40201',landlord_entity:null});
  state.units.push({id:unit,property_id:p,unit_code:'UNIT-CMP',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'});
  state.tenancies.push({id:tenancy,unit_id:unit,status:'Current'});
+ state.leases.push({id:'88888888-8888-4888-8888-888888888888',unit_id:unit,tenancy_id:tenancy,lease_status:'Current'});
  state.parties.push({tenancy_id:tenancy,person_id:person,party_role:'tenant'});
  state.contacts.push({id:person,display_name:'Morgan Example',email:'morgan@example.invalid'});
  await page.locator('#notice-picker-refresh').click();
