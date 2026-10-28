@@ -169,6 +169,7 @@ function sendTenantMessageToShell() {
   window.parent.postMessage({
     type:'oaktown-tenant-message',
     noticeId:String(n.id),
+    sourceUnitId:String(n.sourcePropertyId||''),
     recipient:String(n.tenant||''),
     content:tenantMessageFromNotice(n),
     issues:tenantMessageIssues(n)
