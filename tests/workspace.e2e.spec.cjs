@@ -2,13 +2,17 @@
 const {test,expect}=require('@playwright/test');
 test.use({browserName:'chromium'});test.setTimeout(60000);
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co';
-const USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',PROPERTY='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',BATCH='cccccccc-cccc-4ccc-8ccc-cccccccccccc',CREATED='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+const USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',PROPERTY='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',BATCH='cccccccc-cccc-4ccc-8ccc-cccccccccccc',CREATED='dddddddd-dddd-4ddd-8ddd-dddddddddddd',UNIT='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 const clone=x=>JSON.parse(JSON.stringify(x));
 async function setup(page){
  const s={email:'',logins:0,refreshes:0,batch:null,writes:[],propertyWrites:[],conflict:false,offline:false,approved:true,resetRequests:[],passwordUpdates:[],
  properties:[{id:PROPERTY,street_address:'100 Fictional Lane',unit:'',city:'Example City',state:'KY',postal_code:'40201',landlord_entity:null,updated_at:'2026-10-01T00:00:00Z'}],
  people:[{property_id:PROPERTY,notice_addressee_text:'Example Resident & All Occupants'}],
- units:[{id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',property_id:PROPERTY,unit_code:'UNIT-1000',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'}]};
+ units:[{id:UNIT,property_id:PROPERTY,unit_code:'UNIT-1000',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'}],
+ contacts:[{id:'11111111-1111-4111-8111-111111111111',display_name:'Alex Example',email:'alex@example.invalid',contact_verification:'unverified'}],
+ leases:[{id:'22222222-2222-4222-8222-222222222222',unit_id:UNIT,tenancy_id:'33333333-3333-4333-8333-333333333333',term_start:'2026-01-01',term_end:'2026-12-31',lease_status:'imported',verification_status:'unverified'}],
+ parties:[{tenancy_id:'33333333-3333-4333-8333-333333333333',person_id:'11111111-1111-4111-8111-111111111111',party_role:'tenant'}],
+ tenancies:[{id:'33333333-3333-4333-8333-333333333333',unit_id:UNIT,status:'Current'}]};
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(url.origin===ORIGIN)return route.continue();if(url.hostname!==HOST)return route.abort('blockedbyclient');
   const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
@@ -24,6 +28,11 @@ async function setup(page){
   if(p==='/rest/v1/properties')return reply(s.properties);
   if(p==='/rest/v1/units')return reply(s.units);
   if(p==='/rest/v1/property_addressees')return reply(s.people);
+  if(p==='/rest/v1/people')return reply(s.contacts);
+  if(p==='/rest/v1/leases')return reply(s.leases);
+  if(p==='/rest/v1/tenancy_people')return reply(s.parties);
+  if(p==='/rest/v1/tenancies')return reply(s.tenancies);
+  if(['/rest/v1/bookings','/rest/v1/renewal_cases','/rest/v1/ops_tasks','/rest/v1/ops_events'].includes(p))return reply([]);
   if(p==='/rest/v1/notice_batches'){if(!s.batch)return reply([]);if(url.searchParams.has('id'))return reply([s.batch]);const{id,title,version,updated_at}=s.batch;return reply([{id,title,version,updated_at}]);}
   if(p==='/rest/v1/rpc/save_notice_batch'){
    const b=req.postDataJSON();s.writes.push(clone(b));if(s.holdSave)await s.holdSave;
@@ -58,23 +67,52 @@ test('shared sign-in survives nested workflow navigation, reload and refresh',as
  await expect(page.locator('.sidebar [data-workspace="message"],.sidebar [data-workspace="court"]')).toHaveCount(0);
  await page.locator('[data-workspace="properties"]').click();await expect(page.locator('#ops-portfolio-panel')).toBeVisible();
  await page.locator('[data-workspace="notices"]').click();await page.locator('[data-notice-tab="message"]').click();await expect(page.locator('#tenant-message-text')).toBeVisible();
- await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-form')).toBeVisible();
+ await expect(page.locator('[data-notice-tab="court"],#court-form')).toHaveCount(0);
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.logins).toBe(1);
  await page.evaluate(()=>{const key='oaktown-session-v04',v=JSON.parse(localStorage.getItem(key));v.expires_at=1;localStorage.setItem(key,JSON.stringify(v))});
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.refreshes).toBe(1);expect(s.logins).toBe(1);
  await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#staff-access-signin')).toBeVisible();
  await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();expect(s.logins).toBe(1);
 });
-test('court follow-up belongs to its notice and survives reload',async({page})=>{
- await setup(page);await importProperty(page);await page.locator('[data-notice-tab="court"]').click();
- await page.locator('#court-authorized').check();await page.locator('#court-confirmed').check();
- for(const[k,v]of Object.entries({reference:'Fictional attorney reference',courtDate:'2026-11-20',courtTime:'09:30',timezone:'America/New_York',reminderDate:'2026-11-18',owner:'Example Coordinator',notes:'Fictional test follow-up only.'}))await page.locator('#court-'+k).fill(v);
- await page.locator('#court-save').click();await expect(page.locator('#court-status')).toContainText(/saved/i);
- await page.locator('[data-notice-tab="notices"]').click();const frame=page.frameLocator('#studio-frame');await frame.locator('#noticeList .chip').first().click();
- await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-reference')).toHaveValue('');await expect(page.locator('#court-confirmed')).not.toBeChecked();
- await page.locator('[data-notice-tab="notices"]').click();await frame.locator('#noticeList .chip').last().click();await page.reload();
- await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-reference')).toHaveValue('Fictional attorney reference');
- await expect(page.locator('#court-confirmed')).toBeChecked();
+test('Court follow-up is absent but existing archived court details stay in saved notice batch JSON',async({page})=>{
+ const state=await setup(page);await importProperty(page);
+ await expect(page.locator('[data-notice-tab="court"],#court-form,#court-area')).toHaveCount(0);
+ const payload=await page.evaluate(()=>new Promise((resolve,reject)=>{
+  const frame=document.getElementById('studio-frame').contentWindow,requestId='test-'+crypto.randomUUID();
+  const timeout=setTimeout(()=>{window.removeEventListener('message',onMessage);reject(Error('Snapshot timed out'))},4000);
+  function onMessage(event){
+   if(event.source!==frame||event.origin!==location.origin||event.data?.requestId!==requestId)return;
+   if(event.data.type!=='oaktown-workspace-snapshot')return;
+   clearTimeout(timeout);window.removeEventListener('message',onMessage);resolve(event.data.payload);
+  }
+  window.addEventListener('message',onMessage);
+  frame.postMessage({type:'oaktown-workspace-request',requestId},location.origin);
+ }));
+ const legacy={authorized:true,confirmed:true,reference:'Fictional court note',courtDate:'2026-11-20',courtTime:'09:30',timezone:'America/New_York',reminderDate:'2026-11-18',owner:'Example Coordinator',notes:'Archived record preserved'};
+ payload.notices.at(-1).court=legacy;
+ state.batch={id:BATCH,title:'Archived follow-up',version:1,updated_at:'2026-10-26T10:00:00Z',payload};
+ await page.locator('#cloud-open').click();await page.locator('#cloud-batches').selectOption(BATCH);await page.locator('#cloud-load').click();
+ await expect(page.locator('#batch-dialog')).not.toBeVisible();
+ await page.locator('#cloud-save').click();
+ await expect(page.locator('#cloud-status')).toContainText('Synced to cloud');
+ expect(state.writes.at(-1).p_payload.notices.at(-1).court).toEqual(legacy);
+});
+test('Tenant message shows exact unit-linked email next to Copy message and clears it on sign-out',async({page})=>{
+ await setup(page);await importProperty(page);
+ const frame=page.frameLocator('#studio-frame');
+ await expect.poll(()=>page.evaluate(()=>window.OpsPortfolio?.getData()?.people?.length||0)).toBe(1);
+ await frame.locator('#tenant').fill('Alex Example');
+ await page.locator('[data-notice-tab="message"]').click();
+ await expect(page.locator('#tenant-email-value')).toHaveText('alex@example.invalid');
+ await expect(page.locator('#tenant-email-note')).toContainText('verify');
+ await expect(page.locator('#copy-message')).toBeVisible();
+ await page.locator('[data-notice-tab="notices"]').click();
+ await frame.locator('#tenant').fill('Other Example');
+ await page.locator('[data-notice-tab="message"]').click();
+ await expect(page.locator('#tenant-email-value')).toContainText('No matching tenant email');
+ await page.locator('#account-button').click();await page.locator('#pilot-logout').click();
+ await expect(page.locator('#tenant-email-value')).toContainText('Sign in to view tenant email');
+ await expect(page.locator('#tenant-email-value')).not.toContainText('alex@example.invalid');
 });
 test('explicit cloud save and open round-trip, conflict preserves local edits',async({page})=>{
  const s=await setup(page);await importProperty(page);await page.locator('#batch-title').fill('Fictional October batch');await page.locator('#cloud-save').click();
@@ -117,7 +155,7 @@ test('a delayed account verification cannot restore a signed-out session',async(
 });
 test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
- await page.locator('[data-notice-tab="court"]').click();await expect(page.locator('#court-form')).toBeVisible();
+ await page.locator('[data-notice-tab="message"]').click();await expect(page.locator('#tenant-email-value')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await expect(page.locator('#property-form')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
@@ -144,9 +182,20 @@ test('Make Notices supports multiple units at one address with missing recipient
  await expect(frame.locator('#tenant')).toHaveValue('');
  await expect(page.locator('#notice-picker-status')).toContainText('2 created');
  await expect(frame.locator('#noticeList .chip')).toHaveCount(3);
- const selectedChip=frame.locator('#noticeList .chip').filter({hasText:/1106 Fictional Road Unit 1$/});
- await selectedChip.click();
- await expect(selectedChip).toHaveClass(/active/);
+ const unit1=frame.locator('#noticeList .chip').filter({hasText:/1106 Fictional Road Unit 1$/});
+ const unit8=frame.locator('#noticeList .chip').filter({hasText:/1106 Fictional Road Unit 8$/});
+ await unit1.evaluate(el=>{window.__unit1StableNode=el});
+ await unit1.click();
+ await expect(unit1).toHaveClass(/active/);
+ await expect(unit1).toHaveAttribute('aria-pressed','true');
+ expect(await unit1.evaluate(el=>el===window.__unit1StableNode),'selection must not destroy the clicked chip').toBe(true);
+ await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 1');
+ await unit8.click();
+ await expect(unit8).toHaveAttribute('aria-pressed','true');
+ await expect(unit1).toHaveAttribute('aria-pressed','false');
+ await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 8');
+ await unit1.click();
+ await expect(unit1).toHaveClass(/active/);
  await expect(frame.locator('#street')).toHaveValue('1106 Fictional Road Unit 1');
 });
 
@@ -203,4 +252,33 @@ test('opening a cloud batch offers a one-step undo that restores the previous lo
  await expect(frame.locator('#tenant')).toHaveValue('Different local draft');
  await expect(page.locator('#batch-title')).toHaveValue('Unsynced local work');
  await expect(page.locator('#undo-batch')).toBeHidden();
+});
+
+
+test('later-imported properties prefill current tenancy names even without legacy notice addressees',async({page})=>{
+ const state=await setup(page);
+ const p='44444444-4444-4444-8444-444444444444';
+ const unit='55555555-5555-4555-8555-555555555555';
+ const tenancy='66666666-6666-4666-8666-666666666666';
+ const person='77777777-7777-4777-8777-777777777777';
+ state.properties.push({id:p,street_address:'507 Fictional Campbell Road',city:'Example City',state:'KY',postal_code:'40201',landlord_entity:null});
+ state.units.push({id:unit,property_id:p,unit_code:'UNIT-CMP',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'});
+ state.tenancies.push({id:tenancy,unit_id:unit,status:'Current'});
+ state.leases.push({id:'88888888-8888-4888-8888-888888888888',unit_id:unit,tenancy_id:tenancy,lease_status:'Current'});
+ state.parties.push({tenancy_id:tenancy,person_id:person,party_role:'tenant'});
+ state.contacts.push({id:person,display_name:'Morgan Example',email:'morgan@example.invalid'});
+ await page.locator('#notice-picker-refresh').click();
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(2);
+ await page.locator('#notice-picker-search').fill('Fictional Campbell');
+ const option=page.locator('#notice-picker-list .notice-picker-row');
+ await expect(option).toContainText('Morgan Example');
+ await option.locator('input').check();
+ await page.locator('#notice-picker-make').click();
+ const frame=page.frameLocator('#studio-frame');
+ await expect(frame.locator('#tenant')).toHaveValue('Morgan Example');
+ await expect(frame.locator('#owner')).toHaveCount(0);
+ await expect(frame.locator('#refNumber')).toHaveCount(0);
+ await expect(frame.locator('.sender').first()).toContainText('Po Box 7');
+ await page.locator('[data-notice-tab="message"]').click();
+ await expect(page.locator('#tenant-email-value')).toContainText('morgan@example.invalid');
 });

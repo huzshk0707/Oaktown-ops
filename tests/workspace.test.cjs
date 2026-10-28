@@ -14,9 +14,11 @@ test('duplicating a notice clears filing history and property identity',()=>{
  const duplicate=gen.slice(gen.indexOf("$('duplicate').onclick"),gen.indexOf("$('removeNotice').onclick"));
  assert.ok(duplicate.includes('delete n.court'));assert.ok(duplicate.includes('delete n.sourcePropertyId'));
 });
-test('notice workflow has three inner stages and one shared account dialog',()=>{
+test('notice workflow has exactly two stages and preserves one shared account dialog',()=>{
  assert.equal((shell.match(/id="account-dialog"/g)||[]).length,1);
- for(const view of ['notices','message','court'])assert.ok(shell.includes('data-notice-tab="'+view+'"'));
+ for(const view of ['notices','message'])assert.ok(shell.includes('data-notice-tab="'+view+'"'));
+ assert.ok(!shell.includes('data-notice-tab="court"'));
+ assert.ok(!shell.includes('id="court-area"'));
  assert.ok(!shell.includes('data-workspace="court"'));assert.ok(!shell.includes('v0.1 preserved'));
 });
 

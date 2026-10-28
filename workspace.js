@@ -1,8 +1,7 @@
 
 (()=>{'use strict';
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
-let workflow='notices',tab='notices',records=[],editing=null,context=null,courtDirty=false,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0,preOpenUndo=null;
-const courtKeys=['reference','courtDate','courtTime','timezone','reminderDate','owner','notes'];
+let workflow='notices',tab='notices',records=[],editing=null,revision=0,cloudBatch=null,currentUser=null,propertyLoad=0,preOpenUndo=null,selectedMessage=null,noticeContactDirectory=null;
 const pending=new Map(),META='oaktown-batch-meta-v04',LOCAL_TITLE='oaktown-batch-title-v06';
 const say=(id,text)=>$(id).textContent=text;
 const post=message=>frame.contentWindow?.postMessage(message,location.origin);
@@ -28,28 +27,48 @@ function saveLocalTitle(){try{localStorage.setItem(LOCAL_TITLE,$('batch-title').
 function timeLabel(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}
 function cloudDirty(){revision++;if(!saveLocalTitle()){say('cloud-status','Local storage unavailable · export a JSON backup before leaving.');return}say('cloud-status','Saved locally · '+timeLabel()+(cloud.user?' · unsynced changes (Save to cloud)':' · only on this browser'));}
 function showWorkflow(name){
- if(courtDirty&&workflow==='notices'&&tab==='court'&&name!=='notices'&&!confirm('Leave without saving these follow-up edits?'))return;
- if(name!==workflow)courtDirty=false;
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
  $('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('future-workflow').hidden=['notices','properties'].includes(name);
  const titles={notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',maintenance:'Maintenance'};
- const descriptions={notices:'Prepare the notice, communicate with the tenant, and keep court follow-ups together.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
+ const descriptions={notices:'Select properties, create notice drafts and prepare tenant messages.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
  say('workspace-title',titles[name]);say('breadcrumb',titles[name]);say('workspace-summary',descriptions[name]);
  if(['listings','maintenance'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
 }
 function showTab(next){
- if(courtDirty&&tab==='court'&&next!==tab&&!confirm('Leave without saving these follow-up edits?'))return;
- if(next!==tab)courtDirty=false;
+ if(!['notices','message'].includes(next))next='notices';
  tab=next;
  document.querySelectorAll('[data-notice-tab]').forEach(b=>{const on=b.dataset.noticeTab===tab;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
- $('generator-area').hidden=tab!=='notices';$('message-area').hidden=tab!=='message';$('court-area').hidden=tab!=='court';
+ $('generator-area').hidden=tab!=='notices';$('message-area').hidden=tab!=='message';
  if(tab==='notices')post({type:'oaktown-view',view:'notices'});
- if(tab==='message'){ $('copy-message').disabled=true;say('message-copy-status','Loading selected notice…');post({type:'oaktown-tenant-message-request'});}
- if(tab==='court')post({type:'oaktown-context-request'});
+ if(tab==='message'){
+  selectedMessage=null;resetTenantEmail('Loading selected tenant contact…');
+  $('copy-message').disabled=true;say('message-copy-status','Loading selected notice…');
+  post({type:'oaktown-tenant-message-request'});
+ }
 }
+function resetTenantEmail(text){
+ $('tenant-email-value').replaceChildren();
+ say('tenant-email-value',text);
+ say('tenant-email-note','');
+}
+function updateTenantEmail(){
+ const e=$('tenant-email-value');e.replaceChildren();
+ if(!cloud.user){resetTenantEmail('Sign in to view tenant email.');return;}
+ if(!selectedMessage){resetTenantEmail('Select a notice first.');return;}
+ const result=window.OpsNoticeContact?.lookup(noticeContactDirectory||window.OpsPortfolio?.getData(),selectedMessage.sourceUnitId,selectedMessage.recipient);
+ if(!result){resetTenantEmail('Tenant contact lookup unavailable.');return;}
+ if(!result.emails.length){resetTenantEmail(result.message);return;}
+ result.emails.forEach((email,i)=>{
+  if(i)e.append(document.createTextNode(' · '));
+  const item=document.createElement('span');item.className='tenant-email-address';item.textContent=email;e.append(item);
+ });
+ say('tenant-email-note',result.message);
+}
+window.addEventListener('ops-portfolio-loaded',()=>{if(tab==='message'&&!noticeContactDirectory)updateTenantEmail()});
+window.addEventListener('ops-notice-contacts-loaded',event=>{noticeContactDirectory=event.detail||null;if(tab==='message')updateTenantEmail()});
 document.querySelectorAll('[data-workspace]').forEach(b=>b.addEventListener('click',()=>showWorkflow(b.dataset.workspace)));
 document.querySelectorAll('[data-notice-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.noticeTab)));
 $('open-properties').onclick=$('future-properties').onclick=()=>showWorkflow('properties');
@@ -105,6 +124,7 @@ window.addEventListener('ops-auth-change',event=>{
  say('account-close',user?'Return to workspace':'Continue with local drafts');say('account-email',user?.email||'');
  if(event.detail.error)say('pilot-auth-status',event.detail.error);
  if(!user){
+  selectedMessage=null;noticeContactDirectory=null;resetTenantEmail('Sign in to view tenant email.');
   propertyLoad++;records=[];editing=null;cloudBatch=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('property-record-list').replaceChildren();say('property-directory-count','');$('cloud-batches').replaceChildren();$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');$('batch-dialog').close();
   say('cloud-status','Saved locally on this browser · sign in to sync to cloud.');preOpenUndo=null;$('undo-batch').hidden=true;
  }else if(changed){
@@ -198,24 +218,12 @@ $('property-form').onsubmit=async event=>{
   }catch(e){say('property-status',e.code==='23505'?'This address already exists. Select and edit its existing record. Separate units at one address are not supported yet.':e.message);}
  });
 };
-function fillCourt(value){context=value;say('court-notice',[value.tenant||'Unnamed tenant',value.street||'No address'].join(' · '));if(courtDirty)return;const c=value.court||{};for(const key of courtKeys)$('court-'+key).value=c[key]||'';for(const key of ['authorized','confirmed'])$('court-'+key).checked=c[key]===true;}
-$('court-form').oninput=()=>{courtDirty=true;say('court-status','Unsaved follow-up changes.');};
-async function saveCourt(){
- if(!context)throw Error('Select a notice first.');
- const court=Object.fromEntries(courtKeys.map(k=>[k,$('court-'+k).value.trim()]));court.authorized=$('court-authorized').checked;court.confirmed=$('court-confirmed').checked;
- if(court.confirmed&&(!court.authorized||!court.reference))throw Error('Record referral authorization and the attorney confirmation reference first.');
- if(court.courtDate&&!court.confirmed)throw Error('Record the attorney filing confirmation before adding a court date.');
- if(court.reminderDate&&court.courtDate&&court.reminderDate>court.courtDate)throw Error('The reminder date must be on or before the court date.');
- await frameRequest('oaktown-court-save',{noticeId:context.noticeId,court});courtDirty=false;say('court-status','Follow-up saved locally with this notice. Select Save to cloud for a shared copy.');
-}
-$('court-form').onsubmit=async e=>{e.preventDefault();await busy($('court-save'),async()=>{try{await saveCourt()}catch(error){say('court-status',error.message)}})};
 $('copy-message').onclick=async()=>{const box=$('tenant-message-text');try{await navigator.clipboard.writeText(box.value);say('message-copy-status','Copied. Paste the message into TurboTenant or email.');}catch{box.focus();box.select();say('message-copy-status','Text selected. Use your device’s Copy command.');}};
 $('batch-title').oninput=cloudDirty;
 $('cloud-save').onclick=async()=>{
  if(!requireUser())return;
  await batchOperation(async()=>{
   try{
-   if(courtDirty)await saveCourt();
    const {payload}=await frameRequest('oaktown-workspace-request'),atRevision=revision,userId=cloud.user.id;
    const title=$('batch-title').value.trim();if(!title)throw Error('Give this notice batch a name before saving.');
    say('cloud-status','Syncing to cloud…');
@@ -248,7 +256,7 @@ $('cloud-undo').onclick=async()=>{
    cloudBatch=backup.cloudBatch;
    $('batch-title').value=backup.title;saveLocalTitle();
    if(cloudBatch)rememberBatch();else localStorage.removeItem(META);
-   preOpenUndo=null;$('undo-batch').hidden=true;courtDirty=false;
+   preOpenUndo=null;$('undo-batch').hidden=true;
    showWorkflow('notices');showTab('notices');
    say('cloud-status','Previous local batch restored · '+timeLabel()+'. Save to cloud to sync if needed.');
   }catch(e){say('cloud-status','Could not undo opening the batch: '+e.message)}
@@ -261,8 +269,8 @@ $('cloud-load').onclick=()=>batchOperation(async()=>{
   const userId=cloud.user?.id,rows=await cloud.api('/rest/v1/notice_batches?id=eq.'+encodeURIComponent(id)+'&select=*');
   if(cloud.user?.id!==userId)return;
   if(rows.length!==1)throw Error('This saved batch is no longer available.');
-  const saved=rows[0];if(courtDirty)await saveCourt();const old=await frameRequest('oaktown-workspace-request');const backup={payload:old.payload,title:$('batch-title').value,cloudBatch:cloudBatch?{...cloudBatch}:null};await frameRequest('oaktown-workspace-load',{payload:saved.payload});
-  courtDirty=false;cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;saveLocalTitle();rememberBatch();preOpenUndo=backup;$('undo-batch').hidden=false;$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened cloud batch · '+saved.title+' · previous local batch can be restored.');
+  const saved=rows[0];const old=await frameRequest('oaktown-workspace-request');const backup={payload:old.payload,title:$('batch-title').value,cloudBatch:cloudBatch?{...cloudBatch}:null};await frameRequest('oaktown-workspace-load',{payload:saved.payload});
+  cloudBatch={id:saved.id,version:saved.version};$('batch-title').value=saved.title;saveLocalTitle();rememberBatch();preOpenUndo=backup;$('undo-batch').hidden=false;$('batch-dialog').close();showWorkflow('notices');showTab('notices');say('cloud-status','Opened cloud batch · '+saved.title+' · previous local batch can be restored.');
  }catch(e){say('batch-status',e.message);}
 });
 window.addEventListener('message',event=>{
@@ -270,14 +278,20 @@ window.addEventListener('message',event=>{
  const message=event.data;
  if(message.requestId&&pending.has(message.requestId)){const p=pending.get(message.requestId);clearTimeout(p.timer);pending.delete(message.requestId);message.type.endsWith('-error')?p.reject(Error(message.message)):p.resolve(message);}
  if(message.type==='oaktown-studio-size'){const h=Number(message.height);if(Number.isFinite(h)&&h>=700&&h<=30000)frame.style.height=Math.ceil(h+15)+'px';}
- if(message.type==='oaktown-notice-context'){if(context?.noticeId!==message.noticeId)courtDirty=false;fillCourt(message);}
  if(message.type==='oaktown-workspace-changed')cloudDirty();
  if(message.type==='oaktown-import-confirmed')say('cloud-status',(message.added||0)+' new notices · '+(message.updated||0)+' refreshed. Review the details, then save the batch.');
  if(message.type==='oaktown-tenant-message'&&tab==='message'){
-  const issues=Array.isArray(message.issues)?message.issues:[];$('tenant-message-text').value=String(message.content||'');$('copy-message').disabled=!!issues.length||!message.content;$('message-checks').hidden=!issues.length;say('message-checks',issues.length?'Complete the selected notice: '+issues.join(' '):'');say('message-copy-status',issues.length?'':'Ready to copy · '+(message.recipient||'Selected tenant'));
+  selectedMessage={noticeId:String(message.noticeId||''),sourceUnitId:String(message.sourceUnitId||''),recipient:String(message.recipient||'')};
+  const issues=Array.isArray(message.issues)?message.issues:[];
+  $('tenant-message-text').value=String(message.content||'');
+  $('copy-message').disabled=!!issues.length||!message.content;
+  $('message-checks').hidden=!issues.length;
+  say('message-checks',issues.length?'Complete the selected notice: '+issues.join(' '):'');
+  say('message-copy-status',issues.length?'':'Ready to copy · '+(message.recipient||'Selected tenant'));
+  updateTenantEmail();
  }
 });
-frame.addEventListener('load',()=>{post({type:'oaktown-context-request'});if(workflow==='notices')showTab(tab)});
+frame.addEventListener('load',()=>{if(workflow==='notices')showTab(tab)});
 try{const previousTitle=localStorage.getItem(LOCAL_TITLE);if(previousTitle&&previousTitle.length<=120)$('batch-title').value=previousTitle}catch{}
 cloud.start().catch(e=>{say('pilot-auth-status',e.message);$('staff-access').hidden=false;document.body.classList.add('ops-signed-out')});
 })();

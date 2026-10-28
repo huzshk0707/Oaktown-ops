@@ -18,7 +18,8 @@ async function fillNotice(page, {tenant,street,amount}) {
   await page.locator('#tenant').fill(tenant);
   await page.locator('#street').fill(street);
   await page.locator('#cityline').fill('Louisville, KY 40220');
-  await page.locator('#owner').fill('Fictional Test Landlord');
+  await expect(page.locator('#owner, #refNumber')).toHaveCount(0);
+  await expect(page.locator('.sender').first()).toContainText('Po Box 7');
   await page.locator('#charges [data-key="amount"]').first().fill(amount);
   await page.locator('#charges [data-key="amountDue"]').first().fill(amount);
 }

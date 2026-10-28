@@ -26,10 +26,11 @@ test('Firm Book uses original embedded form with eight entries per sheet', () =>
   assert.ok(generator.includes('formEntry(n,j)'));
   assert.ok(generator.includes('11in 8.5in'));
 });
-test('shell retains the integrated generator and notice-linked court notes', () => {
+test('shell retains the generator, hides court UI and preserves archived court data support', () => {
   assert.ok(shell.includes('generator.html?embedded=1'));
-  assert.ok(shell.includes('id="court-form"'));
-  assert.ok(shell.includes('oaktown-court-save'));
+  assert.ok(!shell.includes('id="court-form"'));
+  assert.ok(!shell.includes('data-notice-tab="court"'));
+  assert.ok(generator.includes('oaktown-court-save'), 'legacy court records remain supported in stored batches');
   assert.ok(shell.includes('oaktown-view'));
   assert.ok(generator.includes("event.origin!==location.origin"));
 });

@@ -56,9 +56,8 @@ body.embedded .paper-stage{overflow:auto}
 <div class="span2"><label for="tenant">Tenant name(s)</label><input id="tenant" placeholder="Enter names as they appear on lease"></div>
 <div class="span2"><label for="street">Property line 1 — street address</label><input id="street"></div>
 <div class="span2"><label for="cityline">Property line 2 — city, state ZIP</label><input id="cityline"></div>
-<div class="span2"><label for="owner">Correct landlord / sender name</label><input id="owner"></div>
-<div class="span2"><label>Fixed landlord mailing address</label><input value="Po Box 7 · Hillview, KY 40129" disabled><div class="hint">This stays constant as requested. Confirm the correct landlord name for each property.</div></div>
-<div><label for="noticeDate">Notice date</label><input id="noticeDate" type="date"></div><div><label for="refNumber">Internal batch/reference (optional)</label><input id="refNumber" placeholder="Not printed"></div>
+<div class="span2"><label>Fixed landlord mailing address</label><input value="PO Box 7 · Hillview, KY 40129" disabled><div class="hint">The established sender details are retained in the generated notice. Verify the legal applicability before use.</div></div>
+<div><label for="noticeDate">Notice date</label><input id="noticeDate" type="date"></div>
 </div>
 <div class="section-heading">Current statement <button class="btn btn-sm" id="addCharge">+ Add charge row</button></div>
 <div id="charges"></div>
@@ -126,9 +125,15 @@ function cleanWorkspace(input){
 }
 
 function makeInput(label,key,value,extra=''){return `<div class="${extra}"><label>${label}</label><input data-key="${key}" value="${esc(value)}"></div>`}
-function renderForm(){sendNoticeContext();let n=active();$('noticeList').innerHTML=data.notices.map((x,i)=>`<button class="chip ${x.id===n.id?'active':''}" data-select="${esc(x.id)}">${i+1}. ${esc(x.street||'Untitled')}</button>`).join('');
+function renderForm(keepNoticeChips=false){sendNoticeContext();let n=active();const list=$('noticeList');
+const chips=list.querySelectorAll('button[data-select]');
+if(keepNoticeChips&&chips.length===data.notices.length){
+ // Keep the clicked DOM button alive through pointerup/click. Replacing the
+ // button during the click made changing units intermittently lose selection.
+ for(const chip of chips){const selected=chip.dataset.select===n.id;chip.classList.toggle('active',selected);chip.setAttribute('aria-pressed',String(selected));}
+}else list.innerHTML=data.notices.map((x,i)=>`<button type="button" aria-pressed="${x.id===n.id?'true':'false'}" class="chip ${x.id===n.id?'active':''}" data-select="${esc(x.id)}">${i+1}. ${esc(x.street||'Untitled')}</button>`).join('');
 const choices=[`<option value="">Custom / manually entered address</option>`].concat(data.properties.map(p=>`<option value="${esc(p.id)}" ${p.street===n.street&&p.cityline===n.cityline?'selected':''}>${esc(p.street)}, ${esc(p.cityline)}</option>`));$('propertySelect').innerHTML=choices.join('');
-for(const k of ['tenant','street','cityline','owner','noticeDate','refNumber'])$(k).value=n[k]||'';$('firmSender').value=n.firmSender||'';
+for(const k of ['tenant','street','cityline','noticeDate'])$(k).value=n[k]||'';$('firmSender').value=n.firmSender||'';
 $('charges').innerHTML=n.charges.map((r,i)=>`<div class="row-card" data-row="${esc(r.id)}"><div class="row-actions"><strong style="font-size:12px">Charge ${i+1}</strong><button class="btn btn-sm btn-danger" data-remove-charge="${esc(r.id)}">Remove</button></div><div class="form-grid">${makeInput('Due date (MM/DD/YYYY)','dueDate',dateDisplay(r.dueDate))}${makeInput('Category','category',r.category)}${makeInput('Description','description',r.description,'span2')}${makeInput('Status','status',r.status)}${makeInput('Amount ($)','amount',r.amount)}${makeInput('Amount due ($)','amountDue',r.amountDue,'span2')}</div></div>`).join('');renderPreview();}
 function chargeMarkup(r){return `<tr><td>${esc(dateDisplay(r.dueDate))}</td><td>${esc(r.category)}</td><td>${esc(r.description)}</td><td>${esc(r.status)}</td><td>${esc(money(r.amount))}</td><td>${esc(money(r.amountDue))}</td></tr>`;}
 function tableMarkup(rows){return `<table class="statement"><colgroup><col><col><col><col><col><col></colgroup><thead><tr><th>Due Date</th><th>Category</th><th>Description</th><th>Status</th><th>Amount</th><th>Amount Due</th></tr></thead><tbody>${rows.map(chargeMarkup).join('')}</tbody></table>`;}
@@ -169,6 +174,7 @@ function sendTenantMessageToShell() {
   window.parent.postMessage({
     type:'oaktown-tenant-message',
     noticeId:String(n.id),
+    sourceUnitId:String(n.sourcePropertyId||''),
     recipient:String(n.tenant||''),
     content:tenantMessageFromNotice(n),
     issues:tenantMessageIssues(n)
@@ -196,10 +202,10 @@ function resetPrintMode(){if(document.body.classList.contains('firm-print')){doc
 window.addEventListener('afterprint',resetPrintMode);
 
 const update=(fn)=>{fn();persist();renderPreview()};
-for(const key of ['tenant','street','cityline','owner','noticeDate','refNumber','firmSender'])$(key).addEventListener('input',e=>update(()=>active()[key]=e.target.value));
+for(const key of ['tenant','street','cityline','noticeDate','firmSender'])$(key).addEventListener('input',e=>update(()=>active()[key]=e.target.value));
 $('propertySelect').addEventListener('change',e=>{let p=data.properties.find(x=>x.id===e.target.value);if(p){let n=active();n.street=p.street;n.cityline=p.cityline;n.owner=p.owner;persist();renderForm();}});
-$('saveProperty').onclick=()=>{let n=active();if(!n.street.trim()||!n.cityline.trim()||!n.owner.trim()){alert('Fill the street address, city/state/ZIP, and landlord name first.');return}let match=data.properties.find(p=>p.street.toLowerCase()===n.street.toLowerCase()&&p.cityline.toLowerCase()===n.cityline.toLowerCase());if(match){if(!confirm('This property is already saved. Update its landlord name?'))return;match.owner=n.owner}else data.properties.push({id:uid(),street:n.street,cityline:n.cityline,owner:n.owner});persist();renderForm();};
-$('noticeList').addEventListener('click',e=>{const el=e.target.closest('[data-select]');if(!el)return;data.selected=el.dataset.select;previewAll=false;persist();renderForm()});
+$('saveProperty').onclick=()=>{let n=active();if(!n.street.trim()||!n.cityline.trim()){alert('Fill the street address and city/state/ZIP first.');return}let match=data.properties.find(p=>p.street.toLowerCase()===n.street.toLowerCase()&&p.cityline.toLowerCase()===n.cityline.toLowerCase());if(match){if(!confirm('This property is already saved. Update its landlord name?'))return;match.owner=n.owner}else data.properties.push({id:uid(),street:n.street,cityline:n.cityline,owner:n.owner});persist();renderForm();};
+$('noticeList').addEventListener('click',e=>{const el=e.target.closest('button[data-select]');if(!el)return;e.preventDefault();const id=el.dataset.select;if(!data.notices.some(n=>n.id===id))return;data.selected=id;previewAll=false;persist();renderForm(true)});
 $('charges').addEventListener('input',e=>{const input=e.target.closest('input[data-key]'),wrapper=e.target.closest('[data-row]');if(!input||!wrapper)return;let r=active().charges.find(x=>x.id===wrapper.dataset.row);if(!r)return;let val=input.value;if(input.dataset.key==='dueDate'){const m=val.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);r.dueDate=m?`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`:val}else r[input.dataset.key]=val;persist();renderPreview()});
 $('charges').addEventListener('click',e=>{let b=e.target.closest('[data-remove-charge]');if(!b)return;let n=active();if(n.charges.length<=1){alert('Keep at least one charge row.');return}n.charges=n.charges.filter(x=>x.id!==b.dataset.removeCharge);persist();renderForm()});
 $('addCharge').onclick=()=>{active().charges.push({id:uid(),dueDate:todayISO(),category:'',description:'',status:'DUE',amount:'',amountDue:''});persist();renderForm()};
@@ -210,8 +216,8 @@ const download=(filename,contents,type)=>{let a=document.createElement('a'),url=
 $('saveJson').onclick=()=>download('Oaktown_Notice_Batch_'+todayISO()+'.json',JSON.stringify(data,null,2),'application/json');
 $('importJson').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let j=JSON.parse(await f.text());if(!Array.isArray(j.notices)||!j.notices.length||!j.notices.every(n=>Array.isArray(n.charges)))throw Error('Invalid notice batch format');if(!confirm('Replace the current notice batch with the imported file?'))return;data={notices:j.notices,selected:j.notices[0].id,properties:Array.isArray(j.properties)?j.properties:seedProperties};previewAll=false;persist();renderForm()}catch(err){alert('Unable to import: '+err.message)}e.target.value=''};
-$('exportCsv').onclick=()=>{let escCsv=x=>'"'+String(x??'').replace(/"/g,'""')+'"';let rows=[['Notice date','Tenant','Property address','City state ZIP','Total due','Landlord','Internal reference'],...data.notices.map(n=>[dateDisplay(n.noticeDate),n.tenant,n.street,n.cityline,money(n.charges.reduce((s,r)=>s+(asNum(r.amountDue)||0),0)),n.owner,n.refNumber])];download('Oaktown_Notice_Mailing_List_DRAFT_'+todayISO()+'.csv',rows.map(row=>row.map(escCsv).join(',')).join('\r\n'),'text/csv')};
-function validateNotice(n){if(!n.tenant.trim()||!n.street.trim()||!n.cityline.trim()||!n.owner.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(n.noticeDate))return 'Missing tenant, property, landlord, or valid notice date for '+(n.street||'a notice');if(!n.charges.length||n.charges.some(r=>!r.dueDate||!r.category.trim()||!r.description.trim()||!r.status.trim()||!Number.isFinite(asNum(r.amount))||!Number.isFinite(asNum(r.amountDue))||r.amountDue===''))return 'Incomplete charge rows for '+n.street;const due=n.charges.reduce((v,r)=>v+asNum(r.amountDue),0);if(due<=0)return 'The total due must be greater than zero for '+n.street;return null}
+$('exportCsv').onclick=()=>{let escCsv=x=>'"'+String(x??'').replace(/"/g,'""')+'"';let rows=[['Notice date','Tenant','Property address','City state ZIP','Total due','Landlord'],...data.notices.map(n=>[dateDisplay(n.noticeDate),n.tenant,n.street,n.cityline,money(n.charges.reduce((s,r)=>s+(asNum(r.amountDue)||0),0)),n.owner])];download('Oaktown_Notice_Mailing_List_DRAFT_'+todayISO()+'.csv',rows.map(row=>row.map(escCsv).join(',')).join('\r\n'),'text/csv')};
+function validateNotice(n){if(!n.tenant.trim()||!n.street.trim()||!n.cityline.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(n.noticeDate))return 'Missing tenant, property, or valid notice date for '+(n.street||'a notice');if(!n.charges.length||n.charges.some(r=>!r.dueDate||!r.category.trim()||!r.description.trim()||!r.status.trim()||!Number.isFinite(asNum(r.amount))||!Number.isFinite(asNum(r.amountDue))||r.amountDue===''))return 'Incomplete charge rows for '+n.street;const due=n.charges.reduce((v,r)=>v+asNum(r.amountDue),0);if(due<=0)return 'The total due must be greater than zero for '+n.street;return null}
 
 // Oaktown notice PDF and ZIP exports. All rendering and archiving happen
 // locally in the browser; no tenant data is uploaded to a server.
