@@ -11,7 +11,8 @@ async function setup(page){
  units:[{id:UNIT,property_id:PROPERTY,unit_code:'UNIT-1000',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'}],
  contacts:[{id:'11111111-1111-4111-8111-111111111111',display_name:'Alex Example',email:'alex@example.invalid',contact_verification:'unverified'}],
  leases:[{id:'22222222-2222-4222-8222-222222222222',unit_id:UNIT,tenancy_id:'33333333-3333-4333-8333-333333333333',term_start:'2026-01-01',term_end:'2026-12-31',lease_status:'imported',verification_status:'unverified'}],
- parties:[{tenancy_id:'33333333-3333-4333-8333-333333333333',person_id:'11111111-1111-4111-8111-111111111111'}]};
+ parties:[{tenancy_id:'33333333-3333-4333-8333-333333333333',person_id:'11111111-1111-4111-8111-111111111111',party_role:'tenant'}],
+ tenancies:[{id:'33333333-3333-4333-8333-333333333333',unit_id:UNIT,status:'Current'}]};
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(url.origin===ORIGIN)return route.continue();if(url.hostname!==HOST)return route.abort('blockedbyclient');
   const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
@@ -30,6 +31,7 @@ async function setup(page){
   if(p==='/rest/v1/people')return reply(s.contacts);
   if(p==='/rest/v1/leases')return reply(s.leases);
   if(p==='/rest/v1/tenancy_people')return reply(s.parties);
+  if(p==='/rest/v1/tenancies')return reply(s.tenancies);
   if(['/rest/v1/bookings','/rest/v1/renewal_cases','/rest/v1/ops_tasks','/rest/v1/ops_events'].includes(p))return reply([]);
   if(p==='/rest/v1/notice_batches'){if(!s.batch)return reply([]);if(url.searchParams.has('id'))return reply([s.batch]);const{id,title,version,updated_at}=s.batch;return reply([{id,title,version,updated_at}]);}
   if(p==='/rest/v1/rpc/save_notice_batch'){
