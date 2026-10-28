@@ -123,6 +123,7 @@ window.addEventListener('ops-auth-change',event=>{
  say('account-close',user?'Return to workspace':'Continue with local drafts');say('account-email',user?.email||'');
  if(event.detail.error)say('pilot-auth-status',event.detail.error);
  if(!user){
+  selectedMessage=null;resetTenantEmail('Sign in to view tenant email.');
   propertyLoad++;records=[];editing=null;cloudBatch=null;$('pilot-property').replaceChildren();$('pilot-checklist').replaceChildren();$('property-record-list').replaceChildren();say('property-directory-count','');$('cloud-batches').replaceChildren();$('property-form').reset();say('pilot-results','');say('pilot-status','');say('property-status','');$('batch-dialog').close();
   say('cloud-status','Saved locally on this browser · sign in to sync to cloud.');preOpenUndo=null;$('undo-batch').hidden=true;
  }else if(changed){
