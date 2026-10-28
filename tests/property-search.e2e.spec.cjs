@@ -36,6 +36,8 @@ async function mockSupabase(page){
 }
 async function login(page){
  await mockSupabase(page);
+ if(!page.url().includes('/preview-v03/'))await page.locator('#staff-access-signin').click();
+ await page.locator('#pilot-email').fill(page.url().includes('/preview-v03/')?'huzaifashaikhmaths@gmail.com':'tester@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
  if(!page.url().includes('/preview-v03/')){

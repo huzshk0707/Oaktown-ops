@@ -23,3 +23,24 @@
 .property-batch-tools>summary{font-size:13px;font-weight:650;cursor:pointer;color:#254d40}
 .property-batch-tools[open]>summary{margin-bottom:8px}
 @media(max-width:740px){.property-record-list{grid-template-columns:1fr}}
+
+
+/* v0.6 staff-first navigation and local/cloud clarity */
+.nav-icon{flex:none;stroke:currentColor;display:block}
+.nav-button:focus-visible,.workflow-tabs button:focus-visible,.staff-access button:focus-visible,.text-action:focus-visible{outline:3px solid #a0ba73;outline-offset:3px}
+.staff-access{display:flex;justify-content:space-between;align-items:center;gap:22px;background:#f5f9f3;border:1px solid #aec6b2;border-radius:13px;padding:26px;margin:0 0 20px;max-width:1200px}
+.staff-access h2{font-size:21px;color:#153e35;margin:5px 0 8px}
+.staff-access p{font-size:13px;line-height:1.7;color:#425d4c;max-width:650px;margin:0}
+.staff-access-actions{flex:0 0 250px}.staff-access-actions .button{width:100%}.staff-access-actions p{margin-top:8px;font-size:11px}
+.access-eyebrow{font-size:10px;font-weight:800;color:#51725b;letter-spacing:1.5px}
+body.ops-signed-out .notice-picker{display:none}
+body.ops-signed-out .workspace-bar{opacity:.95}
+.notice-template-info{border:1px solid #d3dfce;padding:10px 12px;border-radius:8px;background:#f7faf5;font-size:12px;margin:12px 0}
+.workspace-bar .status{font-weight:600;color:#3b5a42;max-width:100%}
+.legacy-address-manager{margin-top:15px;border:1px solid #d6dfd2;border-radius:10px;padding:12px 15px;background:#fff}
+.legacy-address-manager summary{font-size:14px;font-weight:700;color:#204535;cursor:pointer}
+.text-action{color:#1a5942;cursor:pointer;padding:8px 0;border:0;background:transparent;text-decoration:underline;font-size:13px}
+.undo-batch{position:fixed;bottom:18px;right:18px;z-index:4;border-radius:12px;background:#fff;border:1px solid #bad0c2;padding:12px 15px;box-shadow:0 8px 30px #193a301a;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;max-width:min(480px,calc(100vw - 36px))}
+#password-help:not(:empty){margin:7px 0}
+#password-request,#password-change{margin-top:8px;padding:12px;border-radius:8px;background:#f4f8f2}
+@media(max-width:740px){.staff-access{padding:17px;flex-direction:column;align-items:stretch}.staff-access-actions{flex:initial}.nav-icon{width:17px;height:17px}.undo-batch{left:15px;right:15px}}
