@@ -66,6 +66,40 @@ test('multi-charge notice yields a continuation page', async ({page}) => {
   expect(pdfSummary(fs.readFileSync(file)).pageCount).toBe(2);
 });
 
+test('notice statement status labels fit fully in first and continuation page PDFs', async ({page}) => {
+ await page.goto('http://127.0.0.1:8765/generator.html');
+ await page.evaluate(()=>localStorage.clear());await page.reload();
+ await fillNotice(page,{tenant:'Fictional Resident',street:'111 Example Street',amount:'614.50'});
+ await page.locator('#charges [data-key="status"]').first().fill('PAST DUE');
+ await page.locator('#addCharge').click();
+ await page.locator('#charges [data-key="status"]').nth(1).fill('PAST DUE');
+ await page.locator('#addCharge').click();
+ await page.locator('#charges [data-key="status"]').nth(2).fill('PARTIALLY PAID');
+ for(const i of [1,2]){
+  await page.locator('#charges [data-key="dueDate"]').nth(i).fill('10/06/2026');
+  await page.locator('#charges [data-key="category"]').nth(i).fill('LATE_FEE');
+  await page.locator('#charges [data-key="description"]').nth(i).fill('October late fees');
+  await page.locator('#charges [data-key="amount"]').nth(i).fill('47.75');
+  await page.locator('#charges [data-key="amountDue"]').nth(i).fill('47.75');
+ }
+ const metrics=await page.locator('#printPages .statement tbody tr td:nth-child(4)').evaluateAll(cells=>cells.map(td=>{
+  const range=document.createRange();range.selectNodeContents(td);
+  const cell=td.getBoundingClientRect();
+  const chunks=[...range.getClientRects()];
+  const style=getComputedStyle(td);
+  return {status:td.textContent.trim(),fontSize:parseFloat(style.fontSize),width:cell.width,
+   clipped:chunks.some(r=>r.right>cell.right-1||r.left<cell.left+1||r.bottom>cell.bottom-1)};
+ }));
+ expect(metrics.map(x=>x.status)).toEqual(['PAST DUE','PAST DUE','PARTIALLY PAID']);
+ expect(metrics.every(x=>!x.clipped),JSON.stringify(metrics)).toBe(true);
+ expect(metrics.every(x=>x.width>=85),JSON.stringify(metrics)).toBe(true);
+ expect(metrics.every(x=>x.fontSize<=13.4),JSON.stringify(metrics)).toBe(true);
+ const d=await getDownload(page,'#downloadOne');
+ const file=path.join(os.tmpdir(),'oaktown-status-column-verified.pdf');
+ await d.saveAs(file);
+ expect(pdfSummary(fs.readFileSync(file)).pageCount).toBe(2);
+});
+
 test('batch ZIP contains individual property-named PDFs, and handles duplicate property names', async ({page}) => {
   await page.goto('http://127.0.0.1:8765/generator.html');
   await page.evaluate(()=>localStorage.clear());
