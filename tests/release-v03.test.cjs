@@ -11,7 +11,9 @@ test('main release uses Oaktown Ops shell and Supabase-backed property selector'
  assert.ok(shell.includes("['admin','editor'].includes(rows[0].role)"));
  assert.ok(shell.includes("event.origin!==location.origin"));
  assert.ok(shell.includes('generator.html?embedded=1'));
- assert.ok(shell.includes('id="court-form"'));
+ assert.ok(!shell.includes('id="court-form"'));
+ assert.ok(shell.includes('id="tenant-email-value"'));
+ assert.ok(shell.includes('id="copy-message"'));
 });
 test('local vendor dependencies and v0.1 rollback exist in main root',()=>{
  for(const script of ['html2canvas-1.4.1.min.js','jspdf-2.5.1.umd.min.js','jszip-3.10.1.min.js']){
