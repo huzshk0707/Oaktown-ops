@@ -242,3 +242,31 @@ test('opening a cloud batch offers a one-step undo that restores the previous lo
  await expect(page.locator('#batch-title')).toHaveValue('Unsynced local work');
  await expect(page.locator('#undo-batch')).toBeHidden();
 });
+
+
+test('later-imported properties prefill current tenancy names even without legacy notice addressees',async({page})=>{
+ const state=await setup(page);
+ const p='44444444-4444-4444-8444-444444444444';
+ const unit='55555555-5555-4555-8555-555555555555';
+ const tenancy='66666666-6666-4666-8666-666666666666';
+ const person='77777777-7777-4777-8777-777777777777';
+ state.properties.push({id:p,street_address:'507 Fictional Campbell Road',city:'Example City',state:'KY',postal_code:'40201',landlord_entity:null});
+ state.units.push({id:unit,property_id:p,unit_code:'UNIT-CMP',unit_label:'MAIN',unit_class:'residential',occupancy_status:'Leased'});
+ state.tenancies.push({id:tenancy,unit_id:unit,status:'Current'});
+ state.parties.push({tenancy_id:tenancy,person_id:person,party_role:'tenant'});
+ state.contacts.push({id:person,display_name:'Morgan Example',email:'morgan@example.invalid'});
+ await page.locator('#notice-picker-refresh').click();
+ await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(2);
+ await page.locator('#notice-picker-search').fill('Fictional Campbell');
+ const option=page.locator('#notice-picker-list .notice-picker-row');
+ await expect(option).toContainText('Morgan Example');
+ await option.locator('input').check();
+ await page.locator('#notice-picker-make').click();
+ const frame=page.frameLocator('#studio-frame');
+ await expect(frame.locator('#tenant')).toHaveValue('Morgan Example');
+ await expect(frame.locator('#owner')).toHaveCount(0);
+ await expect(frame.locator('#refNumber')).toHaveCount(0);
+ await expect(frame.locator('.sender').first()).toContainText('Po Box 7');
+ await page.locator('[data-notice-tab="message"]').click();
+ await expect(page.locator('#tenant-email-value')).toContainText('morgan@example.invalid');
+});
