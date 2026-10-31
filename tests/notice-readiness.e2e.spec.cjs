@@ -22,9 +22,10 @@ test('readiness follows the existing export validator without changing download 
  await expect(page.locator('[data-readiness-key="total"]')).toHaveAttribute('data-ready','false');
  await page.locator('[data-readiness-fix="total"]').click();
  await expect(page.locator('#charges [data-key="amountDue"]').first()).toBeFocused();
- const alert=page.waitForEvent('dialog');
+ let blockedMessage='';
+ page.once('dialog',async dialog=>{blockedMessage=dialog.message();await dialog.accept()});
  await page.locator('#downloadOne').click();
- const blocked=await alert;expect(blocked.message()).toContain('total due must be greater than zero');await blocked.accept();
+ expect(blockedMessage).toContain('total due must be greater than zero');
  await page.locator('#charges [data-key="amountDue"]').first().fill('950.00');
  await expect(summary).toHaveText('Required fields complete');
  await expect(page.locator('[data-readiness-fix]:visible')).toHaveCount(0);
