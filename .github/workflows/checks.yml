@@ -21,6 +21,8 @@ jobs:
           node --check renewal-pdf.js
           node --check renewal-generator.js
           node --check notice-picker.js
+          node --check task-intake-model.js
+          node --check task-intake.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 
@@ -93,4 +95,6 @@ jobs:
             -f tests/portfolio-schema-setup.sql \
             -f supabase/migrations/20261026171822_oaktown_portfolio_relational_core_v05.sql \
             -f supabase/migrations/20261026171941_oaktown_portfolio_foreign_key_indexes_v05.sql \
-            -f tests/portfolio-schema-check.sql
+            -f tests/portfolio-schema-check.sql \
+            -f supabase/schema/task_intake_v1.sql \
+            -f tests/task-intake-check.sql
