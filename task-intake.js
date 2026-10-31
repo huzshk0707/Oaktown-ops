@@ -8,9 +8,9 @@ const msg=text=>{$('task-status').textContent=text};
 const rpc=(action,payload={},sid=session)=>cloud.api('/rest/v1/rpc/ops_task_intake',{method:'POST',body:JSON.stringify({p_action:action,p_session:sid,p_payload:payload})});
 function controls(){for(const id of ['task-session','task-new-session','task-snapshot','task-preview','task-json','task-refresh','task-copy-receipt'])$(id).disabled=busy||!cloud.user;updateSave();}
 function updateSave(){let okay=false;try{okay=!!draft&&!!session&&R.preview(draft,state,decisions).pending.length>0&&!R.preview(draft,state,decisions).warnings.length&&$('task-confirm').checked}catch{}$('task-save').disabled=busy||!cloud.user||!okay}
-function reset(){epoch++;session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
+function reset(){epoch++;busy=false;msg(cloud.user?'Choose an intake session to continue.':'Sign in to review and save task imports.');session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
 function fail(e){msg(e.code==='PGRST202'||e.status===404?'Cloud task saving is not enabled yet. The reviewed database setup must be deployed first. You can still preview an export while signed in.':e.message)}
-async function action(fn){if(busy)return;busy=true;const ticket=epoch;controls();try{await fn(ticket)}catch(e){if(ticket===epoch)fail(e)}finally{busy=false;controls()}}
+async function action(fn){if(busy)return;busy=true;const ticket=epoch;controls();try{await fn(ticket)}catch(e){if(ticket===epoch)fail(e)}finally{if(ticket===epoch){busy=false;controls()}}}
 async function listSessions(){
  const ticket=epoch;const rows=await rpc('sessions',{},null);if(ticket!==epoch)return;
  $('task-session').replaceChildren(new Option('Choose an intake session',''));
@@ -24,6 +24,8 @@ function renderHistory(){
  host.append(el('h3','Saved tasks'));
  if(!state.tasks.length)host.append(el('p','No saved tasks yet.','task-muted'));
  for(const t of state.tasks){const row=el('div',undefined,'task-evidence');row.append(el('strong',t.task_title),el('p',t.status+(t.intake_details?.next_action?' · '+t.intake_details.next_action:''),'task-muted'));host.append(row)}
+ const work=state.items.filter(i=>i.kind==='activity');
+ if(work.length){host.append(el('h3','Work recorded in this session'));for(const i of work){const a=i.payload;host.append(el('p',a.work_date+' · '+a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}}
  if(state.receipts.length){receipt=state.receipts[0];$('task-receipt').textContent=JSON.stringify(receipt,null,2)}
 }
 function checkbox(label,checked,handler){const lab=el('label',undefined,'task-check'),input=document.createElement('input');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>{handler(input.checked);const replacement=[...$('task-review').querySelectorAll('label.task-check')].find(l=>l.textContent===label)?.querySelector('input');replacement?.focus({preventScroll:true})});lab.append(input,el('span',label));return lab}
