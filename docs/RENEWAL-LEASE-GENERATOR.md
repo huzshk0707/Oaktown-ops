@@ -1,6 +1,6 @@
 # Renewal Lease Generator — five-page PDF patch on PR #10
 
-## Available on the PR branch
+## Available in main
 
 The **Leases & renewals** workspace has a staff-only Renewal Lease Generator. Select the exact unit and existing lease; the form suggests new dates, auto-fills recorded tenants/emails, and lets the operator enter new rent, occupants, pets, utility responsibility (Landlord or Tenant), and appliance answers (Yes or No).
 
@@ -22,7 +22,7 @@ The PDF overlays variable data onto the sanitized static page. It never copies r
 
 `tests/renewal-rules.test.cjs` verifies term suggestions, date/currency rules and required review; `tests/renewal-pdf.test.cjs` verifies five master assets, the completed-sample amounts, five-page output, one utility X per item, and rejection when the account changes during export; `tests/portfolio.e2e.spec.cjs` exercises a mock staff session, field review and browser PDF download.
 
-The PR is a **draft**, not merged or deployed. Do not treat a generated document as signed or legally approved. In particular, the template's appliance-supply language and automatic month-to-month renewal clause need an authorized owner/legal review before production issuance.
+The generator and tracker were merged in PR #10, followed by PDF fixes in #11–#13. Separate preparation/tracking tabs were merged in #20. This supersedes the original draft-PR status; current live deployment and staff behavior still require the [live validation checks](LIVE-VALIDATION.md). Do not treat a generated document as signed or legally approved. In particular, the template's appliance-supply language and automatic month-to-month renewal clause need an authorized owner/legal review before production issuance.
 
 ## Later patch: renewal records and history
 

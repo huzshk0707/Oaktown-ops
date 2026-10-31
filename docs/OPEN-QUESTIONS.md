@@ -1,5 +1,7 @@
 # Open questions and next steps
 
+**Historical discovery baseline:** For current implementation status, priorities and outstanding validation, use [the current roadmap](ROADMAP.md). Later releases supersede the original architecture, storage and module-status statements below. Unresolved business decisions remain unresolved unless explicitly confirmed.
+
 Status: v0.1 implementation authorized; outstanding discovery questions remain.
 
 ## First priority: recover the missing discussion

@@ -2,6 +2,8 @@
 
 [Open the workspace](https://huzshk0707.github.io/Oaktown-ops/)
 
+[Current build status and next milestones](docs/ROADMAP.md) · [Live validation checklist](docs/LIVE-VALIDATION.md)
+
 Oaktown Ops brings property records and operational workflows together. v0.6 retains the green Ops design and groups notice creation and tenant messages into a focused **two-step Notices** workflow. Court follow-up is deferred to a separate future add-on.
 
 ## Available now
