@@ -31,7 +31,7 @@ async function load(force=false){if(!cloud.user){clear();return}if(loading&&!for
 $('ops-portfolio-search').addEventListener('input',displayPortfolio);$('ops-renewals-search').addEventListener('input',displayRenewals);
 $('ops-portfolio-refresh').addEventListener('click',()=>load(true));$('ops-renewals-refresh').addEventListener('click',()=>load(true));window.addEventListener('ops-renewal-tracking-change',()=>{if(!data)return;displayRenewals();if(selectedRenewalId){const row=[...$('ops-renewals-list').querySelectorAll('button[data-case-id]')].find(b=>b.dataset.caseId===selectedRenewalId);if(row)row.click()}});
 window.addEventListener('ops-auth-change',e=>{if(!e.detail.user)clear();else load()});
-document.querySelectorAll('[data-workspace]').forEach(b=>b.addEventListener('click',()=>{const on=b.dataset.workspace==='leases';$('ops-renewals-panel').hidden=!on;if(on){$('future-workflow').hidden=true;if(cloud.user)load()}}));
+// Lease tab visibility is owned by workspace.js. Do not reload portfolio data on tab navigation.
 window.OpsPortfolio={getData:()=>data};
 if(cloud.user)load();
 })();
