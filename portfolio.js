@@ -50,7 +50,7 @@ function displayPortfolio(){
   const p=index.p.get(u.property_id),leases=index.leases.get(u.id)||[],renewals=index.renew.get(u.id)||[];
   const names=leases.flatMap(x=>leasePeople(x,index).map(person=>person.display_name));
   const hay=[address(p,u),p?.city,p?.postal_code,u.unit_code,u.occupancy_status,u.unit_class,...names,...renewals.map(r=>r.oak_record_id)].join(' ').toLowerCase();
-  if(q&&!q.split(/\\s+/).every(part=>hay.includes(part)))continue;
+  if(q&&!q.split(/\s+/).every(part=>hay.includes(part)))continue;
   shown++;
   const btn=document.createElement('button');btn.className='property-record';btn.type='button';btn.dataset.unitId=u.id;
   btn.append(text('strong',address(p,u)),text('span',[p?.city,p?.state,p?.postal_code,u.occupancy_status].filter(Boolean).join(' · '),'property-record-meta'),text('span',`${leases.length} lease record(s) · ${renewals.length} renewal case(s)`,'property-record-meta'));
