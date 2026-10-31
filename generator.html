@@ -58,6 +58,7 @@ body.embedded .paper-stage{overflow:auto}
 
 </style>
 <link rel="stylesheet" href="editor-polish.css?v=1.0" media="screen">
+<link rel="stylesheet" href="notice-readiness.css?v=1.0" media="screen">
 </head>
 <body>
 <header class="app-header"><div><div class="brand">Oaktown Rentals · Notice & Firm Book Generator</div><div class="subtitle">Standalone · offline · notice and PS Form 3877 firm mailing book</div></div><div class="pill">Local-only; does not send notices</div></header>
@@ -88,6 +89,17 @@ body.embedded .paper-stage{overflow:auto}
 </div>
 <div id="charges"></div>
 <div class="ok">The yellow total is calculated from the <b>Amount Due</b> column. Fee amounts must be checked against the actual tenant ledger; this tool does not calculate or impose late fees automatically.</div>
+<section id="notice-readiness" class="notice-readiness no-print-notice" aria-labelledby="notice-readiness-title">
+<h3 id="notice-readiness-title">Notice readiness · selected draft</h3>
+<p id="notice-readiness-summary" role="status" aria-live="polite">Review required fields.</p>
+<ul class="notice-readiness-items">
+<li data-readiness-key="recipient"><span class="readiness-state" aria-hidden="true"></span><span>Recipient and complete address</span><button type="button" class="btn btn-sm" data-readiness-fix="recipient">Fix</button></li>
+<li data-readiness-key="date"><span class="readiness-state" aria-hidden="true"></span><span>Valid notice date</span><button type="button" class="btn btn-sm" data-readiness-fix="date">Fix</button></li>
+<li data-readiness-key="charges"><span class="readiness-state" aria-hidden="true"></span><span>Complete charge rows</span><button type="button" class="btn btn-sm" data-readiness-fix="charges">Fix</button></li>
+<li data-readiness-key="total"><span class="readiness-state" aria-hidden="true"></span><span>Positive total due</span><button type="button" class="btn btn-sm" data-readiness-fix="total">Fix</button></li>
+</ul>
+<p class="notice-readiness-reminder">Still verify landlord, recipient, balances, dates and applicability before using this notice. Completion does not establish legal validity.</p>
+</section>
 <details class="statement-backups no-print-notice"><summary>Optional local exports &amp; backups</summary>
 <div class="button-row"><button class="btn" id="saveJson">Export batch JSON</button><button class="btn" id="importJson">Import batch JSON</button><button class="btn" id="exportCsv">Export mailing list CSV</button></div>
 <input id="fileInput" type="file" accept="application/json,.json">
