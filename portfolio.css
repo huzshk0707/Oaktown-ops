@@ -23,7 +23,7 @@
 .ops-portfolio-back{margin:0 0 12px}
 @media(min-width:1024px){
  .ops-portfolio-browser{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:20px;align-items:start}
- .ops-portfolio-back{display:none}
+ .ops-portfolio-back,.ops-portfolio-open-selected{display:none}
  #ops-portfolio-detail{max-height:70vh;overflow:auto}
  #ops-portfolio-list{max-height:70vh;overflow-y:auto}
 }
@@ -33,6 +33,6 @@
  .ops-portfolio-browser:not([data-detail-open="true"]) .ops-portfolio-detail-shell{display:none}
  #ops-portfolio-list,#ops-portfolio-detail{max-height:none;overflow:visible}
  .ops-portfolio-detail-shell{scroll-margin-top:72px}
- .ops-portfolio-back{min-height:44px}
+ .ops-portfolio-back,.ops-portfolio-open-selected{min-height:44px;margin:8px 0}
 }
 @media(prefers-reduced-motion:reduce){.ops-portfolio-browser *{scroll-behavior:auto!important;transition:none!important}}
