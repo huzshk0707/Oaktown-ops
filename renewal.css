@@ -17,3 +17,14 @@
 .renewal-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:13px}
 #renewal-preview{white-space:pre-wrap;line-height:1.6;color:#1d3c30;font:13px/1.6 Arial,sans-serif}
 @media(max-width:700px){#ops-renewal-generator{padding:13px}.renewal-grid{grid-template-columns:1fr}.renewal-span{grid-column:auto}.renewal-summary dl{grid-template-columns:1fr}.renewal-choice-grid{grid-template-columns:minmax(0,1fr) minmax(120px,1fr)}}
+
+/* Accessible, persistent inner navigation. No lease/PDF page styles touched. */
+.lease-inner-tabs{display:flex;gap:7px;flex-wrap:wrap;padding:6px;margin:0 0 18px;background:#e8ede5;border:1px solid #d5e0d1;border-radius:12px}
+.lease-inner-tabs [role="tab"]{flex:1 1 170px;min-height:44px;padding:11px 18px;border:0;border-radius:8px;background:transparent;color:#365e48;font:600 14px/1.35 Arial,sans-serif;cursor:pointer}
+.lease-inner-tabs [role="tab"][aria-selected="true"]{color:#153e35;background:#fff;box-shadow:0 2px 8px #153e3515}
+.lease-inner-tabs [role="tab"]:focus-visible{outline:3px solid #24634d;outline-offset:2px}
+#lease-prepare-panel,#ops-renewals-panel{min-width:0}
+#lease-prepare-panel[hidden],#ops-renewals-panel[hidden],#leases-workflow[hidden]{display:none!important}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:480px){.lease-inner-tabs{gap:4px}.lease-inner-tabs [role="tab"]{padding:12px 9px;font-size:13px}}
+@media(prefers-reduced-motion:reduce){.lease-inner-tabs *{transition:none!important;scroll-behavior:auto!important}}
