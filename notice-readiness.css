@@ -9,6 +9,7 @@
  .notice-readiness-items li .readiness-state{font-size:14px;font-weight:750;color:#8f5530;flex:none;width:17px;text-align:center}
  .notice-readiness-items li[data-ready="true"] .readiness-state{color:#286348}
  .notice-readiness-items li .btn{min-height:36px;padding:6px 11px;white-space:nowrap}
+ .notice-readiness-items li .btn[hidden]{display:none!important}
  .notice-readiness-reminder{font-size:12px;line-height:1.55;color:#5c604d;margin:10px 0 0}
  @media(max-width:600px){.notice-readiness-items li .btn{min-height:44px}.notice-readiness{padding:12px}}
 }
