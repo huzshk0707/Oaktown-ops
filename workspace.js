@@ -17,6 +17,7 @@ async function busy(button,action){
 function account(){if(!$('account-dialog').open)$('account-dialog').showModal()}
 function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in to access shared property records.');return false;}
 function showWorkflow(name){
+ const changed=workflow!==name;
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
  $('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('future-workflow').hidden=['notices','properties'].includes(name);
@@ -26,6 +27,7 @@ function showWorkflow(name){
  if(['listings','maintenance'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
+ if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
 }
 function showTab(next){
  if(!['notices','message'].includes(next))next='notices';
@@ -34,11 +36,21 @@ function showTab(next){
  $('generator-area').hidden=tab!=='notices';$('message-area').hidden=tab!=='message';
  if(tab==='notices')post({type:'oaktown-view',view:'notices'});
  if(tab==='message'){
-  selectedMessage=null;resetTenantEmail('Loading selected tenant contact…');
+  selectedMessage=null;say('message-recipient','Loading selected notice…');resetTenantEmail('Loading selected tenant contact…');
   $('copy-message').disabled=true;say('message-copy-status','Loading selected notice…');
   post({type:'oaktown-tenant-message-request'});
  }
 }
+function editSelectedNotice(){
+ showWorkflow('notices');showTab('notices');
+ $('notice-editor-title').focus({preventScroll:true});
+ $('notice-editor-overview').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+}
+$('message-edit-notice').onclick=editSelectedNotice;
+$('notice-back-to-selection').onclick=()=>{
+ $('notice-picker-search').focus({preventScroll:true});
+ $('notice-picker').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+};
 function resetTenantEmail(text){
  $('tenant-email-value').replaceChildren();
  say('tenant-email-value',text);
@@ -213,6 +225,7 @@ window.addEventListener('message',event=>{
  if(message.type==='oaktown-studio-size'){const h=Number(message.height);if(Number.isFinite(h)&&h>=700&&h<=30000)frame.style.height=Math.ceil(h+15)+'px';}
   if(message.type==='oaktown-tenant-message'&&tab==='message'){
   selectedMessage={noticeId:String(message.noticeId||''),sourceUnitId:String(message.sourceUnitId||''),recipient:String(message.recipient||'')};
+  say('message-recipient','Selected notice: '+(message.recipient||'Recipient not entered yet'));
   const issues=Array.isArray(message.issues)?message.issues:[];
   $('tenant-message-text').value=String(message.content||'');
   $('copy-message').disabled=!!issues.length||!message.content;

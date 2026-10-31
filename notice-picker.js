@@ -25,22 +25,31 @@ function matching(){
   return q.every(word=>item.search.includes(word));
  });
 }
-function draw(){
- const matches=matching(),host=$('notice-picker-list');host.replaceChildren();
- const cap=$('notice-picker-count');cap.textContent=matches.length+' of '+items.length+' units shown · '+chosen.size+' selected';
+function selectionFeedback(matches=matching()){
+ const shownSelected=matches.filter(item=>chosen.has(item.unit.id)).length;
+ const outside=chosen.size-shownSelected;
+ $('notice-picker-count').textContent=matches.length+' of '+items.length+' units shown';
+ $('notice-picker-selection-summary').textContent=chosen.size?chosen.size+' selected'+(outside?' · '+outside+' outside this search':''):'No units selected';
+ $('notice-picker-reset-search').hidden=!$('notice-picker-search').value;
+ $('notice-picker-list').setAttribute('aria-busy',String(loading||making));
  $('notice-picker-make').disabled=!chosen.size||!cloud.user||making;
  $('notice-picker-make').textContent='Create drafts'+(chosen.size?' ('+chosen.size+')':'');
  $('notice-picker-select-matching').disabled=!matches.length||making;
  $('notice-picker-clear').disabled=!chosen.size||making;
+ $('notice-picker-list').querySelectorAll('input').forEach(check=>{check.disabled=making});
+}
+function draw(){
+ const matches=matching(),host=$('notice-picker-list');host.replaceChildren();
+ selectionFeedback(matches);
  for(const item of matches){
   const row=document.createElement('label');row.className='notice-picker-row';
   const check=document.createElement('input');check.type='checkbox';check.checked=chosen.has(item.unit.id);check.disabled=making;check.setAttribute('aria-label','Select '+labelOf(item));
-  check.addEventListener('change',()=>{if(check.checked)chosen.add(item.unit.id);else chosen.delete(item.unit.id);draw()});
+  check.addEventListener('change',()=>{if(check.checked)chosen.add(item.unit.id);else chosen.delete(item.unit.id);selectionFeedback()});
   const body=line('span','');body.className='notice-picker-row-body';
   body.append(line('strong',labelOf(item)),line('small',[item.prop.city,item.prop.state,item.prop.postal_code,item.unit.occupancy_status].filter(Boolean).join(' · ')),line('small',item.tenant?(item.tenant+' · Verify imported recipient'):item.tenantSource));
   row.append(check,body);host.append(row);
  }
- if(!matches.length&&items.length)host.append(line('p','No properties match that search.','ops-muted'));
+ if(!matches.length&&items.length)host.append(line('p','No units match this search. Try a street, ZIP or unit number, or clear the search.','picker-empty'));
 }
 async function refresh(){
  if(!cloud.user){state('Sign in to access protected properties.');return}
@@ -75,10 +84,11 @@ async function refresh(){
   state(items.length+' units and lots ready. Current tenancy names are suggested when linked; verify them in each notice before use.');
   draw();
  }catch(e){if(gen===generation)state('Could not load portfolio: '+e.message)}
- finally{if(gen===generation){loading=false;$('notice-picker-refresh').disabled=false}}
+ finally{if(gen===generation){loading=false;$('notice-picker-refresh').disabled=false;selectionFeedback()}}
 }
 $('notice-picker-refresh').onclick=refresh;
 $('notice-picker-search').addEventListener('input',draw);
+$('notice-picker-reset-search').onclick=()=>{$('notice-picker-search').value='';draw();$('notice-picker-search').focus()};
 $('notice-picker-select-matching').onclick=()=>{
  for(const item of matching())chosen.add(item.unit.id);
  draw();
@@ -106,7 +116,10 @@ window.addEventListener('message',event=>{
  making=false;
  const msg=event.data;
  if(msg.added||msg.updated){
-  chosen.clear();$('studio-frame').scrollIntoView({behavior:'smooth',block:'start'});
+  chosen.clear();
+  const heading=$('notice-editor-title');
+  heading.focus({preventScroll:true});
+  $('notice-editor-overview').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
   state((msg.added||0)+' created, '+(msg.updated||0)+' existing notice(s) refreshed. Verify names, charges and dates in the editor below.');draw();
  }else{state('No notices were created. Review the selection and retry.');draw()}
 });

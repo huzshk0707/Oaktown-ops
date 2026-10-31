@@ -1,0 +1,26 @@
+/* Screen-only editor controls, scoped to embedding. Never target document pages. */
+@media screen {
+ body.embedded{background:#f5f5ef;color:#263d35}
+ body.embedded .workspace{padding:10px;gap:16px}
+ body.embedded .panel{border-color:#d7e1d2;box-shadow:none}
+ body.embedded .panel-head,body.embedded .toolbar{border-color:#dce5d7}
+ body.embedded .panel-head h2{color:#153e35;font-size:17px}
+ body.embedded .control-panel label{color:#345543}
+ body.embedded .control-panel input,body.embedded .control-panel select,body.embedded .control-panel textarea{border-color:#bacdb9;border-radius:8px}
+ body.embedded .control-panel .btn,body.embedded .toolbar .btn{min-height:40px;border-color:#b5c8b2;color:#224a39;border-radius:8px}
+ body.embedded .control-panel .btn-primary,body.embedded .toolbar .btn-primary{background:#153e35;border-color:#153e35;color:#fff}
+ body.embedded .control-panel .btn-danger{color:#9b392e}
+ body.embedded .control-panel .chip{min-height:40px;max-width:100%;white-space:normal;border-color:#c5d5be;color:#36583e;background:#f7faf3;text-align:left}
+ body.embedded .control-panel .chip.active{background:#e8f0df;border-color:#668557;color:#173f2a}
+ body.embedded .control-panel .row-card{background:#f8faf5;border-color:#d7e2ce}
+ body.embedded .paper-stage{background:#eaf0e6}
+ body.embedded .control-panel :is(input,select,textarea,button):focus-visible,body.embedded .toolbar button:focus-visible{outline:3px solid #24634d;outline-offset:2px}
+ @media(max-width:600px){
+  body.embedded .workspace{padding:8px}
+  body.embedded .control-panel input,body.embedded .control-panel select,body.embedded .control-panel textarea{font-size:16px;min-width:0}
+  body.embedded .control-panel .btn,body.embedded .toolbar .btn{min-height:44px;white-space:normal}
+  body.embedded .control-panel .chip{min-height:44px}
+  body.embedded .control-panel .panel-body{padding:14px}
+ }
+ @media(prefers-reduced-motion:reduce){body.embedded *{scroll-behavior:auto!important;transition:none!important}}
+}
