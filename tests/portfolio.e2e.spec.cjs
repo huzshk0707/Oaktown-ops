@@ -72,6 +72,7 @@ test('renewals screen shows pending case and task from normalized Supabase table
 test('renewal preparation uses selected unit, validates choices and formats late fees without writing records',async({page})=>{
  await login(page);
  await page.locator('[data-workspace="leases"]').click();
+ await page.locator('#lease-tab-prepare').click();
  await expect(page.locator('#ops-renewal-generator')).toBeVisible();
  await page.locator('#renewal-unit').selectOption(U8);
  await expect(page.locator('#renewal-lease')).toHaveValue(H);
@@ -97,6 +98,7 @@ test('renewal preparation uses selected unit, validates choices and formats late
 test('renewal generator downloads a five-page unsigned PDF from approved inputs',async({page})=>{
  await login(page);
  await page.locator('[data-workspace="leases"]').click();
+ await page.locator('#lease-tab-prepare').click();
  await page.locator('#renewal-unit').selectOption(U8);
  await expect(page.locator('#renewal-lease')).toHaveValue(H);
  await page.locator('#renewal-rent').fill('4,000.00');
@@ -152,4 +154,58 @@ test('renewal workflow never interprets not sent as sent and allows optional not
  await page.locator('#tracker-save').click();
  await expect(page.locator('#tracker-feedback')).toContainText('Saved');
  expect(activity[0].event_metadata.status).toBe('unreviewed');
+});
+
+test('lease tabs preserve generator edits, review state, tracker selection and unsaved notes',async({page})=>{
+ const activity=await login(page);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.locator('[data-workspace="leases"]').click();
+ await expect(page.locator('#lease-tab-track')).toHaveAttribute('aria-selected','true');
+ await expect(page.locator('#ops-renewals-panel')).toBeVisible();
+ await expect(page.locator('#lease-prepare-panel')).toBeHidden();
+ await page.locator('#ops-renewals-search').fill('OAK');
+ await page.locator('#ops-renewals-list .property-record').first().click();
+ await expect(page.locator('#ops-renewals-detail')).toContainText('OAK');
+ await page.locator('#tracker-message').fill('Unsubmitted fictional note');
+ await page.locator('#tracker-note').fill('Draft must survive tab navigation');
+ await page.locator('#lease-tab-prepare').click();
+ await expect(page.locator('#lease-prepare-panel')).toBeVisible();
+ await expect(page.locator('#ops-renewals-panel')).toBeHidden();
+ await page.locator('#renewal-unit').selectOption(U8);
+ await page.locator('#renewal-rent').fill('1,234.00');
+ for(let i=0;i<5;i++)await page.locator('#renewal-utility-'+i).selectOption('Tenant');
+ for(let i=0;i<7;i++)await page.locator('#renewal-appliance-'+i).selectOption('No');
+ await page.locator('#renewal-verified').check();
+ await page.locator('#renewal-form button[type="submit"]').click();
+ await expect(page.locator('#renewal-output')).toBeVisible();
+ await expect(page.locator('#renewal-download-pdf')).toBeVisible();
+ await page.locator('#lease-tab-track').click();
+ await expect(page.locator('#tracker-message')).toHaveValue('Unsubmitted fictional note');
+ await expect(page.locator('#tracker-note')).toHaveValue('Draft must survive tab navigation');
+ await expect(page.locator('#ops-renewals-search')).toHaveValue('OAK');
+ await page.locator('[data-workspace="properties"]').click();
+ await page.locator('[data-workspace="leases"]').click();
+ await expect(page.locator('#lease-tab-track')).toHaveAttribute('aria-selected','true');
+ await page.locator('#lease-tab-prepare').click();
+ await expect(page.locator('#renewal-rent')).toHaveValue('1,234.00');
+ await expect(page.locator('#renewal-verified')).toBeChecked();
+ await expect(page.locator('#renewal-download-pdf')).toBeVisible();
+ expect(activity).toHaveLength(0);
+});
+test('lease inner tabs support keyboard arrows and remain usable at all required widths',async({page})=>{
+ await login(page);
+ await page.emulateMedia({reducedMotion:'reduce'});
+ for(const width of [320,768,1024,1440]){
+  await page.setViewportSize({width,height:900});
+  await page.locator('[data-workspace="leases"]').click();
+  await expect(page.locator('#lease-tab-track')).toHaveAttribute('aria-selected','true');
+  await page.locator('#lease-tab-track').focus();
+  await page.locator('#lease-tab-track').press('ArrowRight');
+  await expect(page.locator('#lease-tab-prepare')).toBeFocused();
+  await expect(page.locator('#lease-prepare-panel')).toBeVisible();
+  await page.locator('#lease-tab-prepare').press('Home');
+  await expect(page.locator('#lease-tab-track')).toBeFocused();
+  await expect(page.locator('#ops-renewals-panel')).toBeVisible();
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
 });

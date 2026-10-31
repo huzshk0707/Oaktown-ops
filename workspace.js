@@ -3,6 +3,30 @@
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
 let workflow='notices',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null;
 const pending=new Map();
+let leaseTab='track';
+function showLeaseTab(next,focus=false){
+ if(next!=='track'&&next!=='prepare')next='track';
+ leaseTab=next;
+ for(const button of document.querySelectorAll('[data-lease-tab]')){
+  const active=button.dataset.leaseTab===next;
+  button.setAttribute('aria-selected',String(active));
+  button.tabIndex=active?0:-1;
+  if(active&&focus)button.focus();
+ }
+ $('lease-prepare-panel').hidden=next!=='prepare';
+ $('ops-renewals-panel').hidden=next!=='track';
+}
+document.querySelectorAll('[data-lease-tab]').forEach(button=>{
+ button.addEventListener('click',()=>showLeaseTab(button.dataset.leaseTab));
+ button.addEventListener('keydown',event=>{
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+  event.preventDefault();
+  const order=['track','prepare'],at=order.indexOf(leaseTab);
+  const next=event.key==='Home'?'track':event.key==='End'?'prepare':order[(at+(event.key==='ArrowRight'?1:order.length-1))%order.length];
+  showLeaseTab(next,true);
+ });
+});
+showLeaseTab('track');
 const say=(id,text)=>$(id).textContent=text;
 const post=message=>frame.contentWindow?.postMessage(message,location.origin);
 function frameRequest(type,extra={}){
@@ -20,11 +44,12 @@ function showWorkflow(name){
  const changed=workflow!==name;
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
- $('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('future-workflow').hidden=['notices','properties'].includes(name);
+ $('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('leases-workflow').hidden=name!=='leases';$('future-workflow').hidden=!['listings','maintenance'].includes(name);
  const titles={notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',maintenance:'Maintenance'};
  const descriptions={notices:'Select properties, create notice drafts and prepare tenant messages.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
  say('workspace-title',titles[name]);say('breadcrumb',titles[name]);say('workspace-summary',descriptions[name]);
  if(['listings','maintenance'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
+ if(name==='leases')showLeaseTab(leaseTab);
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
  if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
