@@ -1,4 +1,5 @@
--- STAGED / NOT APPLIED. Review and approve before production deployment.
+-- APPLIED to Oaktown Ops as migration 20261031235822_oaktown_task_intake_v1.
+-- Reviewed source snapshot. Do not reapply to production; CI uses a disposable database.
 -- Additive task intake; no Portfolio Master replay and no external actions.
 begin;
 create schema if not exists ops_intake_private;

@@ -23,11 +23,11 @@ This change implements Tasks → intake inbox. Today, automatic reminders, EOD g
 - Explicit context resolution applies to new tasks. This importer does not reassign existing task context. Existing due_at is untouched unless due is explicitly changed or cleared. Date-only due is stored in intake_details rather than an invented midnight.
 - No browser-held service key. Active editor/admin required for all RPC actions; session ownership is checked. New task assignment defaults to the signed-in actor.
 
-## Database rollout — NOT APPLIED
+## Database rollout — applied
 
-`supabase/schema/task_intake_v1.sql` is a staged review artifact, intentionally outside historical migrations. It has not been run against live Supabase. Do not rerun historical Portfolio Master migrations.
+PR #24 was merged and its reviewed SQL was applied to Oaktown Ops as Supabase migration `20261031235822_oaktown_task_intake_v1` after user approval. `supabase/schema/task_intake_v1.sql` remains the reviewed source snapshot, intentionally outside the historical migration directory. Do not reapply it or rerun historical Portfolio Master migrations.
 
-The draft:
+The deployed setup:
 - Adds ops_tasks.intake_details JSONB with an empty default.
 - Allows context-free tasks only when workflow_key is general.
 - Adds private sessions, immutable item mappings and receipts.
@@ -35,8 +35,11 @@ The draft:
 - Saves tasks, work events, source evidence, deduplication mappings and receipt atomically; locks session and existing task rows, checks optimistic versions.
 - Does not alter existing notice, property or renewal APIs.
 
-Before production: review this exact SQL and tests, generate the approved migration through the Supabase CLI workflow, apply only the approved change, then run read-only permission/metadata verification. Keep deployment approval separate from source merge.
-Until enabled, Tasks displays “Cloud task saving is not enabled yet” and permits signed-in preview only. There is no fallback to unsafe direct table writes.
+Production verification confirmed the RPC exists, anonymous execution is denied, private tables have RLS with no direct client read/write grants, and the private implementation uses a fixed empty search_path and checks active editor/session ownership. No fictional task or activity was imported into production. An authenticated user should perform the first real intake after reviewing its evidence.
+
+The UI still fails closed in environments without this setup: it displays “Cloud task saving is not enabled yet” and permits signed-in preview only. There is no fallback to unsafe direct table writes.
+
+The security advisor reports intentional RLS-without-policy informational notices for the private RPC-only tables ([explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)). The existing Auth leaked-password-protection warning predates this change ([setting](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection)). No new security warnings were introduced.
 
 Rollback: disable the new RPC execution grant and leave additive records/columns intact. Do not delete saved work or reverse the General operations constraint while such tasks exist.
 
