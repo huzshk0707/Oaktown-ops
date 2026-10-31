@@ -3,6 +3,7 @@
 const R=window.OpsTaskIntake,cloud=window.OpsCloud,$=id=>document.getElementById(id);
 let session=null,state={tasks:[],items:[],receipts:[]},draft=null,decisions={},receipt=null,epoch=0,busy=false,active=false,pendingRequest=null;
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
+const fieldLabel=k=>({waiting_on:'Waiting on',follow_up:'Follow-up',due:'Due date',blocked_reason:'Blocker',completion_summary:'Completion summary'}[k]||k.replaceAll('_',' '));
 const msg=text=>{$('task-status').textContent=text};
 const rpc=(action,payload={},sid=session)=>cloud.api('/rest/v1/rpc/ops_task_intake',{method:'POST',body:JSON.stringify({p_action:action,p_session:sid,p_payload:payload})});
 function controls(){for(const id of ['task-session','task-new-session','task-snapshot','task-preview','task-json','task-refresh','task-copy-receipt'])$(id).disabled=busy||!cloud.user;updateSave();}
@@ -25,7 +26,7 @@ function renderHistory(){
  for(const t of state.tasks){const row=el('div',undefined,'task-evidence');row.append(el('strong',t.task_title),el('p',t.status+(t.intake_details?.next_action?' · '+t.intake_details.next_action:''),'task-muted'));host.append(row)}
  if(state.receipts.length){receipt=state.receipts[0];$('task-receipt').textContent=JSON.stringify(receipt,null,2)}
 }
-function checkbox(label,checked,handler){const lab=el('label',undefined,'task-check'),input=document.createElement('input');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>handler(input.checked));lab.append(input,el('span',label));return lab}
+function checkbox(label,checked,handler){const lab=el('label',undefined,'task-check'),input=document.createElement('input');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>{handler(input.checked);const replacement=[...$('task-review').querySelectorAll('label.task-check')].find(l=>l.textContent===label)?.querySelector('input');replacement?.focus({preventScroll:true})});lab.append(input,el('span',label));return lab}
 function fields(data){const dl=el('dl',undefined,'task-fields');if(!data){dl.append(el('dd','New task — not saved'));return dl}
  for(const [k,v]of Object.entries(data)){dl.append(el('dt',k.replaceAll('_',' ')),el('dd',v&&typeof v==='object'?(v.date||'')+(v.time?' at '+v.time:'')+' · Eastern time':String(v||'Not set')))}return dl}
 function contextPicker(g){
@@ -43,7 +44,7 @@ function contextPicker(g){
   if(v==='general')decisions.resolutions[root]={property_id:null,unit_id:null,context_label:'General operations'};
   else if(v.startsWith('u:')){const u=data.units.find(x=>x.id===v.slice(2));decisions.resolutions[root]={property_id:u.property_id,unit_id:u.id,context_label:select.selectedOptions[0].textContent}}
   else if(v.startsWith('p:'))decisions.resolutions[root]={property_id:v.slice(2),unit_id:null,context_label:select.selectedOptions[0].textContent};
-  pendingRequest=null;$('task-confirm').checked=false;renderReview();
+  pendingRequest=null;$('task-confirm').checked=false;renderReview();[...$('task-review').querySelectorAll('select')].find(s=>s.getAttribute('aria-label')===select.getAttribute('aria-label'))?.focus({preventScroll:true});
  });lab.append(select);box.append(lab);return box;
 }
 function renderReview(){
@@ -54,9 +55,9 @@ function renderReview(){
   const card=el('section',undefined,'task-card');card.append(el('h3',g.after.task_title),el('p',g.context.context_label||'Existing task','task-muted'));
   if(!g.task_id)card.append(contextPicker(g));
   const diff=el('div',undefined,'task-diff'),before=el('div'),after=el('div');before.append(el('strong','Saved state'),fields(g.before));after.append(el('strong','After your review'),fields(g.after));diff.append(before,after);card.append(diff);
-  for(const c of g.clears)card.append(checkbox('Approve clearing '+c.fields.join(', ')+' ('+c.ref+')',decisions.accept_clears.includes(c.ref),on=>{decisions.accept_clears=decisions.accept_clears.filter(x=>x!==c.ref);if(on)decisions.accept_clears.push(c.ref);pendingRequest=null;$('task-confirm').checked=false;renderReview()}));
-  for(const ref of g.suggestions){const p=draft.proposals.find(p=>p.proposal_ref===ref);card.append(checkbox('Accept suggested values: '+JSON.stringify(p.suggestions)+' ('+ref+')',decisions.accept_suggestions.includes(ref),on=>{decisions.accept_suggestions=decisions.accept_suggestions.filter(x=>x!==ref);if(on)decisions.accept_suggestions.push(ref);pendingRequest=null;$('task-confirm').checked=false;renderReview()}));}
-  if(g.activities.length){card.append(el('h3','Work to record'));for(const a of g.activities)card.append(el('p',a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+a.duration_basis.replaceAll('_',' ')+')')))}
+  for(const c of g.clears)card.append(checkbox('Approve clearing '+c.fields.map(fieldLabel).join(', ')+' ('+c.ref+')',decisions.accept_clears.includes(c.ref),on=>{decisions.accept_clears=decisions.accept_clears.filter(x=>x!==c.ref);if(on)decisions.accept_clears.push(c.ref);pendingRequest=null;$('task-confirm').checked=false;renderReview()}));
+  for(const ref of g.suggestions){const p=draft.proposals.find(p=>p.proposal_ref===ref);card.append(checkbox('Accept suggestion: '+Object.entries(p.suggestions).map(([k,v])=>fieldLabel(k)+': '+(typeof v==='object'?v.date+(v.time?' '+v.time:''):v)).join('; ')+' ('+ref+')',decisions.accept_suggestions.includes(ref),on=>{decisions.accept_suggestions=decisions.accept_suggestions.filter(x=>x!==ref);if(on)decisions.accept_suggestions.push(ref);pendingRequest=null;$('task-confirm').checked=false;renderReview()}));}
+  if(g.activities.length){card.append(el('h3','Work to record'));for(const a of g.activities)card.append(el('p',a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}
   const evidence=el('details',undefined,'task-evidence');evidence.append(el('summary','Original evidence and proposal history'));
   for(const o of g.observations){evidence.append(el('p',o.ref+' · '+o.operation+' · '+o.reason));for(const ref of o.sources){const s=draft.sources.find(s=>s.source_ref===ref);evidence.append(el('blockquote',s.label+': '+s.evidence_excerpt))}}
   card.append(evidence);host.append(card);
@@ -85,7 +86,7 @@ $('task-refresh').addEventListener('click',()=>action(async()=>{await listSessio
 $('task-snapshot').addEventListener('click',()=>action(async()=>{
  if(!session)throw Error('Create or choose a session first');
  await refresh();
- const brief={schema_version:'oaktown.task-snapshot.v1',session_id:session,timezone:R.ZONE,work_date:new Intl.DateTimeFormat('en-CA',{timeZone:R.ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),exported_at:new Date().toISOString(),instructions:'Include this session_id in every oaktown.task-intake.v1 export. Use the supplied task IDs and updated_at values for existing-task updates. Do not recycle imported proposal or activity references. Dates use America/New_York. Never claim data is saved without an Ops receipt.',tasks:state.tasks,imported_references:state.items.filter(i=>i.kind!=='source').map(i=>({kind:i.kind,ref:i.ref,task_id:i.task_id}))};
+ const brief={schema_version:'oaktown.task-snapshot.v1',snapshot_ref:session+':'+new Date().toISOString(),session_id:session,timezone:R.ZONE,work_date:new Intl.DateTimeFormat('en-CA',{timeZone:R.ZONE,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),exported_at:new Date().toISOString(),instructions:'Include this session_id in every oaktown.task-intake.v1 export. Use the supplied task IDs and updated_at values for existing-task updates. Do not recycle imported proposal or activity references. Dates use America/New_York. Never claim data is saved without an Ops receipt.',tasks:state.tasks,imported_references:state.items.filter(i=>i.kind!=='source').map(i=>({kind:i.kind,ref:i.ref,task_id:i.task_id}))};
  await navigator.clipboard.writeText(JSON.stringify(brief,null,2));msg('Session brief and current task snapshot copied. Share only with your chosen AI service.');
 }));
 $('task-save').addEventListener('click',()=>action(async ticket=>{
@@ -104,5 +105,6 @@ document.querySelector('[data-workspace="tasks"]').addEventListener('click',()=>
 });
 window.addEventListener('ops-auth-change',e=>{reset();$('task-locked').hidden=!!e.detail.user;if(e.detail.user&&active)action(listSessions)});
 window.addEventListener('ops-portfolio-loaded',()=>{if(draft)renderReview()});
+$('task-locked').hidden=!!cloud.user;
 controls();
 })();

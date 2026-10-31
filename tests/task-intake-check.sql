@@ -40,6 +40,23 @@ begin
  bad:=jsonb_set(bad,'{export,activities}',jsonb_build_array((req->'export'->'activities'->0)||'{"activity_ref":"A101","proposal_ref":"P101","minutes":-1}'::jsonb));
  begin perform public.ops_task_intake('save',sid,bad);raise exception 'Bad activity accepted';exception when invalid_parameter_value then null;end;
  if (select count(*) from public.ops_tasks)<>before_count then raise exception 'Partial import escaped rollback';end if;
+
+ -- A fresh version can update an imported root without creating another task.
+ bad:=jsonb_set(req,'{export,batch_ref}','"FRESH"');
+ bad:=jsonb_set(bad,'{export,activities}','[]');
+ bad:=jsonb_set(bad,'{export,proposals}',jsonb_build_array(jsonb_build_object(
+ 'proposal_ref','P200','operation','update','task_id',null,'related_proposal_ref','P001','context',req->'export'->'proposals'->0->'context','changes',jsonb_build_object('task_title','Prepare reviewed Unit 8 renewal'),'suggestions','{}'::jsonb,'source_refs','["S001"]'::jsonb,'match_reason','Reviewed fresh update')));
+ bad:=jsonb_set(bad,'{expected_versions}',jsonb_build_object(t::text,(select updated_at from public.ops_tasks where id=t)));
+ perform public.ops_task_intake('save',sid,bad);
+ if not exists(select 1 from public.ops_tasks where id=t and task_title='Prepare reviewed Unit 8 renewal') then raise exception 'Fresh update failed';end if;
+ -- Explicit General operations requires no fake property. Date-only due does not invent a timestamp.
+ bad:=jsonb_set(req,'{export,batch_ref}','"GENERAL"');
+ bad:=jsonb_set(bad,'{export,activities}','[]');
+ bad:=jsonb_set(bad,'{export,proposals}',jsonb_build_array(jsonb_build_object(
+ 'proposal_ref','P201','operation','create','task_id',null,'related_proposal_ref',null,'context',jsonb_build_object('workflow_key','general','context_label','General operations'),'changes',jsonb_build_object('task_title','Fictional general task','status','pending','due',jsonb_build_object('date','2026-11-03','time',null,'timezone','America/New_York','original_text','November 3')),'suggestions','{}'::jsonb,'source_refs','["S001"]'::jsonb,'match_reason','General operations test')));
+ bad:=jsonb_set(bad,'{resolutions}','{"P201":{"property_id":null,"unit_id":null}}');
+ r:=public.ops_task_intake('save',sid,bad);
+ if not exists(select 1 from public.ops_tasks where id=(r->'proposals'->0->>'task_id')::uuid and property_id is null and workflow_key='general' and due_at is null and intake_details->'due'->>'date'='2026-11-03') then raise exception 'General/date-only task incorrect';end if;
  -- Direct private-ledger writes must be denied, even to an editor.
  begin execute 'select * from ops_intake_private.items';raise exception 'Private ledger exposed';exception when insufficient_privilege then null;end;
 end $$;

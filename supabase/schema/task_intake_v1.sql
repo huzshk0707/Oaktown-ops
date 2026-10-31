@@ -5,6 +5,7 @@ create schema if not exists ops_intake_private;
 revoke all on schema ops_intake_private from public,anon;
 grant usage on schema ops_intake_private to authenticated;
 alter table public.ops_tasks add column if not exists intake_details jsonb not null default '{}'::jsonb;
+alter table public.ops_tasks add constraint ops_tasks_intake_details_object check(jsonb_typeof(intake_details)='object');
 alter table public.ops_tasks drop constraint ops_task_context;
 alter table public.ops_tasks add constraint ops_task_context check
  (property_id is not null or unit_id is not null or tenancy_id is not null or renewal_case_id is not null or workflow_key='general');
@@ -95,6 +96,7 @@ begin
  perform ops_intake_private.assert(p_action='save','Unknown intake action');
  perform ops_intake_private.assert(octet_length(p_payload::text)<=300000 and p_payload->>'reviewed'='true','Review the intake before saving');
  export:=p_payload->'export';
+ perform ops_intake_private.assert(jsonb_typeof(export)='object' and not exists(select 1 from jsonb_object_keys(export) k where k not in ('schema_version','session_id','batch_ref','work_date','timezone','snapshot_ref','sources','proposals','activities','questions')),'Unsupported export field');
  perform ops_intake_private.assert(export->>'schema_version'='oaktown.task-intake.v1' and export->>'timezone'='America/New_York','Unsupported intake format');
  perform ops_intake_private.assert(export->>'session_id' is null or (export->>'session_id')::uuid=p_session,'Export belongs to another session');
  perform ops_intake_private.assert((export->>'batch_ref')~'^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$','Invalid batch reference');
@@ -117,6 +119,7 @@ begin
  checked:='{}';
  for s in select value from jsonb_array_elements(export->'sources') loop
   ref:=s->>'source_ref';
+  perform ops_intake_private.assert(jsonb_typeof(s)='object' and jsonb_typeof(s->'evidence_excerpt')='string' and jsonb_typeof(s->'label')='string' and length(btrim(s->>'label')) between 1 and 2000 and not exists(select 1 from jsonb_object_keys(s) k where k not in ('source_ref','kind','label','occurred_at','evidence_excerpt')),'Invalid source');
   perform ops_intake_private.assert(s->>'kind'=any(array['voice','image','email','text']) and length(btrim(s->>'evidence_excerpt')) between 1 and 8000,'Invalid source evidence');
   select payload into prior from ops_intake_private.items where session_id=p_session and kind='source' and items.ref=ref;
   if found then perform ops_intake_private.assert(prior=s,'Source reference changed after import');
@@ -130,6 +133,9 @@ begin
  ) order by id for update;
  for p in select value from jsonb_array_elements(export->'proposals') loop
   ref:=p->>'proposal_ref';op:=p->>'operation';
+  perform ops_intake_private.assert(not exists(select 1 from jsonb_object_keys(p) k where k not in ('proposal_ref','operation','task_id','related_proposal_ref','expected_updated_at','match_reason','context','changes','suggestions','source_refs','needs_clarification','proposed_clear_fields')),'Unsupported proposal field');
+  perform ops_intake_private.assert(length(btrim(p->>'match_reason')) between 1 and 2000 and jsonb_typeof(p->'match_reason')='string','Match reason required');
+  perform ops_intake_private.assert(jsonb_typeof(p->'context')='object' and not exists(select 1 from jsonb_object_keys(p->'context') k where k not in ('workflow_key','property_id','unit_id','tenancy_id','renewal_case_id','context_label')),'Invalid context');
   perform ops_intake_private.assert(op=any(array['create','update','activity','duplicate','clarify']),'Invalid operation');
   perform ops_intake_private.check_fields(p->'changes');perform ops_intake_private.check_fields(p->'suggestions');
   perform ops_intake_private.assert(jsonb_typeof(p->'source_refs')='array' and jsonb_array_length(p->'source_refs')>0,'Evidence required');
@@ -210,6 +216,8 @@ begin
  end loop;
  for a in select value from jsonb_array_elements(export->'activities') loop
   ref:=a->>'activity_ref';
+  perform ops_intake_private.assert(not exists(select 1 from jsonb_object_keys(a) k where k not in ('activity_ref','task_id','proposal_ref','work_date','summary','minutes','duration_basis','source_refs')),'Unsupported activity field');
+  perform ops_intake_private.assert(jsonb_typeof(a->'summary')='string' and ((a->>'duration_basis'='not_provided' and a->'minutes'='null'::jsonb) or (a->>'duration_basis'<>'not_provided' and jsonb_typeof(a->'minutes')='number')),'Invalid activity value type');
   select payload,items.task_id into prior,taskid from ops_intake_private.items where session_id=p_session and kind='activity' and items.ref=ref;
   if found then perform ops_intake_private.assert(prior=a,'Activity changed after import');activity_result:=activity_result||jsonb_build_array(jsonb_build_object('activity_ref',ref,'task_id',taskid,'result','already_imported'));continue;end if;
   perform ops_intake_private.assert((a->>'task_id' is null)<>(a->>'proposal_ref' is null),'Activity needs one task target');

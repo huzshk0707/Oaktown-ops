@@ -101,7 +101,7 @@ async function openIntake(page){
 }
 async function approve(page){
  await page.getByLabel('Resolve property / unit for Prepare Unit 8 renewal lease').selectOption('u:'+UNIT);
- await page.getByLabel('Approve clearing waiting_on, follow_up (P004)').check();
+ await page.getByLabel('Approve clearing Waiting on, Follow-up (P004)').check();
  await page.locator('#task-confirm').check();
 }
 test('intake reviews final state, saves once and does not replay a repeated export',async({page})=>{

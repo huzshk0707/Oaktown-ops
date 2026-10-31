@@ -21,3 +21,5 @@
 .task-inbox button{min-height:44px}.task-inbox .status{white-space:pre-wrap}
 .task-pill{display:inline-block;padding:5px 10px;background:#e8f1e1;border-radius:20px;font-size:12px}
 @media(max-width:740px){.task-card{padding:16px}.task-diff{grid-template-columns:1fr}.task-inbox textarea,.task-inbox select{font-size:16px}.task-actions>.button{flex:1}.task-card h2{font-size:19px}}
+
+#task-review>h2{margin:22px 0 8px;font-size:22px}#task-review>h3{margin:20px 0 8px}#task-review>p{margin:8px 0 16px;line-height:1.6}
