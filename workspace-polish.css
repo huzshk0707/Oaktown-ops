@@ -1,0 +1,78 @@
+/* Workspace-only presentation. Document/PDF styles live in the generator. */
+@media screen {
+ .sidebar{overflow-y:auto;overscroll-behavior:contain}
+ .sidebar-footer{margin-top:36px}
+ .shell,.workspace-main,#generator-area,.message-card,.form-grid>*{min-width:0}
+ .workspace-main{max-width:1600px}
+ .workspace-intro{margin:4px 0 24px}
+ .workspace-intro h1{font-size:32px;line-height:1.2}
+ .workspace-intro p{font-size:14px;line-height:1.65}
+ .button,.nav-button,.workflow-tabs button,.cloud-list{min-height:44px}
+ .button{border-radius:9px}
+ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #24634d;outline-offset:3px}
+ .sidebar button:focus-visible,.sidebar a:focus-visible{outline-color:#dfc892}
+ .workflow-tabs{position:sticky;top:0;z-index:2;padding:6px;margin:18px 0;background:#e8ede5;border:1px solid #d7e0d2}
+ .workflow-tabs button{flex:1;text-align:center}
+ .workflow-tabs .active{box-shadow:0 2px 6px #153e3514}
+ .notice-picker,.message-card,#ops-portfolio-panel,#ops-renewals-panel,#ops-renewal-generator{border-radius:16px;box-shadow:0 3px 16px #153e3505}
+ .notice-picker{padding:22px}
+ .notice-picker-row{padding:13px;min-height:92px;border-radius:11px}
+ .notice-picker-row:focus-within{outline:2px solid #24634d;outline-offset:1px}
+ .notice-picker-row input{width:19px;height:19px}
+ .notice-picker-list{gap:10px;scrollbar-gutter:stable;overscroll-behavior:contain}
+ .picker-search-meta{display:flex;gap:12px;align-items:center;justify-content:space-between;min-height:44px}
+ .picker-search-meta .text-action{padding:10px 3px;white-space:nowrap}
+ .selection-summary{font-size:12px;font-weight:650;color:#315d47;margin-left:auto;overflow-wrap:anywhere}
+ .notice-picker-actions{border-top:1px solid #e0e7dc;padding-top:14px;gap:10px}
+ #notice-picker-make{margin-left:0}
+ .picker-empty{grid-column:1/-1;padding:24px 16px;text-align:center;background:#f7f9f4;border:1px dashed #a7bba5;border-radius:10px;color:#4e6557;line-height:1.6}
+ .editor-overview{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:10px 2px 18px;scroll-margin-top:84px}
+ .editor-overview .eyebrow{display:block;margin:0 0 7px}
+ .editor-overview h2{font-size:22px;line-height:1.3}
+ .editor-overview p{font-size:12px;color:#526b5d;line-height:1.7;max-width:600px;margin-top:7px}
+ .editor-overview .button{flex:none}
+ #notice-picker{scroll-margin-top:84px}
+ body.ops-signed-out #notice-back-to-selection{display:none}
+ .studio-frame{border-radius:14px}
+ .message-context-bar{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:14px 16px;margin:8px 0 20px;background:#edf3e9;border:1px solid #d2dfcb;border-radius:10px}
+ .message-context-bar p{font-size:13px;font-weight:650;overflow-wrap:anywhere}
+ .message-context-bar .button{flex:none}
+ .message-text{font-family:inherit;font-size:14px;line-height:1.75;min-height:380px;max-height:70vh}
+ .tenant-email-panel{min-width:0;width:300px;max-width:100%}
+ .ops-search{font-size:14px;min-height:44px}
+ .property-record{min-height:90px;gap:7px}
+ .property-record:hover{background:#edf4e9}
+ .property-record-meta{font-size:12px;line-height:1.55}
+ .ops-kpi{padding:15px}
+ dialog{max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain}
+ .status,.ops-muted,.subtle,.notice-help{overflow-wrap:anywhere}
+ .notice-template-info{line-height:1.6}
+ @media(min-width:741px) and (max-height:720px){.workspace-label{margin-top:26px}.sidebar-footer p{font-size:16px;margin:12px 0}.sidebar-footer{padding-top:16px}}
+ @media(max-width:740px){
+  .sidebar{padding:16px 12px;overflow:visible}
+  .sidebar nav{gap:6px;margin-top:12px;padding:3px 2px 8px;scrollbar-width:thin;overscroll-behavior-x:contain}
+  .sidebar .nav-button{font-size:12px;padding:12px;gap:8px}
+  .topbar{padding:10px 14px;min-height:60px}
+  .workspace-main{padding:16px 12px}
+  .workspace-intro{margin-bottom:16px}.workspace-intro h1{font-size:28px}
+  .workspace-intro p{font-size:13px}
+  .workflow-tabs{gap:4px}
+  .workflow-tabs button{padding:11px 8px;white-space:normal;line-height:1.5}
+  .notice-picker,.message-card{padding:16px}
+  .notice-picker-actions .button{flex:1;white-space:normal}
+  .notice-picker-actions .selection-summary{flex-basis:100%;margin:2px 0;text-align:left;order:2}
+  #notice-picker-make{flex-basis:100%;order:3}
+  .editor-overview,.message-context-bar{align-items:stretch;flex-direction:column;gap:12px}
+  .editor-overview h2{font-size:20px}
+  .editor-overview .button,.message-context-bar .button{align-self:flex-start;white-space:normal}
+  .message-top,.message-actions{gap:12px}
+  .tenant-email-panel{width:100%;flex-basis:100%}
+  .message-actions .button{width:100%;justify-content:center}
+  .message-text{padding:14px;min-height:330px}
+  .ops-detail{max-height:none;overflow:visible;padding:14px}
+  .ops-kpi strong{font-size:21px}
+  .form-grid input,.form-grid select,.form-grid textarea,dialog input,.ops-search,#notice-picker-search,.renewal-grid input,.renewal-grid select,.renewal-grid textarea,.tracker-field input,.tracker-field select,.tracker-field textarea{font-size:16px}
+  dialog{padding:20px}
+ }
+ @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+}

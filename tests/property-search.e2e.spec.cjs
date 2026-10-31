@@ -55,14 +55,14 @@ test('Notices search selects multiple of 55 portfolio records and creates editab
  await search.fill('seQUOIA');
  await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
  await page.locator('#notice-picker-list input[type="checkbox"]').check();
- await expect(page.locator('#notice-picker-count')).toContainText('1 selected');
+ await expect(page.locator('#notice-picker-selection-summary')).toContainText('1 selected');
  await search.fill('no such address');
  await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(0);
- await expect(page.locator('#notice-picker-count')).toContainText('1 selected');
+ await expect(page.locator('#notice-picker-selection-summary')).toContainText('1 selected');
  await search.fill('demo 40272');
  await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
  await page.locator('#notice-picker-list input[type="checkbox"]').check();
- await expect(page.locator('#notice-picker-count')).toContainText('2 selected');
+ await expect(page.locator('#notice-picker-selection-summary')).toContainText('2 selected');
  await page.locator('#notice-picker-make').click();
  await expect(page.locator('#notice-picker-status')).toContainText('2 created');
  const frame=page.frameLocator('#studio-frame');

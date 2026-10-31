@@ -184,7 +184,7 @@ test('Make Notices supports multiple units at one address with missing recipient
  await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
  await page.locator('#notice-picker-list input[type="checkbox"]').check();
  await page.locator('#notice-picker-search').fill('Unit 1');
- await expect(page.locator('#notice-picker-count')).toContainText('1 selected');
+ await expect(page.locator('#notice-picker-selection-summary')).toContainText('1 selected');
  await page.locator('#notice-picker-list input[type="checkbox"]').check();
  await page.locator('#notice-picker-make').click();
  const frame=page.frameLocator('#studio-frame');
@@ -295,4 +295,82 @@ test('later-imported properties prefill current tenancy names even without legac
  await expect(frame.locator('.sender').first()).toContainText('Po Box 7');
  await page.locator('[data-notice-tab="message"]').click();
  await expect(page.locator('#tenant-email-value')).toContainText('morgan@example.invalid');
+});
+
+
+// UI polish regressions. All API calls use setup()'s fictional fixtures.
+async function uiSnapshot(page,name){
+ if(process.env.OAKTOWN_UI_SCREENSHOTS!=='1')return;
+ const fs=require('node:fs');
+ fs.mkdirSync('test-results/ui-review',{recursive:true});
+ const png=await page.screenshot({path:'test-results/ui-review/'+name+'.png',animations:'disabled'});
+ // Makes visual QA available through the GitHub log connector without local source copies.
+ console.log('OAKTOWN_UI:'+name+':'+png.toString('base64'));
+}
+test('selection retains keyboard focus and reports selected units outside a search',async({page})=>{
+ await setup(page);
+ const check=page.locator('#notice-picker-list input').first();
+ await check.focus();const original=await check.elementHandle();
+ await check.press('Space');
+ await expect(check).toBeChecked();await expect(check).toBeFocused();
+ expect(await original.evaluate(el=>el.isConnected&&el===document.querySelector('#notice-picker-list input'))).toBe(true);
+ await page.locator('#notice-picker-search').fill('no such fictional property');
+ await expect(page.locator('.picker-empty')).toBeVisible();
+ await expect(page.locator('#notice-picker-selection-summary')).toContainText('1 outside this search');
+ await page.locator('#notice-picker-reset-search').click();
+ await expect(page.locator('#notice-picker-search')).toBeFocused();
+ await expect(check).toBeChecked();
+ await expect(page.locator('#notice-picker-list')).toHaveAttribute('aria-busy','false');
+});
+test('draft creation and tenant-message return preserve the selected notice and focus its editor',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'});await setup(page);await importProperty(page);
+ await expect(page.locator('#notice-editor-title')).toBeFocused();
+ await uiSnapshot(page,'editor-desktop');
+ const studio=page.frameLocator('#studio-frame');
+ await studio.locator('#tenant').fill('Alex Example');
+ await page.locator('[data-notice-tab="message"]').click();
+ await expect(page.locator('#message-recipient')).toContainText('Alex Example');
+ await page.evaluate(()=>window.scrollTo(0,0));await uiSnapshot(page,'message-desktop');
+ await page.locator('#message-edit-notice').click();
+ await expect(page.locator('#notice-editor-title')).toBeFocused();
+ await expect(studio.locator('#tenant')).toHaveValue('Alex Example');
+ await expect(page.locator('#message-area')).toBeHidden();
+ await page.locator('#notice-back-to-selection').click();
+ await expect(page.locator('#notice-picker-search')).toBeFocused();
+});
+for(const width of [320,768,1440]){
+ test('workspace controls and navigation fit '+width+'px',async({page})=>{
+  await page.setViewportSize({width,height:900});
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await setup(page);
+  const overflow=()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1);
+  await expect.poll(overflow).toBe(true);
+  await expect(page.locator('#notice-picker-make')).toBeDisabled();
+  const createBox=await page.locator('#notice-picker-make').boundingBox();
+  expect(createBox.height).toBeGreaterThanOrEqual(44);
+  await uiSnapshot(page,'notices-'+width);
+  for(const workspace of ['properties','leases','listings','maintenance','notices']){
+   await page.locator('[data-workspace="'+workspace+'"]').click();
+   await expect(page.locator('#workspace-title')).toBeFocused();
+   await expect.poll(overflow).toBe(true);
+   if(width===1440&&workspace==='leases')await uiSnapshot(page,'renewals-desktop');
+  }
+  if(width===1440){
+   await page.locator('[data-workspace="properties"]').click();
+   await expect(page.locator('#ops-portfolio-list .property-record')).toHaveCount(1);
+   await uiSnapshot(page,'properties-desktop');
+  }
+ });
+}
+test('small-screen account dialog keeps all actions reachable',async({page})=>{
+ await page.setViewportSize({width:320,height:568});await setup(page);
+ await page.locator('#account-button').click();
+ await page.locator('#pilot-logout').click();
+ await page.locator('#forgot-password').click();
+ await expect(page.locator('#password-request')).toBeVisible();
+ await page.locator('#account-close').scrollIntoViewIfNeeded();
+ await expect(page.locator('#account-close')).toBeInViewport();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await page.locator('#account-close').click();
+ await expect(page.locator('#account-dialog')).toBeHidden();
 });
