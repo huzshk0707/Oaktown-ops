@@ -1,0 +1,15 @@
+/* Screen-only status controls inside the existing notice editor. Never touches printable pages. */
+@media screen {
+ body.embedded .notice-readiness{border:1px solid #c9d9c6;border-radius:10px;padding:13px 14px;margin:14px 0;background:#fafcf8;color:#254634}
+ .notice-readiness h3{font-size:15px;line-height:1.4;margin:0 0 6px;color:#153e35}
+ #notice-readiness-summary{font-size:13px;font-weight:650;line-height:1.5;margin:3px 0 9px}
+ .notice-readiness-items{margin:0;padding:0;list-style:none;display:grid;gap:5px}
+ .notice-readiness-items li{display:flex;gap:9px;align-items:center;padding:5px 0;font-size:13px;line-height:1.35;border-top:1px solid #e3ebe1}
+ .notice-readiness-items li>span:nth-child(2){flex:1;min-width:0}
+ .notice-readiness-items li .readiness-state{font-size:14px;font-weight:750;color:#8f5530;flex:none;width:17px;text-align:center}
+ .notice-readiness-items li[data-ready="true"] .readiness-state{color:#286348}
+ .notice-readiness-items li .btn{min-height:36px;padding:6px 11px;white-space:nowrap}
+ .notice-readiness-items li .btn[hidden]{display:none!important}
+ .notice-readiness-reminder{font-size:12px;line-height:1.55;color:#5c604d;margin:10px 0 0}
+ @media(max-width:600px){.notice-readiness-items li .btn{min-height:44px}.notice-readiness{padding:12px}}
+}
