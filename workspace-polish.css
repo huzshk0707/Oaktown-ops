@@ -53,8 +53,8 @@
   .sidebar nav{gap:6px;margin-top:12px;padding:3px 2px 8px;scrollbar-width:thin;overscroll-behavior-x:contain}
   .sidebar .nav-button{font-size:12px;padding:12px;gap:8px}
   .topbar{padding:10px 14px;min-height:60px}
-  .workspace-main{padding:20px 12px}
-  .workspace-intro h1{font-size:28px}
+  .workspace-main{padding:16px 12px}
+  .workspace-intro{margin-bottom:16px}.workspace-intro h1{font-size:28px}
   .workspace-intro p{font-size:13px}
   .workflow-tabs{gap:4px}
   .workflow-tabs button{padding:11px 8px;white-space:normal;line-height:1.5}

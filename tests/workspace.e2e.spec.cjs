@@ -325,10 +325,12 @@ test('selection retains keyboard focus and reports selected units outside a sear
 test('draft creation and tenant-message return preserve the selected notice and focus its editor',async({page})=>{
  await page.emulateMedia({reducedMotion:'reduce'});await setup(page);await importProperty(page);
  await expect(page.locator('#notice-editor-title')).toBeFocused();
+ await uiSnapshot(page,'editor-desktop');
  const studio=page.frameLocator('#studio-frame');
  await studio.locator('#tenant').fill('Alex Example');
  await page.locator('[data-notice-tab="message"]').click();
  await expect(page.locator('#message-recipient')).toContainText('Alex Example');
+ await page.evaluate(()=>window.scrollTo(0,0));await uiSnapshot(page,'message-desktop');
  await page.locator('#message-edit-notice').click();
  await expect(page.locator('#notice-editor-title')).toBeFocused();
  await expect(studio.locator('#tenant')).toHaveValue('Alex Example');
@@ -351,6 +353,7 @@ for(const width of [320,768,1440]){
    await page.locator('[data-workspace="'+workspace+'"]').click();
    await expect(page.locator('#workspace-title')).toBeFocused();
    await expect.poll(overflow).toBe(true);
+   if(width===1440&&workspace==='leases')await uiSnapshot(page,'renewals-desktop');
   }
   if(width===1440){
    await page.locator('[data-workspace="properties"]').click();
