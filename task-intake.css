@@ -1,0 +1,23 @@
+
+.task-inbox{max-width:1100px}
+.task-card{background:#fff;border:1px solid #d8e2d2;border-radius:16px;padding:24px;margin-bottom:20px}
+.task-card h2{font-size:21px;margin:0 0 10px}.task-card h3{font-size:17px;margin:8px 0}
+.task-card p{line-height:1.65}.task-muted{color:#567064;font-size:13px}
+.task-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
+.task-inbox textarea,.task-inbox select{width:100%;border:1px solid #bccfba;border-radius:9px;padding:12px;font:inherit;min-height:44px;background:#fff;color:#153e35}
+#task-json{min-height:230px;margin-top:8px;font-family:ui-monospace,monospace;font-size:13px}
+.task-inbox label{display:block;font-size:13px;font-weight:600;margin:12px 0}
+.task-inbox .task-check{display:flex;gap:10px;align-items:flex-start;line-height:1.6;min-height:44px}
+.task-check input{margin-top:5px;width:18px;height:18px;flex-shrink:0}
+.task-stages{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;font-size:12px;font-weight:650;color:#4a6a53}
+.task-stages span{padding:8px 12px;background:#edf3e8;border-radius:20px}
+.task-diff{display:grid;grid-template-columns:1fr 1fr;gap:14px}.task-diff>div{background:#f7f9f4;padding:14px;border-radius:10px;min-width:0}
+.task-fields{margin:0}.task-fields dt{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#617762;margin-top:12px}
+.task-fields dd{margin:3px 0;overflow-wrap:anywhere;font-size:14px;line-height:1.5}
+.task-alert{background:#fff6dd;border-left:3px solid #a37c32;padding:12px 14px;margin:12px 0;line-height:1.6}
+.task-evidence{padding:12px 0;border-top:1px solid #e1e8dc;overflow-wrap:anywhere}
+.task-evidence summary{cursor:pointer;min-height:44px;padding:10px 0}
+.task-inbox pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.7;max-height:360px;overflow:auto}
+.task-inbox button{min-height:44px}.task-inbox .status{white-space:pre-wrap}
+.task-pill{display:inline-block;padding:5px 10px;background:#e8f1e1;border-radius:20px;font-size:12px}
+@media(max-width:740px){.task-card{padding:16px}.task-diff{grid-template-columns:1fr}.task-inbox textarea,.task-inbox select{font-size:16px}.task-actions>.button{flex:1}.task-card h2{font-size:19px}}

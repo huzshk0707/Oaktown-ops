@@ -1,0 +1,171 @@
+{
+  "schema_version": "oaktown.task-intake.v1",
+  "batch_ref": "B008",
+  "work_date": "2026-11-02",
+  "timezone": "America/New_York",
+  "snapshot_ref": null,
+  "sources": [
+    {
+      "source_ref": "S001",
+      "kind": "text",
+      "label": "Fictional test input",
+      "occurred_at": null,
+      "evidence_excerpt": "Unit 8’s renewal needs Leslie’s approval. Remind me to follow up tomorrow."
+    },
+    {
+      "source_ref": "S002",
+      "kind": "text",
+      "label": "Fictional test input",
+      "occurred_at": null,
+      "evidence_excerpt": "I emailed Leslie about that Unit 8 renewal. Took about 10 minutes."
+    },
+    {
+      "source_ref": "S003",
+      "kind": "text",
+      "label": "Fictional test input",
+      "occurred_at": null,
+      "evidence_excerpt": "She hasn't replied yet"
+    },
+    {
+      "source_ref": "S004",
+      "kind": "text",
+      "label": "Fictional test input",
+      "occurred_at": null,
+      "evidence_excerpt": "I’m repeating the earlier update, not reporting another email"
+    },
+    {
+      "source_ref": "S005",
+      "kind": "text",
+      "label": "Fictional test input",
+      "occurred_at": null,
+      "evidence_excerpt": "Leslie approved the terms. I still need to prepare the lease."
+    }
+  ],
+  "proposals": [
+    {
+      "proposal_ref": "P001",
+      "operation": "create",
+      "task_id": null,
+      "related_proposal_ref": null,
+      "expected_updated_at": null,
+      "match_reason": "Fictional Unit 8 conversation",
+      "context": {
+        "workflow_key": "renewal",
+        "property_id": null,
+        "unit_id": null,
+        "tenancy_id": null,
+        "renewal_case_id": null,
+        "context_label": "Unit 8"
+      },
+      "changes": {
+        "task_title": "Prepare Unit 8 renewal lease",
+        "status": "waiting",
+        "waiting_on": "Leslie",
+        "next_action": "Wait for Leslie's reply on renewal terms",
+        "follow_up": {
+          "date": "2026-11-03",
+          "time": null,
+          "timezone": "America/New_York",
+          "original_text": "tomorrow"
+        }
+      },
+      "suggestions": {
+        "priority": "normal"
+      },
+      "source_refs": [
+        "S001"
+      ],
+      "needs_clarification": true
+    },
+    {
+      "proposal_ref": "P002",
+      "operation": "update",
+      "task_id": null,
+      "related_proposal_ref": "P001",
+      "expected_updated_at": null,
+      "match_reason": "Fictional Unit 8 conversation",
+      "context": {
+        "workflow_key": "renewal",
+        "property_id": null,
+        "unit_id": null,
+        "tenancy_id": null,
+        "renewal_case_id": null,
+        "context_label": "Unit 8"
+      },
+      "changes": {},
+      "suggestions": {},
+      "source_refs": [
+        "S003"
+      ],
+      "needs_clarification": true
+    },
+    {
+      "proposal_ref": "P003",
+      "operation": "duplicate",
+      "task_id": null,
+      "related_proposal_ref": "P001",
+      "expected_updated_at": null,
+      "match_reason": "Fictional Unit 8 conversation",
+      "context": {
+        "workflow_key": "renewal",
+        "property_id": null,
+        "unit_id": null,
+        "tenancy_id": null,
+        "renewal_case_id": null,
+        "context_label": "Unit 8"
+      },
+      "changes": {},
+      "suggestions": {},
+      "source_refs": [
+        "S004"
+      ],
+      "needs_clarification": true
+    },
+    {
+      "proposal_ref": "P004",
+      "operation": "update",
+      "task_id": null,
+      "related_proposal_ref": "P001",
+      "expected_updated_at": null,
+      "match_reason": "Fictional Unit 8 conversation",
+      "context": {
+        "workflow_key": "renewal",
+        "property_id": null,
+        "unit_id": null,
+        "tenancy_id": null,
+        "renewal_case_id": null,
+        "context_label": "Unit 8"
+      },
+      "changes": {
+        "status": "pending",
+        "next_action": "Prepare the lease"
+      },
+      "suggestions": {},
+      "source_refs": [
+        "S005"
+      ],
+      "needs_clarification": true,
+      "proposed_clear_fields": [
+        "waiting_on",
+        "follow_up"
+      ]
+    }
+  ],
+  "activities": [
+    {
+      "activity_ref": "A001",
+      "task_id": null,
+      "proposal_ref": "P001",
+      "work_date": "2026-11-02",
+      "summary": "Emailed Leslie regarding Unit 8 renewal terms",
+      "minutes": 10,
+      "duration_basis": "user_estimate",
+      "source_refs": [
+        "S002"
+      ]
+    }
+  ],
+  "questions": [
+    "Confirm the property address for Unit 8."
+  ]
+}
