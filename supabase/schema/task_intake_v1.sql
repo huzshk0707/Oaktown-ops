@@ -235,7 +235,13 @@ begin
   insert into ops_intake_private.items values(p_session,'activity',ref,a,taskid);
   activity_result:=activity_result||jsonb_build_array(jsonb_build_object('activity_ref',ref,'task_id',taskid,'result','imported'));
  end loop;
- receipt:=jsonb_build_object('schema_version','oaktown.task-receipt.v1','session_id',p_session,'batch_ref',export->>'batch_ref','saved_at',stamp,'proposals',result,'activities',activity_result);
+ receipt:=jsonb_build_object('schema_version','oaktown.task-receipt.v1','session_id',p_session,'batch_ref',export->>'batch_ref','saved_at',stamp,'proposals',result,'activities',activity_result,
+  'tasks',coalesce((select jsonb_agg(jsonb_build_object('id',t.id,'task_title',t.task_title,'status',t.status,'priority',t.priority,
+   'workflow_key',t.workflow_key,'property_id',t.property_id,'unit_id',t.unit_id,'tenancy_id',t.tenancy_id,'renewal_case_id',t.renewal_case_id,
+   'updated_at',t.updated_at,'intake_details',t.intake_details,
+   'context_label',case when t.workflow_key='general' then 'General operations' else concat_ws(' · ',pr.street_address,u.unit_label) end))
+   from public.ops_tasks t left join public.properties pr on pr.id=t.property_id left join public.units u on u.id=t.unit_id
+   where t.id in (select (v->>'task_id')::uuid from jsonb_array_elements(result||activity_result)v)),'[]'));
  insert into ops_intake_private.receipts values(p_session,export->>'batch_ref',p_payload,receipt,stamp);
  return receipt;
 end $$;

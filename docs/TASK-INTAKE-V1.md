@@ -8,7 +8,7 @@ This change implements Tasks → intake inbox. Today, automatic reminders, EOD g
 2. Copy session brief includes session ID, Eastern work date, task IDs/updated_at versions, and imported references. Give it to the chosen AI.
 3. Paste a full `oaktown.task-intake.v1` JSON export. Legacy exports without session_id can be explicitly bound to the selected session during review.
 4. Review the consolidated final state and original evidence; resolve every new task to a property/unit or General operations. Accept suggestions and clearing separately. Resolve outstanding questions before checking the final review confirmation.
-5. Save in one transaction and return the receipt to the AI. Sources, proposal history and activities are preserved. Dates without a time remain dates; a time is never invented.
+5. Save in one transaction and return the receipt to the AI. Receipts include final task IDs, resolved context, state and updated_at versions. Sources, proposal history and activities are preserved. Dates without a time remain dates; a time is never invented.
 6. Reuse the same session for retries and follow-ups. Session-scoped references prevent duplicate proposals/activities across different batch IDs. Different AI chats use different sessions.
 
 ## Contract and limits

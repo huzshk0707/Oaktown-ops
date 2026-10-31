@@ -13,6 +13,7 @@ begin
  r:=public.ops_task_intake('save',sid,req);
  if jsonb_array_length(r->'proposals')<>4 or jsonb_array_length(r->'activities')<>1 then raise exception 'Wrong receipt counts';end if;
  t:=(r->'proposals'->0->>'task_id')::uuid;
+ if jsonb_array_length(r->'tasks')<>1 or r->'tasks'->0->>'updated_at' is null or r->'tasks'->0->>'property_id'<>'10000000-0000-4000-8000-000000000001' then raise exception 'Receipt must include final context and task version';end if;
  if not exists(select 1 from public.ops_tasks where id=t and status='pending' and task_title='Prepare Unit 8 renewal lease' and not intake_details ? 'waiting_on' and not intake_details ? 'follow_up') then raise exception 'Final task state incorrect';end if;
  if public.ops_task_intake('save',sid,req)<>r then raise exception 'Same request should return same receipt';end if;
  req:=jsonb_set(req,'{export,batch_ref}','"B009"');
