@@ -209,3 +209,77 @@ test('lease inner tabs support keyboard arrows and remain usable at all required
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
  }
 });
+
+test('Properties shows desktop 40/60 layout and accessible small-screen Back navigation',async({page})=>{
+ await login(page);await page.emulateMedia({reducedMotion:'reduce'});
+ await page.locator('[data-workspace="properties"]').click();
+ for(const width of [320,768,1024,1440]){
+  await page.setViewportSize({width,height:900});
+  const results=page.locator('#ops-portfolio-results'),details=page.locator('#ops-portfolio-detail-shell');
+  if(width>=1024){
+   await expect(results).toBeVisible();await expect(details).toBeVisible();
+   const a=await results.boundingBox(),b=await details.boundingBox();
+   expect(a.width/(a.width+b.width)).toBeGreaterThan(0.37);
+   expect(a.width/(a.width+b.width)).toBeLessThan(0.43);
+  }
+  const selected=page.locator('#ops-portfolio-list [data-unit-id="'+U1+'"]');
+  await selected.click();
+  await expect(page.locator('#ops-portfolio-detail-title')).toBeFocused();
+  await expect(selected).toHaveAttribute('aria-current','true');
+  if(width<1024){
+   await expect(results).toBeHidden();
+   await expect(details).toBeVisible();
+   await page.locator('#ops-portfolio-back').click();
+   await expect(results).toBeVisible();
+   await expect(selected).toBeFocused();
+  }else{
+   await expect(results).toBeVisible();
+   await expect(details).toBeVisible();
+  }
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ }
+});
+
+test('Properties holds selected unit outside search and preserves correct Back focus',async({page})=>{
+ await login(page);await page.emulateMedia({reducedMotion:'reduce'});
+ await page.setViewportSize({width:768,height:800});
+ await page.locator('[data-workspace="properties"]').click();
+ const selected=page.locator('#ops-portfolio-list [data-unit-id="'+U1+'"]');
+ await selected.click();
+ await page.locator('#ops-portfolio-back').click();
+ const search=page.locator('#ops-portfolio-search');
+ await search.fill('Unit 8');
+ await expect(selected).toHaveCount(0);
+ await expect(page.locator('#ops-portfolio-open-selected')).toBeVisible();
+ await page.locator('#ops-portfolio-open-selected').click();
+ await expect(page.locator('#ops-portfolio-detail')).toContainText('UNIT-FAKE-1');
+ await expect(page.locator('#ops-portfolio-selection-status')).toContainText('outside the current search');
+ await page.locator('#ops-portfolio-back').click();
+ await expect(search).toBeFocused();
+ await expect(search).toHaveValue('Unit 8');
+ await expect(page.locator('#ops-portfolio-list .property-record')).toHaveCount(1);
+});
+
+test('Properties refreshes selected record, clears missing unit, and removes protected details on sign-out',async({page})=>{
+ const original=fixtures.units;
+ try{
+  fixtures.units=original.map(u=>({...u}));
+  await login(page);await page.setViewportSize({width:1440,height:900});
+  await page.locator('[data-workspace="properties"]').click();
+  await page.locator('#ops-portfolio-list [data-unit-id="'+U1+'"]').click();
+  fixtures.units[0].occupancy_status='Illustrative refreshed status';
+  await page.locator('#ops-portfolio-refresh').click();
+  await expect(page.locator('#ops-portfolio-detail')).toContainText('Illustrative refreshed status');
+  await expect(page.locator('#ops-portfolio-list [data-unit-id="'+U1+'"]')).toHaveAttribute('aria-current','true');
+  fixtures.units=fixtures.units.filter(u=>u.id!==U1);
+  await page.locator('#ops-portfolio-refresh').click();
+  await expect(page.locator('#ops-portfolio-detail')).toBeEmpty();
+  await expect(page.locator('#ops-portfolio-selection-status')).toContainText('no longer available');
+  await page.locator('#ops-portfolio-list').locator('.property-record').first().click();
+  await page.locator('#account-button').click();
+  await page.locator('#pilot-logout').click();
+  await expect(page.locator('#ops-portfolio-detail')).toBeEmpty();
+  await expect(page.locator('#ops-portfolio-open-selected')).toBeHidden();
+  await expect(page.locator('#ops-portfolio-browser')).toHaveAttribute('data-detail-open','false');
+ }finally{fixtures.units=original}
+});
