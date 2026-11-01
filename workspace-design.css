@@ -2,31 +2,33 @@
    generator, and never applied to printed or downloaded document pages. */
 @media screen {
  .ops-workspace {
-  --forest:#173f35; --forest-dark:#102e27; --ink:#243c33; --muted:#56665e;
-  --bg:#f5f4ef; --paper:#fff; --line:#d9dfd8; --sage:#edf2eb; --gold:#e2cb93;
-  --ui-canvas:var(--bg); --ui-surface:#fff; --ui-soft:#f7f8f4;
+  color-scheme:dark;
+  --forest:#bdeff5; --forest-dark:#edfcff; --ink:#d5e7ee; --muted:#9bb2bf;
+  --bg:#071119; --paper:#0e1c27; --line:#29414e; --sage:#103240; --gold:#64e5f0;
+  --ui-canvas:var(--bg); --ui-surface:#0e1c27; --ui-soft:#0a1721; --ui-rail:#060d14;
   --ui-text:var(--ink); --ui-muted:var(--muted); --ui-border:var(--line);
-  --ui-control:#819487; --ui-accent:var(--forest); --ui-accent-soft:#eaf1e9;
-  --ui-radius:14px; --ui-shadow:0 2px 4px #173f3503,0 8px 28px #173f3504;
+  --ui-control:#678896; --ui-accent:#64e5f0; --ui-on-accent:#05202a; --ui-accent-soft:#103240;
+  --ui-radius:8px; --ui-shadow:0 0 0 1px #64e5f003,0 8px 32px #00000020;
   --ui-space-1:4px; --ui-space-2:8px; --ui-space-3:12px; --ui-space-4:16px;
   --ui-space-6:24px; --ui-space-8:32px;
   font:15px/1.55 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:var(--ui-canvas); color:var(--ui-text);
+  background-image:radial-gradient(ellipse at 80% 0%,#17425045,transparent 55%),linear-gradient(#64e5f004 1px,transparent 1px),linear-gradient(90deg,#64e5f004 1px,transparent 1px);background-size:auto,48px 48px,48px 48px;
  }
- .ops-workspace .sidebar {width:244px;padding:32px 20px 24px;background:var(--forest-dark)}
+ .ops-workspace .sidebar {width:244px;padding:32px 20px 24px;background:var(--ui-rail);border-right:1px solid var(--ui-border)}
  .ops-workspace .brand {gap:12px;font-size:18px;letter-spacing:2px}
- .ops-workspace .brand-mark {width:40px;height:44px;border-color:#829c89;background:#ffffff06}
- .ops-workspace .brand-sub {font-size:8px;letter-spacing:1.35px;line-height:1.6;color:#c6d4c8}
- .ops-workspace .workspace-label {margin:44px 12px 14px;font-size:10px;color:#b3c6ba;letter-spacing:1.5px}
+ .ops-workspace .brand-mark {width:40px;height:44px;border-color:var(--ui-accent);background:#64e5f008;color:var(--ui-accent);border-radius:50%;box-shadow:0 0 18px #64e5f014}
+ .ops-workspace .brand-sub {font-size:8px;letter-spacing:1.35px;line-height:1.6;color:var(--ui-muted)}
+ .ops-workspace .workspace-label {margin:44px 12px 14px;font-size:10px;color:var(--ui-muted);letter-spacing:1.5px}
  .ops-workspace .sidebar nav {gap:4px}
- .ops-workspace .nav-button {margin:0;min-height:48px;border:1px solid transparent;border-radius:8px;padding:12px;gap:12px;font-size:13px;color:#cedbd1;transition:background .18s,border-color .18s,color .18s}
+ .ops-workspace .nav-button {margin:0;min-height:48px;border:1px solid transparent;border-radius:8px;padding:12px;gap:12px;font-size:13px;color:#adc6d0;transition:background .18s,border-color .18s,color .18s}
  .ops-workspace .nav-button:hover {background:#ffffff0d;color:#fff}
- .ops-workspace .nav-button.active {background:#2b4b3e;border-color:#56705a;color:#fff;box-shadow:inset 3px 0 var(--gold)}
- .ops-workspace .nav-button small {font-size:10px;color:#c4d2c8;letter-spacing:.01em}
+ .ops-workspace .nav-button.active {background:var(--ui-accent-soft);border-color:#477782;color:#fff;box-shadow:inset 3px 0 var(--gold)}
+ .ops-workspace .nav-button small {font-size:10px;color:var(--ui-muted);letter-spacing:.01em}
  .ops-workspace .nav-button[data-workspace="listings"] {margin-top:22px}
- .ops-workspace .sidebar-footer {margin-top:auto;padding:24px 12px 0;border-color:#395346}
- .ops-workspace .sidebar-footer p {font-size:20px;color:#f3f1e7;line-height:1.55;margin:16px 0 24px}
- .ops-workspace .sidebar-footer small {color:#c0d0c4;line-height:1.6}
+ .ops-workspace .sidebar-footer {margin-top:auto;padding:24px 12px 0;border-color:var(--ui-border)}
+ .ops-workspace .sidebar-footer p {font-size:16px;color:var(--ui-text);line-height:1.65;font-family:inherit;margin:16px 0 24px}
+ .ops-workspace .sidebar-footer small {color:var(--ui-muted);line-height:1.6}
  .ops-workspace .version {font-size:10px}
  .ops-workspace .shell {margin-left:244px}
  .ops-workspace .topbar {min-height:72px;height:auto;padding:14px 36px;background:var(--ui-canvas);font-size:13px}
@@ -37,16 +39,16 @@
  .ops-workspace .workspace-intro {margin:0 0 28px;padding:0 0 24px;border-bottom:1px solid var(--ui-border)}
  .ops-workspace .eyebrow {color:var(--ui-muted)}
  .ops-workspace .workspace-intro .eyebrow {font-size:10px;letter-spacing:1.8px;color:var(--ui-muted);margin-bottom:8px}
- .ops-workspace .workspace-intro h1 {font:400 clamp(32px,3vw,44px)/1.15 Georgia,"Times New Roman",serif;letter-spacing:-1.2px;color:var(--forest-dark)}
+ .ops-workspace .workspace-intro h1 {font:600 clamp(32px,3vw,44px)/1.15 ui-sans-serif,system-ui,sans-serif;letter-spacing:-1.2px;color:var(--forest-dark)}
  .ops-workspace .workspace-intro p {font-size:14px;line-height:1.7;color:var(--ui-muted);margin-top:12px;max-width:64ch}
  .ops-workspace :is(.button,.text-action,summary,[role="tab"]) {touch-action:manipulation;cursor:pointer}
  .ops-workspace .button {min-height:44px;padding:10px 16px;font-size:13px;line-height:1.5;border:1px solid var(--ui-control);border-radius:8px;background:var(--ui-surface);color:var(--forest);transition:background .18s,border-color .18s,box-shadow .18s}
  .ops-workspace .button:hover:not(:disabled) {background:var(--ui-accent-soft);border-color:var(--ui-accent)}
- .ops-workspace .button:active:not(:disabled) {background:#dde9dd}
- .ops-workspace .button.primary {background:var(--ui-accent);color:#fff;border-color:var(--ui-accent)}
- .ops-workspace .button.primary:hover:not(:disabled) {background:var(--forest-dark);border-color:var(--forest-dark);box-shadow:0 2px 6px #102e2720}
+ .ops-workspace .button:active:not(:disabled) {background:#173d4b}
+ .ops-workspace .button.primary {background:var(--ui-accent);color:var(--ui-on-accent);border-color:var(--ui-accent)}
+ .ops-workspace .button.primary:hover:not(:disabled) {background:#a1f3f8;border-color:#a1f3f8;box-shadow:0 0 20px #64e5f020}
  .ops-workspace .button:disabled {opacity:.5;box-shadow:none;cursor:not-allowed}
- .ops-workspace :is(button,a,input,select,textarea,summary):focus-visible {outline:3px solid #49794f;outline-offset:3px;scroll-margin-block:24px}
+ .ops-workspace :is(button,a,input,select,textarea,summary):focus-visible {outline:3px solid var(--ui-accent);outline-offset:3px;scroll-margin-block:24px}
  .ops-workspace .sidebar :is(button,a):focus-visible {outline-color:var(--gold)}
  .ops-workspace :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {font-family:inherit;line-height:1.5;font-size:14px;min-height:44px;border-color:var(--ui-control);border-radius:8px;background:var(--ui-surface);color:var(--ui-text)}
  .ops-workspace :is(#notice-picker-search,#ops-portfolio-search,#ops-renewals-search) {border-color:var(--ui-control);background:var(--ui-surface)}
@@ -58,15 +60,15 @@
  .ops-workspace :is(.section-head h2,.task-card h2,.today-header h2,#ops-portfolio-panel h2,#ops-renewals-panel h2,#ops-renewal-generator h2) {font-size:21px;line-height:1.35;letter-spacing:-.4px;font-weight:650;color:var(--forest-dark)}
  .ops-workspace .section-head {gap:16px;margin-bottom:20px;align-items:flex-start}
  .ops-workspace .section-head p {font-size:13px;max-width:70ch;line-height:1.7;color:var(--ui-muted)}
- .ops-workspace :is(.workflow-tabs,.lease-inner-tabs) {position:static;margin:0 0 24px;background:#e9ece5;border:1px solid var(--ui-border);border-radius:10px;padding:5px;gap:5px}
+ .ops-workspace :is(.workflow-tabs,.lease-inner-tabs) {position:static;margin:0 0 24px;background:#091620;border:1px solid var(--ui-border);border-radius:10px;padding:5px;gap:5px}
  .ops-workspace :is(.workflow-tabs button,.lease-inner-tabs [role="tab"]) {font-family:inherit;font-weight:600;font-size:13px;line-height:1.5;min-height:44px;border-radius:6px;color:var(--ui-muted);padding:12px 16px}
  .ops-workspace :is(.workflow-tabs .active,.lease-inner-tabs [aria-selected="true"]) {background:var(--ui-surface);color:var(--forest);box-shadow:0 1px 4px #173f351a}
- .ops-workspace .staff-access {background:#edf1e9;border-color:#b9cbb8;border-radius:var(--ui-radius);padding:28px;max-width:none}
- .ops-workspace .staff-access p {color:#3f5748;font-size:14px}
+ .ops-workspace .staff-access {background:#10232e;border-color:#477782;border-radius:var(--ui-radius);padding:28px;max-width:none}
+ .ops-workspace .staff-access p {color:var(--ui-text);font-size:14px}
  .ops-workspace .staff-access-actions p {font-size:12px}
- .ops-workspace .access-eyebrow {font-size:10px;color:#456345}
+ .ops-workspace .access-eyebrow {font-size:10px;color:var(--ui-accent)}
  .ops-workspace .notice-picker-row {background:var(--ui-soft);border-color:var(--ui-border);padding:16px;min-height:96px;gap:12px}
- .ops-workspace .notice-picker-row:has(input:checked) {background:var(--ui-accent-soft);border-color:#527951;box-shadow:inset 3px 0 var(--forest)}
+ .ops-workspace .notice-picker-row:has(input:checked) {background:var(--ui-accent-soft);border-color:var(--ui-accent);box-shadow:inset 3px 0 var(--ui-accent)}
  .ops-workspace .notice-picker-row-body small {font-size:12px;color:var(--ui-muted)}
  .ops-workspace .property-record {background:var(--ui-soft);border-color:var(--ui-border);padding:16px;border-radius:10px;box-shadow:none}
  .ops-workspace .property-record:hover {background:var(--ui-accent-soft);border-color:var(--ui-control)}
@@ -104,15 +106,15 @@
  .ops-workspace .today-explainer {background:var(--ui-soft);padding:12px 14px;border-radius:8px;font-size:12px}
  .ops-workspace .today-footer-note {font-size:12px;padding-top:4px}
  .ops-workspace .task-stages {gap:0;border-bottom:1px solid var(--ui-border);border-radius:0;margin-bottom:24px}
- .ops-workspace .task-stages span {background:transparent;flex:1;border-radius:0;padding:12px 16px;font-size:12px;color:var(--forest);border-bottom:2px solid #aec1aa}
+ .ops-workspace .task-stages span {background:transparent;flex:1;border-radius:0;padding:12px 16px;font-size:12px;color:var(--forest);border-bottom:2px solid #477782}
  .ops-workspace .task-card {margin-bottom:24px}
  .ops-workspace .task-card>p {max-width:76ch;font-size:14px}
  .ops-workspace :is(.task-diff>div,.task-archived-list,.renewal-summary,.tracker-history) {background:var(--ui-soft);border-radius:10px}
  .ops-workspace .task-inbox .task-pill {background:var(--ui-accent-soft);color:var(--forest)}
- .ops-workspace :is(.renewal-warning,.task-alert,.message-alert) {background:#fbf5e6;border-color:#b18b44;color:#694b1c;border-radius:6px;font-size:13px;line-height:1.7;padding:14px 16px}
+ .ops-workspace :is(.renewal-warning,.task-alert,.message-alert) {background:#302718;border-color:#b7985c;color:#f0d79e;border-radius:6px;font-size:13px;line-height:1.7;padding:14px 16px}
  .ops-workspace .legacy-address-manager {padding:18px 20px;border-color:var(--ui-border);background:transparent}
  .ops-workspace dialog {border-color:var(--ui-border);padding:28px;border-radius:16px;box-shadow:0 24px 96px #102e2733;max-height:calc(100dvh - 32px)}
- .ops-workspace dialog::backdrop {background:#102e2777;backdrop-filter:blur(4px)}
+ .ops-workspace dialog::backdrop {background:#02080dc9;backdrop-filter:blur(4px)}
  .ops-workspace dialog h2 {font-size:24px;letter-spacing:-.5px}
  .ops-workspace dialog label {font-size:13px}
  .ops-workspace .today-link-fields {border-color:var(--ui-border);background:var(--ui-soft)}
@@ -165,5 +167,61 @@
  }
  @media(prefers-reduced-motion:reduce) {
   .ops-workspace *,.ops-workspace *::before,.ops-workspace *::after {transition:none!important;animation:none!important;scroll-behavior:auto!important}
+ }
+}
+
+/* Command-console details. Functional state always comes from the application;
+   these static accents carry no telemetry or assistant activity. */
+@media screen {
+ .ops-workspace .skip {background:var(--ui-accent);color:var(--ui-on-accent)}
+ .ops-workspace .sidebar {background-image:linear-gradient(180deg,#11232b55,transparent 45%)}
+ .ops-workspace .brand {color:#e4f8fa}
+ .ops-workspace .brand-sub,.ops-workspace .workspace-label,.ops-workspace .eyebrow,.ops-workspace .version {font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+ .ops-workspace .topbar {background:#08131dc9;border-color:var(--ui-border)}
+ .ops-workspace .workspace-intro {align-items:center;position:relative;min-height:132px}
+ .ops-workspace .workspace-intro .eyebrow {color:var(--ui-accent);letter-spacing:2.5px}
+ .ops-workspace .console-emblem {width:100px;height:100px;flex:none;margin-right:12px;color:var(--ui-accent);filter:drop-shadow(0 0 12px #64e5f020)}
+ .ops-workspace .console-emblem svg {display:block;width:100%;height:100%}
+ .ops-workspace .workspace-intro>div:first-child {flex:1;min-width:0}
+ .ops-workspace :is(.task-card,.today-card,.message-card,.notice-picker,#ops-portfolio-panel,#ops-renewals-panel,#ops-renewal-generator) {background-image:linear-gradient(90deg,#64e5f055 0 32px,transparent 32px);background-size:100% 1px;background-position:top;background-repeat:no-repeat}
+ .ops-workspace :is(h2,h3,h4,label,.renewal-grid label,.tracker-field,.ops-detail-line strong,.tracker-event strong) {color:var(--ui-text)}
+ .ops-workspace :is(.today-header h2,.today-section-head h3) {color:#dff5f8}
+ .ops-workspace :is(.text-action,.tenant-email-value,.tenant-email-label,.today-task-link) {color:var(--ui-accent)}
+ .ops-workspace :is(.sidebar-footer a,.sidebar-footer small) {color:var(--ui-muted)}
+ .ops-workspace :is(.today-kpi strong,.ops-kpi strong) {color:var(--ui-accent);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:400}
+ .ops-workspace .today-kpi span {letter-spacing:.03em;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:500}
+ .ops-workspace .today-task {background:var(--ui-soft)}
+ .ops-workspace .property-record {color:var(--ui-text)}
+ .ops-workspace #renewal-preview {color:var(--ui-text)}
+ .ops-workspace :is(.today-header p,.renewal-field) {color:var(--ui-muted)}
+ .ops-workspace :is(.today-task-meta,.today-next,.tenant-email-note,.message-hint,.message-top p) {color:var(--ui-muted)}
+ .ops-workspace #ops-portfolio-list .property-record[aria-current="true"] {background:var(--ui-accent-soft);border-color:var(--ui-accent);box-shadow:inset 3px 0 var(--ui-accent)}
+ .ops-workspace :is(.notice-template-info,.tenant-email-panel,.message-context-bar,.workspace-bar,.selected-notice,.ops-tracker,.tracker-event,.task-other,.task-archived-list,.task-diff>div,.renewal-summary,.roadmap article,#password-request,#password-change) {background:var(--ui-soft);color:var(--ui-text);border-color:var(--ui-border)}
+ .ops-workspace .notice-template-info {border-left:2px solid #477782}
+ .ops-workspace :is(.message-text,.ops-history) {background:#08131c;color:var(--ui-text);border-color:var(--ui-border)}
+ .ops-workspace :is(.tracker-suggestion,.task-pill,.stage,.undo-batch) {background:var(--ui-accent-soft);color:var(--ui-text);border-color:var(--ui-border)}
+ .ops-workspace :is(.tracker-error,.message-alert) {color:#ffc1b8!important}
+ .ops-workspace .renewal-summary dt {color:var(--ui-accent)}
+ .ops-workspace :is(.task-fields dt,.ops-muted,.subtle,.task-muted) {color:var(--ui-muted)}
+ .ops-workspace :is(.today-lease,.today-task,.task-history-row,.tracker-history,.task-evidence,.ops-detail-line,.renewal-choice-grid) {border-color:var(--ui-border)}
+ .ops-workspace .picker-empty {background:var(--ui-soft);color:var(--ui-muted);border-color:var(--ui-control)}
+ .ops-workspace .message-card h2,.ops-workspace .editor-overview h2 {color:var(--ui-text)}
+ .ops-workspace .editor-overview p {color:var(--ui-muted)}
+ .ops-workspace dialog {background:var(--ui-surface);color:var(--ui-text);box-shadow:0 0 0 1px #64e5f015,0 28px 96px #0009}
+ .ops-workspace :is(.today-edit-head p,.today-link-fields p,#today-edit-feedback,dialog p) {color:var(--ui-muted)}
+ .ops-workspace #ops-portfolio-detail-title:focus {outline-color:var(--ui-accent)}
+ .ops-workspace .account-dot.online {background:var(--ui-accent);box-shadow:0 0 8px #64e5f033}
+ .ops-workspace .studio-frame {border-color:var(--ui-border);background:var(--ui-canvas);color-scheme:light}
+ @media(max-width:740px) {
+  .ops-workspace .console-emblem {width:64px;height:64px;margin-right:0}
+  .ops-workspace .workspace-intro {gap:12px;min-height:0}
+  .ops-workspace .workspace-intro h1 {font-size:32px}
+  .ops-workspace .workspace-intro p {font-size:13px}
+ }
+ @media(max-width:400px) {.ops-workspace .console-emblem {display:none}}
+ @media(forced-colors:active) {
+  .ops-workspace {background:Canvas;color:CanvasText}
+  .ops-workspace .console-emblem {display:none}
+  .ops-workspace :is(.nav-button.active,.property-record[aria-current="true"]) {border:2px solid Highlight}
  }
 }
