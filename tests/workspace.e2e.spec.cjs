@@ -50,7 +50,7 @@ async function setup(page){
   return reply({message:'Unexpected mocked request: '+p},500);
  });
  page.on('dialog',d=>d.accept());
- await page.goto(ORIGIN+'/');await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
+ await page.goto(ORIGIN+'/');await page.locator('[data-workspace="notices"]').click();await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
  s.email='tester@example.invalid';await page.locator('#pilot-email').fill(s.email);
  await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();await expect(page.locator('#account-button')).toContainText('Signed in');return s;
@@ -71,8 +71,8 @@ test('shared sign-in survives nested workflow navigation, reload and refresh',as
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.logins).toBe(1);
  await page.evaluate(()=>{const key='oaktown-session-v04',v=JSON.parse(localStorage.getItem(key));v.expires_at=1;localStorage.setItem(key,JSON.stringify(v))});
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.refreshes).toBe(1);expect(s.logins).toBe(1);
- await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#staff-access-signin')).toBeVisible();
- await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();expect(s.logins).toBe(1);
+ await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#today-signin')).toBeVisible();
+ await page.reload();await expect(page.locator('#today-signin')).toBeVisible();expect(s.logins).toBe(1);
 });
 test('historical court details survive local JSON import and reload without cloud saving',async({page})=>{
  const state=await setup(page);await importProperty(page);
@@ -138,7 +138,7 @@ test('property writes validate fields and retain edits on network failure',async
  await expect(page.locator('#prop-unit')).toHaveValue('Unit C');expect(s.properties.find(p=>p.id===CREATED).unit).toBe('Unit B');
 });
 test('revoked membership blocks a restored session',async({page})=>{
- const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();
+ const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#today-signin')).toBeVisible();
  await expect(page.locator('#pilot-auth-status')).toContainText('not approved');await expect(page.locator('#pilot-properties')).not.toBeVisible();
 });
 test('pending property saves lock actions that could switch their targets',async({page})=>{
@@ -160,8 +160,8 @@ test('a delayed account verification cannot restore a signed-out session',async(
  const s=await setup(page);let release;s.holdMembership=new Promise(resolve=>release=resolve);
  await page.reload();await expect.poll(()=>s.membershipWaiting).toBe(true);
  await page.evaluate(()=>window.OpsCloud.signOut());release();
- await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#staff-access-signin')).toBeVisible();
- await page.reload();await expect(page.locator('#staff-access-signin')).toBeVisible();expect(s.logins).toBe(1);
+ await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#today-signin')).toBeVisible();
+ await page.reload();await expect(page.locator('#today-signin')).toBeVisible();expect(s.logins).toBe(1);
 });
 test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
@@ -212,6 +212,7 @@ test('Make Notices supports multiple units at one address with missing recipient
 
 test('signed-out staff first sees a useful access panel while local drafts stay available',async({page})=>{
  await page.goto(ORIGIN+'/');
+ await page.locator('[data-workspace="notices"]').click();
  await expect(page.locator('#staff-access')).toBeVisible();
  await expect(page.locator('#staff-access')).toContainText('Notice drafts remain on this browser');
  await expect(page.locator('#notice-picker')).toBeHidden();

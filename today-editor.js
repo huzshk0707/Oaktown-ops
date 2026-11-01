@@ -130,7 +130,7 @@ $('today-edit-form').addEventListener('submit',async event=>{
   window.dispatchEvent(new Event('ops-today-refresh'));
  }catch(error){
   if(ticket===nonce){
-   feedback('Not saved: '+(error.message||'Request failed')+'. Refresh if another staff member edited this task.');
+   feedback('Not saved: '+(error.message||'Request failed')+'. Refresh to load the latest saved version.');
   }
  }finally{saving=false;$('today-edit-save').disabled=false;}
 });
