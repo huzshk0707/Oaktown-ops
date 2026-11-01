@@ -151,3 +151,46 @@ test('Editor rejects stale changes without claiming save and only editors can op
  await expect(page.locator('#today-queue .today-edit-trigger')).toHaveCount(0);
  await expect(page.locator('#today-queue')).toContainText('Fictional overdue inspection');
 });
+
+test('operations brief and chart use disjoint recorded-date groups, clear on denial, and quick actions navigate',async({page})=>{
+ const state=await setup(page);
+ state.tasks.push({id:'5',task_title:'Fictional later task',status:'pending',priority:'normal',intake_details:{due:{date:offset(M.today(),12)}}});
+ await page.locator('#staff-access-signin').click();
+ await page.locator('#pilot-email').fill('example@example.invalid');
+ await page.locator('#pilot-password').fill('fictional-password-only');
+ await page.locator('#pilot-login').click();
+ await page.locator('[data-workspace="today"]').click();
+ await expect(page.locator('#today-brief-text')).toContainText('4 active tasks');
+ await expect(page.locator('#today-brief-text')).toContainText('1 overdue and 1 due today');
+ await expect(page.locator('#today-schedule .schedule-legend li')).toHaveText(['Overdue1','Due today1','Upcoming1','No date1']);
+ await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
+ await page.locator('[data-today-go="properties"]').click();
+ await expect(page.locator('#properties-workflow')).toBeVisible();
+ await page.locator('[data-workspace="today"]').click();
+ await page.locator('[data-today-go="leases"]').click();
+ await expect(page.locator('#lease-prepare-panel')).toBeVisible();
+ await expect(page.locator('#ops-renewals-panel')).toBeHidden();
+ await page.locator('[data-workspace="today"]').click();
+ await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
+ state.fail=true;await page.locator('#today-refresh').click();
+ await expect(page.locator('#today-status')).toContainText('Could not load');
+ await expect(page.locator('#today-brief-text')).not.toContainText('4 active tasks');
+ await expect(page.locator('#today-schedule .schedule-ring')).toHaveCount(0);
+ state.fail=false;await page.locator('#today-refresh').click();
+ await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-brief-text')).toContainText('Sign in');
+ await expect(page.locator('#today-schedule .schedule-ring')).toHaveCount(0);
+});
+
+test('zero recorded tasks produce a truthful empty overview',async({page})=>{
+ const state=await setup(page);state.tasks=[];state.renewals=[];
+ await page.locator('#staff-access-signin').click();
+ await page.locator('#pilot-email').fill('example@example.invalid');
+ await page.locator('#pilot-password').fill('fictional-password-only');
+ await page.locator('#pilot-login').click();
+ await page.locator('[data-workspace="today"]').click();
+ await expect(page.locator('#today-brief-text')).toContainText('No active tasks are recorded');
+ await expect(page.locator('#today-schedule .schedule-legend li strong')).toHaveText(['0','0','0','0']);
+ await expect(page.locator('#today-schedule')).toContainText('No active tasks recorded');
+});

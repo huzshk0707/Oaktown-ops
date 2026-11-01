@@ -1,39 +1,39 @@
 /* Embedded editor chrome only. Document sheets, print rules and PDF renderers
    retain their original styles. Standalone generator keeps its own appearance. */
 @media screen {
- body.embedded {background:#071119}
- body.embedded .panel {background:#0e1c27;border-color:#29414e;box-shadow:none}
- body.embedded :is(.control-panel,.toolbar,.panel-head,.footer-note) {color:#d5e7ee}
- body.embedded :is(.panel-head,.toolbar) {background:#0e1c27;border-color:#29414e}
+ body.embedded {background:#081331}
+ body.embedded .panel {background:#101f41;border-color:#2c416b;box-shadow:none}
+ body.embedded :is(.control-panel,.toolbar,.panel-head,.footer-note) {color:#dee8fb}
+ body.embedded :is(.panel-head,.toolbar) {background:#101f41;border-color:#2c416b}
  body.embedded .panel-head h2 {color:#edfcff}
- body.embedded .control-panel :is(label,.section-heading,.row-actions,h3) {color:#d5e7ee}
- body.embedded .control-panel :is(.hint,.muted) {color:#9bb2bf}
- body.embedded .control-panel :is(input,select,textarea) {background:#08131c;color:#d5e7ee;border-color:#678896;color-scheme:dark}
- body.embedded .control-panel :is(input,textarea)::placeholder {color:#9bb2bf;opacity:1}
- body.embedded .control-panel :is(.row-card,.statement-import,.statement-backups) {background:#0a1721;color:#d5e7ee;border-color:#29414e}
- body.embedded :is(.control-panel,.toolbar) .btn {color:#bdeff5;background:#0e1c27;border-color:#678896;min-height:44px}
- body.embedded :is(.control-panel,.toolbar) .btn:hover {background:#103240}
- body.embedded :is(.control-panel,.toolbar) .btn-primary {color:#05202a;background:#64e5f0;border-color:#64e5f0}
- body.embedded :is(.control-panel,.toolbar) .btn-primary:hover {background:#a1f3f8}
+ body.embedded .control-panel :is(label,.section-heading,.row-actions,h3) {color:#dee8fb}
+ body.embedded .control-panel :is(.hint,.muted) {color:#a5b9d8}
+ body.embedded .control-panel :is(input,select,textarea) {background:#0c1936;color:#dee8fb;border-color:#718cb6;color-scheme:dark}
+ body.embedded .control-panel :is(input,textarea)::placeholder {color:#a5b9d8;opacity:1}
+ body.embedded .control-panel :is(.row-card,.statement-import,.statement-backups) {background:#0c1936;color:#dee8fb;border-color:#2c416b}
+ body.embedded :is(.control-panel,.toolbar) .btn {color:#d7e6ff;background:#101f41;border-color:#718cb6;min-height:44px}
+ body.embedded :is(.control-panel,.toolbar) .btn:hover {background:#183568}
+ body.embedded :is(.control-panel,.toolbar) .btn-primary {color:#fff;background:#2a66dd;border-color:#2a66dd}
+ body.embedded :is(.control-panel,.toolbar) .btn-primary:hover {background:#2054be}
  body.embedded .control-panel .btn-danger {color:#ffc1b8}
- body.embedded .control-panel .chip {background:#0a1721;color:#bdeff5;border-color:#678896}
- body.embedded .control-panel .chip.active {background:#103240;color:#edfcff;border-color:#64e5f0}
- body.embedded :is(.control-panel,.toolbar) :is(input,select,textarea,button,summary):focus-visible {outline:3px solid #64e5f0;outline-offset:3px}
- body.embedded .toolbar .export-details summary {background:#0e1c27;color:#bdeff5;border-color:#678896}
+ body.embedded .control-panel .chip {background:#0c1936;color:#d7e6ff;border-color:#718cb6}
+ body.embedded .control-panel .chip.active {background:#183568;color:#edfcff;border-color:#2a66dd}
+ body.embedded :is(.control-panel,.toolbar) :is(input,select,textarea,button,summary):focus-visible {outline:3px solid #9ad4ff;outline-offset:3px}
+ body.embedded .toolbar .export-details summary {background:#101f41;color:#d7e6ff;border-color:#718cb6}
  body.embedded .control-panel label>input {margin-top:5px}
- body.embedded .control-panel .statement-file-label {background:#0e1c27;border-color:#678896;min-height:44px}
- body.embedded #statement-import-preview table {background:#0a1721;color:#d5e7ee}
- body.embedded #statement-import-preview :is(th,td) {border-color:#678896}
- body.embedded #statement-import-preview th {background:#103240}
+ body.embedded .control-panel .statement-file-label {background:#101f41;border-color:#718cb6;min-height:44px}
+ body.embedded #statement-import-preview table {background:#0c1936;color:#dee8fb}
+ body.embedded #statement-import-preview :is(th,td) {border-color:#718cb6}
+ body.embedded #statement-import-preview th {background:#183568}
  body.embedded .control-panel .ok {background:#102e2b;color:#b3e8ce;border-color:#508e75}
  body.embedded .control-panel .alert {background:#302718;color:#f0d79e;border-color:#b7985c}
- body.embedded .notice-readiness {background:#0a1721;color:#d5e7ee;border-color:#29414e}
+ body.embedded .notice-readiness {background:#0c1936;color:#dee8fb;border-color:#2c416b}
  body.embedded .notice-readiness h3 {color:#edfcff}
- body.embedded .notice-readiness-items li {border-color:#29414e}
+ body.embedded .notice-readiness-items li {border-color:#2c416b}
  body.embedded .notice-readiness-items li .readiness-state {color:#f0d79e}
  body.embedded .notice-readiness-items li[data-ready="true"] .readiness-state {color:#8dddb6}
- body.embedded .notice-readiness-reminder {color:#9bb2bf}
- body.embedded .paper-stage {background:#08131c}
- body.embedded .paper-stage>.no-print-notice {background:#0e1c27;color:#9bb2bf;border-color:#29414e}
- body.embedded :is(.pages-info,#status,.export-feedback) {color:#9bb2bf}
+ body.embedded .notice-readiness-reminder {color:#a5b9d8}
+ body.embedded .paper-stage {background:#0c1936}
+ body.embedded .paper-stage>.no-print-notice {background:#101f41;color:#a5b9d8;border-color:#2c416b}
+ body.embedded :is(.pages-info,#status,.export-feedback) {color:#a5b9d8}
 }
