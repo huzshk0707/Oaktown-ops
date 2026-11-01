@@ -62,8 +62,11 @@ begin
    raise exception 'Lease does not belong to selected unit' using errcode='22023';end if;
  end if;
  if renewal is not null then
-  select r.unit_id,r.property_id,r.lease_id into renewal_unit,renewal_property,renewal_lease
-   from public.renewal_cases r where r.id=renewal;
+  select r.unit_id,
+         coalesce((to_jsonb(r)->>'property_id')::uuid,u.property_id),
+         r.lease_id into renewal_unit,renewal_property,renewal_lease
+   from public.renewal_cases r left join public.units u on u.id=r.unit_id
+   where r.id=renewal;
   if not found or (renewal_unit is not null and unit is distinct from renewal_unit)
    or (renewal_property is not null and property is distinct from renewal_property)
    or (renewal_lease is not null and lease is not null and lease is distinct from renewal_lease) then
