@@ -38,7 +38,7 @@ async function login(page){
   return route.fulfill({status:200,headers:h,body:JSON.stringify(body)});
  });
  await page.goto('http://127.0.0.1:8765/');
- await page.locator('#staff-access-signin').click();
+ await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('tester@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password');
  await page.locator('#pilot-login').click();

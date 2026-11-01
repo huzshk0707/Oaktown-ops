@@ -8,11 +8,11 @@ const pad=n=>String(n).padStart(2,'0');
 function offset(date,days){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return [d.getUTCFullYear(),pad(d.getUTCMonth()+1),pad(d.getUTCDate())].join('-')}
 async function setup(page){
  const day=M.today();
- const s={reads:0,fail:false,rejectEdit:false,viewer:false,edits:[],
+ const s={reads:0,fail:false,rejectEdit:false,viewer:false,edits:[],archives:[],failArchiveAt:0,loseArchiveReply:false,
  tasks:[
   {id:'1',task_title:'Fictional overdue inspection follow-up',status:'pending',priority:'urgent',archived_at:null,intake_details:{due:{date:offset(day,-1)}},updated_at:'2026-10-29T10:00:00Z',assigned_label:null,notes:null,property_id:null,unit_id:null,lease_id:null,renewal_case_id:null},
-  {id:'2',task_title:'Fictional tenant reply due today',status:'waiting',priority:'normal',archived_at:null,intake_details:{follow_up:{date:day}}},
-  {id:'3',task_title:'Undated imported task',status:'pending',priority:'normal',archived_at:null,intake_details:{}},
+  {id:'2',task_title:'Fictional tenant reply due today',status:'waiting',priority:'normal',archived_at:null,updated_at:'2026-10-29T10:00:00Z',intake_details:{follow_up:{date:day}}},
+  {id:'3',task_title:'Undated imported task',status:'pending',priority:'normal',archived_at:null,updated_at:'2026-10-29T10:00:00Z',intake_details:{}},
   {id:'4',task_title:'Private archived item',status:'pending',priority:'high',archived_at:day+'T00:00:00Z',intake_details:{due:{date:offset(day,-5)}}}
  ],
  renewals:[{id:'r1',property_id:'p1',unit_id:'u1',lease_id:'l1',recorded_end:offset(day,12),oak_record_id:'FICTIONAL-001',is_applicable:true}],
@@ -32,6 +32,16 @@ async function setup(page){
   if(p==='/auth/v1/logout')return reply({});
   if(p==='/rest/v1/staff_memberships')return reply([{user_id:USER,role:s.viewer?'viewer':'admin',is_active:true}]);
   if(p==='/rest/v1/ops_tasks'){if(url.searchParams.get('select')?.startsWith('id,task_title,status,priority')){s.reads++;if(s.fail)return reply({message:'RLS request failed'},403)}return reply(s.tasks)}
+  if(p==='/rest/v1/rpc/ops_task_set_archived'){
+    const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);s.archives.push(b);
+    if(s.archives.length===s.failArchiveAt)return reply({message:'Task changed; refresh.'},409);
+    if(s.viewer||!task||task.updated_at!==b.p_expected_updated_at)return reply({message:'Denied or stale task'},403);
+    task.archived_at=new Date().toISOString();task.updated_at=task.archived_at;
+    if(s.holdArchive)await s.holdArchive;
+    if(s.failReadsAfterArchive)s.fail=true;
+    if(s.loseArchiveReply)return route.abort('connectionreset');
+    return reply({task_id:task.id,archived_at:task.archived_at,updated_at:task.updated_at});
+  }
   if(p==='/rest/v1/rpc/ops_task_update_v1'){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);
     s.edits.push(b);
@@ -66,7 +76,7 @@ test('Today is protected, uses recorded dates only, and links to existing workfl
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();
- await expect(page.locator('#today-status')).toContainText('Live staff records');
+ await expect(page.locator('#today-status')).toContainText('Updated ·');
  await expect(page.locator('#today-kpis')).toContainText('Open · no date');
  await expect(page.locator('#today-kpis .today-kpi').nth(0)).toContainText('Overdue');
  await expect(page.locator('#today-kpis .today-kpi').nth(0)).toContainText('1');
@@ -83,11 +93,11 @@ test('Today is protected, uses recorded dates only, and links to existing workfl
 });
 test('Today handles denied data reads without exposing stale entries',async({page})=>{
  const s=await setup(page);
- await page.locator('#staff-access-signin').click();
+ await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();await expect(page.locator('#account-dialog')).not.toBeVisible();
  await page.locator('[data-workspace="today"]').click();
- await expect(page.locator('#today-status')).toContainText('Live staff records');
+ await expect(page.locator('#today-status')).toContainText('Updated ·');
  s.fail=true;await page.locator('#today-refresh').click();
  await expect(page.locator('#today-status')).toContainText('Could not load the dashboard');
  await expect(page.locator('#today-queue')).toBeEmpty();
@@ -96,12 +106,12 @@ test('Today handles denied data reads without exposing stale entries',async({pag
 
 test('Staff can link an existing task to exact property/unit/lease/renewal and save reviewed fields',async({page})=>{
  const state=await setup(page);
- await page.locator('#staff-access-signin').click();
+ await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
  await page.locator('[data-workspace="today"]').click();
- await expect(page.locator('#today-status')).toContainText('Live staff records');
+ await expect(page.locator('#today-status')).toContainText('Updated ·');
  await page.locator('#today-queue .today-edit-trigger').first().click();
  await expect(page.locator('#today-edit-dialog')).toBeVisible();
  await page.locator('#today-edit-title').fill('Fictional inspection follow-up');
@@ -120,7 +130,7 @@ test('Staff can link an existing task to exact property/unit/lease/renewal and s
  await page.locator('#today-edit-notes').fill('Reviewed internal note only');
  await page.locator('#today-edit-save').click();
  await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
- await expect(page.locator('#today-status')).toContainText('Live staff records');
+ await expect(page.locator('#today-status')).toContainText('Updated ·');
  expect(state.edits).toHaveLength(1);
  expect(state.edits[0].p_changes).toMatchObject({
    property_id:'p1',unit_id:'u1',lease_id:'l1',renewal_case_id:'r1',status:'waiting',
@@ -133,12 +143,12 @@ test('Staff can link an existing task to exact property/unit/lease/renewal and s
 });
 test('Editor rejects stale changes without claiming save and only editors can open it',async({page})=>{
  const state=await setup(page);
- await page.locator('#staff-access-signin').click();
+ await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
  await page.locator('[data-workspace="today"]').click();
- await expect(page.locator('#today-status')).toContainText('Live staff records');
+ await expect(page.locator('#today-status')).toContainText('Updated ·');
  await page.locator('#today-queue .today-edit-trigger').first().click();
  state.rejectEdit=true;
  await page.locator('#today-edit-save').click();
@@ -152,16 +162,14 @@ test('Editor rejects stale changes without claiming save and only editors can op
  await expect(page.locator('#today-queue')).toContainText('Fictional overdue inspection');
 });
 
-test('operations brief and chart use disjoint recorded-date groups, clear on denial, and quick actions navigate',async({page})=>{
+test('chart uses disjoint recorded-date groups, clears on denial, and quick actions navigate',async({page})=>{
  const state=await setup(page);
  state.tasks.push({id:'5',task_title:'Fictional later task',status:'pending',priority:'normal',intake_details:{due:{date:offset(M.today(),12)}}});
- await page.locator('#staff-access-signin').click();
+ await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
  await page.locator('[data-workspace="today"]').click();
- await expect(page.locator('#today-brief-text')).toContainText('4 active tasks');
- await expect(page.locator('#today-brief-text')).toContainText('1 overdue and 1 due today');
  await expect(page.locator('#today-schedule .schedule-legend li')).toHaveText(['Overdue1','Due today1','Upcoming1','No date1']);
  await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
  await page.locator('[data-today-go="properties"]').click();
@@ -174,23 +182,89 @@ test('operations brief and chart use disjoint recorded-date groups, clear on den
  await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
  state.fail=true;await page.locator('#today-refresh').click();
  await expect(page.locator('#today-status')).toContainText('Could not load');
- await expect(page.locator('#today-brief-text')).not.toContainText('4 active tasks');
  await expect(page.locator('#today-schedule .schedule-ring')).toHaveCount(0);
  state.fail=false;await page.locator('#today-refresh').click();
  await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
  await page.evaluate(()=>window.OpsCloud.signOut());
- await expect(page.locator('#today-brief-text')).toContainText('Sign in');
  await expect(page.locator('#today-schedule .schedule-ring')).toHaveCount(0);
 });
 
 test('zero recorded tasks produce a truthful empty overview',async({page})=>{
  const state=await setup(page);state.tasks=[];state.renewals=[];
- await page.locator('#staff-access-signin').click();
+ await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
  await page.locator('[data-workspace="today"]').click();
- await expect(page.locator('#today-brief-text')).toContainText('No active tasks are recorded');
  await expect(page.locator('#today-schedule .schedule-legend li strong')).toHaveText(['0','0','0','0']);
  await expect(page.locator('#today-schedule')).toContainText('No active tasks recorded');
+});
+
+test('personal home has working dual clocks without the sales copy or brief',async({page})=>{
+ await page.clock.install({time:new Date('2026-11-01T06:00:00Z')});
+ await setup(page);
+ await expect(page.locator('#today-workflow')).toBeVisible();
+ await expect(page.locator('[data-workspace="today"]')).toHaveAttribute('aria-current','page');
+ await expect(page.locator('.today-brief,.sidebar-footer,.page-footer')).toHaveCount(0);
+ await expect(page.locator('#clock-eastern-zone')).toHaveText('EST');
+ await expect(page.locator('#clock-eastern-time')).toHaveText('01:00:00 AM');
+ await expect(page.locator('#clock-india-time')).toHaveText('11:30:00 AM');
+ await page.locator('#account-button').focus();await page.clock.fastForward(2000);
+ await expect(page.locator('#clock-eastern-time')).toHaveText('01:00:02 AM');
+ await expect(page.locator('#account-button')).toBeFocused();
+ await expect(page.locator('.workspace-clocks [aria-live="polite"],.workspace-clocks [aria-live="assertive"]')).toHaveCount(0);
+});
+async function signInToday(page){
+ await page.locator('#account-button').click();await page.locator('#pilot-email').fill('example@example.invalid');
+ await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
+ await expect(page.locator('#today-status')).toContainText('Updated ·');
+ await page.locator('.today-reset-settings>summary').click();
+}
+test('clean start archives only reviewed active tasks and can be cancelled without writes',async({page})=>{
+ const s=await setup(page);s.tasks.push({id:'completed',task_title:'Finished earlier',status:'completed',updated_at:'2026-10-29T10:00:00Z'});
+ await signInToday(page);expect(s.archives).toHaveLength(0);
+ await page.locator('#today-reset-open').click();
+ await expect(page.locator('#today-reset-list li')).toHaveCount(3);
+ await page.locator('#today-reset-cancel').click();expect(s.archives).toHaveLength(0);
+ await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await expect(page.locator('#today-reset-status')).toContainText('Archived 3 tasks');
+ expect(s.archives.map(x=>x.p_task)).toEqual(['1','2','3']);
+ expect(s.archives.every(x=>x.p_archived===true&&x.p_expected_updated_at)).toBe(true);
+ expect(s.tasks.find(x=>x.id==='completed').archived_at).toBeUndefined();
+ expect(s.edits).toHaveLength(0);
+ await expect(page.locator('#today-kpis .today-kpi').first()).toContainText('0');
+});
+test('a stale task stops the clean start and reports partial success',async({page})=>{
+ const s=await setup(page);s.failArchiveAt=2;
+ await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await expect(page.locator('#today-reset-status')).toContainText('Confirmed 1 of 3 archived');
+ expect(s.archives.map(x=>x.p_task)).toEqual(['1','2']);
+ expect(s.tasks.find(x=>x.id==='3').archived_at).toBeNull();
+ await expect(page.locator('#today-reset-confirm')).toBeDisabled();
+});
+test('lost archive replies remain uncertain and do not trigger another task write',async({page})=>{
+ const s=await setup(page);s.loseArchiveReply=true;
+ await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await expect(page.locator('#today-reset-status')).toContainText('last request may have saved');
+ expect(s.archives).toHaveLength(1);expect(s.tasks[0].archived_at).toBeTruthy();
+ await expect(page.locator('#today-status')).toContainText('2 active tasks');
+});
+
+test('confirmed archives remain visible when the subsequent list refresh fails',async({page})=>{
+ const s=await setup(page);s.failReadsAfterArchive=true;
+ await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await expect(page.locator('#today-status')).toContainText('Could not load');
+ await expect(page.locator('#today-reset-dialog')).toBeVisible();
+ await expect(page.locator('#today-reset-status')).toContainText('Archived 3 tasks');
+ expect(s.archives).toHaveLength(3);await expect(page.locator('#today-reset-cancel')).toBeEnabled();
+});
+test('sign-out during archiving clears private review and stops further archive requests',async({page})=>{
+ const s=await setup(page);let release;s.holdArchive=new Promise(r=>release=r);
+ await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await expect.poll(()=>s.archives.length).toBe(1);
+ await page.evaluate(()=>window.OpsCloud.signOut());release();
+ await expect(page.locator('#today-reset-dialog')).not.toBeVisible();
+ await expect(page.locator('#today-reset-list')).toBeEmpty();
+ await expect(page.locator('#today-reset-open')).toBeDisabled();
+ expect(s.archives).toHaveLength(1);
 });

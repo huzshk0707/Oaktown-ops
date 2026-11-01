@@ -86,7 +86,7 @@ async function setup(page){
   return reply({message:'Unexpected mocked request: '+p},500);
  });
  page.on('dialog',d=>d.accept());
- await page.goto(ORIGIN+'/');await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
+ await page.goto(ORIGIN+'/');await page.locator('[data-workspace="notices"]').click();await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
  s.email='tester@example.invalid';await page.locator('#pilot-email').fill(s.email);
  await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();await expect(page.locator('#account-button')).toContainText('Signed in');return s;

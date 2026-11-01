@@ -1,12 +1,12 @@
 # Oaktown Ops workspace design
 
-Baseline: main `9faecc1` (Today, reviewed task editing, Tasks intake, Notices, Properties and Renewals). Design refresh: November 1, 2026.
+Baseline: main `1fe8e6b` (Today, reviewed task editing, Tasks intake, Notices, Properties and Renewals). Design refresh: November 1, 2026.
 
 ## Direction and source
 
 Use the owner's supplied dashboard reference as the visual direction: rich navy, a property illustration banner, individually colored metric cards, a compact multi-column workspace, a donut breakdown and useful quick actions. Replace the earlier sparse cyan HUD styling. The artwork is an original abstract neighborhood illustration, not a map or representation of actual portfolio properties.
 
-Carry the JARVIS-like personality through calm, capable wording and a concise operations brief grounded in loaded records. **K.A.R.E.N remains the future assistant name.** The brief is deterministic display logic, not a chat/voice model, agent or automated operator. No synthetic trends, employee charts, activity feeds or invented metrics are added.
+This is a personal working tool. Today opens first; the operations brief, promotional/footer copy and staff-facing language have been removed. Keep the reference-led visual design, concise task labels and direct controls. Two visible clocks show Eastern (EST/EDT automatically) and India (IST), including their dates. Clocks do not announce every tick or move keyboard focus. **K.A.R.E.N remains the future assistant name**; no AI agent, chat or voice capability is implied.
 
 Guidance: [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill), reviewed at commit `3a13158ff1f32156cbe144108de48eda2ecaed9a`, specifically its [skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/3a13158ff1f32156cbe144108de48eda2ecaed9a/.claude/skills/ui-ux-pro-max/SKILL.md) and accessibility, interaction, performance and responsive rules. The `data dense dashboard` style search and `dashboard color coding` UX search informed the current revision: compact panels, distinct metric accents and text labels for all color-coded categories. The owner's visual reference takes precedence over the earlier command-console direction. No external fonts, chart packages or runtime dependencies are needed.
 
@@ -30,7 +30,7 @@ Review signed-in and signed-out layouts at 320, 375, 768, 1024 and 1440px, lands
 
 ## Review evidence
 
-Local validation after the refresh: 82 Node tests and 59 browser tests passed, including downloads and task editing. Supplemental checks found no horizontal page overflow across five workflows at 320, 375, 768, 1024 and 1440px, 812×375 landscape, and a 720px CSS viewport (the reflow equivalent of a 1440px viewport at 200% zoom), with reduced motion enabled.
+Local validation after the refresh: 85 Node tests and 65 browser tests passed, including downloads and task editing. Supplemental checks found no horizontal page overflow across five workflows at 320, 375, 768, 1024 and 1440px, 812×375 landscape, and a 720px CSS viewport (the reflow equivalent of a 1440px viewport at 200% zoom), with reduced motion enabled.
 
 Axe 4.10.2 found no automated WCAG A/AA violations in fourteen sampled states: ten signed-in/signed-out workspace states, property detail, renewal tracker, reviewed renewal form, and embedded editor chrome. The audit excludes printable sheets. Fixed-field and charge-row inputs have programmatic labels, scrollable detail regions are keyboard-focusable, and skip-link/print-menu contrast is explicit. A stylesheet-toggle comparison confirmed identical computed sheet/subtree typography, colors, borders and geometry in both screen and print modes with the editor theme enabled/disabled. Existing PDF tests exercise the actual downloads. Automated results are not a complete manual accessibility certification.
 
@@ -41,8 +41,8 @@ All images below use fictional mocked records and capture a viewport, not the fu
 - [Notices on desktop](design-review/notices-desktop.png)
 - [Tasks on phone](design-review/tasks-mobile.png)
 
-## Record-driven brief and chart
+## Task chart and personal workflow
 
-The brief, KPI cards and schedule chart reuse `OpsTodayModel.classify` on the task rows already fetched for Today. The four schedule categories (overdue, due today, upcoming, undated) are disjoint. Waiting/blocked is an overlapping status count displayed separately in the KPI row, never added to the chart total. Archived and terminal tasks are excluded. A loaded zero is distinct from signed-out, loading or denied data; those unavailable states show text instead of a pie chart. Brief text and chart are cleared on sign-out and read failure.
+The KPI cards and schedule chart reuse `OpsTodayModel.classify` on the task rows already fetched for Today. The four schedule categories (overdue, due today, upcoming, undated) are disjoint. Waiting/blocked is an overlapping status count displayed separately in the KPI row, never added to the chart total. Archived and terminal tasks are excluded. A loaded zero is distinct from signed-out, loading or denied data; those unavailable states show text instead of a pie chart. The chart is cleared on sign-out and read failure.
 
-Quick actions open existing workflows; Prepare lease selects the existing preparation tab. They do not create records or start background work. Two new browser tests cover chart grouping (including a task beyond the seven-day queue), empty data, private-state cleanup, denied reads and quick-action navigation.
+Quick actions open existing workflows; Prepare lease selects the existing preparation tab. They do not create records or start background work. Browser tests cover chart grouping (including a task beyond the seven-day queue), empty data, private-state cleanup, denied reads and quick-action navigation. Personal-workspace checks cover clock ticks and daylight-saving transitions, the default Today view, removed copy, and reviewed clean-start behavior. [The production workflow test](PERSONAL-WORKFLOW.md) records the next real intake sequence.

@@ -1,7 +1,7 @@
 
 (()=>{'use strict';
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
-let workflow='notices',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null;
+let workflow='today',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null;
 const pending=new Map();
 let leaseTab='track';
 function showLeaseTab(next,focus=false){
