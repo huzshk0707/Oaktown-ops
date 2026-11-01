@@ -44,12 +44,13 @@ function showWorkflow(name){
  const changed=workflow!==name;
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
- $('tasks-workflow').hidden=name!=='tasks';$('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('leases-workflow').hidden=name!=='leases';$('future-workflow').hidden=!['listings','maintenance'].includes(name);
- const titles={tasks:'Tasks',notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',maintenance:'Maintenance'};
- const descriptions={tasks:'Turn AI notes into reviewed tasks and a reliable work history.',notices:'Select properties, create notice drafts and prepare tenant messages.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
+ $('today-workflow').hidden=name!=='today';$('tasks-workflow').hidden=name!=='tasks';$('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('leases-workflow').hidden=name!=='leases';$('future-workflow').hidden=!['listings','maintenance'].includes(name);
+ const titles={today:'Today',tasks:'Tasks',notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',maintenance:'Maintenance'};
+ const descriptions={today:'See dated follow-ups, open tasks and recorded lease-end dates in one place.',tasks:'Turn AI notes into reviewed tasks and a reliable work history.',notices:'Select properties, create notice drafts and prepare tenant messages.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Property descriptions and listing preparation will live here.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
  say('workspace-title',titles[name]);say('breadcrumb',titles[name]);say('workspace-summary',descriptions[name]);
  if(['listings','maintenance'].includes(name)){say('future-title',titles[name]);say('future-description',descriptions[name]);}
  if(name==='leases')showLeaseTab(leaseTab);
+ if(name==='today')window.dispatchEvent(new Event('ops-today-show'));
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
  if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
