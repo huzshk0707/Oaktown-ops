@@ -22,7 +22,7 @@ begin
   raise exception 'Archived flag absent from session tasks';
  end if;
  if jsonb_array_length(st->'receipts')<>saved_receipts then raise exception 'Archiving must not delete import receipts';end if;
- if not exists(select 1 from ops_intake_private.items where task_id=tid) then raise exception 'Archiving deleted intake provenance';end if;
+ if not exists(select 1 from jsonb_array_elements(st->'items') x where x->>'task_id'=tid::text) then raise exception 'Archiving deleted intake provenance';end if;
  begin perform public.ops_task_set_archived(tid,old_version,false);raise exception 'Stale-version restore was accepted';exception when serialization_failure then null;end;
  result:=public.ops_task_set_archived(tid,(result->>'updated_at')::timestamptz,false);
  if result->>'archived_at' is not null then raise exception 'Restore did not clear archive';end if;
@@ -35,7 +35,7 @@ end
 $check$;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000003',false);
 do $$begin
- begin perform public.ops_task_set_archived((select id from public.ops_tasks limit 1),now(),true);raise exception 'Viewer archived task';exception when insufficient_privilege then null;end;
+ begin perform public.ops_task_set_archived('00000000-0000-4000-8000-000000000999'::uuid,now(),true);raise exception 'Viewer archived task';exception when insufficient_privilege then null;end;
 end $$;
 reset role;
 set role anon;
