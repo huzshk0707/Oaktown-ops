@@ -100,5 +100,12 @@ function preview(d,state={tasks:[],items:[]},decisions={}){
  }
  return {groups:[...groups.values()],warnings,skipped,pending,minutes:[...groups.values()].flatMap(g=>g.activities).reduce((n,a)=>n+(a.minutes||0),0)};
 }
-return {VERSION,ZONE,parse,preview,canonical,taskState};
+function validReceipt(r){return !!r&&typeof r==='object'&&!Array.isArray(r)&&r.schema_version==='oaktown.task-receipt.v1'&&typeof r.batch_ref==='string'&&Array.isArray(r.proposals)&&Array.isArray(r.activities)}
+function splitTasks(tasks,items,includeArchived=false){
+ const linked=new Set((items||[]).filter(x=>x.kind==='proposal'&&x.task_id).map(x=>x.task_id));
+ const active=(tasks||[]).filter(t=>!t.archived_at);
+ const archived=(tasks||[]).filter(t=>!!t.archived_at);
+ return {session:active.filter(t=>linked.has(t.id)),other:active.filter(t=>!linked.has(t.id)),archived:includeArchived?archived:[],archivedCount:archived.length};
+}
+return {VERSION,ZONE,parse,preview,canonical,taskState,validReceipt,splitTasks};
 });

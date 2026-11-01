@@ -97,4 +97,6 @@ jobs:
             -f supabase/migrations/20261026171941_oaktown_portfolio_foreign_key_indexes_v05.sql \
             -f tests/portfolio-schema-check.sql \
             -f supabase/schema/task_intake_v1.sql \
-            -f tests/task-intake-check.sql
+            -f tests/task-intake-check.sql \
+            -f supabase/schema/task_cleanup_v1.sql \
+            -f tests/task-cleanup-check.sql

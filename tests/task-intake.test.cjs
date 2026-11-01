@@ -39,3 +39,17 @@ test('new follow ups can target imported proposal IDs with a fresh task version'
 });
 test('duplicate observations cannot smuggle field changes',()=>{const d=copy();d.proposals[2].changes.status='completed';assert.throws(()=>R.parse(d),/cannot change/)});
 test('suggestions apply only on explicit acceptance',()=>{const d=copy();d.proposals[0].suggestions.priority='urgent';assert.equal(R.preview(d).groups[0].after.priority,'normal');assert.equal(R.preview(d,undefined,{accept_suggestions:['P001']}).groups[0].after.priority,'urgent')});
+
+test('valid receipt requires an actual saved import object, not null or a null array entry',()=>{
+ const yes={schema_version:'oaktown.task-receipt.v1',batch_ref:'B01',proposals:[],activities:[]};
+ assert.equal(R.validReceipt(yes),true);
+ for(const bad of [null,undefined,'null',{},[],{schema_version:'oaktown.task-receipt.v1'}])assert.equal(R.validReceipt(bad),false);
+});
+test('tasks are grouped by session provenance with archived hidden unless requested',()=>{
+ const tasks=[{id:'a',task_title:'session'},{id:'b',task_title:'legacy'},{id:'c',task_title:'archived',archived_at:'2026-11-01T00:00:00Z'}];
+ const items=[{kind:'proposal',task_id:'a'},{kind:'source',task_id:null},{kind:'proposal',task_id:'c'}];
+ let v=R.splitTasks(tasks,items);
+ assert.deepEqual(v.session.map(t=>t.id),['a']);assert.deepEqual(v.other.map(t=>t.id),['b']);
+ assert.equal(v.archivedCount,1);assert.equal(v.archived.length,0);
+ v=R.splitTasks(tasks,items,true);assert.deepEqual(v.archived.map(t=>t.id),['c']);
+});
