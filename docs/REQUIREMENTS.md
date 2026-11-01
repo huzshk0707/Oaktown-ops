@@ -1,5 +1,7 @@
 # Requirements and decision register
 
+**Historical discovery baseline:** For current implementation status, priorities and outstanding validation, use [the current roadmap](ROADMAP.md). Later releases supersede the original architecture, storage and module-status statements below. Unresolved business decisions remain unresolved unless explicitly confirmed.
+
 Status: partial baseline with v0.1 update, 2026-10-25.
 
 ## Subsequent instruction and first release

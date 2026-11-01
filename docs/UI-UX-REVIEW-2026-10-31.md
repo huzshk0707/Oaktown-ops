@@ -19,7 +19,11 @@ The existing JavaScript, browser/download and disposable database suites run alo
 
 The in-app browser was unavailable during this review; visual verification uses the same Chromium app served by CI. These are mocked workflow checks, not a live authenticated-data audit.
 
-## Recommended next design work
+## Follow-up implementation status
+
+The first three recommendations below were subsequently implemented: lease preparation/tracking tabs in PR #20, responsive property list/detail in #21, and notice readiness in #22. Stylesheet consolidation remains a later maintenance task. See [the current roadmap](ROADMAP.md).
+
+## Original recommended next design work
 
 1. **Renewals workspace:** separate Prepare a lease from Track a renewal with inner tabs, so staff do not scroll through both long forms for a single task.
 2. **Property detail:** use a list-and-detail view on desktop with an obvious selected row; keep a single-column view with a Back to results action on phones.

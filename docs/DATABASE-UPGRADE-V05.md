@@ -3,6 +3,10 @@
 **Applied:** October 26, 2026 to the existing Oaktown Ops Supabase project.  
 **Database migrations:** `20261026171822_oaktown_portfolio_relational_core_v05` and `20261026171941_oaktown_portfolio_foreign_key_indexes_v05`.
 
+## Current status clarification
+
+The empty-table counts and unimplemented-import/UI statements below describe the earlier schema review. The [October 27 import report](FULL-PORTFOLIO-IMPORT-2026-10-27.md) records subsequent portfolio imports and read-only unit/renewal screens. They are not current empty-table or missing-screen claims. The production-control findings still require fresh verification; an import does not establish that those findings were resolved. See [current priorities](ROADMAP.md). Do not replay historical migrations.
+
 ## Applied
 
 - Preserved the original `public.properties` primary-key UUIDs, 13 pilot property rows, 13 unverified notice-addressee rows, notice batches, staff memberships and existing v0.4 behavior.
@@ -22,7 +26,7 @@
 - Security advisor: no new database security findings. Existing warning: Auth leaked-password protection disabled (review before expanded production).
 - Performance advisor: missing foreign-key-index warnings resolved; unused-index notices are expected for empty new tables.
 
-## Required next milestone (not completed)
+## Historical next milestone at the v0.5 schema review
 
 1. Add tested, dry-run-capable workbook import mapping. Record original sources and row provenance. Never push real tenant data to this public GitHub repository.
 2. Reconcile the original 13 UUIDs before inserting new properties. Import properties, units, aliases, people, tenancies, leases/bookings, renewal cases, tasks and verification flags in dependency order.
