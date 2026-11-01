@@ -1,0 +1,40 @@
+@media screen {
+ .ops-workspace .connections-card {margin-top:24px;overflow:hidden}
+ .ops-workspace .connections-card>summary {cursor:pointer;min-height:44px;color:var(--ui-text);font-size:18px;font-weight:650;font-family:var(--mode-heading)}
+ .ops-workspace .connection-toolbar {display:flex;align-items:end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:18px 0 8px}
+ .ops-workspace .connection-picker {display:grid;gap:6px;flex:1;min-width:0;font-size:12px}
+ .ops-workspace #connection-task {width:100%;min-height:44px;background:var(--ui-soft);color:var(--ui-text);border:1px solid var(--ui-control);border-radius:9px;padding:10px;font:inherit}
+ .ops-workspace .connection-motion-label {min-height:44px;display:flex;align-items:center;gap:8px;font-size:12px}
+ .ops-workspace .connection-canvas {position:relative;isolation:isolate;height:420px;border:1px solid var(--ui-border);border-radius:var(--ui-radius);background:radial-gradient(ellipse at 50% 80%,color-mix(in srgb,var(--mode-glow) 12%,transparent),transparent 65%),var(--ui-soft);margin-top:18px;overflow:hidden}
+ .ops-workspace .connection-floor {position:absolute;z-index:-1;inset:40% -25% -30%;background-image:linear-gradient(color-mix(in srgb,var(--mode-glow) 14%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--mode-glow) 14%,transparent) 1px,transparent 1px);background-size:44px 44px;transform:perspective(500px) rotateX(58deg);mask-image:linear-gradient(transparent,#000 40%,transparent)}
+ .ops-workspace .connection-orb {position:absolute;z-index:-1;left:calc(50% - 38px);top:45%;width:76px;height:76px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#ffffff99,var(--mode-glow) 20%,color-mix(in srgb,var(--mode-glow) 10%,var(--ui-canvas)) 75%);box-shadow:0 20px 30px #0003,0 0 45px color-mix(in srgb,var(--mode-glow) 22%,transparent);opacity:.55}
+ .ops-workspace #connection-edges,.ops-workspace #connection-nodes {position:absolute;inset:0;width:100%;height:100%}
+ .ops-workspace #connection-edges {pointer-events:none;overflow:visible}
+ .ops-workspace #connection-edges line {stroke:var(--mode-line);stroke-width:1.5}
+ .ops-workspace .connection-node {position:absolute;left:var(--node-x);top:var(--node-y);transform:translate(-50%,-50%);display:grid;gap:6px;width:clamp(130px,23%,190px);min-height:84px;padding:12px 14px;text-align:left;border:1px solid var(--ui-control);border-radius:14px;background:linear-gradient(145deg,color-mix(in srgb,var(--ui-surface) 90%,white),var(--ui-surface));color:var(--ui-text);box-shadow:inset 0 1px 0 #ffffff1a,0 8px 0 color-mix(in srgb,var(--ui-canvas) 85%,var(--mode-glow)),0 14px 24px #0002;cursor:pointer;font:inherit;transition:box-shadow .2s,border-color .2s}
+ .ops-workspace .connection-node strong {display:block;font-size:13px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .ops-workspace .connection-kind {font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--mode-accent)}
+ .ops-workspace .connection-node-detail {font-size:11px;line-height:1.45;color:var(--ui-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .ops-workspace .connection-node:is(:hover,[aria-pressed="true"]) {border-color:var(--mode-accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--mode-accent) 25%,transparent),0 8px 0 var(--ui-canvas),0 18px 24px #0003}
+ .ops-workspace #connection-status {color:var(--ui-muted);font-size:12px;line-height:1.7;min-height:22px;margin:10px 0}
+ .ops-workspace #connection-detail {padding:14px 0;overflow-wrap:anywhere}
+ .ops-workspace #connection-detail strong {font-size:14px}
+ .ops-workspace #connection-detail p {margin:6px 0 0;color:var(--ui-muted);font-size:12px;line-height:1.7}
+ .ops-workspace .connection-adjacency {border-top:1px solid var(--ui-border);font-size:12px;color:var(--ui-muted);line-height:1.8}
+ .ops-workspace .connection-adjacency>summary {cursor:pointer;min-height:44px;padding-top:12px;color:var(--ui-text)}
+ .ops-workspace #connection-list {padding-left:20px;overflow-wrap:anywhere}
+ .ops-workspace #connections-panel[data-motion="true"][open] .connection-orb {animation:connection-float 8s ease-in-out infinite}
+ .ops-workspace .connection-canvas:focus-within .connection-orb {animation-play-state:paused!important}
+ @keyframes connection-float {0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+ @media(max-width:640px) {
+  .ops-workspace .connection-canvas {height:auto;min-height:100px;padding:16px}
+  .ops-workspace #connection-edges {display:none}
+  .ops-workspace #connection-nodes {position:relative;display:grid;gap:14px;height:auto}
+  .ops-workspace .connection-node {position:static;transform:none;width:100%;min-height:78px}
+  .ops-workspace .connection-node strong,.ops-workspace .connection-node-detail {white-space:normal;overflow-wrap:anywhere}
+  .ops-workspace .connection-orb {display:none}
+  .ops-workspace .connection-toolbar {align-items:start;gap:8px}
+ }
+ @media(prefers-reduced-motion:reduce) {.ops-workspace .connection-orb{animation:none!important}.ops-workspace .connection-node{transition:none}}
+ @media(forced-colors:active) {.ops-workspace .connection-orb,.ops-workspace .connection-floor{display:none}.ops-workspace #connection-edges line{stroke:CanvasText}.ops-workspace .connection-node{background:Canvas;border-color:ButtonText}.ops-workspace .connection-node[aria-pressed="true"]{outline:2px solid Highlight}}
+}

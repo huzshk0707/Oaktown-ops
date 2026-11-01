@@ -13,9 +13,9 @@ function renderSchedule(tasks){
  const groups=[['Overdue',tasks.overdue.length,'overdue'],['Due today',tasks.today.length,'today'],['Upcoming',tasks.upcoming.length,'upcoming'],['No date',tasks.undated.length,'undated']];
  const host=$('today-schedule'),layout=el('div',null,'schedule-layout'),ring=el('div',null,'schedule-ring');
  ring.setAttribute('aria-hidden','true');
- let edge=0;const colors={overdue:'#ff9f9a',today:'#65acff',upcoming:'#39d8c0',undated:'#b39aff'};
+ let edge=0;const style=getComputedStyle(document.body),colors={overdue:style.getPropertyValue('--mode-overdue').trim()||'#ff9f9a',today:style.getPropertyValue('--mode-today').trim()||'#65acff',upcoming:style.getPropertyValue('--mode-upcoming').trim()||'#39d8c0',undated:style.getPropertyValue('--mode-undated').trim()||'#b39aff'};
  const segments=groups.map(([,count,key])=>{const start=edge;edge+=tasks.all.length?count/tasks.all.length*100:0;return colors[key]+' '+start+'% '+edge+'%'});
- ring.style.background=tasks.all.length?'conic-gradient('+segments.join(',')+')':'#24375b';
+ ring.style.background=tasks.all.length?'conic-gradient('+segments.join(',')+')':(style.getPropertyValue('--mode-ring-base').trim()||'#24375b');
  const center=el('div',null,'schedule-center');center.append(el('strong',tasks.all.length),el('span','active tasks'));ring.append(center);
  const legend=el('ul',null,'schedule-legend');
  for(const [label,count,key] of groups){const row=el('li'),dot=el('span',null,'schedule-dot');dot.style.background=colors[key];dot.setAttribute('aria-hidden','true');row.append(dot,el('span',label),el('strong',count));legend.append(row)}
@@ -127,6 +127,7 @@ $('today-signin').addEventListener('click',()=>document.getElementById('account-
 $('today-refresh').addEventListener('click',()=>{if(!busy)refresh()});
 $('today-open-tasks').addEventListener('click',()=>document.querySelector('[data-workspace="tasks"]')?.click());
 $('today-open-renewals').addEventListener('click',()=>document.querySelector('[data-workspace="leases"]')?.click());
+window.addEventListener('ops-theme-change',()=>{if(viewData)renderSchedule(M.classify(viewData.tasks))});
 window.addEventListener('ops-today-show',()=>{if(!busy)refresh()});
 window.addEventListener('ops-today-refresh',()=>{if(!busy)refresh()});
 window.addEventListener('ops-auth-change',e=>{if(!e.detail?.user)clear();else if(!$('today-workflow').hidden)refresh()});

@@ -1,0 +1,52 @@
+/* Screen-only appearance modes; document/PDF masters are not themed. */
+@media screen {
+ html.theme-changing .ops-workspace *,html.theme-changing .ops-workspace *::before,html.theme-changing .ops-workspace *::after {transition:none!important}
+ html[data-ops-theme] .ops-workspace {--mode-heading:inherit;--mode-accent:#9cc9ff;--mode-glow:#53d8ff;--mode-line:#567ba6;--mode-hero:linear-gradient(110deg,#102b61ed,#102b6180);--mode-top:#0a1733;--mode-nav:linear-gradient(100deg,#2055ca,#3269d2);--mode-nav-text:#fff;--mode-button:#112343;--mode-danger-bg:#3b2038;--mode-danger:#ffd4ce;--mode-warn-bg:#302718;--mode-warn:#f0d79e;--mode-shadow:0 8px 24px #02091b26;--mode-ring-base:#24375b;--mode-overdue:#ff9f9a;--mode-today:#65acff;--mode-upcoming:#39d8c0;--mode-undated:#b39aff}
+ html[data-ops-theme="oryn"] .ops-workspace {--bg:#131415;--paper:#202124;--ink:#f3eddf;--muted:#c5bcaa;--line:#54504a;--forest:#e5cd91;--forest-dark:#fff3d4;--sage:#393125;--gold:#e8c578;--ui-canvas:var(--bg);--ui-surface:var(--paper);--ui-soft:#191a1c;--ui-rail:#101112;--ui-text:var(--ink);--ui-muted:var(--muted);--ui-border:var(--line);--ui-accent:#e3c47c;--ui-on-accent:#17150e;--ui-accent-soft:#393125;--ui-focus:#f7d892;--ui-control:#938772;--ui-radius:10px;--mode-heading:Georgia,'Times New Roman',serif;--mode-accent:#edcf8b;--mode-glow:#e8c578;--mode-line:#a2936b;--mode-hero:linear-gradient(110deg,#29251df5,#17191bc9);--mode-top:#191a1c;--mode-nav:linear-gradient(100deg,#e4c175,#f0d89e);--mode-nav-text:#19170f;--mode-button:#282723;--mode-danger-bg:#3a2327;--mode-danger:#ffcbc5;--mode-warn-bg:#3a301b;--mode-warn:#f2d99d;--mode-shadow:0 12px 28px #0004;--mode-ring-base:#423d32;font-family:'Segoe UI',Verdana,sans-serif;background-image:radial-gradient(ellipse at 80% 0%,#6c562524,transparent 60%)}
+ html[data-ops-theme="nilo"] .ops-workspace {color-scheme:light;--bg:#e4ecee;--paper:#f3f7f8;--ink:#203d49;--muted:#4d6570;--line:#a4b7bf;--forest:#1d5960;--forest-dark:#173c48;--sage:#cce2e3;--gold:#306970;--ui-canvas:var(--bg);--ui-surface:var(--paper);--ui-soft:#e5eef0;--ui-rail:#d1dfe4;--ui-text:var(--ink);--ui-muted:var(--muted);--ui-border:var(--line);--ui-accent:#1c6269;--ui-on-accent:#fff;--ui-accent-soft:#cce2e3;--ui-focus:#15545e;--ui-control:#6b858f;--ui-radius:22px;--ui-shadow:8px 8px 22px #93aab333,-6px -6px 18px #ffffffa6;--mode-heading:'Trebuchet MS','DejaVu Sans',sans-serif;--mode-accent:#1d616b;--mode-glow:#318e91;--mode-line:#537e89;--mode-hero:linear-gradient(110deg,#deeceff5,#e5f0f1b8);--mode-top:#e8f0f2;--mode-nav:linear-gradient(100deg,#24636d,#337781);--mode-nav-text:#fff;--mode-button:#e3edf0;--mode-danger-bg:#f6e0df;--mode-danger:#842e38;--mode-warn-bg:#fff0d6;--mode-warn:#715017;--mode-shadow:8px 8px 20px #93aab32b,-5px -5px 16px #ffffffa6;--mode-ring-base:#c5d6dc;--mode-overdue:#a43d4c;--mode-today:#2464a5;--mode-upcoming:#15746a;--mode-undated:#75509a;font-family:'Trebuchet MS','DejaVu Sans',sans-serif;background-image:radial-gradient(ellipse at 90% 0%,#ffffff99,transparent 60%)}
+ html[data-ops-theme] .ops-workspace .theme-control {display:flex;gap:7px;align-items:center;color:var(--ui-muted);font-size:12px;white-space:nowrap}
+ html[data-ops-theme] .ops-workspace #ops-theme-select {width:auto;max-width:150px;min-height:44px;padding:8px 28px 8px 10px;background:var(--ui-soft);color:var(--ui-text);border:1px solid var(--ui-control);border-radius:9px;font:inherit;cursor:pointer}
+ html[data-ops-theme] .ops-workspace :is(h1,h2,h3) {font-family:var(--mode-heading)}
+ html[data-ops-theme] .ops-workspace .sidebar {background-color:var(--ui-rail);border-color:var(--ui-border)}
+ html[data-ops-theme] .ops-workspace .topbar {background:var(--mode-top)}
+ html[data-ops-theme] .ops-workspace .nav-button {color:var(--ui-muted)}
+ html[data-ops-theme] .ops-workspace .nav-button.active {background:var(--mode-nav);color:var(--mode-nav-text);border-color:var(--ui-control)}
+ html[data-ops-theme] .ops-workspace :is(.nav-button:hover,.nav-button:focus-visible):not(.active) {background:var(--ui-accent-soft);color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace :is(.brand,.clock-label,.clock-label>span,.workspace-clock time,.workspace-label,.brand-sub,.version,.selection-summary) {color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace .brand-mark {background:var(--ui-accent-soft);color:var(--mode-accent);border-color:var(--ui-control);box-shadow:inset 0 1px 4px #ffffff1a,0 4px 12px #0002}
+ html[data-ops-theme] .ops-workspace .workspace-intro {background-image:var(--mode-hero),url('assets/portfolio-panorama.svg');border-color:var(--ui-border)}
+ html[data-ops-theme] .ops-workspace :is(.workspace-intro h1,.workspace-intro p,.today-header h2,.today-section-head h3) {color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace :is(.text-action,.tenant-email-value,.tenant-email-label,.today-task-link,.renewal-summary dt) {color:var(--mode-accent)}
+ html[data-ops-theme] .ops-workspace :is(#account-button,.today-shortcuts button) {background:var(--mode-button);color:var(--ui-text);border-color:var(--ui-control)}
+ html[data-ops-theme] .ops-workspace :is(.today-shortcuts button:hover,.property-record:hover) {background:var(--ui-accent-soft);color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace :is(.workflow-tabs,.lease-inner-tabs,.message-text,.ops-history,.notice-template-info,.tenant-email-panel,.message-context-bar,.workspace-bar,.selected-notice,.ops-tracker,.tracker-event,.task-other,.task-archived-list,.task-diff>div,.renewal-summary,.roadmap article,#password-request,#password-change) {background:var(--ui-soft);color:var(--ui-text);border-color:var(--ui-border)}
+ html[data-ops-theme] .ops-workspace :is(.workflow-tabs .active,.lease-inner-tabs [aria-selected="true"]) {background:var(--ui-accent-soft);color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace :is(.task-card,.today-card,.message-card,.notice-picker,#ops-portfolio-panel,#ops-renewals-panel,#ops-renewal-generator) {border-radius:var(--ui-radius);box-shadow:var(--mode-shadow)}
+ html[data-ops-theme] .ops-workspace .button:active:not(:disabled) {background:var(--ui-accent-soft)}
+ html[data-ops-theme] .ops-workspace .button.primary {background:var(--ui-accent);color:var(--ui-on-accent);border-color:var(--ui-accent)}
+ html[data-ops-theme] .ops-workspace .button.primary:hover:not(:disabled) {background:var(--ui-accent);border-color:var(--ui-accent);filter:brightness(1.08)}
+ html[data-ops-theme] .ops-workspace .button.danger {background:var(--mode-danger-bg);color:var(--mode-danger);border-color:var(--ui-control)}
+ html[data-ops-theme] .ops-workspace :is(.renewal-warning,.task-alert,.message-alert,.tracker-error) {background:var(--mode-warn-bg);color:var(--mode-warn)!important;border-color:var(--ui-control)}
+ html[data-ops-theme] .ops-workspace .staff-access {background:var(--ui-surface);border-color:var(--ui-control)}
+ html[data-ops-theme] .ops-workspace :is(.schedule-center,.schedule-legend li,.schedule-legend strong) {color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace .schedule-center {background:var(--ui-surface)}
+ html[data-ops-theme] .ops-workspace :is(.schedule-legend span,.schedule-center span) {color:var(--ui-muted)}
+ html[data-ops-theme] .ops-workspace #eod-date {color-scheme:inherit}
+ html[data-ops-theme] .ops-workspace .skip {background:var(--ui-accent);color:var(--ui-on-accent)}
+ html[data-ops-theme="oryn"] .ops-workspace .today-kpi {background:linear-gradient(130deg,#30291d,#202124);border-color:#7e6b42;box-shadow:0 4px 16px #0003}
+ html[data-ops-theme="oryn"] .ops-workspace .today-kpi>strong {color:#f0d392}
+ html[data-ops-theme="oryn"] .ops-workspace .today-kpi>span:not(.metric-symbol) {color:#e4dac5;font-family:inherit}
+ html[data-ops-theme="oryn"] .ops-workspace .metric-symbol {background:#54452b;color:#fff0ca}
+ html[data-ops-theme="nilo"] .ops-workspace .today-kpi {background:linear-gradient(130deg,#eff8f9,#d6e6ea);border-color:#a4b7bf;border-radius:20px;box-shadow:var(--ui-shadow);padding:20px}
+ html[data-ops-theme="nilo"] .ops-workspace .today-kpi>strong {color:#203d49}
+ html[data-ops-theme="nilo"] .ops-workspace .today-kpi>span:not(.metric-symbol) {color:#405b67;font-family:inherit}
+ html[data-ops-theme="nilo"] .ops-workspace .metric-symbol {background:#38717c;color:#fff}
+ html[data-ops-theme="nilo"] .ops-workspace :is(.today-task,.property-record,.ops-kpi,.today-shortcuts button) {box-shadow:4px 4px 10px #93aab324,-3px -3px 10px #ffffff9c;border-radius:14px}
+ html[data-ops-theme="nilo"] .ops-workspace .today-section-head {padding-bottom:20px}
+ html[data-ops-theme="nilo"] .ops-workspace dialog::backdrop {background:#233d4f99}
+ html[data-ops-theme] .ops-workspace :is(.today-task,.today-explainer) {background:var(--ui-soft);border-color:var(--ui-border)}
+ html[data-ops-theme] .ops-workspace .today-group h4 {color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace .schedule-center strong {color:var(--ui-text)}
+ html[data-ops-theme] .ops-workspace :focus-visible {outline:3px solid var(--ui-focus);outline-offset:3px}
+ @media(max-width:740px) {html[data-ops-theme] .ops-workspace .theme-control {margin-left:auto} html[data-ops-theme] .ops-workspace .topbar-location {flex-basis:100%} html[data-ops-theme] .ops-workspace #account-button {margin-left:0} html[data-ops-theme] .ops-workspace #ops-theme-select {max-width:180px}}
+}
