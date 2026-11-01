@@ -59,6 +59,7 @@ body.embedded .paper-stage{overflow:auto}
 </style>
 <link rel="stylesheet" href="editor-polish.css?v=1.0" media="screen">
 <link rel="stylesheet" href="notice-readiness.css?v=1.0" media="screen">
+<link rel="stylesheet" href="editor-command.css?v=1" media="screen">
 </head>
 <body>
 <header class="app-header"><div><div class="brand">Oaktown Rentals · Notice & Firm Book Generator</div><div class="subtitle">Standalone · offline · notice and PS Form 3877 firm mailing book</div></div><div class="pill">Local-only; does not send notices</div></header>
@@ -72,7 +73,7 @@ body.embedded .paper-stage{overflow:auto}
 <div class="span2"><label for="tenant">Tenant name(s)</label><input id="tenant" placeholder="Enter names as they appear on lease"></div>
 <div class="span2"><label for="street">Property line 1 — street address</label><input id="street"></div>
 <div class="span2"><label for="cityline">Property line 2 — city, state ZIP</label><input id="cityline"></div>
-<div class="span2"><label>Fixed landlord mailing address</label><input value="PO Box 7 · Hillview, KY 40129" disabled><div class="hint">The established sender details are retained in the generated notice. Verify the legal applicability before use.</div></div>
+<div class="span2"><label for="fixed-landlord-address">Fixed landlord mailing address</label><input id="fixed-landlord-address" value="PO Box 7 · Hillview, KY 40129" disabled><div class="hint">The established sender details are retained in the generated notice. Verify the legal applicability before use.</div></div>
 <div><label for="noticeDate">Notice date</label><input id="noticeDate" type="date"></div>
 </div>
 <div class="section-heading">Current statement <button class="btn btn-sm" id="addCharge">+ Add charge row</button></div>
@@ -159,7 +160,7 @@ function cleanWorkspace(input){
  return {notices,properties,selected:ids.has(input.selected)?input.selected:notices[0].id};
 }
 
-function makeInput(label,key,value,extra=''){return `<div class="${extra}"><label>${label}</label><input data-key="${key}" value="${esc(value)}"></div>`}
+function makeInput(label,key,value,extra=''){return `<div class="${extra}"><label>${label}<input data-key="${key}" value="${esc(value)}"></label></div>`}
 function renderForm(keepNoticeChips=false){sendNoticeContext();let n=active();const list=$('noticeList');
 const chips=list.querySelectorAll('button[data-select]');
 if(keepNoticeChips&&chips.length===data.notices.length){
