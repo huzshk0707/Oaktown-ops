@@ -13,10 +13,10 @@ declare
  actor uuid:=auth.uid();
  old_row public.ops_tasks%rowtype;
  new_row public.ops_tasks%rowtype;
- keys text[]:=array['property_id','unit_id','lease_id','renewal_case_id','status','priority','assigned_label','due_date','follow_up_date','next_action','notes'];
+ keys text[]:=array['task_title','property_id','unit_id','lease_id','renewal_case_id','status','priority','assigned_label','due_date','follow_up_date','next_action','notes'];
  k text;
  property uuid; unit uuid; lease uuid; renewal uuid;
- task_status text; task_priority text; assignee text; action_text text; new_notes text;
+ task_status text; task_priority text; assignee text; action_text text; new_notes text; task_name text;
  due_text text; follow_text text; due_day date; follow_day date;
  details jsonb; unit_property uuid; lease_unit uuid;
  renewal_unit uuid; renewal_property uuid; renewal_lease uuid;
@@ -69,6 +69,8 @@ begin
    or (renewal_lease is not null and lease is not null and lease is distinct from renewal_lease) then
    raise exception 'Renewal does not match selected property, unit or lease' using errcode='22023';end if;
  end if;
+ task_name:=nullif(btrim(p_changes->>'task_title'),'');
+ if task_name is null or length(task_name)>200 then raise exception 'Task title required (maximum 200 characters)' using errcode='22023';end if;
  task_status:=nullif(btrim(p_changes->>'status'),'');
  task_priority:=nullif(btrim(p_changes->>'priority'),'');
  if task_status is null or task_status not in ('pending','in_progress','waiting','blocked','completed','cancelled')
@@ -101,7 +103,7 @@ begin
      when property is null then 'general'
      when old_row.workflow_key in ('general','renewal') then 'properties'
      else old_row.workflow_key end,
-  status=task_status,priority=task_priority,assigned_label=assignee,
+  task_title=task_name,status=task_status,priority=task_priority,assigned_label=assignee,
   assigned_user_id=case when assignee is distinct from old_row.assigned_label then null else old_row.assigned_user_id end,
   notes=new_notes,intake_details=details,
   due_at=case when old_row.due_at is not null
