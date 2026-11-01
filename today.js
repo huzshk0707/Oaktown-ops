@@ -6,7 +6,7 @@ let generation=0,busy=false;
 const el=(tag,value,klass)=>{const x=document.createElement(tag);if(value!=null)x.textContent=String(value);if(klass)x.className=klass;return x};
 const text=(id,value)=>{$(id).textContent=value};
 const dateLabel=value=>{if(!M.validDate(value))return 'Date not recorded';return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'))};
-function clear(){generation++;busy=false;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-renewals').replaceChildren();$('today-refresh').disabled=!cloud.user;}
+function clear(){generation++;busy=false;$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-renewals').replaceChildren();$('today-refresh').disabled=!cloud.user;}
 function taskRow(t){const card=el('article',null,'today-task');card.append(el('strong',t.task_title||'Untitled task'));
  const fields=el('div',null,'today-task-meta');
  const parts=[String(t.status||'pending'),String(t.priority||'normal')+' priority'];
@@ -56,6 +56,7 @@ function render(data){
 }
 async function refresh(){
  if(!cloud.user){clear();return}
+ $('today-signin').hidden=true;
  const ticket=++generation;busy=true;$('today-refresh').disabled=true;
  text('today-status','Loading protected task and renewal records…');
  try{
@@ -74,6 +75,7 @@ async function refresh(){
   text('today-status','Could not load the dashboard: '+error.message+'. No tasks were changed.');
  }finally{if(ticket===generation){busy=false;$('today-refresh').disabled=!cloud.user}}
 }
+$('today-signin').addEventListener('click',()=>document.getElementById('account-button')?.click());
 $('today-refresh').addEventListener('click',()=>{if(!busy)refresh()});
 $('today-open-tasks').addEventListener('click',()=>document.querySelector('[data-workspace="tasks"]')?.click());
 $('today-open-renewals').addEventListener('click',()=>document.querySelector('[data-workspace="leases"]')?.click());
