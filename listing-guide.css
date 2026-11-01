@@ -1,0 +1,22 @@
+/* Static Listings guide and copy-only prompt builder. No data sync, no publishing. */
+@media screen {
+ .ops-workspace .listing-guide {max-width:1120px}
+ .ops-workspace .listing-guide .listing-lead {color:var(--ui-muted);max-width:75ch;margin:0 0 20px;line-height:1.65}
+ .ops-workspace .listing-guide .listing-card {background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;padding:22px;margin:16px 0 22px}
+ .ops-workspace .listing-guide .listing-card h2 {font-size:19px;margin:0 0 12px;color:var(--forest-dark)}
+ .ops-workspace .listing-guide .listing-card h3 {font-size:15px;margin:17px 0 6px}
+ .ops-workspace .listing-guide .listing-steps {padding-left:24px;margin:0}
+ .ops-workspace .listing-guide .listing-steps li {padding:7px 0;line-height:1.6}
+ .ops-workspace .listing-guide .listing-meta {color:var(--ui-muted);font-size:13px}
+ .ops-workspace .listing-guide .listing-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:15px 0}
+ .ops-workspace .listing-guide label {display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:650}
+ .ops-workspace .listing-guide :is(input,textarea,select) {display:block;width:100%;font:inherit;color:var(--ui-text);background:var(--ui-canvas);border:1px solid var(--ui-control);border-radius:8px;padding:10px;box-sizing:border-box}
+ .ops-workspace .listing-guide textarea {min-height:110px;resize:vertical;line-height:1.55}
+ .ops-workspace .listing-guide #listing-guide-prompt {min-height:300px;white-space:pre-wrap;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace}
+ .ops-workspace .listing-guide :is(input,textarea,select):focus-visible {outline:3px solid var(--ui-focus);outline-offset:2px}
+ .ops-workspace .listing-guide .listing-actions {display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}
+ .ops-workspace .listing-guide .listing-note {color:var(--ui-muted);font-size:13px;line-height:1.55}
+ .ops-workspace .listing-guide .listing-warning {border-left:3px solid var(--ui-accent);padding:11px 14px;background:var(--ui-soft)}
+ .ops-workspace .listing-guide [hidden] {display:none!important}
+ @media(max-width:700px){.ops-workspace .listing-guide .listing-fields{grid-template-columns:1fr}.ops-workspace .listing-guide .listing-card{padding:15px}}
+}
