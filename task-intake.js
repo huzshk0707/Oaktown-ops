@@ -144,7 +144,7 @@ $('task-save').addEventListener('click',()=>action(async ticket=>{
  const saved=await rpc('save',pendingRequest,sid);if(ticket!==epoch)return;
  receipt=R.validReceipt(saved)?saved:null;
  $('task-receipt').textContent=R.validReceipt(receipt)?JSON.stringify(receipt,null,2):'Save response missing a valid receipt. Refresh and verify the saved task before trying again.';pendingRequest=null;draft=null;$('task-json').value='';$('task-review').replaceChildren();$('task-confirm').checked=false;
- await refresh();msg(R.validReceipt(receipt)?'Saved to Ops. Copy the receipt back to your AI chat. No messages or reminders were sent.':'Save returned without a valid receipt. The task may have been saved: refresh the session and verify before retrying.');
+ await refresh();if(R.validReceipt(receipt))$('task-saved-records').open=true;msg(R.validReceipt(receipt)?'Saved to Ops. Copy the receipt back to your AI chat. No messages or reminders were sent.':'Save returned without a valid receipt. The task may have been saved: refresh the session and verify before retrying.');
 }));
 $('task-copy-receipt').addEventListener('click',()=>action(async()=>{if(!R.validReceipt(receipt))throw Error('No valid receipt is available. Refresh the saved session first.');if(!await copyText(JSON.stringify(receipt,null,2)))throw Error('Clipboard permission denied. Select and copy the displayed receipt manually.');msg('Import receipt copied to clipboard.')}));
 $('task-signin').addEventListener('click',()=>$('account-button').click());
