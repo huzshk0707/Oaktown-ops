@@ -24,3 +24,24 @@
 .today-footer-note{margin-top:16px}
 @media(max-width:1000px){.today-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.today-columns{grid-template-columns:1fr}}
 @media(max-width:580px){.today-header{display:block}.today-header .button{margin-top:12px}.today-card{padding:15px}.today-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.today-section-head{flex-wrap:wrap}}
+
+
+/* Reviewed task editing without changing lease or renewal source records */
+.today-task-link{font-size:12px;color:#285d49;display:block;margin-top:5px;font-weight:600}
+.today-edit-trigger{font-size:12px;margin-top:9px}
+.today-edit-dialog{width:min(750px,calc(100vw - 24px));max-height:min(90vh,950px);overflow-y:auto;border:1px solid #cad9c9;border-radius:14px;padding:22px;background:#fff;color:#193d30;box-shadow:0 22px 100px #102a1f55}
+.today-edit-dialog::backdrop{background:#0c211b99}
+.today-edit-dialog form{display:grid;gap:14px}
+.today-edit-head{display:flex;justify-content:space-between;align-items:start;gap:18px;margin-bottom:4px}
+.today-edit-head h2{font-size:22px;margin:0 0 5px}
+.today-edit-head p{font-size:12px;color:#5a7160;margin:0}
+.today-edit-dialog label{font-size:12px;font-weight:650;color:#315642;display:flex;flex-direction:column;gap:5px}
+.today-edit-dialog input,.today-edit-dialog select,.today-edit-dialog textarea{font-family:inherit;width:100%;max-width:100%;min-height:39px;padding:9px 10px;border:1px solid #aebfad;border-radius:7px;background:#fff;color:#1c392c;font-size:13px}
+.today-edit-dialog textarea{resize:vertical}
+.today-edit-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.today-link-fields{border:1px solid #cbdcc9;border-radius:10px;display:grid;grid-template-columns:1fr 1fr;gap:13px;padding:14px}
+.today-link-fields legend{font-size:13px;font-weight:700;padding:0 7px}
+.today-link-fields p{grid-column:1 / -1;font-size:11px;line-height:1.5;color:#596f60;margin:0}
+.today-edit-actions{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+#today-edit-feedback{font-size:12px;color:#46604c;line-height:1.5}
+@media(max-width:650px){.today-edit-dialog{padding:14px}.today-edit-grid,.today-link-fields{grid-template-columns:1fr}.today-edit-head h2{font-size:18px}}
