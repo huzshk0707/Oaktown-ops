@@ -69,7 +69,10 @@ begin
    where r.id=renewal;
   if not found or (renewal_unit is not null and unit is distinct from renewal_unit)
    or (renewal_property is not null and property is distinct from renewal_property)
-   or (renewal_lease is not null and lease is not null and lease is distinct from renewal_lease) then
+   or (renewal_lease is not null and lease is not null and lease is distinct from renewal_lease)
+   or (renewal_lease is not null and not exists(
+     select 1 from public.leases linked_lease where linked_lease.id=renewal_lease and linked_lease.unit_id=unit
+   )) then
    raise exception 'Renewal does not match selected property, unit or lease' using errcode='22023';end if;
  end if;
  task_name:=nullif(btrim(p_changes->>'task_title'),'');
