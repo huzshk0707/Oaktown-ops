@@ -1,7 +1,7 @@
 /* Tasks intake: explicit review, no AI calls, no sensitive browser persistence. */
 (()=>{'use strict';
 const R=window.OpsTaskIntake,cloud=window.OpsCloud,$=id=>document.getElementById(id);
-let session=null,state={tasks:[],items:[],receipts:[]},draft=null,decisions={},receipt=null,epoch=0,busy=false,active=false,pendingRequest=null,showArchived=false;
+let session=null,state={tasks:[],items:[],receipts:[]},draft=null,decisions={},receipt=null,epoch=0,busy=false,active=false,pendingRequest=null,showArchived=false,deleteSnapshot=[];
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
 const fieldLabel=k=>({waiting_on:'Waiting on',follow_up:'Follow-up',due:'Due date',blocked_reason:'Blocker',completion_summary:'Completion summary'}[k]||k.replaceAll('_',' '));
 const msg=text=>{$('task-status').textContent=text};
@@ -18,9 +18,12 @@ async function copyText(content){
 }
 function controls(){for(const id of ['task-session','task-new-session','task-snapshot','task-preview','task-json','task-refresh'])$(id).disabled=busy||!cloud.user;
 $('task-copy-receipt').disabled=busy||!cloud.user||!R.validReceipt(receipt);
+for(const button of $('task-history').querySelectorAll('button'))button.disabled=busy||!cloud.user||(button.id==='task-delete-all-archived'&&!!draft);
+$('task-delete-archived-confirm').disabled=busy||!cloud.user||!deleteSnapshot.length;
+$('task-delete-archived-cancel').disabled=busy;
 updateSave();}
 function updateSave(){let okay=false;try{okay=!!draft&&!!session&&R.preview(draft,state,decisions).pending.length>0&&!R.preview(draft,state,decisions).warnings.length&&$('task-confirm').checked}catch{}$('task-save').disabled=busy||!cloud.user||!okay}
-function reset(){epoch++;busy=false;msg(cloud.user?'Choose an intake session to continue.':'Sign in to review and save task imports.');session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;showArchived=false;$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
+function reset(){epoch++;busy=false;msg(cloud.user?'Choose an intake session to continue.':'Sign in to review and save task imports.');session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;showArchived=false;deleteSnapshot=[];if($('task-delete-archived-dialog').open)$('task-delete-archived-dialog').close();$('task-delete-archived-list').replaceChildren();$('task-delete-archived-scope').textContent='';$('task-delete-archived-status').textContent='';$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
 function fail(e){msg(e.code==='PGRST202'||e.status===404?'Cloud task saving is not enabled yet. The reviewed database setup must be deployed first. You can still preview an export while signed in.':e.message)}
 async function action(fn){if(busy)return;busy=true;const ticket=epoch;controls();try{await fn(ticket)}catch(e){if(ticket===epoch)fail(e)}finally{if(ticket===epoch){busy=false;controls()}}}
 async function listSessions(){
@@ -62,7 +65,9 @@ function renderHistory(){
  other.append(container);host.append(other);
  const toggle=el('button',showArchived?'Hide archived tasks':'Show archived tasks ('+display.archivedCount+')','button');
  toggle.type='button';toggle.disabled=!cloud.user;toggle.addEventListener('click',()=>{showArchived=!showArchived;renderHistory()});host.append(toggle);
- if(showArchived){const archivedGroup=el('section',undefined,'task-archived-list');archivedGroup.append(el('h3','Archived tasks ('+display.archivedCount+')'));for(const t of display.archived)appendTask(t,archivedGroup);host.append(archivedGroup)}
+ if(showArchived){const archivedGroup=el('section',undefined,'task-archived-list');archivedGroup.append(el('h3','Archived tasks ('+display.archivedCount+')'));
+ if(display.archived.length){const remove=el('button','Delete all archived tasks','button danger');remove.type='button';remove.id='task-delete-all-archived';remove.addEventListener('click',openArchivedDelete);archivedGroup.append(remove)}
+ for(const t of display.archived)appendTask(t,archivedGroup);host.append(archivedGroup)}
  const work=state.items.filter(i=>i.kind==='activity');
  if(work.length){const d=el('details',undefined,'task-other');d.append(el('summary','Work recorded in this session ('+work.length+')'));for(const i of work){const a=i.payload;d.append(el('p',a.work_date+' · '+a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}host.append(d)}
  // A previous PL/pgSQL name collision caused [null] to be returned for receipts.
@@ -72,6 +77,43 @@ function renderHistory(){
  $('task-receipt').textContent=R.validReceipt(receipt)?JSON.stringify(receipt,null,2):'No receipt is available yet. Refresh the session after the receipt fix is deployed.';
  controls();
 }
+function closeArchivedDelete(){if(busy)return;$('task-delete-archived-dialog').close();deleteSnapshot=[];controls()}
+function openArchivedDelete(){action(async ticket=>{
+ if(draft)throw Error('Finish the current intake preview before deleting tasks');
+ await refresh();if(ticket!==epoch)return;
+ const archived=state.tasks.filter(t=>t.archived_at);
+ if(!archived.length){msg('No archived tasks to delete.');return}
+ if(archived.some(t=>!t.id||!t.updated_at))throw Error('A task version is missing. Refresh before deleting');
+ deleteSnapshot=archived.map(t=>({id:t.id,updated_at:t.updated_at}));
+ $('task-delete-archived-list').replaceChildren(...archived.map(t=>el('li',t.task_title||'Untitled task')));
+ $('task-delete-archived-scope').textContent='Delete these '+archived.length+' archived task'+(archived.length===1?'':'s')+'?';
+ $('task-delete-archived-confirm').textContent='Delete '+archived.length+' permanently';
+ $('task-delete-archived-status').textContent='';$('task-delete-archived-cancel').textContent='Cancel';
+ $('task-delete-archived-dialog').showModal();
+ }).then(()=>{if($('task-delete-archived-dialog').open)$('task-delete-archived-cancel').focus()})}
+$('task-delete-archived-cancel').addEventListener('click',closeArchivedDelete);
+$('task-delete-archived-dialog').addEventListener('close',()=>{if(cloud.user)($('task-delete-all-archived')||document.querySelector('#task-saved-records>summary'))?.focus()});
+$('task-delete-archived-dialog').addEventListener('cancel',event=>{if(busy)event.preventDefault();else{deleteSnapshot=[];controls()}});
+$('task-delete-archived-confirm').addEventListener('click',()=>action(async ticket=>{
+ if(!session||!deleteSnapshot.length||!cloud.user)return;
+ const targets=deleteSnapshot.slice();
+ $('task-delete-archived-status').textContent='Deleting archived tasks…';
+ try{
+  const result=await cloud.api('/rest/v1/rpc/ops_tasks_delete_archived',{method:'POST',body:JSON.stringify({p_tasks:targets})});
+  if(ticket!==epoch)return;
+  if(result?.deleted_count!==targets.length)throw Error('The response did not confirm the reviewed count');
+  deleteSnapshot=[];$('task-delete-archived-dialog').close();
+  try{const deleted=new Set(targets.map(t=>t.id));state.tasks=state.tasks.filter(t=>!deleted.has(t.id));renderHistory();await refresh()}catch(error){if(ticket===epoch)msg('Permanently deleted '+result.deleted_count+' archived tasks. List refresh failed: '+error.message+'. Refresh saved records.');return}
+  if(ticket===epoch)msg('Permanently deleted '+result.deleted_count+' archived task'+(result.deleted_count===1?'':'s')+'. Active tasks and history were kept.');
+ }catch(error){
+  if(ticket!==epoch)return;deleteSnapshot=[];
+  $('task-delete-archived-status').textContent=error.code==='PGRST202'||error.status===404?
+   'Permanent deletion is not enabled yet. The database update must be applied first. Nothing was deleted.':
+   error.code==='40001'?'An archived task changed. Nothing was deleted. Close this window and refresh before reviewing again.':
+   'Deletion was not confirmed: '+error.message+'. Refresh the archived list before trying again; the request may already have saved.';
+  $('task-delete-archived-cancel').textContent='Close';
+ }
+}));
 function checkbox(label,checked,handler){const lab=el('label',undefined,'task-check'),input=document.createElement('input');input.type='checkbox';input.checked=checked;input.addEventListener('change',()=>{handler(input.checked);const replacement=[...$('task-review').querySelectorAll('label.task-check')].find(l=>l.textContent===label)?.querySelector('input');replacement?.focus({preventScroll:true})});lab.append(input,el('span',label));return lab}
 function fields(data){const dl=el('dl',undefined,'task-fields');if(!data){dl.append(el('dd','New task — not saved'));return dl}
  for(const [k,v]of Object.entries(data)){dl.append(el('dt',k.replaceAll('_',' ')),el('dd',v&&typeof v==='object'?(v.date||'')+(v.time?' at '+v.time:'')+' · Eastern time':String(v||'Not set')))}return dl}

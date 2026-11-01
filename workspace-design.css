@@ -377,3 +377,11 @@
   .ops-workspace .workspace-intro {min-height:76px;padding:18px 20px}
  }
 }
+@media screen {
+ .ops-workspace .button.danger {color:#ffd4ce;border-color:#a76b79;background:#3b2038}
+ .ops-workspace .button.danger:hover:not(:disabled) {color:#fff;background:#623049;border-color:#d79aa5}
+ .ops-workspace #task-delete-archived-list {max-height:35vh;overflow:auto;padding-left:24px;font-size:13px;line-height:1.7}
+ .ops-workspace #task-delete-archived-list li {overflow-wrap:anywhere;margin:5px 0}
+ .ops-workspace .task-archived-list>.danger {margin:4px 0 12px}
+}
+@media screen {.ops-workspace #task-delete-archived-list:focus-visible{outline:3px solid var(--ui-focus);outline-offset:3px}}

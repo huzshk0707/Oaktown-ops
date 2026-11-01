@@ -33,6 +33,7 @@ async function setup(page){
    const st=s.intake;
    if(body.p_action==='sessions')return reply(st.created?[{id:st.session,created_at:'2026-11-02T14:00:00Z'}]:[]);
    if(body.p_action==='new'){st.created=true;return reply({session_id:st.session})}
+   if(body.p_action==='state'&&s.failState)return reply({message:'Fictional list refresh failed'},503);
    if(body.p_action==='state')return reply({session_id:st.session,tasks:st.tasks,items:st.items,receipts:s.nullReceiptState?[null]:st.receipts});
    if(body.p_action==='save'){
     if(s.holdIntake)await s.holdIntake;
@@ -51,6 +52,18 @@ async function setup(page){
    }
   }
 
+  if(p==='/rest/v1/rpc/ops_tasks_delete_archived'){
+   s.deleteCalls=s.deleteCalls||[];const b=req.postDataJSON();s.deleteCalls.push(b);
+   if(s.deleteUnavailable)return reply({code:'PGRST202',message:'Function unavailable'},404);
+   if(s.holdDelete)await s.holdDelete;
+   const tasks=s.intake?.tasks||[],targets=b.p_tasks||[];
+   if(s.deleteConflict||targets.some(r=>!tasks.some(t=>t.id===r.id&&t.archived_at&&t.updated_at===r.updated_at)))return reply({code:'40001',message:'An archived task changed'},409);
+   s.intake.tasks=tasks.filter(t=>!targets.some(r=>r.id===t.id));
+   s.intake.items=s.intake.items.map(i=>targets.some(r=>r.id===i.task_id)?{...i,deleted_task_id:i.task_id,task_id:null}:i);
+   if(s.failStateAfterDelete)s.failState=true;
+   if(s.loseDeleteReply)return route.abort('connectionreset');
+   return reply({deleted_count:targets.length});
+  }
   if(p==='/rest/v1/rpc/ops_task_set_archived'){
    s.archiveCalls=s.archiveCalls||[];
    const b=req.postDataJSON(),st=s.intake,task=st?.tasks?.find(t=>t.id===b.p_task);
@@ -211,4 +224,63 @@ test('saved task cleanup separates session records and supports archive and rest
  await expect(page.locator('#task-status')).toContainText('Task restored');
  await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (1)');
  expect(mock.archiveCalls.map(x=>x.p_archived)).toEqual([true,false]);
+});
+
+async function archivedFixture(page){
+ const s=await openIntake(page);await approve(page);await page.locator('#task-save').click();
+ await expect(page.locator('#task-status')).toContainText('Saved to Ops');
+ const task=s.intake.tasks[0];task.archived_at='2026-11-03T00:00:00Z';
+ s.intake.tasks.push({id:'66666666-6666-4666-8666-666666666666',task_title:'Another fictional archived task',archived_at:'2026-11-03T00:00:00Z',updated_at:'2026-11-03T00:00:00Z',intake_details:{}});
+ s.intake.tasks.push({id:'77777777-7777-4777-8777-777777777777',task_title:'Active task stays',archived_at:null,updated_at:'2026-11-03T00:00:00Z',intake_details:{}});
+ await page.locator('#task-refresh').click();await page.getByRole('button',{name:'Show archived tasks (2)'}).click();return s;
+}
+test('delete all archived previews the count, cancels safely, and deletes only the reviewed archived rows',async({page})=>{
+ const s=await archivedFixture(page),receipt=JSON.stringify(s.intake.receipts),sources=JSON.stringify(s.intake.items.map(i=>i.payload));
+ await page.getByRole('button',{name:'Delete all archived tasks'}).click();
+ await expect(page.locator('#task-delete-archived-list li')).toHaveCount(2);
+ await expect(page.locator('#task-delete-archived-scope')).toContainText('2 archived tasks');
+ await expect(page.locator('#task-delete-archived-cancel')).toBeFocused();
+ await page.locator('#task-delete-archived-cancel').click();expect(s.deleteCalls||[]).toHaveLength(0);
+ await expect(page.locator('#task-delete-all-archived')).toBeFocused();
+ await page.getByRole('button',{name:'Delete all archived tasks'}).click();await page.locator('#task-delete-archived-confirm').click();
+ await expect(page.locator('#task-status')).toContainText('Permanently deleted 2 archived tasks');
+ expect(s.deleteCalls).toHaveLength(1);expect(s.deleteCalls[0].p_tasks).toHaveLength(2);
+ expect(s.intake.tasks.map(t=>t.task_title)).toEqual(['Active task stays']);
+ expect(JSON.stringify(s.intake.receipts)).toBe(receipt);expect(JSON.stringify(s.intake.items.map(i=>i.payload))).toBe(sources);
+ expect(s.intake.items.some(i=>i.deleted_task_id&&i.task_id===null)).toBe(true);
+ await expect(page.locator('#task-delete-all-archived')).toHaveCount(0);
+});
+test('a restored or changed archived task rejects the delete without clearing the list',async({page})=>{
+ const s=await archivedFixture(page);s.deleteConflict=true;
+ await page.getByRole('button',{name:'Delete all archived tasks'}).click();await page.locator('#task-delete-archived-confirm').click();
+ await expect(page.locator('#task-delete-archived-status')).toContainText('Nothing was deleted');
+ expect(s.intake.tasks).toHaveLength(3);await expect(page.locator('#task-delete-archived-confirm')).toBeDisabled();
+});
+test('missing delete backend fails closed with an explicit setup message',async({page})=>{
+ const s=await archivedFixture(page);s.deleteUnavailable=true;
+ await page.getByRole('button',{name:'Delete all archived tasks'}).click();await page.locator('#task-delete-archived-confirm').click();
+ await expect(page.locator('#task-delete-archived-status')).toContainText('database update must be applied first');
+ expect(s.intake.tasks).toHaveLength(3);expect(s.deleteCalls).toHaveLength(1);
+});
+test('a lost delete response stays uncertain and is not retried automatically',async({page})=>{
+ const s=await archivedFixture(page);s.loseDeleteReply=true;
+ await page.getByRole('button',{name:'Delete all archived tasks'}).click();await page.locator('#task-delete-archived-confirm').click();
+ await expect(page.locator('#task-delete-archived-status')).toContainText('may already have saved');
+ expect(s.deleteCalls).toHaveLength(1);expect(s.intake.tasks).toHaveLength(1);
+ await expect(page.locator('#task-delete-archived-confirm')).toBeDisabled();
+});
+test('sign-out during deletion clears the private review and ignores a late response',async({page})=>{
+ const s=await archivedFixture(page);let release;s.holdDelete=new Promise(r=>release=r);
+ await page.getByRole('button',{name:'Delete all archived tasks'}).click();await page.locator('#task-delete-archived-confirm').click();
+ await expect.poll(()=>s.deleteCalls?.length||0).toBe(1);await page.evaluate(()=>window.OpsCloud.signOut());release();
+ await expect(page.locator('#task-delete-archived-dialog')).not.toBeVisible();
+ await expect(page.locator('#task-delete-archived-list')).toBeEmpty();await expect(page.locator('#task-history')).toBeEmpty();
+});
+
+test('a confirmed deletion stays successful when the saved-record list refresh fails',async({page})=>{
+ const s=await archivedFixture(page);s.failStateAfterDelete=true;
+ await page.getByRole('button',{name:'Delete all archived tasks'}).click();await page.locator('#task-delete-archived-confirm').click();
+ await expect(page.locator('#task-status')).toContainText('Permanently deleted 2 archived tasks. List refresh failed');
+ expect(s.deleteCalls).toHaveLength(1);expect(s.intake.tasks).toHaveLength(1);
+ await expect(page.locator('#task-delete-all-archived')).toHaveCount(0);
 });
