@@ -90,7 +90,7 @@ function preview(d,state={tasks:[],items:[]},decisions={}){
   const g=group(key,{});g.activities.push(a);pending.push(a.activity_ref);
  }
  for(const g of groups.values()){
-  if(!g.task_id&&!decisions.resolutions?.[g.key.slice(4)])warnings.push('Resolve the property/unit or confirm General operations for '+g.after.task_title);
+  if(!g.task_id&&!decisions.resolutions?.[g.key.slice(4)])warnings.push((g.context.workflow_key==='general'?'Confirm General operations for ':'Resolve the property/unit for ')+g.after.task_title);
   if(!g.task_id&&g.context.workflow_key!=='general'&&!g.context.property_id&&!g.context.unit_id)warnings.push('Resolve the property/unit for '+g.after.task_title);
   if(!g.task_id&&g.context.workflow_key==='general'&&(g.context.property_id||g.context.unit_id))warnings.push('General operations must not use a property');
   if(g.after.status==='waiting'&&!g.after.waiting_on)warnings.push('Specify who you are waiting on');

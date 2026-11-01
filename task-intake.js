@@ -118,9 +118,9 @@ function checkbox(label,checked,handler){const lab=el('label',undefined,'task-ch
 function fields(data){const dl=el('dl',undefined,'task-fields');if(!data){dl.append(el('dd','New task — not saved'));return dl}
  for(const [k,v]of Object.entries(data)){dl.append(el('dt',k.replaceAll('_',' ')),el('dd',v&&typeof v==='object'?(v.date||'')+(v.time?' at '+v.time:'')+' · Eastern time':String(v||'Not set')))}return dl}
 function contextPicker(g){
- const box=el('div'),root=g.key.slice(4),data=window.OpsPortfolio?.getData(),lab=el('label','Resolve property / unit');
+ const box=el('div'),root=g.key.slice(4),data=window.OpsPortfolio?.getData(),general=g.context.workflow_key==='general',lab=el('label',general?'Record scope':'Resolve property / unit');
  const select=document.createElement('select');select.setAttribute('aria-label','Resolve property / unit for '+g.after.task_title);
- select.add(new Option('Choose the correct property or unit',''));
+ select.add(new Option(general?'Confirm this is a general batch':'Choose the correct property or unit',''));
  if(g.context.workflow_key==='general')select.add(new Option('General operations — no property','general'));
  else if(data){
   for(const p of data.properties){select.add(new Option(p.street_address+' · whole property','p:'+p.id));for(const u of data.units.filter(u=>u.property_id===p.id))select.add(new Option(p.street_address+' · '+(u.unit_label||u.unit_code),'u:'+u.id));}
@@ -133,7 +133,11 @@ function contextPicker(g){
   else if(v.startsWith('u:')){const u=data.units.find(x=>x.id===v.slice(2));decisions.resolutions[root]={property_id:u.property_id,unit_id:u.id,context_label:select.selectedOptions[0].textContent}}
   else if(v.startsWith('p:'))decisions.resolutions[root]={property_id:v.slice(2),unit_id:null,context_label:select.selectedOptions[0].textContent};
   pendingRequest=null;$('task-confirm').checked=false;renderReview();[...$('task-review').querySelectorAll('select')].find(s=>s.getAttribute('aria-label')===select.getAttribute('aria-label'))?.focus({preventScroll:true});
- });lab.append(select);box.append(lab);return box;
+ });lab.append(select);box.append(lab);
+ box.append(el('p',g.context.workflow_key==='general'?
+  'This is a general batch. Addresses in its summary are text only; no property, unit or lease will be linked. For property-linked records, use separate property or unit proposals.':
+  'This task will link to the property or unit you select. A lease is not selected automatically.','task-muted'));
+ return box;
 }
 function renderReview(){
  const host=$('task-review');host.replaceChildren();let preview;try{preview=R.preview(draft,state,decisions)}catch(e){host.append(el('p',e.message,'task-alert'));updateSave();return}

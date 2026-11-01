@@ -8,7 +8,7 @@ const pad=n=>String(n).padStart(2,'0');
 function offset(date,days){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return [d.getUTCFullYear(),pad(d.getUTCMonth()+1),pad(d.getUTCDate())].join('-')}
 async function setup(page){
  const day=M.today();
- const s={reads:0,fail:false,rejectEdit:false,viewer:false,edits:[],archives:[],failArchiveAt:0,loseArchiveReply:false,
+ const s={reads:0,fail:false,rejectEdit:false,viewer:false,edits:[],archives:[],events:[],reportRequests:[],failArchiveAt:0,loseArchiveReply:false,
  tasks:[
   {id:'1',task_title:'Fictional overdue inspection follow-up',status:'pending',priority:'urgent',archived_at:null,intake_details:{due:{date:offset(day,-1)}},updated_at:'2026-10-29T10:00:00Z',assigned_label:null,notes:null,property_id:null,unit_id:null,lease_id:null,renewal_case_id:null},
   {id:'2',task_title:'Fictional tenant reply due today',status:'waiting',priority:'normal',archived_at:null,updated_at:'2026-10-29T10:00:00Z',intake_details:{follow_up:{date:day}}},
@@ -31,6 +31,14 @@ async function setup(page){
   if(p==='/auth/v1/user')return reply({id:USER,email:'example@example.invalid'});
   if(p==='/auth/v1/logout')return reply({});
   if(p==='/rest/v1/staff_memberships')return reply([{user_id:USER,role:s.viewer?'viewer':'admin',is_active:true}]);
+  if(p==='/rest/v1/ops_events'){
+   if(url.searchParams.get('event_type')!=='eq.task_work_recorded')return reply([]);
+   expect(url.searchParams.get('select')).toContain('occurred_at');expect(url.searchParams.get('order')).toBe('occurred_at.asc,id.asc');
+   s.reportRequests.push({method:req.method(),date:url.searchParams.get('event_metadata->activity->>work_date')});
+   if(s.holdReport)await s.holdReport;
+   if(s.failReport)return reply({message:'Report unavailable'},503);
+   return reply(s.events);
+  }
   if(p==='/rest/v1/ops_tasks'){if(url.searchParams.get('select')?.startsWith('id,task_title,status,priority')){s.reads++;if(s.fail)return reply({message:'RLS request failed'},403)}return reply(s.tasks)}
   if(p==='/rest/v1/rpc/ops_task_set_archived'){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);s.archives.push(b);
@@ -267,4 +275,21 @@ test('sign-out during archiving clears private review and stops further archive 
  await expect(page.locator('#today-reset-list')).toBeEmpty();
  await expect(page.locator('#today-reset-open')).toBeDisabled();
  expect(s.archives).toHaveLength(1);
+});
+
+test('completed work is visible independently of intake sessions and clears on sign-out and refresh failure',async({page})=>{
+ const s=await setup(page);s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),workflow_key:'general',intake_details:{completion_summary:'Prepared fictional notices for two addresses.'}},{id:'cancelled',task_title:'Cancelled record',status:'cancelled'},{id:'archived-done',task_title:'Archived completed record',status:'completed',archived_at:new Date().toISOString()});
+ await signInToday(page);await expect(page.locator('#today-completed-count')).toHaveText('1');await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).toContainText('Prepared fictional notices');await expect(page.locator('#today-completed')).toContainText('no property or lease linked');await expect(page.locator('#today-queue')).not.toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).not.toContainText('Cancelled record');await expect(page.locator('#today-completed')).not.toContainText('Archived completed record');
+ s.fail=true;await page.locator('#today-refresh').click();await expect(page.locator('#today-status')).toContainText('Could not load');await expect(page.locator('#today-completed')).toBeEmpty();s.fail=false;await page.locator('#today-refresh').click();await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#today-completed')).toBeEmpty();
+});
+test('EOD uses saved work dates, exports estimated time once, and never writes',async({page})=>{
+ const s=await setup(page),day=M.today();s.events=[{id:'e1',event_type:'task_work_recorded',event_metadata:{activity:{work_date:day,summary:'Fictional multi-property batch',minutes:90,duration_basis:'user_estimate'}}}];s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),intake_details:{completion_summary:'Fictional properties included.'}});
+ await expect(page.locator('#eod-generate')).toBeDisabled();await signInToday(page);await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('Fictional multi-property batch');await expect(page.locator('#eod-report')).not.toContainText('minutes');if(process.env.OAKTOWN_UI_SCREENSHOTS==='1'){for(const width of [390,1440]){await page.setViewportSize({width,height:950});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);await page.locator('section[aria-labelledby=\"eod-heading\"]').screenshot({path:test.info().outputPath('eod-'+width+'.png')});}}await page.locator('#eod-include-time').check();await expect(page.locator('#eod-report')).toBeHidden();await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('Known recorded time: 90 minutes');await expect(page.locator('#eod-report')).toContainText('90 minutes (estimated by you)');await expect(page.locator('#eod-report')).toContainText('Fictional properties included.');expect(s.reportRequests).toEqual([{method:'GET',date:'eq.'+day},{method:'GET',date:'eq.'+day}]);expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
+ const download=page.waitForEvent('download');await page.locator('#eod-download').click();const exported=await download;expect(exported.suggestedFilename()).toBe('oaktown-eod-'+day+'.txt');expect(await require('fs').promises.readFile(await exported.path(),'utf8')).toBe(await page.locator('#eod-report').textContent());await page.context().grantPermissions(['clipboard-read','clipboard-write']);await page.locator('#eod-copy').click();await expect(page.locator('#eod-status')).toContainText('Report copied');expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(await page.locator('#eod-report').textContent());
+ await page.locator('#eod-date').fill(offset(day,-1));await expect(page.locator('#eod-report')).toBeHidden();await expect(page.locator('#eod-copy')).toBeDisabled();s.events=[];await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('No saved work entries');await expect(page.locator('#eod-report')).toContainText('Known recorded time: 0 minutes');
+});
+test('EOD denies partial results and clears stale exports after failure and late sign-out',async({page})=>{
+ const s=await setup(page);await signInToday(page);s.events=Array(1000).fill({id:'limit',event_type:'task_work_recorded',event_metadata:{activity:{work_date:M.today(),summary:'Fictional work',minutes:1,duration_basis:'reported'}}});await page.locator('#eod-generate').click();await expect(page.locator('#eod-status')).toContainText('No partial report');await expect(page.locator('#eod-copy')).toBeDisabled();
+ s.events=[];await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toBeVisible();s.failReport=true;await page.locator('#eod-generate').click();await expect(page.locator('#eod-status')).toContainText('Report unavailable');await expect(page.locator('#eod-report')).toBeHidden();
+ s.failReport=false;let release;s.holdReport=new Promise(resolve=>release=resolve);await page.locator('#eod-generate').click();await expect(page.locator('#eod-status')).toContainText('Loading saved');await page.evaluate(()=>window.OpsCloud.signOut());release();await expect(page.locator('#eod-report')).toBeHidden();await expect(page.locator('#eod-generate')).toBeDisabled();await expect(page.locator('#eod-status')).toContainText('Sign in');
 });
