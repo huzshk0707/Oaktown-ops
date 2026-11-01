@@ -101,4 +101,6 @@ jobs:
             -f supabase/schema/task_cleanup_v1.sql \
             -f tests/task-cleanup-check.sql \
             -f supabase/schema/today_task_editor_v1.sql \
-            -f tests/today-task-editor-check.sql
+            -f tests/today-task-editor-check.sql \
+            -f supabase/schema/task_delete_archived_v1.sql \
+            -f tests/task-delete-archived-check.sql
