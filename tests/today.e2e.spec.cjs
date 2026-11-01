@@ -45,7 +45,7 @@ test('Today is protected, uses recorded dates only, and links to existing workfl
  await page.locator('[data-workspace="today"]').click();
  await expect(page.locator('#today-status')).toContainText('Sign in to view private');
  expect(s.reads).toBe(0);
- await page.locator('#staff-access-signin').click();
+ await page.locator('#today-signin').click();
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
