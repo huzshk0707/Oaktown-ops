@@ -33,7 +33,7 @@ async function setup(page){
    const st=s.intake;
    if(body.p_action==='sessions')return reply(st.created?[{id:st.session,created_at:'2026-11-02T14:00:00Z'}]:[]);
    if(body.p_action==='new'){st.created=true;return reply({session_id:st.session})}
-   if(body.p_action==='state')return reply({session_id:st.session,tasks:st.tasks,items:st.items,receipts:st.receipts});
+   if(body.p_action==='state')return reply({session_id:st.session,tasks:st.tasks,items:st.items,receipts:s.nullReceiptState?[null]:st.receipts});
    if(body.p_action==='save'){
     if(s.holdIntake)await s.holdIntake;
     st.saves++;
@@ -49,6 +49,16 @@ async function setup(page){
     if(s.loseIntakeResponse){s.loseIntakeResponse=false;return route.abort('internetdisconnected')}
     return reply(receipt);
    }
+  }
+
+  if(p==='/rest/v1/rpc/ops_task_set_archived'){
+   s.archiveCalls=s.archiveCalls||[];
+   const b=req.postDataJSON(),st=s.intake,task=st?.tasks?.find(t=>t.id===b.p_task);
+   s.archiveCalls.push(b);
+   if(!task||task.updated_at!==b.p_expected_updated_at||!!task.archived_at===b.p_archived)return reply({message:'Task changed or is already in requested state'},409);
+   task.archived_at=b.p_archived?'2026-11-03T00:00:00Z':null;
+   task.updated_at=b.p_archived?'2026-11-03T00:00:01Z':'2026-11-03T00:00:02Z';
+   return reply({task_id:task.id,updated_at:task.updated_at,archived_at:task.archived_at});
   }
 
   if(p==='/rest/v1/properties')return reply(s.properties);
@@ -165,3 +175,40 @@ for(const width of [320,768,1024,1440]){
   }
  });
 }
+
+test('a successful save retains a copyable receipt when legacy state refresh returns null',async({page})=>{
+ const mock=await openIntake(page);mock.nullReceiptState=true;
+ await approve(page);await page.locator('#task-save').click();
+ await expect(page.locator('#task-status')).toContainText('Saved to Ops');
+ const receipt=page.locator('#task-receipt');
+ await expect(receipt).toContainText('oaktown.task-receipt.v1');
+ await expect(receipt).not.toHaveText('null');
+ await expect(page.locator('#task-copy-receipt')).toBeEnabled();
+ await page.evaluate(()=>Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async value=>window.__copiedReceipt=value}}));
+ await page.locator('#task-copy-receipt').click();
+ await expect(page.locator('#task-status')).toContainText('copied to clipboard');
+ expect(JSON.parse(await page.evaluate(()=>window.__copiedReceipt)).batch_ref).toBe(intakeFixture.batch_ref);
+ mock.nullReceiptState=false;await page.locator('#task-refresh').click();
+ await expect(receipt).toContainText('oaktown.task-receipt.v1');
+});
+test('saved task cleanup separates session records and supports archive and restore',async({page})=>{
+ const mock=await openIntake(page);await approve(page);
+ await page.locator('#task-save').click();await expect(page.locator('#task-status')).toContainText('Saved to Ops');
+ mock.intake.tasks.push({id:'66666666-6666-4666-8666-666666666666',task_title:'Fictional older portfolio task',status:'pending',updated_at:'2026-11-01T00:00:00Z',intake_details:{}});
+ await page.locator('#task-refresh').click();
+ await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (1)');
+ await expect(page.locator('#task-history summary')).toContainText('Other active portfolio tasks (1)');
+ await expect(page.locator('#task-history')).toContainText('Show archived tasks (0)');
+
+ const first=page.locator('#task-history .task-history-row').first();
+ await expect(first).toContainText('Prepare Unit 8 renewal lease');
+ await first.getByRole('button',{name:/Archive task/}).click();
+ await expect(page.locator('#task-status')).toContainText('Task archived');
+ await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (0)');
+ await expect(page.locator('#task-history')).toContainText('Show archived tasks (1)');
+ await page.getByRole('button',{name:'Show archived tasks (1)'}).click();
+ await page.locator('.task-archived-list').getByRole('button',{name:/Restore task/}).click();
+ await expect(page.locator('#task-status')).toContainText('Task restored');
+ await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (1)');
+ expect(mock.archiveCalls.map(x=>x.p_archived)).toEqual([true,false]);
+});
