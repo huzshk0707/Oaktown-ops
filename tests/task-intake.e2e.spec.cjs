@@ -197,7 +197,7 @@ test('saved task cleanup separates session records and supports archive and rest
  mock.intake.tasks.push({id:'66666666-6666-4666-8666-666666666666',task_title:'Fictional older portfolio task',status:'pending',updated_at:'2026-11-01T00:00:00Z',intake_details:{}});
  await page.locator('#task-refresh').click();
  await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (1)');
- await expect(page.locator('#task-history summary')).toContainText('Other active portfolio tasks (1)');
+ await expect(page.locator('#task-history details.task-other').first().locator('summary')).toHaveText('Other active portfolio tasks (1)');
  await expect(page.locator('#task-history')).toContainText('Show archived tasks (0)');
 
  const first=page.locator('#task-history .task-history-row').first();
