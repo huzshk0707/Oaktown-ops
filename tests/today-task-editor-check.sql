@@ -17,7 +17,7 @@ begin
  select id into r from public.renewal_cases where lease_id=l limit 1;
  if r is null then raise exception 'Renewal fixture missing';end if;
  select count(*) into event_count from public.ops_events where entity_id=task_id;
- select count(*) into before_receipts from ops_intake_private.receipts;
+ select jsonb_array_length(public.ops_task_intake('state',current_setting('ci.intake.session')::uuid)->'receipts') into before_receipts;
  payload=jsonb_build_object('task_title','Fictional reviewed lease follow-up','property_id',p,'unit_id',u,
   'lease_id',l,'renewal_case_id',r,'status','waiting','priority','high',
   'assigned_label','Fictional Staff','due_date','2026-11-05','follow_up_date','2026-11-04',
@@ -31,7 +31,7 @@ begin
   and t.assigned_label='Fictional Staff') then raise exception 'Task links or edits were not saved';end if;
  if (select count(*) from public.ops_events where entity_id=task_id and event_type='task_updated_from_today')<>1
  then raise exception 'Expected one audit event';end if;
- if (select count(*) from ops_intake_private.receipts)<>before_receipts then raise exception 'Receipt was changed';end if;
+ if jsonb_array_length(public.ops_task_intake('state',current_setting('ci.intake.session')::uuid)->'receipts')<>before_receipts then raise exception 'Receipt was changed';end if;
  begin perform public.ops_task_update_v1(task_id,old_version,payload);
   raise exception 'Stale edit accepted';exception when serialization_failure then null;end;
  -- Mismatched references rejected, existing update preserved.
