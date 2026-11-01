@@ -23,6 +23,8 @@ jobs:
           node --check notice-picker.js
           node --check task-intake-model.js
           node --check task-intake.js
+          node --check eod-model.js
+          node --check eod.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 
@@ -49,7 +51,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: oaktown-ui-review
-          path: test-results/ui-review/
+          path: |
+            test-results/ui-review/
+            test-results/**/eod-*.png
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload browser test diagnostics on failure

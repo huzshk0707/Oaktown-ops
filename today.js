@@ -22,7 +22,7 @@ function renderSchedule(tasks){
  layout.append(ring,legend);host.replaceChildren(layout);
  if(!tasks.all.length)host.append(el('p','No active tasks recorded.','today-muted'));
 }
-function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-renewals').replaceChildren();$('today-refresh').disabled=!cloud.user;resetSchedule('Sign in to view the task breakdown.');}
+function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-refresh').disabled=!cloud.user;resetSchedule('Sign in to view the task breakdown.');}
 function taskRow(t){const card=el('article',null,'today-task');card.append(el('strong',t.task_title||'Untitled task'));
  if(viewData){
   const units=new Map(viewData.units.map(x=>[x.id,x])),properties=new Map(viewData.properties.map(x=>[x.id,x]));
@@ -34,10 +34,15 @@ function taskRow(t){const card=el('article',null,'today-task');card.append(el('s
  const fields=el('div',null,'today-task-meta');
  const parts=[String(t.status||'pending'),String(t.priority||'normal')+' priority'];
  if(t.schedule)parts.push(t.schedule.type+' · '+dateLabel(t.schedule.date));
+ else if(t.status==='completed')parts.push(t.completed_at?'Marked complete · '+dateLabel(M.today(new Date(t.completed_at))):'Completion date not recorded');
  else parts.push('No date assigned');
  if(t.assigned_label)parts.push('Assigned: '+t.assigned_label);
  fields.textContent=parts.join(' · ');card.append(fields);
  const next=t.intake_details?.next_action;if(typeof next==='string'&&next.trim())card.append(el('p',next,'today-next'));
+ if(t.status==='completed'){
+  const summary=t.intake_details?.completion_summary;if(typeof summary==='string'&&summary.trim())card.append(el('p',summary,'today-next'));
+  if(!t.property_id&&!t.unit_id)card.append(el('span','General operations · no property or lease linked','today-task-meta'));
+ }
  if(viewData?.canEdit){
    const edit=el('button','Edit task','button today-edit-trigger');edit.type='button';
    edit.addEventListener('click',()=>window.dispatchEvent(new CustomEvent('ops-today-edit',{detail:{task:t}})));
@@ -72,6 +77,11 @@ function render(data){
  group(queue,'Due today',tasks.today,'No recorded deadlines today');
  group(queue,'Next 7 days',soon,'No deadlines recorded in the next 7 days');
  group(queue,'Undated active tasks',tasks.undated,'All open tasks have dates recorded',1000);
+ const completed=tasks.completed.filter(t=>String(t.status).toLowerCase()==='completed').sort((a,b)=>String(b.completed_at||'').localeCompare(String(a.completed_at||''))||String(a.task_title||'').localeCompare(String(b.task_title||'')));
+ $('today-completed-count').textContent=String(completed.length);
+ const done=$('today-completed');done.replaceChildren();
+ if(!completed.length)done.append(el('p','No completed tasks recorded.','today-muted'));
+ for(const task of completed)done.append(taskRow(task));
  const renew=$('today-renewals');renew.replaceChildren();
  if(!leases.length)renew.append(el('p','No applicable recorded lease-end dates within the next 45 days.','today-muted'));
  for(const r of leases.slice(0,10)){
@@ -94,7 +104,7 @@ async function refresh(){
  resetSchedule('Loading the task breakdown…');
  try{
   const [tasks,renewals,properties,units,leases,memberships]=await Promise.all([
-   cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,archived_at&limit=1000'),
+   cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000'),
    cloud.api('/rest/v1/renewal_cases?select=id,property_id,unit_id,lease_id,oak_record_id,recorded_end,is_applicable&limit=1000'),
    cloud.api('/rest/v1/properties?select=id,street_address&limit=1000'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_label&limit=1000'),
@@ -107,7 +117,7 @@ async function refresh(){
   render({tasks,renewals,properties,units,leases,canEdit});
  }catch(error){
   if(ticket!==generation)return;
-  viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-renewals').replaceChildren();
+  viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();
   text('today-status','Could not load the dashboard: '+error.message+'. No tasks were changed.');
   resetSchedule('Task breakdown unavailable.');
  }finally{if(ticket===generation){busy=false;$('today-refresh').disabled=!cloud.user}}
