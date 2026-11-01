@@ -1,0 +1,169 @@
+/* Oaktown's application design system. Screen only: never loaded by the
+   generator, and never applied to printed or downloaded document pages. */
+@media screen {
+ .ops-workspace {
+  --forest:#173f35; --forest-dark:#102e27; --ink:#243c33; --muted:#56665e;
+  --bg:#f5f4ef; --paper:#fff; --line:#d9dfd8; --sage:#edf2eb; --gold:#e2cb93;
+  --ui-canvas:var(--bg); --ui-surface:#fff; --ui-soft:#f7f8f4;
+  --ui-text:var(--ink); --ui-muted:var(--muted); --ui-border:var(--line);
+  --ui-control:#819487; --ui-accent:var(--forest); --ui-accent-soft:#eaf1e9;
+  --ui-radius:14px; --ui-shadow:0 2px 4px #173f3503,0 8px 28px #173f3504;
+  --ui-space-1:4px; --ui-space-2:8px; --ui-space-3:12px; --ui-space-4:16px;
+  --ui-space-6:24px; --ui-space-8:32px;
+  font:15px/1.55 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:var(--ui-canvas); color:var(--ui-text);
+ }
+ .ops-workspace .sidebar {width:244px;padding:32px 20px 24px;background:var(--forest-dark)}
+ .ops-workspace .brand {gap:12px;font-size:18px;letter-spacing:2px}
+ .ops-workspace .brand-mark {width:40px;height:44px;border-color:#829c89;background:#ffffff06}
+ .ops-workspace .brand-sub {font-size:8px;letter-spacing:1.35px;line-height:1.6;color:#c6d4c8}
+ .ops-workspace .workspace-label {margin:44px 12px 14px;font-size:10px;color:#b3c6ba;letter-spacing:1.5px}
+ .ops-workspace .sidebar nav {gap:4px}
+ .ops-workspace .nav-button {margin:0;min-height:48px;border:1px solid transparent;border-radius:8px;padding:12px;gap:12px;font-size:13px;color:#cedbd1;transition:background .18s,border-color .18s,color .18s}
+ .ops-workspace .nav-button:hover {background:#ffffff0d;color:#fff}
+ .ops-workspace .nav-button.active {background:#2b4b3e;border-color:#56705a;color:#fff;box-shadow:inset 3px 0 var(--gold)}
+ .ops-workspace .nav-button small {font-size:10px;color:#c4d2c8;letter-spacing:.01em}
+ .ops-workspace .nav-button[data-workspace="listings"] {margin-top:22px}
+ .ops-workspace .sidebar-footer {margin-top:auto;padding:24px 12px 0;border-color:#395346}
+ .ops-workspace .sidebar-footer p {font-size:20px;color:#f3f1e7;line-height:1.55;margin:16px 0 24px}
+ .ops-workspace .sidebar-footer small {color:#c0d0c4;line-height:1.6}
+ .ops-workspace .version {font-size:10px}
+ .ops-workspace .shell {margin-left:244px}
+ .ops-workspace .topbar {min-height:72px;height:auto;padding:14px 36px;background:var(--ui-canvas);font-size:13px}
+ .ops-workspace #breadcrumb {font-weight:650;color:var(--forest)}
+ .ops-workspace .slash {color:var(--ui-control)}
+ .ops-workspace #account-button {background:var(--ui-surface);border-color:var(--ui-border);border-radius:24px;padding:10px 16px;font-size:12px}
+ .ops-workspace .workspace-main {padding:32px 36px 48px;max-width:1560px}
+ .ops-workspace .workspace-intro {margin:0 0 28px;padding:0 0 24px;border-bottom:1px solid var(--ui-border)}
+ .ops-workspace .eyebrow {color:var(--ui-muted)}
+ .ops-workspace .workspace-intro .eyebrow {font-size:10px;letter-spacing:1.8px;color:var(--ui-muted);margin-bottom:8px}
+ .ops-workspace .workspace-intro h1 {font:400 clamp(32px,3vw,44px)/1.15 Georgia,"Times New Roman",serif;letter-spacing:-1.2px;color:var(--forest-dark)}
+ .ops-workspace .workspace-intro p {font-size:14px;line-height:1.7;color:var(--ui-muted);margin-top:12px;max-width:64ch}
+ .ops-workspace :is(.button,.text-action,summary,[role="tab"]) {touch-action:manipulation;cursor:pointer}
+ .ops-workspace .button {min-height:44px;padding:10px 16px;font-size:13px;line-height:1.5;border:1px solid var(--ui-control);border-radius:8px;background:var(--ui-surface);color:var(--forest);transition:background .18s,border-color .18s,box-shadow .18s}
+ .ops-workspace .button:hover:not(:disabled) {background:var(--ui-accent-soft);border-color:var(--ui-accent)}
+ .ops-workspace .button:active:not(:disabled) {background:#dde9dd}
+ .ops-workspace .button.primary {background:var(--ui-accent);color:#fff;border-color:var(--ui-accent)}
+ .ops-workspace .button.primary:hover:not(:disabled) {background:var(--forest-dark);border-color:var(--forest-dark);box-shadow:0 2px 6px #102e2720}
+ .ops-workspace .button:disabled {opacity:.5;box-shadow:none;cursor:not-allowed}
+ .ops-workspace :is(button,a,input,select,textarea,summary):focus-visible {outline:3px solid #49794f;outline-offset:3px;scroll-margin-block:24px}
+ .ops-workspace .sidebar :is(button,a):focus-visible {outline-color:var(--gold)}
+ .ops-workspace :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {font-family:inherit;line-height:1.5;font-size:14px;min-height:44px;border-color:var(--ui-control);border-radius:8px;background:var(--ui-surface);color:var(--ui-text)}
+ .ops-workspace :is(#notice-picker-search,#ops-portfolio-search,#ops-renewals-search) {border-color:var(--ui-control);background:var(--ui-surface)}
+ .ops-workspace :is(input,textarea)::placeholder {color:var(--ui-muted);opacity:1}
+ .ops-workspace :is(input[type="checkbox"],input[type="radio"]) {accent-color:var(--ui-accent)}
+ .ops-workspace :is(label,.renewal-grid label,.tracker-field) {line-height:1.6}
+ .ops-workspace :is(.status,.subtle,.ops-muted,.task-muted,.today-muted,.today-task-meta,.today-explainer,.today-footer-note) {color:var(--ui-muted);font-size:13px;line-height:1.65}
+ .ops-workspace :is(.task-card,.today-card,.message-card,.notice-picker,#ops-portfolio-panel,#ops-renewals-panel,#ops-renewal-generator) {background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--ui-radius);padding:24px;box-shadow:var(--ui-shadow)}
+ .ops-workspace :is(.section-head h2,.task-card h2,.today-header h2,#ops-portfolio-panel h2,#ops-renewals-panel h2,#ops-renewal-generator h2) {font-size:21px;line-height:1.35;letter-spacing:-.4px;font-weight:650;color:var(--forest-dark)}
+ .ops-workspace .section-head {gap:16px;margin-bottom:20px;align-items:flex-start}
+ .ops-workspace .section-head p {font-size:13px;max-width:70ch;line-height:1.7;color:var(--ui-muted)}
+ .ops-workspace :is(.workflow-tabs,.lease-inner-tabs) {position:static;margin:0 0 24px;background:#e9ece5;border:1px solid var(--ui-border);border-radius:10px;padding:5px;gap:5px}
+ .ops-workspace :is(.workflow-tabs button,.lease-inner-tabs [role="tab"]) {font-family:inherit;font-weight:600;font-size:13px;line-height:1.5;min-height:44px;border-radius:6px;color:var(--ui-muted);padding:12px 16px}
+ .ops-workspace :is(.workflow-tabs .active,.lease-inner-tabs [aria-selected="true"]) {background:var(--ui-surface);color:var(--forest);box-shadow:0 1px 4px #173f351a}
+ .ops-workspace .staff-access {background:#edf1e9;border-color:#b9cbb8;border-radius:var(--ui-radius);padding:28px;max-width:none}
+ .ops-workspace .staff-access p {color:#3f5748;font-size:14px}
+ .ops-workspace .staff-access-actions p {font-size:12px}
+ .ops-workspace .access-eyebrow {font-size:10px;color:#456345}
+ .ops-workspace .notice-picker-row {background:var(--ui-soft);border-color:var(--ui-border);padding:16px;min-height:96px;gap:12px}
+ .ops-workspace .notice-picker-row:has(input:checked) {background:var(--ui-accent-soft);border-color:#527951;box-shadow:inset 3px 0 var(--forest)}
+ .ops-workspace .notice-picker-row-body small {font-size:12px;color:var(--ui-muted)}
+ .ops-workspace .property-record {background:var(--ui-soft);border-color:var(--ui-border);padding:16px;border-radius:10px;box-shadow:none}
+ .ops-workspace .property-record:hover {background:var(--ui-accent-soft);border-color:var(--ui-control)}
+ .ops-workspace .property-record strong {font-size:14px;line-height:1.5}
+ .ops-workspace .property-record-meta {font-size:12px;color:var(--ui-muted)}
+ .ops-workspace .ops-search {padding:12px 14px;margin:8px 0 12px}
+ .ops-workspace .ops-kpi {background:var(--ui-soft);border-color:var(--ui-border);border-radius:10px;padding:16px}
+ .ops-workspace .ops-kpi strong {font-size:28px;line-height:1.2;font-weight:600;font-variant-numeric:tabular-nums}
+ .ops-workspace .ops-kpi span {font-size:12px;color:var(--ui-muted)}
+ .ops-workspace .ops-detail {background:var(--ui-soft);border-color:var(--ui-border);padding:20px;border-radius:10px}
+ .ops-workspace .ops-detail h3 {font-size:20px;line-height:1.4;letter-spacing:-.3px}
+ .ops-workspace .ops-detail-line {font-size:13px;padding:10px 0}
+ .ops-workspace .ops-history {background:var(--ui-surface);font-size:13px;line-height:1.65}
+ .ops-workspace .today-workflow,.ops-workspace .task-inbox {max-width:none}
+ .ops-workspace .today-header {margin-bottom:8px}
+ .ops-workspace .today-header h2 {font-size:19px}
+ .ops-workspace .today-header p {max-width:70ch;font-size:13px;line-height:1.7}
+ .ops-workspace .today-kpis {gap:0;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--ui-radius);box-shadow:var(--ui-shadow);margin:24px 0;overflow:hidden}
+ .ops-workspace .today-kpi {flex-direction:column-reverse;justify-content:space-between;gap:12px;background:transparent;border:0;border-radius:0;padding:20px 24px;box-shadow:inset -1px 0 var(--ui-border)}
+ .ops-workspace .today-kpi:last-child {box-shadow:none}
+ .ops-workspace .today-kpi strong {font-size:36px;font-weight:550;line-height:1.15;letter-spacing:-1px;color:var(--forest-dark)}
+ .ops-workspace .today-kpi span {font-size:12px;font-weight:600;color:var(--ui-muted)}
+ .ops-workspace .today-columns {grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:24px}
+ .ops-workspace .today-section-head {padding-bottom:18px;border-bottom:1px solid var(--ui-border);margin-bottom:20px;flex-wrap:wrap}
+ .ops-workspace .today-section-head h3 {font-size:19px;letter-spacing:-.3px}
+ .ops-workspace .today-group {margin:20px 0 28px}
+ .ops-workspace .today-group:last-child {margin-bottom:0}
+ .ops-workspace .today-group h4 {font-size:12px;font-weight:650;letter-spacing:.04em;color:var(--forest);margin-bottom:12px}
+ .ops-workspace .today-task {background:var(--ui-soft);padding:16px;border:1px solid var(--ui-border);border-radius:10px;margin-top:10px;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16px;align-items:start}
+ .ops-workspace .today-task>:not(.today-edit-trigger) {grid-column:1}
+ .ops-workspace .today-task strong {font-size:14px}
+ .ops-workspace .today-task-meta {font-size:12px}
+ .ops-workspace .today-edit-trigger {grid-column:2;grid-row:1 / span 5;align-self:center;margin:0;padding:8px 12px;white-space:normal;font-size:12px}
+ .ops-workspace .today-lease {padding:18px 0}
+ .ops-workspace .today-explainer {background:var(--ui-soft);padding:12px 14px;border-radius:8px;font-size:12px}
+ .ops-workspace .today-footer-note {font-size:12px;padding-top:4px}
+ .ops-workspace .task-stages {gap:0;border-bottom:1px solid var(--ui-border);border-radius:0;margin-bottom:24px}
+ .ops-workspace .task-stages span {background:transparent;flex:1;border-radius:0;padding:12px 16px;font-size:12px;color:var(--forest);border-bottom:2px solid #aec1aa}
+ .ops-workspace .task-card {margin-bottom:24px}
+ .ops-workspace .task-card>p {max-width:76ch;font-size:14px}
+ .ops-workspace :is(.task-diff>div,.task-archived-list,.renewal-summary,.tracker-history) {background:var(--ui-soft);border-radius:10px}
+ .ops-workspace .task-inbox .task-pill {background:var(--ui-accent-soft);color:var(--forest)}
+ .ops-workspace :is(.renewal-warning,.task-alert,.message-alert) {background:#fbf5e6;border-color:#b18b44;color:#694b1c;border-radius:6px;font-size:13px;line-height:1.7;padding:14px 16px}
+ .ops-workspace .legacy-address-manager {padding:18px 20px;border-color:var(--ui-border);background:transparent}
+ .ops-workspace dialog {border-color:var(--ui-border);padding:28px;border-radius:16px;box-shadow:0 24px 96px #102e2733;max-height:calc(100dvh - 32px)}
+ .ops-workspace dialog::backdrop {background:#102e2777;backdrop-filter:blur(4px)}
+ .ops-workspace dialog h2 {font-size:24px;letter-spacing:-.5px}
+ .ops-workspace dialog label {font-size:13px}
+ .ops-workspace .today-link-fields {border-color:var(--ui-border);background:var(--ui-soft)}
+ .ops-workspace .page-footer {font-size:12px;color:var(--ui-muted);border-top:1px solid var(--ui-border);margin-top:32px;padding-top:20px}
+ @media(min-width:741px) and (max-height:800px) {
+  .ops-workspace .sidebar {padding-top:22px}
+  .ops-workspace .workspace-label {margin-top:24px}
+  .ops-workspace .sidebar-footer {padding-top:16px;margin-top:24px}
+  .ops-workspace .sidebar-footer p {font-size:17px;margin:12px 0}
+ }
+ @media(max-width:1150px) {
+  .ops-workspace .workspace-main {padding:28px 24px 40px}
+  .ops-workspace .topbar {padding-inline:24px}
+  .ops-workspace .today-columns {grid-template-columns:1fr}
+  .ops-workspace .today-kpi {padding:18px}
+ }
+ @media(max-width:740px) {
+  .ops-workspace .sidebar {position:static;width:auto;padding:20px 16px 8px}
+  .ops-workspace .brand {font-size:17px}
+  .ops-workspace .brand-mark {width:32px;height:36px;font-size:23px}
+  .ops-workspace .brand-sub {font-size:8px}
+  .ops-workspace .sidebar nav {display:flex;gap:6px;padding:4px 0 12px;margin-top:18px;scroll-padding:4px}
+  .ops-workspace .sidebar .nav-button {padding:10px 12px;min-height:44px;font-size:12px;margin:0;gap:8px}
+  .ops-workspace .nav-button small {font-size:10px}
+  .ops-workspace .shell {margin-left:0}
+  .ops-workspace .topbar {padding:12px 16px;min-height:64px;font-size:12px}
+  .ops-workspace .slash {padding:0 6px}
+  .ops-workspace #account-button {padding:8px 12px}
+  .ops-workspace .workspace-main {padding:24px 16px 32px}
+  .ops-workspace .workspace-intro {padding-bottom:20px;margin-bottom:24px}
+  .ops-workspace .workspace-intro h1 {font-size:36px}
+  .ops-workspace .workspace-intro p {font-size:14px}
+  .ops-workspace :is(.task-card,.today-card,.message-card,.notice-picker,#ops-portfolio-panel,#ops-renewals-panel,#ops-renewal-generator) {padding:18px;border-radius:12px}
+  .ops-workspace .staff-access {padding:20px}
+  .ops-workspace .staff-access h2 {font-size:22px;line-height:1.35}
+  .ops-workspace .staff-access-actions p {font-size:12px}
+  .ops-workspace .today-kpis {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ops-workspace .today-kpi {padding:18px;border-bottom:1px solid var(--ui-border)}
+  .ops-workspace .today-kpi:last-child {grid-column:1 / -1;border-bottom:0}
+  .ops-workspace .today-kpi strong {font-size:32px}
+  .ops-workspace .today-header {display:block}
+  .ops-workspace .today-header-actions {margin-top:12px}
+  .ops-workspace .today-task {grid-template-columns:minmax(0,1fr);gap:4px}
+  .ops-workspace .today-edit-trigger {grid-column:1;grid-row:auto;justify-self:start;margin-top:8px}
+  .ops-workspace .task-stages {flex-direction:column}
+  .ops-workspace .task-stages span {padding:10px 0}
+  .ops-workspace :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {font-size:16px}
+  .ops-workspace :is(.workflow-tabs button,.lease-inner-tabs [role="tab"]) {padding:10px 8px;font-size:13px;white-space:normal}
+  .ops-workspace .today-edit-dialog {padding:18px}
+ }
+ @media(prefers-reduced-motion:reduce) {
+  .ops-workspace *,.ops-workspace *::before,.ops-workspace *::after {transition:none!important;animation:none!important;scroll-behavior:auto!important}
+ }
+}
