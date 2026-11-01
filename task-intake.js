@@ -42,7 +42,7 @@ function renderHistory(){
   summary.append(el('strong',t.task_title),el('p',t.status+(t.intake_details?.next_action?' · '+t.intake_details.next_action:''),'task-muted'));
   row.append(summary);
   const archived=!!t.archived_at,button=el('button',archived?'Restore':'Archive','button');
-  button.type='button';button.disabled=busy||!cloud.user;
+  button.type='button';button.disabled=!cloud.user;
   button.setAttribute('aria-label',(archived?'Restore':'Archive')+' task: '+t.task_title);
   button.addEventListener('click',()=>action(async ticket=>{
    const verb=archived?'restore':'archive';
@@ -61,7 +61,7 @@ function renderHistory(){
  const container=el('div');for(const t of display.other)appendTask(t,container);
  other.append(container);host.append(other);
  const toggle=el('button',showArchived?'Hide archived tasks':'Show archived tasks ('+display.archivedCount+')','button');
- toggle.type='button';toggle.disabled=busy||!cloud.user;toggle.addEventListener('click',()=>{showArchived=!showArchived;renderHistory()});host.append(toggle);
+ toggle.type='button';toggle.disabled=!cloud.user;toggle.addEventListener('click',()=>{showArchived=!showArchived;renderHistory()});host.append(toggle);
  if(showArchived){const archivedGroup=el('section',undefined,'task-archived-list');archivedGroup.append(el('h3','Archived tasks ('+display.archivedCount+')'));for(const t of display.archived)appendTask(t,archivedGroup);host.append(archivedGroup)}
  const work=state.items.filter(i=>i.kind==='activity');
  if(work.length){const d=el('details',undefined,'task-other');d.append(el('summary','Work recorded in this session ('+work.length+')'));for(const i of work){const a=i.payload;d.append(el('p',a.work_date+' · '+a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}host.append(d)}
