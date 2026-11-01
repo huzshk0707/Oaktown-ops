@@ -104,7 +104,9 @@ begin
   status=task_status,priority=task_priority,assigned_label=assignee,
   assigned_user_id=case when assignee is distinct from old_row.assigned_label then null else old_row.assigned_user_id end,
   notes=new_notes,intake_details=details,
-  due_at=null,
+  due_at=case when old_row.due_at is not null
+       and due_text=(old_row.due_at at time zone 'America/New_York')::date::text
+       then old_row.due_at else null end,
   completed_at=case when task_status='completed' then coalesce(old_row.completed_at,clock_timestamp()) else null end
  where t.id=p_task and t.updated_at=p_expected_updated_at and t.archived_at is null
  returning t.* into new_row;
