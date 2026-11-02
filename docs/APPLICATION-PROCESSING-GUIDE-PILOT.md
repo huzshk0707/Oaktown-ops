@@ -1,34 +1,65 @@
-# OAK-APP-001 — Applications Guide Pilot
+# OAK-APP-001 — Applications Workflow Guide · Draft v0.2
 
-**Status:** Draft development PR, not merged, not a verified complete SOP.
+**Status:** Working user-described SOP captured November 2, 2026; open [draft PR #36](https://github.com/huzshk0707/Oaktown-ops/pull/36). Not a final approved company screening policy. No production application-case database, document generator or private AI file upload exists in this PR.
 
-## Verified source boundary
-The Leslie O'Keefe **Application Processing** email (January 28, 2026), preserved in the forwarded **fyi** email from February 2026, is the historical source for: income verification, Jefferson sheriff process-paper record lookups including older searches, page-3 Louisville Water utility authorization, landlord references and independent property/LLC ownership verification via PVA/tax sources. This is not the full end-to-end application process, and several described screening thresholds require current policy/legal review. **Do not automate decisions based on that old email.**
+## Source provenance
+- **Current staff walkthrough, November 2, 2026:** Fillout application notification → View Submission → send same applicant application for Dropbox e-signature → review pay-stub income / 3× arithmetic → find correct state/county records → signed page-3 water request → landlord reference → application findings summary → Leslie decision → non-refundable-deposit form and move-in vendor sheet → separate lease/move-in/LG&E handoffs.
+- **Historical Leslie O'Keefe email, January 28, 2026:** Explicit income, sheriff civil-process search, water authorization page 3, landlord references and ownership checks. Original, privately archived [Application Processing.eml](https://drive.google.com/file/d/1iNy8v7OKCVk_NkdSvVQH8_E1BAnWb_5d/view).
+- **Still needed:** The user will provide actual landlord-reference email and blank form, non-refundable-deposit agreement PDF, move-in vendor sheet, redacted Fillout/Dropbox examples, LG&E voice notes, and later full lease-preparation SOP. **Do not invent forms, signatures or terms.**
 
-Private source folder (restricted access): https://drive.google.com/drive/folders/1IqOipg_D4MuhkwO5hvfwR4q2Ynh3HSgT
+## Actual process (confirmed from user's description)
 
-## App versus AI versus staff (to be confirmed with actual practice)
-- **Oaktown Ops future structured capabilities:** authenticated application cases linked to property/unit and authorized contact, intake receipt/attachment references (not raw screening records), step/status/checklist and timestamps, request/receipt provenance, assignments, due dates, conflict flags and Leslie decision/approval tracking. None of these are implemented by this guide.
-- **ChatGPT/Gemini/Claude assistance:** help staff turn their process into a documented SOP, summarize sanitized progress, find missing steps/contradictions, draft a reference/utility follow-up message. Do not ingest unredacted application records or decide eligibility.
-- **Authorized human:** verify documents and records in approved systems, obtain lawful applicant authorization, perform references, address accommodations and policy/legal questions, decide applications, send external communications, enter the final case/lease records.
+1. **Fillout notification and intake.** Staff receives a Fillout email containing the rental application and View Submission link. Open the submission, identify the exact property/unit and obtain the application PDF and supporting pay-stub PDFs. Do not assume the application is complete or signed.
+2. **Dropbox e-signature to same applicant.** The user's current free Fillout process doesn't capture the required signature. Staff sends the application back to the applicant using Dropbox e-signature and tracks request sent, applicant signature completed and any lawful signed verification authorizations. The precise Dropbox workflow, legal form and signature placement require user-supplied example. Verification requests requiring authorization should not precede the necessary signed permission.
+3. **Income arithmetic (first review task Leslie requests).** Staff checks actual gross earnings and pay periods from supporting pay stubs, confirms pay frequency, calculates monthly gross, compares it with **3 × the verified monthly rent** and documents evidence/uncertainty. AI can assist ONLY through a privacy-reviewed, authorized approach to PDF processing. Redacted numerical summaries may be entered in the public guide; raw pay stubs, SSNs, identity data or financial account details may not. The app's numeric helper uses weekly ×52/12, every-two-weeks ×26/12, twice-monthly ×2 and monthly ×1. It cannot verify documents, predict future fluctuating earnings, assess combined household income without the correct data, or decide applicant eligibility. Voucher/Section 8, accommodations, and exception rules require Leslie's current lawful policy review.
+4. **Public-record sources by jurisdiction.** Determine **current state and county** and applicable former counties before selecting official records. For Jefferson County KY, Leslie references the Sheriff's Civil Process Paper Search, with searches after and before September 11, 2023. Verify whether a record actually matches and what it establishes; process-paper results are not necessarily eviction judgments. A mismatch or historical event cannot automatically trigger rejection or higher deposits.
+5. **Water authorization, page 3.** With relevant signed authorization, staff sends page 3 of the application to Louisville Water where applicable. Leslie's 2026 email listed `collections@louisvillewater.com`; confirm current operational destination. Track sent, awaiting response and actual findings. Outside the utility's jurisdiction, determine the correct procedure rather than forwarding to Louisville automatically.
+6. **Current landlord reference.** Staff obtains valid email address for landlord/property manager (call if necessary); sends the landlord-reference form and accompanying message, examples **pending upload**; tracks reply. Where identity seems uncertain, independently check relevant county ownership sources such as [Jefferson PVA](https://jeffersonpva.ky.gov/property-search/) and applicable tax records. A mismatch means staff must verify, not assume misrepresentation.
+7. **Application findings summary.** Clearly separate income arithmetic from verified pay-stub evidence; document official search date/jurisdiction and source limitations; water verification result; whether landlord reference was requested, received or still pending; signed authorizations; exceptions; next follow-up; and any unknown/contradictory facts. Do not mark approval automatically.
+8. **Authorized decision.** Leslie or an authorized reviewer decides an application under current approved lawful policy; record evidence, actual decision, reviewer and date. AI and the numeric 3× indicator do not approve or reject applicants.
+9. **After approval.** Prepare/send the *non-refundable deposit form* and the *move-in vendor sheet* once the exact blank templates and terms are supplied, checked and authorized. Record draft/sent/signed/received distinctly. The phrase 'non-refundable deposit' reflects staff terminology here, NOT a legal finding about permissible terms or an automatic payment requirement.
+10. **Handoff** to separately documented lease preparation/signing, move-in, and LG&E utility start/stop workflows. Do not mark these as completed merely because application approval occurred.
 
-## Current pilot UI
-- The **Applications** tab is a guide and a copyable prompt composer; it collects only redacted notes in temporary browser input fields and does not store or transmit them.
-- Stages are provisional: Intake; Income; Records; Utility; Landlord; Leslie Review; Lease Handoff. The operator will explain real steps and exceptions; then we'll correct the SOP before building a database tracker.
-- Modes: Plan Next Administrative Step; Draft Verification/Follow-up Message; Organize My Actual Workflow into an SOP.
-- Explicitly no account/screening determination, email dispatch, backend write, API call, automatic external search, or private data in GitHub.
-- No deadlines, application fees, deposit/rent thresholds or legal rules are asserted as approved current policy.
+## Links and reference boundaries
 
-## When user provides full process
-1. Record real order: how application arrives; source channel; original forms; actor; what counts as complete; authorization procedure; checks and source URLs; exceptions; Leslie review/decision; tenant notification; lease handoff and reconciliation.
-2. Identify responsibilities and approval points; compare to Leslie historical January 28 email with exact source/dates.
-3. Update living playbook OAK-APP-001 and guide/mini-checklist in this separate PR; never overwrite prior source evidence.
-4. Test only synthetic/redacted cases when requested.
+- [Jefferson County Sheriff's current Civil Process Paper Search](https://www.jcsoky.org/criminal-division/process-unit-public-search-02) — papers after Sept 11, 2023.
+- [Sheriff historical Civil Process search](https://www.jcsoky.org/criminal-division/process-unit-public-search) — prior to Sept 11, 2023.
+- [Jefferson County PVA Property Search](https://jeffersonpva.ky.gov/property-search/).
+- [Jefferson County Sheriff home / Property Tax](https://www.jcsoky.org/).
+- [Private Application workflow source folder](https://drive.google.com/drive/folders/1IqOipg_D4MuhkwO5hvfwR4q2Ynh3HSgT).
+These links are county-specific and **not** nationwide sources. Confirm correct jurisdiction and authoritative records; the utility email and any landlord address must be confirmed by authorized staff.
 
-## Suggested staff tests (deferred)
-- Only an application notification arrives, no documents: no assumption of completeness.
-- Water authorization not signed: no claim of request sent or permission obtained.
-- Landlord name differs from owner source: verification follow-up, not accusation.
-- Historical eviction record: source match and human review, not auto denial or extra deposit.
-- Applicant has voucher or accommodation: follow compliant approved procedure, no automatic exclusion.
-- Approved-by-Leslie case is handed to lease-preparation; draft/sent/signed statuses distinct.
+## What should be an Oaktown Ops feature versus AI versus staff?
+
+**Oaktown Ops now in this PR:** Human-readable guide with official links, stages and approval boundaries; an anonymous income arithmetic helper; five provider-neutral prompt modes (next step, message draft, income worksheet, summary, SOP capture). This runs locally in a temporary browser form only, without storing case records. No protected PDF upload.
+
+**Recommended future Oaktown Ops features (require separate explicit approval):** Authenticated application cases by existing property/unit IDs; per-case checklist states and timestamped evidence links; signature sent/completed, authorizations, document references with access controls; income worksheet review status; official source jurisdiction; water and landlord follow-ups; summaries and Leslie approval; editable PDF generators built ONLY after user provides blank original forms; lease and LG&E handoffs. Permissioned, auditable storage—not a public browser form or raw applicant documents in GitHub.
+
+**AI assistance:** Privacy-approved pay-stub extraction or redacted calculations, confidence/uncertainty checks, missing-item checklists, cover-message drafts, findings summaries and SOP suggestions. AI must never manufacture source data, conduct unapproved records searches, impose fees, or decide who gets housing.
+
+**Staff/Leslie:** Verify pay stubs and record identity, sign/send documents through approved systems, get verified landlord/water responses, resolve concerns consistently and lawfully, choose final applicant outcome and approve the deposit/move-in paperwork.
+
+## Critical questions before final SOP / generated documents
+- Does Dropbox return the applicant's signed complete application, and is the same signature sufficient for the water and landlord authorization? How is the signed PDF saved/verified?
+- How do you determine whether the income amount is **gross**, and whether Leslie evaluates individual, combined household, or rent-share income, especially when multiple adults, variable pay, or vouchers are involved?
+- What exactly do you send as the landlord-reference cover email, and what fields does Leslie's blank reference form contain?
+- Does the water verification page require any additional signed authorization? Is the earlier collections email still used?
+- What are the source jurisdictions for previous addresses, and is there a defined time period for searching?
+- Which results must be received before Leslie makes a decision, who is responsible for follow-ups, and how are approval/denial messages handled?
+- What are the actual reviewed deposit document terms and vendor sheet fields? Who sends them, and what counts as accepted/signed?
+- When do lease preparation, LG&E transfers and move-in preparation begin relative to payment and approved documents?
+
+## Pending test scenarios (do not run with real private applicant data)
+1. Fillout received, signature missing: hold authorization-dependent requests.
+2. Gross income once per week vs twice monthly: verify numerical conversion and flag missing pay-period evidence.
+3. Rent change only: avoid assuming other applicant/property terms.
+4. Applicant has lived in another state: require county-specific sources, avoid Jefferson-only conclusions.
+5. Sheriff search same-name result: flag for identity/record verification rather than automatic disqualification.
+6. Water page not signed or returned: mark pending, not complete.
+7. Landlord reference sent but no reply: mark requested/pending separately.
+8. Template missing or user calls form 'non-refundable': do not generate invented legal terms.
+9. Leslie approves: prepare pending approved forms, do not pretend signed lease or utility transfer.
+
+## Change log
+2026-11-02 v0.1 — historical-source pilot created.
+2026-11-02 v0.2 — staff-described Fillout/Dropbox signature workflow; income arithmetic; multi-jurisdiction records; water and landlord follow-ups; summary; Leslie approval; non-refundable deposit form/vendor sheet; upcoming LG&E and leases; placeholders for source PDFs and messages.
