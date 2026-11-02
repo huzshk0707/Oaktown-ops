@@ -6,7 +6,7 @@ test('application guide follows staff-confirmed Fillout and Dropbox sequence',()
  assert.match(p,/Fillout application notification email/);
  assert.match(p,/Dropbox e-signature/);
  assert.match(p,/SAME applicant/);
- assert.match(p,/signed the authorization/i);
+ assert.match(p,/tracks completed signature\/authorization/);
  assert.match(p,/Fictional unit 4/);
  assert.match(p,/unsigned/);
 });
@@ -15,7 +15,7 @@ test('public-record workflow is jurisdiction-aware, preserving source limits',()
  assert.match(p,/state AND county\/jurisdiction/);
  assert.match(p,/prior residences/);
  assert.match(p,/A civil process match alone is not proof of eviction/);
- assert.match(p,/not an automatically enforceable screening/i); // check after actual source edits
+ assert.match(p,/Historical eviction-age rules\/deposit amounts do NOT establish current lawful policy/);
 });
 test('historical Leslie instruction is not active eligibility policy',()=>{
  const p=buildPrompt();
@@ -46,9 +46,9 @@ test('income mode asks for gross pay evidence and document privacy',()=>{
  const p=buildPrompt({mode:'income',stage:'income',rent:1000,grossPay:1500,payFrequency:'biweekly'});
  assert.match(p,/Income Worksheet/);
  assert.match(p,/Gross\/month 3250.00/);
- assert.match(p,/not a rental decision/i);
+ assert.match(p,/Arithmetic Comparison \(NOT Eligibility\)/);
  assert.match(p,/NO protected file upload/);
- assert.match(p,/Gross from net/i);
+ assert.match(p,/distinguish gross from net/);
 });
 test('summary mode and message drafting preserve uncertain stages',()=>{
  const summary=buildPrompt({mode:'summary',stage:'summary',status:'water pending; landlord requested'});
