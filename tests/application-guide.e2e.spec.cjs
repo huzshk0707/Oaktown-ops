@@ -1,7 +1,7 @@
 'use strict';
 const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765';
-for(const theme of ['veyra','oryn','nilo'])test('Applications guide works without saving cases in '+theme,async({page})=>{
+for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl'])test('Applications guide works without saving cases in '+theme,async({page})=>{
  const external=[];
  await page.route('**/*',route=>{
   if(new URL(route.request().url()).origin===ORIGIN)return route.continue();

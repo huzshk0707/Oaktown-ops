@@ -1,8 +1,49 @@
-/* Only an appearance name is persisted. Theme changes never touch work records. */
+/* Appearance preferences only. Work records never pass through this module. */
 (()=>{'use strict';
- const key='oaktown-theme-v1',modes={veyra:{scheme:'dark',canvas:'#081331'},oryn:{scheme:'dark',canvas:'#131415'},nilo:{scheme:'light',canvas:'#e4ecee'}};
- function apply(value){document.documentElement.classList.add('theme-changing');const name=Object.hasOwn(modes,value)?value:'veyra';document.documentElement.dataset.opsTheme=name;document.documentElement.style.colorScheme=modes[name].scheme;document.documentElement.style.backgroundColor=modes[name].canvas;const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=modes[name].canvas;const select=document.getElementById('ops-theme-select');if(select)select.value=name;window.dispatchEvent(new Event('ops-theme-change'));requestAnimationFrame(()=>requestAnimationFrame(()=>document.documentElement.classList.remove('theme-changing')));}
- let saved;try{saved=localStorage.getItem(key)}catch{}apply(saved);
- document.addEventListener('DOMContentLoaded',()=>{const select=document.getElementById('ops-theme-select');if(!select)return;select.value=document.documentElement.dataset.opsTheme;select.addEventListener('change',()=>{apply(select.value);try{localStorage.setItem(key,select.value)}catch{}});});
- window.addEventListener('storage',event=>{if(event.key===key)apply(event.newValue)});
+ const themeKey='oaktown-theme-v1',motionKey='oaktown-motion-v1';
+ const modes={
+  veyra:{scheme:'dark',canvas:'#081331'},
+  oryn:{scheme:'dark',canvas:'#131415'},
+  nilo:{scheme:'light',canvas:'#e4ecee'},
+  ember:{scheme:'dark',canvas:'#151819'},
+  verdant:{scheme:'dark',canvas:'#0e1c19'},
+  pearl:{scheme:'light',canvas:'#f1eee7'}
+ };
+ const root=document.documentElement,reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ function read(key){try{return localStorage.getItem(key)}catch{return null}}
+ function save(key,value){try{localStorage.setItem(key,value)}catch{}}
+ function apply(value){
+  const name=Object.hasOwn(modes,value)?value:'veyra',mode=modes[name];
+  root.classList.add('theme-changing');
+  root.dataset.opsTheme=name;root.style.colorScheme=mode.scheme;root.style.backgroundColor=mode.canvas;
+  const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=mode.canvas;
+  const select=document.getElementById('ops-theme-select');if(select)select.value=name;
+  window.dispatchEvent(new Event('ops-theme-change'));
+  requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.remove('theme-changing')));
+ }
+ let motion=read(motionKey)==='off'?'off':'on';
+ function applyMotion(){
+  const off=motion==='off'||reduced.matches;
+  root.dataset.opsMotion=off?'off':'on';
+  const button=document.getElementById('ops-motion-toggle');
+  if(button){
+   button.setAttribute('aria-pressed',String(off));
+   button.querySelector('span').textContent=off?'Motion off':'Motion on';
+   button.title=reduced.matches?'Reduced motion follows your device setting':'Toggle interface motion';
+  }
+ }
+ apply(read(themeKey));applyMotion();
+ document.addEventListener('DOMContentLoaded',()=>{
+  const select=document.getElementById('ops-theme-select');
+  if(select){select.value=root.dataset.opsTheme;select.addEventListener('change',()=>{apply(select.value);save(themeKey,select.value)})}
+  document.getElementById('ops-motion-toggle')?.addEventListener('click',()=>{
+   motion=motion==='off'?'on':'off';save(motionKey,motion);applyMotion();
+  });
+  applyMotion();
+ });
+ reduced.addEventListener('change',applyMotion);
+ window.addEventListener('storage',event=>{
+  if(event.key===themeKey||event.key===null)apply(read(themeKey));
+  if(event.key===motionKey||event.key===null){motion=read(motionKey)==='off'?'off':'on';applyMotion()}
+ });
 })();
