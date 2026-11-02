@@ -77,6 +77,7 @@
    return panel;
   });
   form.replaceChildren(...fieldGroups);
+  form.addEventListener('submit',event=>event.preventDefault());
   const header=el('div','guide-header');
   originalHeading.textContent=c.title;header.append(originalHeading,el('p','guide-hint',c.intro));
   let view='workflow',all=false,flowIndex=0,promptIndex=0;

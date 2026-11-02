@@ -71,6 +71,15 @@ test('parallel application reviews can be completed out of order without advanci
  await expect(root.locator('.guide-step-card:visible')).toContainText('Confirm required permission');
  await expect(page.locator('#application-stage')).toHaveValue('intake');
 });
+test('Enter in a prompt field does not submit the page or discard working inputs',async({page})=>{
+ const {root}=await setup(page,'leads');
+ await root.getByRole('button',{name:'Build prompt',exact:true}).click();
+ await root.locator('.guide-form-jump').nth(1).click();
+ await page.locator('#lead-property').fill('Fictional unit — keep this input');
+ await page.locator('#lead-property').press('Enter');
+ await expect(root).toHaveAttribute('data-guide-view','prompt');
+ await expect(page.locator('#lead-property')).toHaveValue('Fictional unit — keep this input');
+});
 test('all six themes fit phone, landscape and desktop without hiding source guidance',async({page})=>{
  const {root}=await setup(page,'applications');
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
