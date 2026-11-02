@@ -10,6 +10,15 @@ test('application guide follows staff-confirmed Fillout and Dropbox sequence',()
  assert.match(p,/Fictional unit 4/);
  assert.match(p,/unsigned/);
 });
+test('Dropbox signature and income review are parallel, with external authorization gates',()=>{
+ const p=buildPrompt({stage:'income',status:'Dropbox request sent; signature pending; pay stubs received'});
+ assert.match(p,/PARALLEL WORKSTREAM A/);
+ assert.match(p,/PARALLEL WORKSTREAM B/);
+ assert.match(p,/WHILE the Dropbox e-sign request remains pending/);
+ assert.match(p,/Do NOT wait for the signed application to begin internal document\/intake or pay-stub arithmetic review/);
+ assert.match(p,/External requests and applicant-specific background\/record inquiries may proceed only when all applicable applicant consent\/authorization/);
+ assert.match(p,/signature pending; pay stubs received/);
+});
 test('public-record workflow is jurisdiction-aware, preserving source limits',()=>{
  const p=buildPrompt({stage:'records',status:'Current residence is outside KY'});
  assert.match(p,/state AND county\/jurisdiction/);
