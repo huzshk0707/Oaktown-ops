@@ -19,6 +19,15 @@ for(const theme of ['veyra','oryn','nilo'])test('Applications guide works withou
  await expect(page.locator('#application-guide-prompt')).toHaveValue(/100 Fictional Drive, Unit 3/);
  await expect(page.locator('#application-guide-prompt')).toHaveValue(/Authorization not yet received/);
  await expect(page.locator('#application-guide-prompt')).toHaveValue(/Next Action/);
+ await page.locator('#application-rent').fill('1000');
+ await page.locator('#application-grossPay').fill('1500');
+ await page.locator('#application-payFrequency').selectOption('biweekly');
+ await expect(page.locator('#application-income-result')).toContainText('$3250.00');
+ await expect(page.locator('#application-income-result')).toContainText('$3000.00');
+ await page.locator('#application-mode').selectOption('income');
+ await expect(page.locator('#application-guide-prompt')).toHaveValue(/Income Worksheet/);
+ await page.locator('#application-mode').selectOption('summary');
+ await expect(page.locator('#application-guide-prompt')).toHaveValue(/APPLICATION REVIEW SUMMARY/);
  await page.context().grantPermissions(['clipboard-read','clipboard-write']);
  await page.locator('#application-guide-copy').click();
  expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(await page.locator('#application-guide-prompt').inputValue());
