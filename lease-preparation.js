@@ -13,7 +13,7 @@
  const locked=el('div','lease-draft-lock');locked.append(el('p','','Sign in with your approved staff account to enter lease details.'),button('Sign in',()=>document.getElementById('account-button').click(),'button primary'));tool.append(locked);
  const work=el('div'),form=el('form');form.id='newlease-form';form.autocomplete='off';form.noValidate=true;form.addEventListener('submit',e=>e.preventDefault());
  const toolbar=el('div','lease-draft-toolbar'),modeControls=el('div','guide-segments');modeControls.setAttribute('role','group');modeControls.setAttribute('aria-label','New lease reading mode');
- let all=false,step=0,conditions={},room='kitchen',userId=cloud.user?.id||null,lastUnit='',units=new Map(),manualFive=false,manualTen=false,dirty=false;
+ let all=false,step=0,conditions={},roomLabels={},room='kitchen',userId=cloud.user?.id||null,lastUnit='',units=new Map(),manualFive=false,manualTen=false,dirty=false;
  const one=button('One step',()=>{all=false;render()}),every=button('View all',()=>{all=true;render()});modeControls.append(one,every);toolbar.append(modeControls,button('Clear draft',()=>reset()));
  const nav=el('nav','guide-form-nav');nav.setAttribute('aria-label','New lease preparation steps');const jumps=[],steps=[];
  const names=['Handoff','Page 1 · Terms','People & services','Page 8 · Conditions','Late charges & review'];
@@ -53,17 +53,22 @@
  const services=grid(steps[2]),utilities=el('fieldset'),appliances=el('fieldset');utilities.append(el('legend','','Utilities'));appliances.append(el('legend','','Appliances furnished'));
  R.utilities.forEach((name,i)=>input(utilities,'utility-'+i,name,{values:[['','Choose who pays'],['Landlord','Landlord'],['Tenant','Tenant']]}));
  R.appliances.forEach((name,i)=>input(appliances,'appliance-'+i,name,{values:[['','Choose'],['Yes','Yes'],['No','No']]}));services.append(utilities,appliances);
- steps[3].append(el('p','guide-hint','Every condition starts blank. Record this unit’s observations; the supplied five-bedroom example is not a preset. Room-to-page mapping awaits the blank sheet and the other examples.'));
+ steps[3].append(el('p','guide-hint','Every condition starts blank. Record this unit’s observations; the supplied five-bedroom example is not a preset. Use area labels for a primary bath, basement bedroom or den. The corrected sheet can be previewed below; no example’s observations are prefilled.'));
  const layout=grid(steps[3]);
  input(layout,'satisfactory','All listed items satisfactory?',{values:[['','Not yet confirmed'],['Yes','Yes — verified'],['No','No — record exceptions in the condition entries']]});
  input(layout,'bedrooms','Bedrooms',{values:[['','Confirm bedroom count'],...['2','3','4','5'].map(x=>[x,x+' bedrooms'])]});
  input(layout,'bathrooms','Bathrooms / condition groups',{values:[['','Confirm bathroom count'],...['1','2','3'].map(x=>[x,x+' bathroom group(s)'])]});
  input(layout,'basement','Basement belongs to this unit?',{values:[['','Not confirmed'],['included','Included'],['not-included','Not part of this unit — confirmed']]});
+ check(steps[3],'additionalRoom','Include a den / other room (when applicable).');
  const roomSelect=input(steps[3],'room','Area to inspect',{values:[['kitchen','Kitchen']]});
+ const roomLabelInput=input(steps[3],'roomLabel','Area label (optional)',{hint:'For example: Main bath, Basement bath, Primary bedroom or Den. Leave blank to keep the generic label.'});
  const count=el('p','guide-hint');count.id='newlease-condition-count';steps[3].append(count);
  const conditionFields=el('div','lease-condition-fields');steps[3].append(conditionFields);
  const options=el('datalist');options.id='newlease-condition-options';M.conditionOptions.forEach(value=>options.append(new Option(value,value)));steps[3].append(options);
  steps[3].append(el('p','guide-hint','Choose a suggestion or enter exact wording. Notes for rooms outside the selected count stay in this visit’s draft but are excluded from the review.'));
+ const previewButton=button('Preview page 8 PDF',previewCondition,'button primary');previewButton.id='newlease-condition-preview';
+ const previewStatus=el('p','status');previewStatus.id='newlease-condition-preview-status';previewStatus.setAttribute('role','status');
+ steps[3].append(previewButton,el('p','guide-hint','One-page draft preview only. Signature and date lines stay blank; observations must be checked for the actual unit.'),previewStatus);
  check(steps[3],'conditionsReviewed','I reviewed these observations for the selected property and room layout.');
  steps[4].append(el('p','guide-hint','The percentages remain fixed. Dollar amounts below appear identically on pages 1 and 10. Manual overrides stay in place if you change rent; use the calculation button to return to automatic amounts.'));
  const feeGrid=grid(steps[4]);input(feeGrid,'five','5% late-charge amount ($)');input(feeGrid,'ten','10% late-charge amount ($)');
@@ -81,9 +86,9 @@
   approvalReviewed:$('approvalReviewed').checked,depositStepReviewed:$('depositStepReviewed').checked,
   ...Object.fromEntries(['handoffNote','address','cityline','leaseDate','rent','start','end','deposit','securityDeposit','petDeposit','otherFee','otherFeeDescription','petRent','tenantName','emails','pets','bedrooms','bathrooms','basement','satisfactory'].map(k=>[k,val(k)])),
   occupants:Array.from({length:5},(_,i)=>val('occupant-'+i)),utilities:Object.fromEntries(R.utilities.map((k,i)=>[k,val('utility-'+i)])),appliances:Object.fromEntries(R.appliances.map((k,i)=>[k,val('appliance-'+i)])),
-  fiveOverride:manualFive?val('five'):null,tenOverride:manualTen?val('ten'):null,conditions:{...conditions},conditionsReviewed:$('conditionsReviewed').checked
+  fiveOverride:manualFive?val('five'):null,tenOverride:manualTen?val('ten'):null,conditions:{...conditions},roomLabels:{...roomLabels},additionalRoom:$('additionalRoom').checked,conditionsReviewed:$('conditionsReviewed').checked
  }}
- function invalidate(){output.hidden=true;output.replaceChildren();status.textContent='Draft inputs changed. Review again when ready.'}
+ function invalidate(){previewStatus.textContent='';output.hidden=true;output.replaceChildren();status.textContent='Draft inputs changed. Review again when ready.'}
  function updateFees(){
   const amounts=M.calculateFees(val('rent'),manualFive?val('five'):null,manualTen?val('ten'):null);
   if(!manualFive)$('five').value=amounts.five.cents===null?'':(amounts.five.cents/100).toFixed(2);
@@ -92,9 +97,10 @@
  }
  function updateCount(){const x=M.readiness(state()).conditionCount;count.textContent=x.entered+' of '+x.total+' condition fields contain observations (including optional notes).'}
  function renderRoom(){
-  const plan=M.roomPlan(val('bedrooms'),val('bathrooms'),val('basement'));
+  const plan=M.roomPlan(val('bedrooms'),val('bathrooms'),val('basement'),roomLabels,$('additionalRoom').checked);
   if(!plan.some(r=>r.key===room))room='kitchen';
-  roomSelect.replaceChildren(...plan.map(r=>new Option(r.title,r.key)));roomSelect.value=room;
+  roomSelect.replaceChildren(...plan.map(r=>new Option(r.title,r.key)));roomSelect.value=room;roomLabelInput.value=roomLabels[room]||'';roomLabelInput.placeholder=plan.find(r=>r.key===room).title;
+  roomLabelInput.parentElement.hidden=['exterior','systems','other'].includes(room);
   const current=plan.find(r=>r.key===room),g=el('div','lease-draft-grid');conditionFields.replaceChildren(el('h4','',current.title),g);
   current.items.forEach((item,i)=>{
    const key=current.key+'::'+item,n=input(g,'condition-'+i,item);n.setAttribute('list',options.id);n.value=conditions[key]||'';
@@ -107,7 +113,7 @@
  }
  function move(delta){step=Math.max(0,Math.min(steps.length-1,step+delta));render();steps[step].querySelector('h3').focus()}
  function reset(){
-  form.reset();conditions={};manualFive=false;manualTen=false;dirty=false;lastUnit='';room='kitchen';step=0;
+  form.reset();conditions={};roomLabels={};manualFive=false;manualTen=false;dirty=false;lastUnit='';room='kitchen';step=0;
   $('leaseDate').value=R.leaseDate();renderRoom();updateFees();invalidate();status.textContent='Fresh new-lease draft. No records changed.';render();
  }
  function refreshUnits(){
@@ -120,6 +126,14 @@
   picker.value=units.has(lastUnit)?lastUnit:'';
  }
  function gate(){locked.hidden=!!cloud.user;work.hidden=!cloud.user;form.querySelectorAll('input,textarea,select,button').forEach(n=>n.disabled=!cloud.user);download.disabled=true;}
+ function previewCondition(){
+  if(!cloud.user)return;
+  try{
+   const engine=window.OpsLeaseConditionPDF;if(!engine)throw Error('Condition PDF tool did not load. Reload the workspace.');
+   const result=engine.generate(M.buildReview(state()).page8,{JsPDF:window.jspdf?.jsPDF,viewerUser:()=>cloud.user?.id||null,preview:true});
+   result.pdf.save('DRAFT - Page 8 Condition Sheet.pdf');previewStatus.textContent='Draft condition-sheet preview downloaded. Check all observations; this is not a completed lease.';
+  }catch(error){previewStatus.textContent='Preview unavailable: '+error.message}
+ }
  function review(){
   if(!cloud.user){reset();gate();return}
   const report=M.buildReview(state());output.replaceChildren(el('h4','',report.kind));
@@ -137,12 +151,13 @@
   if(dirty&&!window.confirm('Change the selected unit and clear current new-lease inputs?')){picker.value=lastUnit;return}
   reset();lastUnit=selected;picker.value=selected;const unit=units.get(selected);if(unit){$('address').value=unit.address;$('cityline').value=unit.cityline}dirty=false;step=1;render();
  });
+ roomLabelInput.addEventListener('input',()=>{roomLabels[room]=roomLabelInput.value;const title=roomLabelInput.value.trim()||M.roomPlan(val('bedrooms'),val('bathrooms'),val('basement'),{},$('additionalRoom').checked).find(r=>r.key===room)?.title||'Other room';conditionFields.querySelector('h4').textContent=title;roomSelect.selectedOptions[0].textContent=title;$('conditionsReviewed').checked=false});
  roomSelect.addEventListener('change',()=>{room=roomSelect.value;renderRoom()});
  form.addEventListener('input',e=>{
   dirty=true;if(e.target===$('five'))manualFive=true;if(e.target===$('ten'))manualTen=true;
   if([$('rent'),$('five'),$('ten')].includes(e.target))updateFees();invalidate();
  });
- form.addEventListener('change',e=>{if(['newlease-bedrooms','newlease-bathrooms','newlease-basement'].includes(e.target.id)){$('conditionsReviewed').checked=false;renderRoom()}invalidate()});
+ form.addEventListener('change',e=>{if(['newlease-bedrooms','newlease-bathrooms','newlease-basement','newlease-additionalRoom'].includes(e.target.id)){$('conditionsReviewed').checked=false;renderRoom()}invalidate()});
  window.addEventListener('ops-portfolio-loaded',refreshUnits);
  window.addEventListener('ops-auth-change',()=>{const nextId=cloud.user?.id||null;if(nextId!==userId){userId=nextId;reset()}refreshUnits();gate()});
  reset();refreshUnits();gate();

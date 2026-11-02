@@ -26,10 +26,17 @@ test('bedroom layouts use only the selected rooms and never prefill example cond
 });
 test('a filled field review cannot enable a ten-page export before source approval',()=>{
  const s={...fixture(),cleanMasterApproved:true,depositRulesConfirmed:true,blankConditionPageReceived:true};
- const r=M.buildReview(s);assert.deepEqual(r.missing,[]);assert.equal(r.canExport,false);assert.equal(r.sourceBlockers.length,6);assert.equal(M.source.pages,10);assert.deepEqual(M.source.editablePages,[1,8,10]);
+ const r=M.buildReview(s);assert.deepEqual(r.missing,[]);assert.equal(r.canExport,false);assert.ok(r.sourceBlockers.some(x=>x.includes('Deposit rules')));assert.ok(!r.sourceBlockers.some(x=>x.includes('replacement condition sheet is still needed')));assert.equal(M.source.pages,10);assert.deepEqual(M.source.editablePages,[1,8,10]);
 });
 test('missing context stays unknown; invalid terms, service choices and unsupported counts need review',()=>{
  const r=M.readiness({...fixture(),start:'2026-02-30',deposit:'garbage',bedrooms:'6',bathrooms:'0',basement:'',utilities:{},pets:'',fiveOverride:'-1'});
  for(const phrase of ['lease term','deposit box','Water','pet description','bedroom count','bathroom count','basement','late-charge'])assert.ok(r.missing.some(x=>x.includes(phrase)),phrase);
  assert.ok(M.readiness({}).missing.length>15);
+});
+
+test('source-derived room labels, optional den and condition choices remain explicit',()=>{
+ const s={...fixture(),bedrooms:'3',additionalRoom:true,roomLabels:{'bedroom-3':'Primary bedroom','bathroom-1':'Main bath',additional:'Den'}};
+ const r=M.buildReview(s);assert.equal(r.rooms.find(x=>x.key==='additional').title,'Den');assert.equal(r.rooms.find(x=>x.key==='bedroom-3').title,'Primary bedroom');assert.equal(r.rooms.find(x=>x.key==='bathroom-1').title,'Main bath');assert.ok(r.rooms.find(x=>x.key==='additional').items.includes('Ceiling'));
+ for(const phrase of ['Rekeyed','New Paint','Refinished Hardwood','Good Laminate','N/A'])assert.ok(M.conditionOptions.includes(phrase));
+ assert.ok(r.rooms.every(x=>x.key==='kitchen'||Object.values(x.entries).every(v=>v==='')));
 });

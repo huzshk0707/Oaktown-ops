@@ -57,3 +57,10 @@ test('all six themes and mobile layouts retain the renewal tool and disabled new
   }
  }
 });
+
+test('staff can rename rooms and download a corrected unsigned condition-sheet preview without enabling the lease exporter',async({page},testInfo)=>{
+ const writes=await setup(page);await step(page,3);await page.locator('#newlease-bedrooms').selectOption('3');await page.locator('#newlease-bathrooms').selectOption('2');await page.locator('#newlease-basement').selectOption('not-included');await page.locator('#newlease-additionalRoom').check();await page.locator('#newlease-room').selectOption('additional');await page.locator('#newlease-roomLabel').fill('Den');await page.locator('#newlease-condition-0').fill('Rekeyed');
+ await page.locator('#newlease-room').selectOption('bedroom-3');await page.locator('#newlease-roomLabel').fill('Primary bedroom');await page.locator('#newlease-room').selectOption('additional');await expect(page.locator('#newlease-roomLabel')).toHaveValue('Den');await expect(page.locator('#newlease-condition-0')).toHaveValue('Rekeyed');
+ const download=page.waitForEvent('download');await page.locator('#newlease-condition-preview').click();const file=await download;await file.saveAs(testInfo.outputPath('condition-preview.pdf'));const bytes=require('node:fs').readFileSync(testInfo.outputPath('condition-preview.pdf'));expect(bytes.subarray(0,4).toString()).toBe('%PDF');await expect(page.locator('#newlease-condition-preview-status')).toContainText('Draft condition-sheet preview downloaded');await expect(page.locator('#newlease-download')).toBeDisabled();expect(writes).toEqual([]);
+ await page.getByRole('button',{name:'Clear draft',exact:true}).click();await step(page,3);await expect(page.locator('#newlease-roomLabel')).toHaveValue('');await expect(page.locator('#newlease-condition-preview-status')).toHaveText('');
+});

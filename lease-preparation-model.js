@@ -2,35 +2,44 @@
 (function(root,factory){'use strict';const api=factory(typeof module==='object'&&module.exports?require('./renewal-rules.js'):root.OpsRenewalRules);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.OpsLeasePreparation=api;})(typeof window!=='undefined'?window:null,function(R){
  'use strict';
  const source=Object.freeze({name:'Updated Blank Lease.pdf',sha256:'4096d6ff98fa0a354dd3b03a0c1428d44607aba1220b46a84c10e395c6190ac4',pages:10,width:612,height:792,editablePages:Object.freeze([1,8,10])});
+ const conditionSource=Object.freeze({name:'Blank Lease and All Docs (1).pdf',sha256:'9e8d2538c2501c002a509fb1446db49a93fc2436ec63fa73f17ea2e790473a59',page:8});
  const sourceBlockers=Object.freeze([
-  'Clean lease master: remove underlying old field text and verify all ten pages.',
-  'Blank page 8: replacement condition sheet is still needed.',
-  'Page 7 disclosure: review the existing marks and signature; provide a clean version or confirm the intended handling.',
-  'Filled examples: confirm layouts and condition choices for two, three, four and five bedrooms.',
+  'Clean updated lease master: remove underlying old field text and verify all ten pages.',
+  'Page 7 disclosure: confirm handling of the existing marks and signature before a new-tenancy export.',
+  'Condition layout review: blank sheet received and rebuilt; a filled two-bedroom example remains outstanding.',
   'Deposit rules: confirm security/pet deposits, any fees and what amount belongs in the lease deposit box.',
-  'PDF field mapping and visual comparison against the approved originals are not complete.'
+  'Full ten-page PDF mapping and visual verification are not complete; the separate page 8 preview is a draft.'
  ]);
- // Suggestions observed in the supplied example or explicitly named by the user.
- // These are choices, never default condition findings or bedroom presets.
- const conditionOptions=Object.freeze(['Good','Good & New Paint','Good & Fresh Paint','Good LVT','Good Vinyl','Good & New Carpet','New','Good New Filter']);
+ // Non-identifying phrases observed in the examples. No item is a property default.
+ const conditionOptions=Object.freeze([
+  'Good','New','N/A','Good & New Paint','Good & Fresh Paint','New Paint',
+  'Good LVT','Good Vinyl','New Vinyl','Good Tile','New Tile','Good Hardwood','Refinished Hardwood',
+  'Good & New Carpet','New Carpet','Good Laminate','Good New Painted Concrete',
+  'Unfinished New Paint on Concrete Walls','Good Granite','New Granite & Backsplash','New & Granite',
+  'Good Tile Surround','Dishwasher & Microwave New','Rekeyed','Good New Filter',
+  'Good tile, some cracks','Tile fair - cracks grouted/siliconed',
+  'Good vinyl, small tear glued back down','Some chips','Attached garage good'
+ ]);
  const roomFields=Object.freeze({
   kitchen:['Doors','Walls','Ceiling','Floor','Sink','Cabinets','Countertop','Other'],
   bathroom:['Doors','Walls','Ceiling','Floor','Toilet','Vanity','Tub','Shower','Other'],
   living:['Doors','Walls','Ceiling','Floor','Other'],
   bedroom:['Doors','Walls','Ceiling','Floor','Other'],
+  additional:['Doors','Walls','Ceiling','Floor','Other'],
   basement:['Doors','Walls','Ceiling','Floor','Other'],
   exterior:['Windows','Screens','Locks & keys','Porch & stairs','Hot water heater','Building','Front yard','Rear yard','Side yard','Garage / shed','Other'],
   systems:['Furnace / AC','Electrical fixtures','Electrical outlets','Comments'],
   other:['Other appliance / item conditions']
  });
- function roomPlan(bedrooms,bathrooms,basement){
+ function roomPlan(bedrooms,bathrooms,basement,labels={},additionalRoom=false){
   const beds=Number(bedrooms),baths=Number(bathrooms);
   const plan=[{key:'kitchen',title:'Kitchen',items:roomFields.kitchen},{key:'living',title:'Living room',items:roomFields.living}];
   if(Number.isInteger(baths)&&baths>=1&&baths<=3)for(let i=1;i<=baths;i++)plan.push({key:'bathroom-'+i,title:'Bathroom '+i,items:roomFields.bathroom});
   if([2,3,4,5].includes(beds))for(let i=1;i<=beds;i++)plan.push({key:'bedroom-'+i,title:'Bedroom '+i,items:roomFields.bedroom});
+  if(additionalRoom)plan.push({key:'additional',title:'Den / other room',items:roomFields.additional});
   if(basement==='included')plan.push({key:'basement',title:'Basement',items:roomFields.basement});
   plan.push({key:'exterior',title:'Exterior & shared items',items:roomFields.exterior},{key:'systems',title:'Systems & comments',items:roomFields.systems},{key:'other',title:'Other items',items:roomFields.other});
-  return plan;
+  return plan.map(room=>({...room,title:String(labels?.[room.key]||'').trim()||room.title}));
  }
  function calculateFees(rent,fiveOverride=null,tenOverride=null){
   const cents=R.moneyCents(rent);
@@ -64,7 +73,7 @@
   if(!['included','not-included'].includes(state.basement))missing.push('Confirm whether a basement belongs to this unit.');
   const fees=calculateFees(state.rent,state.fiveOverride,state.tenOverride);
   if(fees.five.cents===null||fees.ten.cents===null)missing.push('Complete both late-charge dollar amounts.');
-  const rooms=roomPlan(state.bedrooms,state.bathrooms,state.basement).map(room=>({...room,entries:Object.fromEntries(room.items.map(item=>[item,String(state.conditions?.[room.key+'::'+item]||'').trim()]))}));
+  const rooms=roomPlan(state.bedrooms,state.bathrooms,state.basement,state.roomLabels,state.additionalRoom).map(room=>({...room,entries:Object.fromEntries(room.items.map(item=>[item,String(state.conditions?.[room.key+'::'+item]||'').trim()]))}));
   const total=rooms.reduce((n,r)=>n+r.items.length,0),entered=rooms.reduce((n,r)=>n+Object.values(r.entries).filter(Boolean).length,0);
   if(!entered)missing.push('Record unit-specific condition observations; the example is never prefilled.');
   if(!['Yes','No'].includes(state.satisfactory))missing.push('Confirm the condition sheet’s overall Yes / No answer.');
@@ -80,5 +89,5 @@
    deposits:{security:amount('securityDeposit'),pet:amount('petDeposit'),otherFee:amount('otherFee'),otherFeeDescription:state.otherFeeDescription||'',monthlyPetRent:amount('petRent'),printedAmount:amount('deposit'),calculation:'Not inferred; deposit allocation rules are pending.'},
    ...review};
  }
- return Object.freeze({source,sourceBlockers,conditionOptions,roomPlan,calculateFees,readiness,buildReview});
+ return Object.freeze({source,conditionSource,sourceBlockers,conditionOptions,roomPlan,calculateFees,readiness,buildReview});
 });
