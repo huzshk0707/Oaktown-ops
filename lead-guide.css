@@ -1,0 +1,20 @@
+/* Lead Handling source-aware prompt guide, no lead data storage or network calls. */
+@media screen {
+ .ops-workspace .lead-guide {max-width:1150px;}
+ .ops-workspace .lead-guide .lead-panel {background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:12px;padding:22px;margin:0 0 24px;}
+ .ops-workspace .lead-guide .lead-panel h2 {font-size:20px;margin:0 0 10px;color:var(--forest-dark);}
+ .ops-workspace .lead-guide .lead-muted {font-size:13px;color:var(--ui-muted);line-height:1.6;}
+ .ops-workspace .lead-guide .lead-flow {padding-left:25px;line-height:1.6;margin:8px 0;}
+ .ops-workspace .lead-guide .lead-flow li {padding:5px 0;}
+ .ops-workspace .lead-guide .lead-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin:15px 0;}
+ .ops-workspace .lead-guide label {display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:650;}
+ .ops-workspace .lead-guide :is(input,select,textarea) {width:100%;box-sizing:border-box;color:var(--ui-text);background:var(--ui-canvas);border:1px solid var(--ui-control);border-radius:8px;padding:10px;font:inherit;}
+ .ops-workspace .lead-guide textarea {min-height:110px;resize:vertical;line-height:1.5;}
+ .ops-workspace .lead-guide #lead-thread {min-height:205px;}
+ .ops-workspace .lead-guide #lead-guide-prompt {min-height:330px;font:12.5px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;}
+ .ops-workspace .lead-guide :is(input,select,textarea):focus-visible {outline:3px solid var(--ui-focus);outline-offset:2px;}
+ .ops-workspace .lead-guide .lead-actions {display:flex;flex-wrap:wrap;gap:12px;margin:14px 0;}
+ .ops-workspace .lead-guide .lead-notice {padding:13px 16px;border-left:3px solid var(--ui-accent);background:var(--ui-soft);margin:10px 0 16px;}
+ .ops-workspace .lead-guide [hidden]{display:none!important;}
+ @media(max-width:700px){.ops-workspace .lead-guide .lead-fields{grid-template-columns:1fr}.ops-workspace .lead-guide .lead-panel{padding:16px;}}
+}
