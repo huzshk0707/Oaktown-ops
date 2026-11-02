@@ -24,7 +24,7 @@ test('notice workflow has exactly two stages and preserves one shared account di
 
 test('main navigation only exposes currently maintained Oaktown workflows',()=>{
  const names=[...shell.matchAll(/data-workspace="([^"]+)"/g)].map(match=>match[1]);
- assert.deepEqual(names,['today','tasks','notices','properties','leases','listings','maintenance']);
+ assert.deepEqual(names,['today','tasks','notices','properties','leases','listings','leads','maintenance']);
  const localAssets=[...shell.matchAll(/<(?:script|link)\\b[^>]+(?:src|href)="([^"]+)"/g)].map(match=>match[1].split('?')[0]).filter(x=>!x.startsWith('http'));
  for(const asset of localAssets)assert.ok(fs.existsSync(asset),asset+' must exist');
 });
