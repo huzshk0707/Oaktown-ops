@@ -34,7 +34,7 @@ for(const theme of ['veyra','oryn','nilo'])test('Applications guide works withou
  await page.locator('#application-mode').selectOption('draft');
  await expect(page.locator('#application-guide-prompt')).toHaveValue(/Suggested Draft/);
  await page.locator('#application-mode').selectOption('capture');
- await expect(page.locator('#application-guide-prompt')).toHaveValue(/Confirmed Steps/);
+ await expect(page.locator('#application-guide-prompt')).toHaveValue(/Confirmed Step Sequence/);
  await page.setViewportSize({width:390,height:850});
  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.locator('[data-workspace="listings"]').click();await expect(page.locator('#listings-workflow')).toBeVisible();
