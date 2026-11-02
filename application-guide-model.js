@@ -85,7 +85,7 @@
    'Never use this arithmetic alone to decide approval, require a deposit, or screen out a voucher applicant.'
   ].join('\n');
   const common=[
-   'OAKTOWN RENTALS — APPLICATION PROCESSING GUIDE · OAK-APP-001 · DRAFT v0.2',
+   'OAKTOWN RENTALS — APPLICATION PROCESSING GUIDE · OAK-APP-001 · DRAFT v0.3',
    'Internal workflow assistant. Realistic simulations and unprovided templates remain pending.',
    rules,
    source,
