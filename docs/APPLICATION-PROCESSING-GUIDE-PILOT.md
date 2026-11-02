@@ -1,4 +1,4 @@
-# OAK-APP-001 — Applications Workflow Guide · Draft v0.2
+# OAK-APP-001 — Applications Workflow Guide · Draft v0.3
 
 **Status:** Working user-described SOP v0.3 updated November 2, 2026; open [draft PR #36](https://github.com/huzshk0707/Oaktown-ops/pull/36). Not a final approved company screening policy. No production application-case database, document generator or private AI file upload exists in this PR.
 
