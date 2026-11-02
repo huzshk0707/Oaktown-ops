@@ -1,0 +1,120 @@
+/* Shared guide navigation; uses the existing six appearance palettes. */
+@media screen {
+ .ops-workspace .guided-workspace {max-width:1200px;--guide-space:24px}
+ .ops-workspace .guide-header {margin:4px 0 24px}
+ .ops-workspace .guide-header h2 {font-size:25px;letter-spacing:-.03em;margin:0 0 6px;color:var(--ui-text)}
+ .ops-workspace .guide-hint {color:var(--ui-muted);font-size:14px;line-height:1.65;max-width:72ch;margin:0}
+ .ops-workspace .guide-toolbar {display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:24px}
+ .ops-workspace .guide-segments {display:flex;gap:6px;background:var(--ui-soft);padding:5px;border:1px solid var(--ui-border);border-radius:12px;box-shadow:var(--depth-inset)}
+ .ops-workspace .guide-segments .button {background:transparent;border:1px solid transparent;box-shadow:none;color:var(--ui-muted);border-radius:8px;min-height:44px;font-size:13px;padding:10px 16px}
+ .ops-workspace .guide-segments .button[aria-pressed="true"] {background:var(--depth-face),var(--ui-surface);border-color:var(--ui-control);color:var(--mode-accent);box-shadow:var(--depth-raised)}
+ .ops-workspace .guide-progress-row {display:flex;align-items:center;gap:12px;margin:0 0 20px;color:var(--ui-muted);font-size:12px}
+ .ops-workspace .guide-progress-row progress {width:100px;height:6px;border:0;border-radius:4px;accent-color:var(--mode-accent);background:var(--ui-soft);overflow:hidden}
+ .ops-workspace .guide-progress-row progress::-webkit-progress-bar {background:var(--ui-soft)}
+ .ops-workspace .guide-progress-row progress::-webkit-progress-value {background:var(--mode-accent);border-radius:4px}
+ .ops-workspace .guide-layout {display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:start}
+ .ops-workspace .guide-step-nav ol {list-style:none;display:grid;gap:8px;padding:0;margin:0}
+ .ops-workspace .guide-step-button {display:flex;align-items:center;gap:10px;min-height:54px;width:100%;text-align:left;padding:10px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--ui-muted);font:inherit;font-size:13px;cursor:pointer}
+ .ops-workspace .guide-step-button:hover {background:var(--ui-soft);color:var(--ui-text)}
+ .ops-workspace .guide-step-button[aria-current="step"] {color:var(--ui-text);border-color:var(--ui-control);background:var(--depth-face),var(--ui-surface);box-shadow:var(--depth-raised)}
+ .ops-workspace .guide-step-number {display:grid;place-items:center;width:28px;height:28px;border-radius:9px;background:var(--ui-soft);color:var(--mode-accent);box-shadow:var(--depth-inset);flex:none;font-variant-numeric:tabular-nums}
+ .ops-workspace .guide-step-name {flex:1;min-width:0}
+ .ops-workspace .guide-step-check {color:var(--mode-accent);font-size:14px}
+ .ops-workspace .guide-step-card,.ops-workspace .guide-form-step {padding:28px;border:1px solid var(--ui-border);border-radius:var(--ui-radius);background:var(--depth-face),var(--ui-surface);box-shadow:var(--depth-raised);min-width:0}
+ .ops-workspace .guide-eyebrow {display:block;color:var(--mode-accent);font:600 10px/1.6 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.12em;margin-bottom:14px}
+ .ops-workspace .guide-step-title {font-size:24px!important;line-height:1.25;letter-spacing:-.025em;margin:0 0 12px!important;color:var(--ui-text);text-wrap:balance}
+ .ops-workspace .guide-step-summary {font-size:16px;line-height:1.7;max-width:62ch;margin:0 0 24px;color:var(--ui-text)}
+ .ops-workspace .guide-parallel {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px}
+ .ops-workspace .guide-branch {padding:18px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-soft);display:flex;flex-direction:column;align-items:start;min-width:0}
+ .ops-workspace .guide-branch-label {font:600 10px/1.5 ui-monospace,monospace;letter-spacing:.08em;color:var(--mode-accent);margin-bottom:10px}
+ .ops-workspace .guide-branch h4 {font-size:16px;margin:0 0 8px;color:var(--ui-text)}
+ .ops-workspace .guide-branch .guide-hint {font-size:13px;margin-bottom:12px}
+ .ops-workspace .guide-more {color:var(--ui-muted);font-size:13px;line-height:1.65;width:100%}
+ .ops-workspace .guide-more summary {cursor:pointer;min-height:44px;display:list-item;align-content:center;color:var(--mode-accent);width:fit-content}
+ .ops-workspace .guide-more p {margin:8px 0 18px;max-width:72ch}
+ .ops-workspace .guide-review {font-size:12px;margin-top:12px}
+ .ops-workspace .guide-review[aria-pressed="true"] {background:var(--ui-accent-soft);color:var(--ui-text)}
+ .ops-workspace .guide-prompt-link {margin-top:20px}
+ .ops-workspace .guide-footer {display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding-top:24px}
+ .ops-workspace .guide-footer .primary {margin-left:auto}
+ .ops-workspace .guide-footer .button {font-size:13px;min-height:44px}
+ .ops-workspace .guide-session-note {font-size:12px;color:var(--ui-muted);line-height:1.6;margin:20px 0 0;max-width:78ch}
+ .ops-workspace .guide-resources {border-top:1px solid var(--ui-border);margin-top:28px;padding-top:12px;color:var(--ui-muted);font-size:13px;line-height:1.65}
+ .ops-workspace .guide-resources>summary {min-height:44px;cursor:pointer;width:fit-content;align-content:center;color:var(--ui-text)}
+ .ops-workspace .guide-resources>p {max-width:78ch;margin:12px 0}
+ .ops-workspace .guide-resources>h2 {font-size:18px;margin-top:18px}
+ .ops-workspace .guide-prompt-top {display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:20px}
+ .ops-workspace .guide-privacy {margin:0;color:var(--ui-muted);font-size:13px;line-height:1.6;max-width:74ch;border-left:3px solid var(--mode-accent);padding-left:12px}
+ .ops-workspace .guide-prompt-top>.button {flex:none;font-size:12px}
+ .ops-workspace .guide-form-nav {display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+ .ops-workspace .guide-form-jump {min-height:44px;padding:10px 14px;background:var(--ui-soft);border:1px solid var(--ui-border);border-radius:10px;font-family:inherit;font-size:12px;font-weight:600;line-height:1.5;color:var(--ui-muted);cursor:pointer}
+ .ops-workspace .guide-form-jump[aria-current="step"] {background:var(--ui-accent-soft);border-color:var(--ui-control);color:var(--ui-text);box-shadow:var(--depth-raised)}
+ .ops-workspace .guide-form-step>.guide-hint {margin-bottom:22px}
+ .ops-workspace .guide-form-step>label {margin-top:18px;max-width:800px}
+ .ops-workspace .guide-form-step>label:first-of-type {margin-top:0}
+ .ops-workspace .guided-workspace .guide-form-step :is(input,textarea,select) {background:var(--ui-soft);min-height:46px;padding:12px;font-size:14px;max-width:100%;border-radius:9px}
+ .ops-workspace .guided-workspace .guide-form-step textarea {min-height:130px}
+ .ops-workspace .guide-recap {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px;margin:22px 0}
+ .ops-workspace .guide-recap-item {position:relative;display:grid;gap:6px;background:var(--ui-soft);border:1px solid var(--ui-border);border-radius:10px;padding:16px;text-align:left;color:var(--ui-text);font:inherit;cursor:pointer}
+ .ops-workspace .guide-recap-item strong {font-size:13px;padding-right:28px}
+ .ops-workspace .guide-recap-item>span {font-size:12px;color:var(--ui-muted)}
+ .ops-workspace .guide-recap-item .guide-recap-edit {position:absolute;right:14px;top:17px;color:var(--mode-accent);text-decoration:underline}
+ .ops-workspace .guide-prompt-preview {border:1px solid var(--ui-border);border-radius:10px;padding:0 16px;background:var(--ui-soft)}
+ .ops-workspace .guide-prompt-preview>summary {cursor:pointer;color:var(--mode-accent);min-height:52px;align-content:center;font-size:14px}
+ .ops-workspace .guide-prompt-preview[open] {padding-bottom:16px}
+ .ops-workspace .guide-prompt-preview textarea {margin-top:10px;min-height:320px;max-height:70vh}
+ .ops-workspace .guide-copy-actions {margin:22px 0 12px}
+ .ops-workspace .guide-copy-actions .primary {min-width:180px;min-height:48px}
+ .ops-workspace .guided-workspace[data-guide-mode="all"] .guide-layout {display:block}
+ .ops-workspace .guided-workspace[data-guide-mode="all"] :is(.guide-step-card,.guide-form-step) {margin-bottom:20px}
+ .ops-workspace .guide-form-jump:hover,.ops-workspace .guide-recap-item:hover {border-color:var(--ui-control)}
+ .ops-workspace .guided-workspace :is(button,summary,input,select,textarea) {scroll-margin-block:24px}
+ .ops-workspace .guided-workspace [hidden] {display:none!important}
+ .ops-workspace .motion-setting {display:grid;justify-items:center;gap:6px}
+ .ops-workspace .motion-help {font-size:10px;line-height:1.5;color:var(--ui-muted);max-width:130px;text-align:center}
+ @media(min-width:741px) and (max-width:1100px) {.ops-workspace .guide-layout {grid-template-columns:180px minmax(0,1fr);gap:16px}}
+ @media(max-width:740px) {
+  .ops-workspace .guide-toolbar {gap:10px;margin-bottom:20px}
+  .ops-workspace .guide-header h2 {font-size:23px}
+  .ops-workspace .guide-segments .button {font-size:12px;padding:10px 12px}
+  .ops-workspace .guide-layout {display:block}
+  .ops-workspace .guide-step-nav {margin:0 0 16px;max-width:100%;overflow-x:auto;padding:4px 4px 10px;scroll-padding:4px}
+  .ops-workspace .guide-step-nav ol {display:flex;gap:8px;width:max-content}
+  .ops-workspace .guide-step-button {max-width:200px;min-height:48px;white-space:nowrap;padding:8px 10px}
+  .ops-workspace .guide-step-card,.ops-workspace .guide-form-step {padding:20px}
+  .ops-workspace .guide-step-title {font-size:22px!important}
+  .ops-workspace .guide-prompt-top {align-items:start;flex-direction:column}
+  .ops-workspace .guide-form-nav {gap:8px}
+  .ops-workspace .guide-form-jump {font-size:12px;padding:10px}
+  .ops-workspace .guided-workspace .guide-form-step :is(input,textarea,select) {font-size:16px}
+  .ops-workspace .guide-parallel {grid-template-columns:1fr}
+  .ops-workspace .guide-footer {gap:8px}
+  .ops-workspace .guide-footer .button {font-size:12px;padding:10px 12px}
+  .ops-workspace .guide-footer .primary {margin-left:0}
+  .ops-workspace .motion-help {font-size:9px;max-width:94px}
+ }
+ @media(prefers-reduced-motion:no-preference) {
+  html[data-ops-motion="on"] .ops-workspace .guided-workspace[data-guide-mode="one"] :is(.guide-step-card,.guide-form-step):not([hidden]) {animation:workspace-arrive 240ms var(--motion-ease)}
+ }
+}
+@media screen {
+ .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-intro {min-height:104px;padding:16px 24px}
+ .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-instrument,
+ .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-instrument svg {width:72px;height:72px}
+ @media(max-width:740px) {
+  .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-intro {min-height:114px;padding:16px 18px}
+  .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-instrument,
+  .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-instrument svg {width:44px;height:44px}
+ }
+}
+@media screen and (max-width:740px) {
+ /* Keep the full clock header in daily work; give the guide itself room on phones. */
+ .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-clocks {display:none}
+ .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-intro {min-height:0;padding:14px 18px}
+ .ops-workspace:has(.guided-workspace:not([hidden])) .workspace-intro h1 {font-size:24px}
+ .ops-workspace:has(.guided-workspace:not([hidden])) :is(.workspace-instrument,.workspace-kicker) {display:none}
+ .ops-workspace .guide-toolbar {gap:8px;margin-bottom:16px}
+ .ops-workspace .guide-segments .button {font-size:11px;padding:9px 8px}
+ .ops-workspace .guide-form-nav {flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding:4px 3px 10px}
+ .ops-workspace .guide-form-jump {white-space:nowrap;flex:none}
+}

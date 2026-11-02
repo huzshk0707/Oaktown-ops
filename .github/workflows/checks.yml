@@ -30,6 +30,8 @@ jobs:
           node --check connections.js
           node --check listing-guide-model.js
           node --check listing-guide.js
+          node --check guided-workflows.js
+          node --check application-guide.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 

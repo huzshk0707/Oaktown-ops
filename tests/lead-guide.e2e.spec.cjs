@@ -7,6 +7,7 @@ for(const theme of ['veyra','oryn','nilo']) test('Lead Handling guide generates 
  await page.locator('[data-workspace="leads"]').click();
  await expect(page.locator('#leads-workflow')).toBeVisible();
  await expect(page.locator('#listings-workflow')).toBeHidden();
+ await page.locator('#leads-workflow').getByRole('button',{name:'Build prompt',exact:true}).click();await page.locator('#leads-workflow').getByRole('button',{name:'View all',exact:true}).click();
  await page.locator('#lead-thread').fill('Tenant: How much are utilities?\nLeslie: I will check.');
  await page.locator('#lead-property').fill('100 Fictional Drive, Unit B');
  await page.locator('#lead-facts').fill('Confirmed by staff: utilities estimated $150 per month; sample only.');

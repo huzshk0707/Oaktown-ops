@@ -29,7 +29,8 @@
   if(button){
    button.setAttribute('aria-pressed',String(off));
    button.querySelector('span').textContent=off?'Motion off':'Motion on';
-   button.title=reduced.matches?'Reduced motion follows your device setting':'Toggle interface motion';
+   button.title=reduced.matches?'Reduced motion follows your device setting':'Toggle brief transitions and hover effects';
+   const help=document.getElementById('ops-motion-help');if(help)help.textContent=reduced.matches?'Device reduced motion is on':'Transitions & hover effects';
   }
  }
  apply(read(themeKey));applyMotion();

@@ -25,6 +25,7 @@ test('motion preference persists, follows device changes and syncs between windo
 test('raised workflow tabs preserve keyboard selection and fields on small screens',async({page})=>{
  await open(page);await page.getByLabel('Workspace theme').selectOption('ember');
  await page.locator('[data-workspace="applications"]').click();
+ await page.locator('#applications-workflow').getByRole('button',{name:'Build prompt',exact:true}).click();
  await page.locator('#application-property').fill('Fictional unit 8');
  await page.locator('[data-workspace="leases"]').click();
  const tracking=page.locator('[data-lease-tab="track"]'),prepare=page.locator('[data-lease-tab="prepare"]');

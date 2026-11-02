@@ -13,6 +13,7 @@ for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl'])test('Appli
  await expect(page.locator('#applications-workflow')).toBeVisible();
  await expect(page.locator('#listings-workflow')).toBeHidden();
  await expect(page.locator('#future-workflow')).toBeHidden();
+ await page.locator('#applications-workflow').getByRole('button',{name:'Build prompt',exact:true}).click();await page.locator('#applications-workflow').getByRole('button',{name:'View all',exact:true}).click();
  await page.locator('#application-property').fill('100 Fictional Drive, Unit 3');
  await page.locator('#application-status').fill('Authorization not yet received');
  await page.locator('#application-request').fill('What should the staff do next?');

@@ -25,7 +25,7 @@
   }catch{result.focus();result.select();status.textContent='Clipboard blocked; prompt selected for manual copying.';}
  });
  $('application-guide-clear').addEventListener('click',()=>{
-  form.reset();update();$('application-status').focus();status.textContent='Inputs cleared; no case record changed.';
+  form.reset();update();$('application-property').focus();status.textContent='Inputs cleared; no case record changed.';
  });
  update();
 })();
