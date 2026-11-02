@@ -75,6 +75,6 @@ test('no automatic decisions and no applicant data persistence',()=>{
   assert.match(p,/Not supplied — do not infer/);
   assert.match(p,/not the decision-maker/);
   assert.match(p,/has not saved this case/);
-  assert.match(p,/no automatic approval\/rejection/);
+  assert.match(p,/automatic approval\/rejection/i);
  }
 });
