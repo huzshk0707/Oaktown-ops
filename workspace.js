@@ -3,6 +3,7 @@
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
 let workflow='today',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null;
 const pending=new Map();
+const scrollBehavior=()=>document.documentElement.dataset.opsMotion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
 let leaseTab='track';
 function showLeaseTab(next,focus=false){
  if(next!=='track'&&next!=='prepare')next='track';
@@ -53,7 +54,7 @@ function showWorkflow(name){
  if(name==='today')window.dispatchEvent(new Event('ops-today-show'));
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
- if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})}
+ if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:scrollBehavior()})}
 }
 function showTab(next){
  if(!['notices','message'].includes(next))next='notices';
@@ -70,12 +71,12 @@ function showTab(next){
 function editSelectedNotice(){
  showWorkflow('notices');showTab('notices');
  $('notice-editor-title').focus({preventScroll:true});
- $('notice-editor-overview').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+ $('notice-editor-overview').scrollIntoView({behavior:scrollBehavior(),block:'start'});
 }
 $('message-edit-notice').onclick=editSelectedNotice;
 $('notice-back-to-selection').onclick=()=>{
  $('notice-picker-search').focus({preventScroll:true});
- $('notice-picker').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
+ $('notice-picker').scrollIntoView({behavior:scrollBehavior(),block:'start'});
 };
 function resetTenantEmail(text){
  $('tenant-email-value').replaceChildren();
@@ -101,7 +102,7 @@ document.querySelectorAll('[data-workspace]').forEach(b=>b.addEventListener('cli
 document.querySelectorAll('[data-notice-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.noticeTab)));
 $('open-properties').onclick=$('future-properties').onclick=()=>showWorkflow('properties');
 $('notices-load-all').onclick=()=>busy($('notices-load-all'),async()=>{if(!requireUser())return;try{await loadProperties();importMany(records)}catch(e){say('notice-picker-status','Could not load the property directory: '+e.message)}});
-$('property-add-top').onclick=()=>{if(!requireUser())return;showWorkflow('properties');newProperty();$('property-editor').scrollIntoView({behavior:'smooth',block:'start'});$('prop-street_address').focus();};
+$('property-add-top').onclick=()=>{if(!requireUser())return;showWorkflow('properties');newProperty();$('property-editor').scrollIntoView({behavior:scrollBehavior(),block:'start'});$('prop-street_address').focus();};
 $('account-button').onclick=$('properties-signin').onclick=account;
 $('staff-access-signin').onclick=account;
 $('account-close').onclick=()=>$('account-dialog').close();
@@ -224,7 +225,7 @@ function openPropertyEditor(i){
  editing={...source};$('pilot-search').value='';filterProperties();
  $('pilot-property').value=String(records.findIndex(p=>p.id===source.id));
  for(const key of propKeys)$('prop-'+key).value=editing[key]||'';
- say('property-editor-title','Edit property');say('property-status','');$('property-editor').scrollIntoView({behavior:'smooth',block:'start'});
+ say('property-editor-title','Edit property');say('property-status','');$('property-editor').scrollIntoView({behavior:scrollBehavior(),block:'start'});
 }
 $('property-edit').onclick=()=>{const i=$('pilot-property').value;if(i===''){say('pilot-status','Select a property to edit.');return;}openPropertyEditor(i)};
 $('property-form').onsubmit=async event=>{
