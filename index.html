@@ -185,18 +185,20 @@
 <p id="listing-guide-status" class="status" role="status" aria-live="polite">Prompt prepared locally.</p>
 </div></section><section id="applications-workflow" class="application-guide" hidden aria-labelledby="applications-title">
 <div class="application-panel">
- <span class="stage">PILOT GUIDE · SOURCE REVIEW REQUIRED</span>
+ <span class="stage">PILOT SOP v0.2 · STAFF-DESCRIBED</span>
  <h2 id="applications-title">Application Processing · OAK-APP-001</h2>
- <p class="application-muted">This is the beginning of our application SOP. The steps below come from Leslie’s January 28, 2026 historical instructions and are NOT a complete or newly approved application policy. We will refine the sequence as staff explains the real process.</p>
- <ol class="application-steps">
-  <li><strong>Intake and completeness — to confirm:</strong> Identify the exact property/unit, the application source, supporting paperwork, applicant authorizations and whether required items were received. Don't assume intake is complete.</li>
-  <li><strong>Income verification — historical task:</strong> Leslie described checking income; the original email referenced three times rent. The current policy and lawful method must be verified before acting. No automatic eligibility decision.</li>
-  <li><strong>Sheriff / public-record checks — historical task:</strong> Leslie referenced Jefferson County Sheriff process-paper searches, including earlier records. Validate the match and current procedures; do not derive rejection or a deposit change automatically.</li>
-  <li><strong>Utility verification — historical task:</strong> Leslie instructed sending an authorized page-three water verification form to Louisville Water. Confirm form, consent, destination and date of request before claiming it was done.</li>
-  <li><strong>Landlord references — historical task:</strong> Contact the current landlord/property manager for a reference, using proper applicant authorization; verify ownership/identity with PVA or tax records when warranted. Mismatches require follow-up, not accusations.</li>
-  <li><strong>Leslie review, notification and lease handoff — sequence to confirm:</strong> Record evidence and what is still pending, obtain authorized human decisions, communicate appropriately, then move approved cases into the lease workflow.</li>
- </ol>
- <p class="application-muted"><strong>Source:</strong> Leslie O'Keefe, “Application Processing,” Jan 28, 2026. Related source files: <a href="https://drive.google.com/drive/folders/1IqOipg_D4MuhkwO5hvfwR4q2Ynh3HSgT" target="_blank" rel="noopener noreferrer">private Applications source folder</a>. AI tools do not automatically see private Drive files.</p>
+ <p class="application-muted">This working sequence is based on the staff process described November 2, 2026, supplemented by Leslie’s January 28 historical instructions. Missing templates, exception procedures and current policy/legal review remain pending.</p>
+ <ol class="application-steps"><li><strong>Fillout submission:</strong> Open the Fillout email and View Submission link. Confirm exact property/unit and application/pay-stub files. A submission is not a signed application.</li>
+<li><strong>Dropbox e-signature:</strong> Send the application to the same applicant via Dropbox e-signature; record sent versus signed. Obtain any needed third-party verification authorization before contacting water or landlords.</li>
+<li><strong>Income review:</strong> Staff reviews gross amounts and pay frequency from the pay-stub PDFs, then calculates estimated monthly gross versus 3× verified property rent. Numerical comparison is not an automatic housing decision.</li>
+<li><strong>Jurisdiction-aware records:</strong> Identify current state and county, and relevant prior jurisdictions, before looking up official records. A civil-process result or similar name needs investigation, not automatic rejection.</li>
+<li><strong>Water verification:</strong> With signed permission, send the application third page to the appropriate water company. Leslie historically used collections@louisvillewater.com; confirm current destination. Track sent/pending/replied.</li>
+<li><strong>Landlord reference:</strong> Obtain current landlord/property manager email, send the reference form and cover message (both examples pending); check official owner/PVA details when needed. Track sent and returned.</li>
+<li><strong>Findings summary:</strong> Compile signed authorizations, verified income comparison, records jurisdictions/findings, utility and landlord results, discrepancies and pending items.</li>
+<li><strong>Leslie approval:</strong> Leslie or authorized reviewer decides outcome and exceptions under current policy. Do not infer approval from AI, income ratio or a public search.</li>
+<li><strong>Post-approval documents:</strong> After documented approval, prepare the non-refundable deposit form and move-in vendor sheet once user provides approved PDFs/templates. Terms and refundability require review. Track sending and receipt.</li>
+<li><strong>Handoff:</strong> Lease preparation, move-in and LG&E start/stop utility procedures are separate follow-on workflows. Templates and voice notes pending.</li></ol>
+ <h3>Official starting links — verify state and county</h3><p class="application-muted"><a href="https://www.jcsoky.org/criminal-division/process-unit-public-search-02" target="_blank" rel="noopener noreferrer">Jefferson KY civil process after Sept 11, 2023</a> · <a href="https://www.jcsoky.org/criminal-division/process-unit-public-search" target="_blank" rel="noopener noreferrer">Jefferson prior to Sept 11, 2023</a> · <a href="https://jeffersonpva.ky.gov/property-search/" target="_blank" rel="noopener noreferrer">Jefferson PVA ownership search</a> · <a href="https://www.jcsoky.org/" target="_blank" rel="noopener noreferrer">Jefferson Sheriff/tax</a>. These county-specific sources are not a nationwide eviction judgment database.</p><p class="application-muted"><strong>Source:</strong> Leslie O'Keefe, “Application Processing,” Jan 28, 2026. Related source files: <a href="https://drive.google.com/drive/folders/1IqOipg_D4MuhkwO5hvfwR4q2Ynh3HSgT" target="_blank" rel="noopener noreferrer">private Applications source folder</a>. AI tools do not automatically see private Drive files.</p>
  <p class="application-warning application-muted"><strong>Important:</strong> Applicant screening, accommodation requests, vouchers, adverse-history evaluation and any approval, denial or deposit requirements remain human decisions under current law and verified company policy.</p>
 </div>
 <div class="application-panel">
@@ -209,33 +211,21 @@
 </div>
 <div class="application-panel">
  <h2>Build an application-workflow prompt</h2>
- <p class="application-warning application-muted">Use redacted procedural notes only. Do not enter names, IDs, financial records, background results, dates of birth, phone numbers, tenant contact details or other sensitive applicant information in this public static guide or an external AI service.</p>
+ <p class="application-warning application-muted">Use redacted procedural notes and numerical earnings summaries only. Never paste raw pay stubs, IDs, banking details, DOBs or other sensitive applicant information in this public static app or an unapproved AI chat. No protected file upload is provided.</p>
  <form id="application-guide-form" autocomplete="off">
   <div class="application-columns">
    <label for="application-stage">Current verification stage
-    <select id="application-stage">
-     <option value="intake">Application intake and completeness</option>
-     <option value="income">Income verification</option>
-     <option value="records">Public-record verification</option>
-     <option value="utility">Utility authorization and verification</option>
-     <option value="landlord">Landlord reference and ownership verification</option>
-     <option value="review">Leslie review and decision handoff</option>
-     <option value="lease">Approved-case lease handoff</option>
-    </select>
+    <select id="application-stage"><option value="intake">1 — Fillout View Submission</option><option value="signature">2 — Dropbox e-signature</option><option value="income">3 — Income/pay stubs</option><option value="records">4 — State/county records</option><option value="utility">5 — Water page 3</option><option value="landlord">6 — Landlord reference</option><option value="summary">7 — Findings summary</option><option value="review">8 — Leslie decision</option><option value="postapproval">9 — Deposit/vendor sheet</option><option value="lease">10 — Lease handoff</option><option value="lgande">11 — LG&E (future)</option></select>
    </label>
    <label for="application-mode">AI assistance mode
-    <select id="application-mode">
-     <option value="next">Plan next administrative step</option>
-     <option value="draft">Draft verification/follow-up message</option>
-     <option value="capture">Organize my actual process into an SOP</option>
-    </select>
+    <select id="application-mode"><option value="next">Plan next step</option><option value="draft">Draft verification message</option><option value="income">Income worksheet review</option><option value="summary">Findings summary</option><option value="capture">Document my real workflow</option></select>
    </label>
   </div>
   <label for="application-property">Property and unit (optional, non-sensitive)
    <input id="application-property" placeholder="e.g. Sample Address, Unit 2" autocomplete="off">
   </label>
   <div class="application-columns">
-   <label for="application-status">Redacted progress / completed tasks
+   <div class="application-columns"><label for="application-rent">Verified monthly property rent (optional)<input id="application-rent" inputmode="decimal" autocomplete="off" placeholder="e.g. 1500"></label><label for="application-grossPay">Gross pay per pay period (optional)<input id="application-grossPay" inputmode="decimal" autocomplete="off" placeholder="e.g. 2000"></label></div><label for="application-payFrequency">Verified pay frequency<select id="application-payFrequency"><option value="">Not provided</option><option value="weekly">Weekly</option><option value="biweekly">Every two weeks</option><option value="semimonthly">Twice per month</option><option value="monthly">Monthly</option></select></label><p id="application-income-result" class="application-muted" role="status" aria-live="polite">Enter numeric income and rent for arithmetic preview; does not verify pay stubs or decide eligibility.</p><label for="application-status">Redacted progress / completed tasks
     <textarea id="application-status" placeholder="Example: application notice arrived, utility authorization missing, landlord form not yet sent. No applicant identifiers."></textarea>
    </label>
    <label for="application-policy">Leslie-confirmed current process / exception
@@ -251,7 +241,7 @@
  <textarea id="application-guide-prompt" spellcheck="false" aria-label="Application processing master prompt"></textarea>
  <div class="application-actions"><button id="application-guide-copy" class="button primary" type="button">Copy AI prompt</button><button id="application-guide-clear" class="button" type="button">Clear working inputs</button></div>
  <p id="application-guide-status" class="status" role="status" aria-live="polite">Draft prompt prepared locally.</p>
- <p class="application-muted">No AI integration, applicant case storage, database changes, legal decisions or outbound communications. This pilot only prepares guidance and prompt text.</p>
+ <p class="application-muted">No protected PDF upload, AI integration, applicant-case storage, automated decisions or external communication. This pilot prepares guidance, numeric arithmetic and prompts only.</p>
 </div>
 </section><section id="future-workflow" hidden><div class="roadmap"><article><span class="stage">UPCOMING WORKFLOW</span><h2 id="future-title"></h2><p id="future-description"></p><p>It will use the same account and property directory. This workflow is planned; no records are created here yet.</p><button class="button" id="future-properties">Open property directory</button></article></div></section>
 </main></div>
