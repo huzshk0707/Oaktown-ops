@@ -32,6 +32,8 @@ jobs:
           node --check listing-guide.js
           node --check guided-workflows.js
           node --check application-guide.js
+          node --check lease-preparation-model.js
+          node --check lease-preparation.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 

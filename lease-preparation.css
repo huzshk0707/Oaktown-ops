@@ -1,0 +1,57 @@
+@media screen {
+ .ops-workspace .lease-draft-tool {max-width:1180px}
+ .ops-workspace .lease-draft-tool>h2 {font-size:26px;letter-spacing:-.03em;margin:12px 0 8px}
+ .ops-workspace .lease-draft-badge {display:inline-block;font:600 10px/1.6 ui-monospace,monospace;letter-spacing:.08em;color:var(--mode-accent);background:var(--ui-soft);padding:7px 10px;border:1px solid var(--ui-border);border-radius:8px}
+ .ops-workspace .lease-draft-sources {margin:20px 0;border:1px solid var(--ui-border);border-radius:12px;padding:0 16px;background:var(--ui-soft);color:var(--ui-muted);font-size:13px;line-height:1.7}
+ .ops-workspace .lease-draft-sources summary {min-height:48px;cursor:pointer;align-content:center;color:var(--ui-text)}
+ .ops-workspace .lease-draft-sources ul {padding:0 8px 14px 20px}
+ .ops-workspace .lease-draft-toolbar {display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+ .ops-workspace .lease-draft-tool .guide-form-step {margin-bottom:20px}
+ .ops-workspace .lease-draft-tool .guide-form-step>p {margin-bottom:20px}
+ .ops-workspace .lease-draft-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:18px 0}
+ .ops-workspace .lease-draft-field {display:flex;flex-direction:column;gap:7px;font-size:13px;color:var(--ui-text);font-weight:600;margin:14px 0}
+ .ops-workspace .lease-draft-grid .lease-draft-field {margin:0}
+ .ops-workspace .lease-draft-field :is(input,select,textarea) {width:100%;padding:12px;min-height:46px;font:inherit;background:var(--ui-soft);color:var(--ui-text);border:1px solid var(--ui-control);border-radius:9px}
+ .ops-workspace .lease-draft-field small {font-size:12px;font-weight:400}
+ .ops-workspace .lease-draft-field textarea {min-height:100px;resize:vertical;line-height:1.6}
+ .ops-workspace .lease-draft-check {display:flex;gap:10px;align-items:start;min-height:44px;margin:14px 0;font-size:14px;line-height:1.65}
+ .ops-workspace .lease-draft-check input {width:18px;height:18px;margin-top:4px;flex:none}
+ .ops-workspace .lease-draft-money {padding:12px 16px;border:1px solid var(--ui-border);border-radius:10px;margin:20px 0}
+ .ops-workspace .lease-draft-money summary {min-height:44px;cursor:pointer;color:var(--mode-accent);align-content:center}
+ .ops-workspace .lease-draft-tool fieldset {border:1px solid var(--ui-border);border-radius:10px;padding:16px;min-width:0;margin-top:16px}
+ .ops-workspace .lease-draft-tool legend {padding:0 8px;font-size:14px;color:var(--ui-text);font-weight:650}
+ .ops-workspace .lease-draft-actions {display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
+ .ops-workspace .lease-draft-lock {padding:24px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:var(--ui-radius);box-shadow:var(--depth-raised)}
+ .ops-workspace .lease-draft-lock p {margin-bottom:18px}
+ .ops-workspace .lease-draft-session {font-size:12px;color:var(--ui-muted);margin-top:20px;line-height:1.6}
+ .ops-workspace .lease-draft-review {background:var(--ui-soft);border:1px solid var(--ui-border);border-radius:12px;padding:20px;margin-top:20px;overflow-wrap:anywhere}
+ .ops-workspace .lease-draft-review h4 {font-size:16px;margin:14px 0}
+ .ops-workspace .lease-draft-review ul {padding-left:22px;font-size:13px;line-height:1.7}
+ .ops-workspace .lease-draft-review dl {display:grid;grid-template-columns:minmax(100px,.65fr) minmax(0,1.5fr);gap:10px 16px;margin:20px 0;font-size:13px;line-height:1.6}
+ .ops-workspace .lease-draft-review dt {font-weight:650;color:var(--ui-muted)}
+ .ops-workspace .lease-draft-review dd {margin:0}
+ .ops-workspace .lease-draft-review summary {min-height:44px;cursor:pointer;color:var(--mode-accent);align-content:center}
+ .ops-workspace .lease-condition-fields h4 {font-size:18px;margin-top:20px}
+ .ops-workspace .lease-inner-tabs {flex-wrap:wrap}
+ .ops-workspace .lease-inner-tabs [role="tab"] {flex:1;white-space:normal;min-width:0}
+ .ops-workspace .lease-draft-tool [hidden] {display:none!important}
+ @media(max-width:740px) {
+  .ops-workspace .lease-draft-grid {grid-template-columns:1fr}
+  .ops-workspace .lease-draft-field :is(input,textarea,select) {font-size:16px}
+  .ops-workspace .lease-draft-tool .guide-form-nav {overflow-x:auto;flex-wrap:nowrap;padding-bottom:8px;max-width:100%}
+  .ops-workspace .lease-draft-tool .guide-form-jump {flex:none;white-space:nowrap}
+  .ops-workspace .lease-draft-review dl {grid-template-columns:1fr;gap:4px}
+  .ops-workspace .lease-draft-review dd {margin-bottom:12px}
+ }
+}
+@media screen {
+ .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) .workspace-intro {min-height:104px;padding:16px 24px}
+ .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) .workspace-instrument,
+ .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) .workspace-instrument svg {width:72px;height:72px}
+ @media(max-width:740px) {
+  .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) .workspace-clocks {display:none}
+  .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) .workspace-intro {min-height:0;padding:14px 18px}
+  .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) .workspace-intro h1 {font-size:24px}
+  .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) :is(.workspace-instrument,.workspace-kicker) {display:none}
+ }
+}

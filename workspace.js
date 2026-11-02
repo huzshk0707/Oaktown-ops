@@ -6,7 +6,7 @@ const pending=new Map();
 const scrollBehavior=()=>document.documentElement.dataset.opsMotion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
 let leaseTab='track';
 function showLeaseTab(next,focus=false){
- if(next!=='track'&&next!=='prepare')next='track';
+ if(!['track','prepare','new'].includes(next))next='track';
  leaseTab=next;
  for(const button of document.querySelectorAll('[data-lease-tab]')){
   const active=button.dataset.leaseTab===next;
@@ -15,6 +15,7 @@ function showLeaseTab(next,focus=false){
   if(active&&focus)button.focus();
  }
  $('lease-prepare-panel').hidden=next!=='prepare';
+ $('new-lease-panel').hidden=next!=='new';
  $('ops-renewals-panel').hidden=next!=='track';
 }
 document.querySelectorAll('[data-lease-tab]').forEach(button=>{
@@ -22,12 +23,13 @@ document.querySelectorAll('[data-lease-tab]').forEach(button=>{
  button.addEventListener('keydown',event=>{
   if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
   event.preventDefault();
-  const order=['track','prepare'],at=order.indexOf(leaseTab);
-  const next=event.key==='Home'?'track':event.key==='End'?'prepare':order[(at+(event.key==='ArrowRight'?1:order.length-1))%order.length];
+  const order=['track','prepare','new'],at=order.indexOf(leaseTab);
+  const next=event.key==='Home'?'track':event.key==='End'?'new':order[(at+(event.key==='ArrowRight'?1:order.length-1))%order.length];
   showLeaseTab(next,true);
  });
 });
 showLeaseTab('track');
+window.addEventListener('ops-open-new-lease',()=>{showWorkflow('leases');showLeaseTab('new');document.getElementById('new-lease-title')?.focus({preventScroll:true})});
 const say=(id,text)=>$(id).textContent=text;
 const post=message=>frame.contentWindow?.postMessage(message,location.origin);
 function frameRequest(type,extra={}){
