@@ -38,7 +38,7 @@
     {title:'Prepare the findings',promptStage:'summary',summary:'Bring the evidence, missing items and discrepancies together for Leslie.',items:[6],cta:true},
     {title:'Get Leslie’s decision',summary:'Only Leslie or an authorized reviewer makes the decision under current policy. AI and income ratios do not approve a case.',items:[7]},
     {title:'Prepare approved documents',summary:'After documented approval, use reviewed deposit and vendor templates. Missing templates and terms need confirmation.',items:[8]},
-    {title:'Hand off the next work',summary:'Move to lease preparation, move-in and utility workflows. Keep missing templates or instructions visible.',items:[9]}
+    {title:'Hand off the next work',leaseHandoff:true,summary:'Move to lease preparation, move-in and utility workflows. Keep missing templates or instructions visible.',items:[9]}
    ],
    groups:[
     {title:'Task & property',hint:'Choose the actual work you need help with. This does not change your place in the guide.',fields:['application-stage','application-mode','application-property']},
@@ -120,6 +120,7 @@
     }
     changeView('prompt');
    },'button primary guide-prompt-link'));
+   if(step.leaseHandoff)panel.append(button('Open new lease preparation',()=>window.dispatchEvent(new Event('ops-open-new-lease')),'button primary guide-prompt-link'));
    return panel;
   });
   const flowFooter=el('div','guide-footer'),flowBack=button('Back',()=>moveFlow(-1)),flowNext=button('Next step',()=>moveFlow(1)),markNext=button('Reviewed · next',()=>{
