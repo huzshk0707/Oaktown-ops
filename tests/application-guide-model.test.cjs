@@ -1,41 +1,80 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
-const {buildPrompt,stages,modes}=require('../application-guide-model.js');
-test('application guide gives source-aware next administrative step and human review',()=>{
- const p=buildPrompt({stage:'landlord',property:'Sample St Unit 4',status:'Reference requested yesterday'});
- assert.match(p,/Current Stage/);
- assert.match(p,/Next Action/);
- assert.match(p,/Landlord reference and ownership verification/);
- assert.match(p,/Reference requested yesterday/);
- assert.match(p,/not automatically reject/i);
+const {buildPrompt,calculateIncome,stages,modes}=require('../application-guide-model.js');
+test('application guide follows staff-confirmed Fillout and Dropbox sequence',()=>{
+ const p=buildPrompt({stage:'signature',property:'Fictional unit 4',status:'Fillout received; unsigned'});
+ assert.match(p,/Fillout application notification email/);
+ assert.match(p,/Dropbox e-signature/);
+ assert.match(p,/SAME applicant/);
+ assert.match(p,/signed the authorization/i);
+ assert.match(p,/Fictional unit 4/);
+ assert.match(p,/unsigned/);
 });
-test('historical Leslie workflow is not presented as current approval rule',()=>{
+test('public-record workflow is jurisdiction-aware, preserving source limits',()=>{
+ const p=buildPrompt({stage:'records',status:'Current residence is outside KY'});
+ assert.match(p,/state AND county\/jurisdiction/);
+ assert.match(p,/prior residences/);
+ assert.match(p,/A civil process match alone is not proof of eviction/);
+ assert.match(p,/not an automatically enforceable screening/i); // check after actual source edits
+});
+test('historical Leslie instruction is not active eligibility policy',()=>{
  const p=buildPrompt();
  assert.match(p,/January 28, 2026/);
- assert.match(p,/historical observed tasks, NOT a currently verified/i);
- assert.match(p,/eviction-age\/deposit\/rejection thresholds/);
- assert.match(p,/Do not automatically reject, approve, impose additional deposits/);
+ assert.match(p,/Historical eviction-age rules\/deposit amounts do NOT establish current lawful policy/);
+ assert.match(p,/never impose universal 3×-full-rent eligibility/);
+ assert.match(p,/human/i);
 });
-test('draft mode keeps external messages under human control',()=>{
- const p=buildPrompt({mode:'draft',stage:'utility',request:'Draft note to water company'});
- assert.match(p,/Suggested Draft/);
- assert.match(p,/Internal Note/);
- assert.match(p,/Draft note to water company/);
- assert.match(p,/Do not send it/);
+test('income calculation converts standard pay frequencies without making a decision',()=>{
+ const bi=calculateIncome({rent:'$1,000',grossPay:'1,500.00',payFrequency:'biweekly'});
+ assert.equal(bi.valid,true);
+ assert.equal(bi.monthlyGross,3250);
+ assert.equal(bi.benchmark,3000);
+ assert.equal(bi.ratio,3.25);
+ assert.equal(bi.atOrAboveBenchmark,true);
+ assert.match(bi.message,/not an application decision/);
+ const weekly=calculateIncome({rent:1200,grossPay:600,payFrequency:'weekly'});
+ assert.equal(weekly.monthlyGross,2600);
+ assert.equal(weekly.benchmark,3600);
+ assert.equal(weekly.atOrAboveBenchmark,false);
+ assert.equal(calculateIncome({rent:1000,grossPay:2000,payFrequency:'semimonthly'}).monthlyGross,4000);
+ assert.equal(calculateIncome({rent:1000,grossPay:3100,payFrequency:'monthly'}).monthlyGross,3100);
+ for(const bad of [{},{rent:'',grossPay:2000,payFrequency:'monthly'},{rent:-1,grossPay:2000,payFrequency:'monthly'},{rent:'1000abc',grossPay:2000,payFrequency:'monthly'},{rent:1000,grossPay:2000,payFrequency:'unknown'}]){
+  assert.equal(calculateIncome(bad).valid,false);
+ }
 });
-test('capture mode supports real SOP discovery and app versus AI split',()=>{
- const p=buildPrompt({mode:'capture',status:'I start by opening the emailed application'});
- assert.match(p,/What Staff Actually Does vs AI Could Assist vs Oaktown Ops Could Track/);
- assert.match(p,/Confirmed Steps/);
- assert.match(p,/PROPOSED ONLY/);
+test('income mode asks for gross pay evidence and document privacy',()=>{
+ const p=buildPrompt({mode:'income',stage:'income',rent:1000,grossPay:1500,payFrequency:'biweekly'});
+ assert.match(p,/Income Worksheet/);
+ assert.match(p,/Gross\/month 3250.00/);
+ assert.match(p,/not a rental decision/i);
+ assert.match(p,/NO protected file upload/);
+ assert.match(p,/Gross from net/i);
 });
-test('missing and privacy protections retained in all modes',()=>{
- assert.equal(Object.keys(stages).length,7);assert.equal(Object.keys(modes).length,3);
+test('summary mode and message drafting preserve uncertain stages',()=>{
+ const summary=buildPrompt({mode:'summary',stage:'summary',status:'water pending; landlord requested'});
+ assert.match(summary,/APPLICATION REVIEW SUMMARY/);
+ assert.match(summary,/Water Verification/);
+ assert.match(summary,/landlord/i);
+ assert.match(summary,/Leslie Decision/);
+ const draft=buildPrompt({mode:'draft',stage:'landlord',request:'Draft reference request'});
+ assert.match(draft,/Suggested Draft/);
+ assert.match(draft,/Internal Verification Note/);
+ assert.match(draft,/Do not send/);
+});
+test('staff process capture separates app work, AI and approval gates',()=>{
+ const p=buildPrompt({mode:'capture',status:'I get emailed by Fillout'});
+ assert.match(p,/Confirmed Step Sequence/);
+ assert.match(p,/Staff vs Oaktown Ops vs AI/);
+ assert.match(p,/Missing Forms\/Examples/);
+ assert.match(p,/Do not invent policy/);
+});
+test('no automatic decisions and no applicant data persistence',()=>{
+ assert.equal(Object.keys(stages).length,11);assert.equal(Object.keys(modes).length,5);
  for(const mode of Object.keys(modes)){
-  const p=buildPrompt({mode,status:'Unverified progress'});
+  const p=buildPrompt({mode});
   assert.match(p,/Not supplied — do not infer/);
-  assert.match(p,/no applicant identifiers/i);
-  assert.match(p,/never request or reproduce SSNs/i);
-  assert.match(p,/does NOT store applicant data/i);
+  assert.match(p,/not the decision-maker/);
+  assert.match(p,/has not saved this case/);
+  assert.match(p,/no automatic approval\/rejection/);
  }
 });
