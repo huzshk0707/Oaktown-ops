@@ -6,7 +6,8 @@ test('application guide follows staff-confirmed Fillout and Dropbox sequence',()
  assert.match(p,/Fillout application notification email/);
  assert.match(p,/Dropbox e-signature/);
  assert.match(p,/SAME applicant/);
- assert.match(p,/tracks completed signature\/authorization/);
+ assert.match(p,/Track requested\/sent, awaiting signature and signed separately/);
+ assert.match(p,/applicable applicant consent\/authorization/);
  assert.match(p,/Fictional unit 4/);
  assert.match(p,/unsigned/);
 });
