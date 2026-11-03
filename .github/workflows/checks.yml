@@ -119,4 +119,6 @@ jobs:
             -f supabase/schema/today_task_editor_v1.sql \
             -f tests/today-task-editor-check.sql \
             -f supabase/schema/task_delete_archived_v1.sql \
-            -f tests/task-delete-archived-check.sql
+            -f tests/task-delete-archived-check.sql \
+            -f supabase/migrations/20261103211729_lease_reference_document_library.sql \
+            -f tests/lease-reference-documents-check.sql

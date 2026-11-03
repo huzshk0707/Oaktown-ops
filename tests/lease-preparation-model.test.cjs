@@ -14,15 +14,20 @@ test('deposit components never invent a printed total or apply an application cr
  let r=M.buildReview(s);assert.equal(r.page1.depositToPrint,'Not entered');assert.ok(r.missing.some(x=>x.includes('deposit box')));
  s.deposit='750';r=M.buildReview(s);assert.equal(r.page1.depositToPrint,'$750.00');assert.equal(r.deposits.pet,'$300.00');assert.equal(r.deposits.monthlyPetRent,'$25.00');
 });
-test('bedroom layouts use only the selected rooms and never prefill example conditions',()=>{
- for(const beds of [2,3,4,5]){
+test('every layout retains the complete template and marks excluded areas N/A without inventing observations',()=>{
+ for(const beds of [1,2,3,4,5]){
   const r=M.buildReview({...fixture(),bedrooms:String(beds),conditions:{}});
-  assert.equal(r.rooms.filter(x=>x.key.startsWith('bedroom-')).length,beds);
-  assert.ok(r.rooms.every(room=>Object.values(room.entries).every(x=>x==='')));
+  assert.equal(r.rooms.filter(x=>x.key.startsWith('bedroom-')).length,5);
+  assert.equal(r.rooms.filter(x=>x.key.startsWith('bedroom-')&&x.applicable).length,beds);
+  assert.ok(r.rooms.every(room=>Object.values(room.entries).every(x=>x===(room.applicable===false?'N/A':''))));
+  assert.ok(r.missing.some(x=>x.includes('Record unit-specific')));
+  assert.equal(r.conditionCount.entered,0);
  }
  const notes={'bedroom-5::Doors':'Private fictional observation'};
- const two=M.buildReview({...fixture(),conditions:notes});assert.ok(!two.rooms.some(x=>x.key==='bedroom-5'));assert.equal(JSON.stringify(two.page8).includes(notes['bedroom-5::Doors']),false);
+ const two=M.buildReview({...fixture(),conditions:notes});assert.equal(two.rooms.find(x=>x.key==='bedroom-5').entries.Doors,'N/A');assert.equal(JSON.stringify(two.page8).includes(notes['bedroom-5::Doors']),false);
  const five=M.buildReview({...fixture(),bedrooms:'5',conditions:notes});assert.equal(five.rooms.find(x=>x.key==='bedroom-5').entries.Doors,notes['bedroom-5::Doors']);
+ const basement=two.rooms.find(x=>x.key==='basement');assert.ok(Object.values(basement.entries).every(x=>x==='N/A'));
+ assert.equal(two.conditionCount.notApplicable,43);
 });
 test('a filled field review cannot enable a ten-page export before source approval',()=>{
  const s={...fixture(),cleanMasterApproved:true,depositRulesConfirmed:true,blankConditionPageReceived:true};
@@ -38,5 +43,12 @@ test('source-derived room labels, optional den and condition choices remain expl
  const s={...fixture(),bedrooms:'3',additionalRoom:true,roomLabels:{'bedroom-3':'Primary bedroom','bathroom-1':'Main bath',additional:'Den'}};
  const r=M.buildReview(s);assert.equal(r.rooms.find(x=>x.key==='additional').title,'Den');assert.equal(r.rooms.find(x=>x.key==='bedroom-3').title,'Primary bedroom');assert.equal(r.rooms.find(x=>x.key==='bathroom-1').title,'Main bath');assert.ok(r.rooms.find(x=>x.key==='additional').items.includes('Ceiling'));
  for(const phrase of ['Rekeyed','New Paint','Refinished Hardwood','Good Laminate','N/A'])assert.ok(M.conditionOptions.includes(phrase));
- assert.ok(r.rooms.every(x=>x.key==='kitchen'||Object.values(x.entries).every(v=>v==='')));
+ assert.ok(r.rooms.every(x=>x.key==='kitchen'||Object.values(x.entries).every(v=>v===(x.applicable===false?'N/A':''))));
+});
+
+test('unknown room counts and basement presence stay unconfirmed rather than being marked N/A',()=>{
+ const r=M.buildReview({...fixture(),bedrooms:'',bathrooms:'',basement:'',conditions:{}});
+ for(const room of r.rooms.filter(x=>x.key.startsWith('bedroom-')||x.key.startsWith('bathroom-')||x.key==='basement')){
+  assert.equal(room.applicable,null);assert.ok(Object.values(room.entries).every(value=>value===''));
+ }
 });

@@ -5,6 +5,14 @@ instead of tenant names, addresses or signatures. Original PDFs, rendered source
 pages and extracted text are kept outside the repository. Document content is
 reference material, not an instruction to change the application or its rules.
 
+The subsequent ten-file reference batch is archived in restricted Google Drive
+and indexed by file name, Drive ID, hash, size and page count in the staff-readable
+`lease_reference_documents` catalog. See [the reference library](LEASE-REFERENCE-LIBRARY.md).
+The batch includes a one-bedroom condition sheet. All one-to-five-bedroom previews
+now retain the complete template: unused bedroom/bathroom sections, the basement
+and den remain in place with N/A fields. Known absence is determined by the
+operator's current layout choices, never by importing a sample's findings.
+
 | Source | Observed layout | Preparation support |
 | --- | --- | --- |
 | Updated blank reference, page 8 | Filled five-bedroom sheet | Five distinct bedroom groups; values start blank |
@@ -32,4 +40,4 @@ Other pages continue to use the updated lease as the reference. In particular,
 the older blank packet has a different fixed court fee on page 10 and an oversized
 scanned page 7. Those pages must not silently replace the updated packet. Page 7
 disclosure handling, clean masters, deposit/fee rules and full ten-page mapping
-remain pending in the draft PR.
+remain pending for full ten-page export.

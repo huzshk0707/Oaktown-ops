@@ -1,4 +1,4 @@
-/* New-tenancy field review. No PDF renderer or record persistence is enabled. */
+/* New-tenancy field review and fixed condition-sheet plan. Full lease export stays gated. */
 (function(root,factory){'use strict';const api=factory(typeof module==='object'&&module.exports?require('./renewal-rules.js'):root.OpsRenewalRules);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.OpsLeasePreparation=api;})(typeof window!=='undefined'?window:null,function(R){
  'use strict';
  const source=Object.freeze({name:'Updated Blank Lease.pdf',sha256:'4096d6ff98fa0a354dd3b03a0c1428d44607aba1220b46a84c10e395c6190ac4',pages:10,width:612,height:792,editablePages:Object.freeze([1,8,10])});
@@ -6,7 +6,7 @@
  const sourceBlockers=Object.freeze([
   'Clean updated lease master: remove underlying old field text and verify all ten pages.',
   'Page 7 disclosure: confirm handling of the existing marks and signature before a new-tenancy export.',
-  'Condition layout review: blank sheet received and rebuilt; a filled two-bedroom example remains outstanding.',
+  'Condition layout review: the complete fixed sheet and automatic N/A entries need final comparison; a filled two-bedroom example remains outstanding.',
   'Deposit rules: confirm security/pet deposits, any fees and what amount belongs in the lease deposit box.',
   'Full ten-page PDF mapping and visual verification are not complete; the separate page 8 preview is a draft.'
  ]);
@@ -33,13 +33,13 @@
  });
  function roomPlan(bedrooms,bathrooms,basement,labels={},additionalRoom=false){
   const beds=Number(bedrooms),baths=Number(bathrooms);
-  const plan=[{key:'kitchen',title:'Kitchen',items:roomFields.kitchen},{key:'living',title:'Living room',items:roomFields.living}];
-  if(Number.isInteger(baths)&&baths>=1&&baths<=3)for(let i=1;i<=baths;i++)plan.push({key:'bathroom-'+i,title:'Bathroom '+i,items:roomFields.bathroom});
-  if([2,3,4,5].includes(beds))for(let i=1;i<=beds;i++)plan.push({key:'bedroom-'+i,title:'Bedroom '+i,items:roomFields.bedroom});
-  if(additionalRoom)plan.push({key:'additional',title:'Den / other room',items:roomFields.additional});
-  if(basement==='included')plan.push({key:'basement',title:'Basement',items:roomFields.basement});
-  plan.push({key:'exterior',title:'Exterior & shared items',items:roomFields.exterior},{key:'systems',title:'Systems & comments',items:roomFields.systems},{key:'other',title:'Other items',items:roomFields.other});
-  return plan.map(room=>({...room,title:String(labels?.[room.key]||'').trim()||room.title}));
+  const plan=[{key:'kitchen',title:'Kitchen',items:roomFields.kitchen,applicable:true},{key:'living',title:'Living room',items:roomFields.living,applicable:true}];
+  for(let i=1;i<=3;i++)plan.push({key:'bathroom-'+i,title:'Bathroom '+i,items:roomFields.bathroom,applicable:[1,2,3].includes(baths)?i<=baths:null});
+  for(let i=1;i<=5;i++)plan.push({key:'bedroom-'+i,title:'Bedroom '+i,items:roomFields.bedroom,applicable:[1,2,3,4,5].includes(beds)?i<=beds:null});
+  plan.push({key:'additional',title:'Den / other room',items:roomFields.additional,applicable:additionalRoom===true});
+  plan.push({key:'basement',title:'Basement',items:roomFields.basement,applicable:basement==='included'?true:basement==='not-included'?false:null});
+  plan.push({key:'exterior',title:'Exterior & shared items',items:roomFields.exterior,applicable:true},{key:'systems',title:'Systems & comments',items:roomFields.systems,applicable:true},{key:'other',title:'Other items',items:roomFields.other,applicable:true});
+  return plan.map(room=>({...room,title:room.applicable===false?room.title:String(labels?.[room.key]||'').trim()||room.title}));
  }
  function calculateFees(rent,fiveOverride=null,tenOverride=null){
   const cents=R.moneyCents(rent);
@@ -68,23 +68,24 @@
   if(!text('pets'))missing.push('Enter a verified pet description or explicitly confirm none.');
   for(const name of R.utilities)if(!['Landlord','Tenant'].includes(state.utilities?.[name]))missing.push('Confirm who pays '+name+'.');
   for(const name of R.appliances)if(!['Yes','No'].includes(state.appliances?.[name]))missing.push('Confirm appliance: '+name+'.');
-  if(![2,3,4,5].includes(Number(state.bedrooms)))missing.push('Confirm the two-to-five bedroom count; other layouts need a source example.');
+  if(![1,2,3,4,5].includes(Number(state.bedrooms)))missing.push('Confirm the one-to-five bedroom count; other layouts need a source example.');
   if(![1,2,3].includes(Number(state.bathrooms)))missing.push('Confirm the bathroom count; other layouts need a source example.');
   if(!['included','not-included'].includes(state.basement))missing.push('Confirm whether a basement belongs to this unit.');
   const fees=calculateFees(state.rent,state.fiveOverride,state.tenOverride);
   if(fees.five.cents===null||fees.ten.cents===null)missing.push('Complete both late-charge dollar amounts.');
-  const rooms=roomPlan(state.bedrooms,state.bathrooms,state.basement,state.roomLabels,state.additionalRoom).map(room=>({...room,entries:Object.fromEntries(room.items.map(item=>[item,String(state.conditions?.[room.key+'::'+item]||'').trim()]))}));
-  const total=rooms.reduce((n,r)=>n+r.items.length,0),entered=rooms.reduce((n,r)=>n+Object.values(r.entries).filter(Boolean).length,0);
+  const rooms=roomPlan(state.bedrooms,state.bathrooms,state.basement,state.roomLabels,state.additionalRoom).map(room=>({...room,entries:Object.fromEntries(room.items.map(item=>[item,room.applicable===false?'N/A':String(state.conditions?.[room.key+'::'+item]||'').trim()]))}));
+  const active=rooms.filter(r=>r.applicable!==false),notApplicable=rooms.filter(r=>r.applicable===false).reduce((n,r)=>n+r.items.length,0);
+  const total=active.reduce((n,r)=>n+r.items.length,0),entered=active.reduce((n,r)=>n+Object.values(r.entries).filter(Boolean).length,0);
   if(!entered)missing.push('Record unit-specific condition observations; the example is never prefilled.');
   if(!['Yes','No'].includes(state.satisfactory))missing.push('Confirm the condition sheet’s overall Yes / No answer.');
   if(!state.conditionsReviewed)missing.push('Review the condition observations.');
-  return {missing,fees,rooms,conditionCount:{entered,total},sourceBlockers:[...sourceBlockers],canExport:false};
+  return {missing,fees,rooms,conditionCount:{entered,total,notApplicable},sourceBlockers:[...sourceBlockers],canExport:false};
  }
  function buildReview(state){
   const review=readiness(state),amount=k=>{const n=R.moneyCents(state[k]);return n===null?'Not entered':R.formatCents(n)};
   return {kind:'Field review only — not a lease',canExport:false,
    page1:{leaseDate:state.leaseDate||'',start:state.start||'',end:state.end||'',rent:amount('rent'),depositToPrint:amount('deposit'),tenantName:state.tenantName||'',emails:state.emails||'',address:state.address||'',cityline:state.cityline||'',occupants:(state.occupants||[]).slice(),pets:state.pets||'',utilities:{...state.utilities},appliances:{...state.appliances},lateFive:review.fees.five.formatted,lateTen:review.fees.ten.formatted},
-   page8:{address:state.address||'',bedrooms:state.bedrooms||'',satisfactory:state.satisfactory||'',rooms:review.rooms},
+   page8:{address:state.address||'',bedrooms:state.bedrooms||'',bathrooms:state.bathrooms||'',basement:state.basement||'',additionalRoom:state.additionalRoom===true,satisfactory:state.satisfactory||'',rooms:review.rooms},
    page10:{lateFive:review.fees.five.formatted,lateTen:review.fees.ten.formatted},
    deposits:{security:amount('securityDeposit'),pet:amount('petDeposit'),otherFee:amount('otherFee'),otherFeeDescription:state.otherFeeDescription||'',monthlyPetRent:amount('petRent'),printedAmount:amount('deposit'),calculation:'Not inferred; deposit allocation rules are pending.'},
    ...review};
