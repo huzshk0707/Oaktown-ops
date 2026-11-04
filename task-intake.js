@@ -52,6 +52,7 @@ function renderHistory(){
    if(!confirm('Do you want to '+verb+' "'+t.task_title+'"? '+(archived?'It will return to the active task list.':'It will be hidden from active tasks. The original evidence and activity history will be preserved.')))return;
    await archiveRpc(t.id,t.updated_at,!archived);
    if(ticket!==epoch)return;
+   window.dispatchEvent(new Event('ops-today-refresh'));
    await refresh();
    if(ticket===epoch)msg('Task '+(archived?'restored':'archived')+'. No task evidence was deleted.');
   }));
@@ -189,6 +190,7 @@ $('task-save').addEventListener('click',()=>action(async ticket=>{
  pendingRequest=pendingRequest||{export:draft,...decisions,expected_versions:Object.fromEntries(state.tasks.map(t=>[t.id,t.updated_at])),reviewed:true};
  const saved=await rpc('save',pendingRequest,sid);if(ticket!==epoch)return;
  receipt=R.validReceipt(saved)?saved:null;
+ if(receipt)window.dispatchEvent(new Event('ops-today-refresh'));
  $('task-receipt').textContent=R.validReceipt(receipt)?JSON.stringify(receipt,null,2):'Save response missing a valid receipt. Refresh and verify the saved task before trying again.';pendingRequest=null;draft=null;$('task-json').value='';$('task-review').replaceChildren();$('task-confirm').checked=false;
  await refresh();if(R.validReceipt(receipt))$('task-saved-records').open=true;msg(R.validReceipt(receipt)?'Saved to Ops. Copy the receipt back to your AI chat. No messages or reminders were sent.':'Save returned without a valid receipt. The task may have been saved: refresh the session and verify before retrying.');
 }));

@@ -13,6 +13,7 @@ preferences, the renewal/notice PDFs and the current task intake/editor APIs.
   follow-ups. Latest saved renewal journal updates take precedence over imported
   statuses when that journal is available. Completed, canceled and archived work
   is excluded. Recorded lease-end dates are context, never invented task deadlines.
+  Confirmed task imports and archive/restore actions refresh the connected view.
 - Filter by overdue, today, waiting, undated, renewals or maintenance tasks.
   **Save this view** stores only that preset on the current device. **Compact**
   changes list spacing; these preferences contain no tenant data or search queries.
