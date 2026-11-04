@@ -1,5 +1,7 @@
 # Open questions and next steps
 
+**Historical discovery baseline:** Use [the current roadmap](ROADMAP.md) and [technical audit](TECHNICAL-AUDIT-2026-11-04.md) for implementation status and current gaps. Existing business decisions remain in force unless the user changes them.
+
 Status: v0.1 implementation authorized; outstanding discovery questions remain.
 
 ## First priority: recover the missing discussion
