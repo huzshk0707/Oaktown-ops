@@ -1,4 +1,4 @@
-# New-tenancy lease preparation — draft PR
+# New-tenancy lease preparation — current scope
 
 This tool follows the application/non-refundable-deposit handoff. It is separate
 from the existing five-page renewal generator. The uploaded lease is the layout
@@ -49,25 +49,35 @@ and filled examples before any formula or print placement is implemented.
 
 ## Condition observations
 
-All entries start blank, including the overall Yes/No answer. The expanded
+Applicable condition entries and the overall Yes/No answer start blank. The expanded
 suggestions catalog contains non-identifying phrases observed in the supplied
 examples: fresh/new paint, flooring and tile variations, granite, new appliances,
 rekeyed locks, filters and condition exceptions. These are suggestions rather
 than verified findings; no choice or known defect is assigned to any property.
 
-Each room/item is editable, including doors, walls, ceiling, flooring, kitchen
+Each applicable room/item is editable, including doors, walls, ceiling, flooring, kitchen
 fixtures, bathroom fixtures, windows/screens, locks, porch/stairs, water heater,
 exterior/yards/garage, HVAC, electrical fixtures/outlets, other items and comments.
 Room labels can be edited to describe a primary bath, basement bedroom, den or
 other actual room. Bedroom count, one to three bathroom condition groups, basement
-presence and an optional den are explicit choices. The renderer supports two to
-five bedrooms, with at most five bedroom/den groups on one page. A two-bedroom
-layout has a synthetic preview and remains unverified against a filled example.
+presence and den inclusion are explicit choices. The complete template always
+contains five bedroom sections, three bathroom condition columns, the den,
+basement, kitchen, living room, exterior, systems, comments and other items.
+It supports one to five actual bedrooms. Excluded areas stay visible and every
+condition field in them prints **N/A**. A two-bedroom unit therefore retains
+bedrooms 3–5 with N/A; an excluded basement retains all five N/A rows. Unknown
+bedroom/bathroom counts or basement presence never imply absence.
+
+All previews use identical room positions, rules and spacing. The den occupies a
+fixed right-column area, allowing all five bedrooms and the den to coexist.
+A two-bedroom layout has a synthetic preview and remains unverified against a filled example.
 Unsupported layouts and text overflow produce a visible error instead of clipping
 observations or silently adding pages.
 
 Changing the bedroom count preserves out-of-layout notes only in this visit's
-memory; the field review excludes those rooms. Choosing a different protected
+memory; the field review and PDF replace those observations with N/A until the
+area applies again. Automatic N/A fields do not count as recorded observations.
+Choosing a different protected
 unit starts a fresh draft after confirmation. Free-text wording is supported
 without claiming the selected condition has been independently verified.
 
@@ -77,8 +87,10 @@ without claiming the selected condition has been independently verified.
 form, with One step/View all and freely navigable steps. The Applications handoff
 opens it without transferring approval, payment or tenant assumptions.
 
-The existing shared staff session is reused. No new Supabase queries, schema,
-storage, authentication mechanisms or record writes are introduced. Reload,
+The existing shared staff session is reused. The form adds no Supabase queries,
+authentication mechanisms or record writes. A separate staff-readable reference
+catalog indexes the privately archived leases; see [the reference library](LEASE-REFERENCE-LIBRARY.md).
+Reload,
 Clear draft, sign-out or an account change clears all entered details and the
 review. Existing portfolio units may supply an address; existing people and
 historical lease dates are never copied into a new tenancy.
@@ -92,7 +104,7 @@ areas are retained. Long fields must fit within measured bounds.
 
 The full ten-page download stays disabled even when every field is filled;
 client input cannot override the pending-source state. No signing operation is
-present, and this PR remains draft.
+present. The preparation workflow remains available for staff trials.
 
 ## Needed before exact PDF export
 
@@ -113,7 +125,8 @@ present, and this PR remains draft.
 Unit tests cover cents-based calculations and override synchronization, explicit
 deposit allocation, room counts and blank observations, excluded-room notes,
 missing inputs and the permanent full-lease draft export block. PDF tests cover
-all twelve bedroom/bathroom count combinations, custom labels, an optional den,
+all sixty bedroom/bathroom/basement/den combinations with identical layout geometry,
+automatic N/A entries, suppressed inactive-room notes, custom labels,
 independent observations, blank signatures, staff access and overflow rejection.
 Browser checks cover staff
 access, sign-out clearing, no writes, independent condition fields, changing
@@ -124,7 +137,8 @@ Fictional UI previews: [terms](ui-review/new-lease-terms-draft.png),
 [condition fields](ui-review/new-lease-conditions-draft.png),
 [phone](ui-review/new-lease-phone-draft.png).
 
-Fictional page 8 PDF previews: [two beds](ui-review/condition-pdf-drafts/page-8-2-bed-DRAFT.pdf),
+Fictional page 8 PDF previews: [one bed](ui-review/condition-pdf-drafts/page-8-1-bed-DRAFT.pdf),
+[two beds](ui-review/condition-pdf-drafts/page-8-2-bed-DRAFT.pdf),
 [three beds + den](ui-review/condition-pdf-drafts/page-8-3-bed-DRAFT.pdf),
 [four beds](ui-review/condition-pdf-drafts/page-8-4-bed-DRAFT.pdf),
 [five beds](ui-review/condition-pdf-drafts/page-8-5-bed-DRAFT.pdf).

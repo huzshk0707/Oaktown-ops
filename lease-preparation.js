@@ -53,19 +53,20 @@
  const services=grid(steps[2]),utilities=el('fieldset'),appliances=el('fieldset');utilities.append(el('legend','','Utilities'));appliances.append(el('legend','','Appliances furnished'));
  R.utilities.forEach((name,i)=>input(utilities,'utility-'+i,name,{values:[['','Choose who pays'],['Landlord','Landlord'],['Tenant','Tenant']]}));
  R.appliances.forEach((name,i)=>input(appliances,'appliance-'+i,name,{values:[['','Choose'],['Yes','Yes'],['No','No']]}));services.append(utilities,appliances);
- steps[3].append(el('p','guide-hint','Every condition starts blank. Record this unit’s observations; the supplied five-bedroom example is not a preset. Use area labels for a primary bath, basement bedroom or den. The corrected sheet can be previewed below; no example’s observations are prefilled.'));
+ steps[3].append(el('p','guide-hint','The complete page 8 stays the same for every unit. Unused rooms print N/A; applicable conditions start blank for your observations.'));
  const layout=grid(steps[3]);
  input(layout,'satisfactory','All listed items satisfactory?',{values:[['','Not yet confirmed'],['Yes','Yes — verified'],['No','No — record exceptions in the condition entries']]});
- input(layout,'bedrooms','Bedrooms',{values:[['','Confirm bedroom count'],...['2','3','4','5'].map(x=>[x,x+' bedrooms'])]});
+ input(layout,'bedrooms','Bedrooms',{values:[['','Confirm bedroom count'],...['1','2','3','4','5'].map(x=>[x,x+' bedroom'+(x==='1'?'':'s')])]});
  input(layout,'bathrooms','Bathrooms / condition groups',{values:[['','Confirm bathroom count'],...['1','2','3'].map(x=>[x,x+' bathroom group(s)'])]});
  input(layout,'basement','Basement belongs to this unit?',{values:[['','Not confirmed'],['included','Included'],['not-included','Not part of this unit — confirmed']]});
  check(steps[3],'additionalRoom','Include a den / other room (when applicable).');
  const roomSelect=input(steps[3],'room','Area to inspect',{values:[['kitchen','Kitchen']]});
  const roomLabelInput=input(steps[3],'roomLabel','Area label (optional)',{hint:'For example: Main bath, Basement bath, Primary bedroom or Den. Leave blank to keep the generic label.'});
+ const roomApplicability=el('p','guide-hint');roomApplicability.id='newlease-room-applicability';roomApplicability.setAttribute('role','status');steps[3].append(roomApplicability);
  const count=el('p','guide-hint');count.id='newlease-condition-count';steps[3].append(count);
  const conditionFields=el('div','lease-condition-fields');steps[3].append(conditionFields);
  const options=el('datalist');options.id='newlease-condition-options';M.conditionOptions.forEach(value=>options.append(new Option(value,value)));steps[3].append(options);
- steps[3].append(el('p','guide-hint','Choose a suggestion or enter exact wording. Notes for rooms outside the selected count stay in this visit’s draft but are excluded from the review.'));
+ steps[3].append(el('p','guide-hint','Choose a suggestion or enter exact wording. Unused-room notes stay in this visit’s memory; the review and PDF show N/A until that room applies again.'));
  const previewButton=button('Preview page 8 PDF',previewCondition,'button primary');previewButton.id='newlease-condition-preview';
  const previewStatus=el('p','status');previewStatus.id='newlease-condition-preview-status';previewStatus.setAttribute('role','status');
  steps[3].append(previewButton,el('p','guide-hint','One-page draft preview only. Signature and date lines stay blank; observations must be checked for the actual unit.'),previewStatus);
@@ -95,16 +96,19 @@
   if(!manualTen)$('ten').value=amounts.ten.cents===null?'':(amounts.ten.cents/100).toFixed(2);
   feeMode.textContent='5%: '+amounts.five.mode+' · 10%: '+amounts.ten.mode;
  }
- function updateCount(){const x=M.readiness(state()).conditionCount;count.textContent=x.entered+' of '+x.total+' condition fields contain observations (including optional notes).'}
+ function updateCount(){const x=M.readiness(state()).conditionCount;count.textContent=x.entered+' of '+x.total+' observation fields filled · '+x.notApplicable+' fields marked N/A.'}
  function renderRoom(){
   const plan=M.roomPlan(val('bedrooms'),val('bathrooms'),val('basement'),roomLabels,$('additionalRoom').checked);
   if(!plan.some(r=>r.key===room))room='kitchen';
-  roomSelect.replaceChildren(...plan.map(r=>new Option(r.title,r.key)));roomSelect.value=room;roomLabelInput.value=roomLabels[room]||'';roomLabelInput.placeholder=plan.find(r=>r.key===room).title;
+  const current=plan.find(r=>r.key===room),notApplicable=current.applicable===false;
+  roomSelect.replaceChildren(...plan.map(r=>new Option(r.title+(r.applicable===false?' · N/A':''),r.key)));roomSelect.value=room;roomLabelInput.value=notApplicable?'':roomLabels[room]||'';roomLabelInput.placeholder=current.title;roomLabelInput.readOnly=notApplicable;
   roomLabelInput.parentElement.hidden=['exterior','systems','other'].includes(room);
-  const current=plan.find(r=>r.key===room),g=el('div','lease-draft-grid');conditionFields.replaceChildren(el('h4','',current.title),g);
+  roomApplicability.textContent=notApplicable?current.title+' is not included. Every field prints N/A; adjust the unit layout above to edit.':current.applicable===null?'Confirm this area’s layout above. Unconfirmed areas stay blank until you enter observations.':'';
+  roomApplicability.hidden=!roomApplicability.textContent;
+  const g=el('div','lease-draft-grid');conditionFields.replaceChildren(el('h4','',current.title),g);
   current.items.forEach((item,i)=>{
-   const key=current.key+'::'+item,n=input(g,'condition-'+i,item);n.setAttribute('list',options.id);n.value=conditions[key]||'';
-   n.addEventListener('input',()=>{conditions[key]=n.value;dirty=true;$('conditionsReviewed').checked=false;updateCount()});
+   const key=current.key+'::'+item,n=input(g,'condition-'+i,item);n.setAttribute('list',options.id);n.value=notApplicable?'N/A':conditions[key]||'';n.readOnly=notApplicable;
+   n.addEventListener('input',()=>{if(notApplicable)return;conditions[key]=n.value;dirty=true;$('conditionsReviewed').checked=false;updateCount()});
   });updateCount();
  }
  function render(){
