@@ -51,6 +51,16 @@ test('Action Centre projects genuine tasks and latest saved renewal status, save
  await page.locator('#operations-queue').getByRole('button',{name:'Review task',exact:true}).click();await expect(page.locator('#today-edit-dialog')).toBeVisible();await expect(page.locator('#today-edit-title')).toHaveValue('Review fictional entry arrangements');await page.locator('#today-edit-cancel').click();
  expect(s.writes).toHaveLength(0);
 });
+
+test('Reload retains reviewed editor access when Today finishes before the connected module loads',async({page})=>{
+ await setup(page);
+ await page.route('**/operations.js?*',async route=>{
+  await page.waitForFunction(()=>!!window.OpsCloud?.user&&!!window.OpsToday);
+  await page.evaluate(()=>window.OpsToday.refresh());await route.continue();
+ });
+ await page.reload();await expect(page.locator('#operations-status')).toContainText('active saved sources');await openActions(page);
+ await expect(page.locator('#operations-queue').getByRole('button',{name:'Review task',exact:true}).first()).toBeVisible();
+});
 test('Keyboard search routes exact units, historical people and renewal sources',async({page})=>{
  await setup(page);await page.keyboard.press('Control+k');await expect(page.locator('#operations-query')).toBeFocused();await page.locator('#operations-query').fill('Unit A');await expect(page.locator('#operations-results')).toContainText('100 Example Court · Unit A');
  await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await expect(page.locator('#operations-profile-title')).toHaveText('100 Example Court · Unit A');

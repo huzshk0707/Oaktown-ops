@@ -18,7 +18,7 @@ const endpoints={
  documents:'lease_reference_documents?select=id,source_name,drive_file_id,page_count,received_at,sha256,reference_notes'
 };
 const optional=new Set(['rents','events','documents']);
-let records=null,entries=[],generation=0,pending=null,owner=null,error='',filter='all',shown=25,active=-1,paletteRows=[],lastFocus=null,profileKey=null,canEdit=false;
+let records=null,entries=[],generation=0,pending=null,owner=null,error='',filter='all',shown=25,active=-1,paletteRows=[],lastFocus=null,profileKey=null,canEdit=!!window.OpsToday?.getData()?.canEdit;
 const pref='oaktown-action-filter-v1',densityKey='oaktown-density-v1';
 try{const saved=localStorage.getItem(pref);if(M.filters.includes(saved))filter=saved}catch{}
 function navigate(name,tab){window.OpsWorkspace?.navigate(name,tab)}
