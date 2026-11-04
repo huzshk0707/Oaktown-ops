@@ -1,5 +1,7 @@
 # Oaktown Ops: project brief
 
+**Historical discovery baseline:** Use [the current roadmap](ROADMAP.md) and [technical audit](TECHNICAL-AUDIT-2026-11-04.md) for implementation status and current gaps. Existing business decisions remain in force unless the user changes them.
+
 Status: v0.1 implementation underway under the user's subsequent instruction. The original discovery baseline remains below for context. Last updated: 2026-10-25.
 
 ## Introduction

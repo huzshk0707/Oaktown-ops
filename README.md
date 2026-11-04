@@ -2,10 +2,13 @@
 
 [Open the workspace](https://huzshk0707.github.io/Oaktown-ops/)
 
-Oaktown Ops brings property records and operational workflows together. v0.6 retains the green Ops design and groups notice creation and tenant messages into a focused **two-step Notices** workflow. Court follow-up is deferred to a separate future add-on.
+[Current roadmap](docs/ROADMAP.md) · [Technical audit and staged fixes](docs/TECHNICAL-AUDIT-2026-11-04.md) · [Live validation](docs/LIVE-VALIDATION.md)
+
+Oaktown Ops brings property records and operational workflows together. Main includes the Today/tasks workspace, notices, protected portfolio, renewals, guided workflows, six themes and new-lease preparation through PR #40. **Hosting needs verification:** GitHub currently reports Pages disabled for this private repository; the workspace address above is the previously documented URL.
 
 ## Available now
 
+- **Today/tasks/EOD:** Task intake, reviewed task editing, activity tracking and end-of-day preparation.
 - **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Create drafts**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
 - Tenant message: shows the selected tenant's email only when an exact name match exists among people linked to that unit's lease/tenancy records, beside **Copy message**. Staff must verify imported emails before use; nothing is sent automatically.
 - Court follow-up: not displayed in Notices. Previously saved court notes remain untouched inside existing batches for a future add-on.
@@ -13,13 +16,17 @@ Oaktown Ops brings property records and operational workflows together. v0.6 ret
 - One shared account: persistent Supabase session with refresh; sign in from the staff access panel or use local drafts. No separate login for each workflow.
 - Notice drafts remain local in the browser and can be exported as JSON when needed. The Notice cloud-batch UI and its save/open actions have been retired; previously stored server batches are left intact. Shared property/lease records remain protected by staff sign-in.
 
-Leases & renewals retains its imported case/task browser and now includes a **Renewal Lease Generator** (property/unit and expiring-lease selection, suggested editable dates, rent/late fees, occupants/pets, utility and appliance choices, verified field review). After confirming the fields, staff can **download an unsigned five-page renewal lease PDF** from the sanitized document master. **The PDF is downloaded only—it is not saved to Supabase, signed, sent, or applied to the active lease.** Staff can separately select a renewal case to enter a one-line update (for example, “sent lease for signature”), verify or manually edit the suggested status, add an optional next action and notes, and save a dated update to the existing RLS-protected Supabase activity journal. Imported source status remains intact. See [renewal generator limitations and document QA](docs/RENEWAL-LEASE-GENERATOR.md). Listings and maintenance remain upcoming.
+Leases & renewals retains its imported case/task browser and includes a **Renewal Lease Generator** (property/unit and expiring-lease selection, suggested editable dates, rent/late fees, occupants/pets, utility and appliance choices, verified field review). After confirming the fields, staff can **download an unsigned five-page renewal lease PDF** from the sanitized document master. **The PDF is downloaded only—it is not saved to Supabase, signed, sent, or applied to the active lease.** Staff can separately select a renewal case to enter a one-line update (for example, “sent lease for signature”), verify or manually edit the suggested status, add an optional next action and notes, and save a dated update to the existing RLS-protected Supabase activity journal. Imported source status remains intact. Tracking and preparation use separate tabs. See [renewal generator limitations and document QA](docs/RENEWAL-LEASE-GENERATOR.md).
+
+**Prepare new lease** is a separate staff-only guided draft. Its page 8 preview retains every room section and marks confirmed unused areas N/A. The full ten-page exporter remains disabled pending deposit rules, disclosure handling and final mapping. New-lease inputs stay only for the current visit. The [private reference library](docs/LEASE-REFERENCE-LIBRARY.md) preserves the uploaded original PDFs in Drive and their reference catalog in Supabase.
+
+Listings, Lead Handling and Applications have guided steps and prompt builders; full operational integrations remain unfinished. Maintenance is planned.
 
 ## Working with data
 
 Notice draft edits remain in this browser's local storage; download Notice PDFs/ZIPs and optionally export a JSON copy for a durable backup. No Notice batch is sent to the cloud. Property form saves still update protected shared property/addressee records.
 
-Signing out disconnects cloud access but keeps local drafts on that browser. Use a trusted device. The static website and standalone generator remain publicly accessible; protected database records require approved staff membership and row-level security. Only a publishable key is in the client.
+Signing out disconnects cloud access. Notice drafts remain in that browser's local storage until cleared; new-lease working inputs clear on reload or sign-out. Use a trusted device. Repository visibility and website access are separate controls; current hosting availability still needs verification. Protected database records require approved staff membership and row-level security. Only a publishable key is in the client.
 
 The relational `units` table supports multiple rentable spaces at one property address, while the older advanced property editor still edits address-level records. Notice drafts use **unit IDs** to avoid combining tenants from different units. Unknown notice addressees remain blank and cannot produce a valid final notice until completed.
 
@@ -36,11 +43,11 @@ All project development is kept in GitHub. Root files serve the current app; his
 - `generator.html`, `vendor/`: document layouts and local download tools.
 - `supabase/schema/ops_workspace_v04.sql`: applied additive schema/RPC reference.
 - `docs/RELEASE-0.4.md`: release scope and verification.
-- `supabase/migrations/`: historical Portfolio Master migrations already applied; do not rerun them. See [database status and rollout blockers](docs/DATABASE-UPGRADE-V05.md).
+- `supabase/migrations/`: applied schema history and the separately staged audit-hardening migration. Check [current migration status](docs/TECHNICAL-AUDIT-2026-11-04.md) before rollout; do not replay historical versions. See [the original database upgrade record](docs/DATABASE-UPGRADE-V05.md).
 
 GitHub Actions runs Node checks and Chromium tests for downloads, address search, shared sign-in, legacy court-data preservation, tenant email privacy, property writes, local statement CSV import and Firm Book PDF downloads. Browser tests use fictional API mocks. Database regression tests use disposable PostgreSQL services with fictional fixtures; CI never applies migrations to live Supabase.
 
-[Share non-sensitive technical feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml). Do not include tenant information in public issues.
+[Share non-sensitive technical feedback](https://github.com/huzshk0707/Oaktown-ops/issues/new?template=feedback.yml). Keep tenant information and credentials out of GitHub issues.
 
 ## UX & security improvement review
 
