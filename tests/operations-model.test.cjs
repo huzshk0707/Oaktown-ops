@@ -11,8 +11,8 @@ test('Action Centre respects real office dates, archived/terminal tasks and reco
 test('Unit scope never absorbs sibling units or property-only work and preserves property totals',()=>{
  const d=base();d.renewals=[{id:'ra',unit_id:'a',property_id:'p'},{id:'rb',unit_id:'b',property_id:'p'},{id:'rp',property_id:'p'}];
  d.tasks=[{id:'t1',unit_id:'a'},{id:'t2',unit_id:'b'},{id:'t3',property_id:'p'},{id:'t4',renewal_case_id:'ra'},{id:'t5',lease_id:'lb'},{id:'t6',unit_id:'a',archived_at:'2026-11-01'}];
- d.events=[{id:'e1',entity_type:'renewal_case',entity_id:'ra',occurred_at:'2026-11-02'},{id:'e2',entity_type:'renewal_case',entity_id:'rb',occurred_at:'2026-11-03'},{id:'e3',entity_type:'property',entity_id:'p',occurred_at:'2026-11-04'}];d.rents=[{lease_id:'la',amount_usd:100},{lease_id:'lb',amount_usd:200}];
- const unit=M.scope(d,'unit','a');assert.deepEqual(unit.leases.map(x=>x.id),['la']);assert.deepEqual(unit.renewals.map(x=>x.id),['ra']);assert.deepEqual(unit.tasks.map(x=>x.id),['t1','t4']);assert.deepEqual(unit.events.map(x=>x.id),['e1']);assert.equal(unit.rents.length,1);
+ d.events=[{id:'e1',entity_type:'renewal_case',entity_id:'ra',occurred_at:'2026-11-02'},{id:'e2',entity_type:'renewal_case',entity_id:'rb',occurred_at:'2026-11-03'},{id:'e3',entity_type:'property',entity_id:'p',occurred_at:'2026-11-04'},{id:'e4',entity_type:'task',entity_id:'t6',occurred_at:'2026-10-31'}];d.rents=[{lease_id:'la',amount_usd:100},{lease_id:'lb',amount_usd:200}];
+ const unit=M.scope(d,'unit','a');assert.deepEqual(unit.leases.map(x=>x.id),['la']);assert.deepEqual(unit.renewals.map(x=>x.id),['ra']);assert.deepEqual(unit.tasks.map(x=>x.id),['t1','t4']);assert.deepEqual(unit.events.map(x=>x.id),['e1','e4']);assert.equal(unit.rents.length,1);
  const property=M.scope(d,'property','p');assert.equal(property.units.length,2);assert.equal(property.tasks.length,5);assert.equal(property.events[0].id,'e3');
 });
 test('Search combines words, normalizes accents, excludes archived work and links exact IDs',()=>{

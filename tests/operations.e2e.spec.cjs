@@ -73,6 +73,14 @@ test('Reference centre uses safe original links and never associates references 
  await expect(page.locator('#operations-profile-content')).toContainText('not automatically linked');const a=page.locator('#operations-profile-content a');await expect(a).toHaveAttribute('href','https://drive.google.com/file/d/fictional123456789/view');await expect(a).toHaveAttribute('rel','noopener noreferrer');
 });
 
+test('Archiving removes active work while its source-linked journal remains readable',async({page})=>{
+ const s=await setup(page);s.fixtures.ops_tasks[2].unit_id='u1';s.fixtures.ops_events.push({id:'archived-event',entity_type:'task',entity_id:'t3',event_type:'task_work_recorded',occurred_at:'2026-10-30T12:00:00Z',summary:'Fictional archived work journal'});
+ await page.evaluate(()=>window.OpsOperations.refresh(true));await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));
+ await page.locator('#operations-profile-content summary').filter({hasText:'Activity timeline'}).click();
+ const row=page.locator('.operations-history-row').filter({hasText:'Fictional archived work journal'});await expect(row).toBeVisible();await row.getByRole('button',{name:'Open source record'}).click();
+ await expect(page.locator('#operations-profile-title')).toHaveText('Archived private task');await expect(page.locator('#operations-profile-content')).toContainText('restore from Tasks');await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
+});
+
 test('Profile links close the modal before opening an existing editor and show a read-only renewal fallback on failure',async({page})=>{
  const s=await setup(page);await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));
  await page.locator('#operations-profile-content').getByRole('button',{name:'TEST-A · Pending',exact:true}).click();await expect(page.locator('#operations-profile-dialog')).not.toBeVisible();await expect(page.locator('#ops-renewals-detail')).toContainText('TEST-A');

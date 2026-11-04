@@ -52,7 +52,7 @@
   const units=unit?[unit]:list(data.units).filter(u=>u.property_id===prop?.id),unitIds=new Set(units.map(u=>u.id));
   const leases=list(data.leases).filter(l=>unitIds.has(l.unit_id)),leaseIds=new Set(leases.map(l=>l.id));
   const renewals=list(data.renewals).filter(r=>unit? r.unit_id===id:r.property_id===id||unitIds.has(r.unit_id)),renewalIds=new Set(renewals.map(r=>r.id));
-  const tasks=list(data.tasks).filter(t=>!t.archived_at&&(unitIds.has(t.unit_id)||!unit&&t.property_id===id||leaseIds.has(t.lease_id)||renewalIds.has(t.renewal_case_id))),taskIds=new Set(tasks.map(t=>t.id));
+  const linkedTasks=list(data.tasks).filter(t=>unitIds.has(t.unit_id)||!unit&&t.property_id===id||leaseIds.has(t.lease_id)||renewalIds.has(t.renewal_case_id)),tasks=linkedTasks.filter(t=>!t.archived_at),taskIds=new Set(linkedTasks.map(t=>t.id));
   const events=list(data.events).filter(e=>({property:e.entity_id===prop?.id&&!unit,unit:unitIds.has(e.entity_id),lease:leaseIds.has(e.entity_id),renewal_case:renewalIds.has(e.entity_id),ops_task:taskIds.has(e.entity_id),task:taskIds.has(e.entity_id)})[e.entity_type]).sort((a,b)=>String(b.occurred_at||'').localeCompare(String(a.occurred_at||''))||String(b.id).localeCompare(String(a.id)));
   return {prop,unit,units,leases,renewals,tasks,events,rents:list(data.rents).filter(r=>leaseIds.has(r.lease_id))};
  }

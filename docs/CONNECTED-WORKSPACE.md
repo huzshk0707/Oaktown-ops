@@ -24,6 +24,8 @@ preferences, the renewal/notice PDFs and the current task intake/editor APIs.
 - Lease profiles link source-associated people. Historical links and saved statuses
   do not establish current occupancy or executed contracts. Timeline entries show
   the recorded staff ID, timestamp, source and any explicitly reported work date.
+  Archived tasks stay out of active work; their linked journal entries retain a
+  read-only source view with the original archive status.
 - **Reference library** browses the existing private lease catalog and opens the
   original in Drive. Drive checks its own permissions. No filename matching assigns
   a reference to a property, tenancy or current lease.

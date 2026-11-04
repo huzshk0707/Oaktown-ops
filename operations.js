@@ -153,7 +153,7 @@ async function openSource(kind,id){
   if(cloud.user?.id!==userId)return;if(!ok)openProfile(kind,id);return;
  }
  if(kind==='task'){
-  const t=records?.tasks.find(t=>t.id===id&&!t.archived_at);if(!t)return;
+  const t=records?.tasks.find(t=>t.id===id);if(!t)return;if(t.archived_at){openProfile('task',id);return}
   if(canEdit){
    const userId=cloud.user.id;if(profile.open)profile.close();navigate('today');await window.OpsToday?.refresh();
    if(cloud.user?.id!==userId)return;
@@ -196,6 +196,7 @@ function renderProfile(kind,id){
  if(kind==='task'){
   const t=i.tasks.get(id);text('operations-profile-title',t?.task_title||'Task unavailable');if(!t)return;
   fact(host,'Status',t.status);fact(host,'Scope',M.location(t,i));fact(host,'Owner',t.assigned_label);fact(host,'Next action',t.intake_details?.next_action);fact(host,'Notes',t.notes);
+  if(t.archived_at)fact(host,'Archived',date(String(t.archived_at).slice(0,10))+' · restore from Tasks → Saved records before editing');
   const schedule=T.scheduled(t);fact(host,schedule?.type||'Due / follow-up',schedule?date(schedule.date):'No date assigned');
   if(t.unit_id)host.append(sourceButton('unit',t.unit_id,'Open unit profile'));else if(t.property_id)host.append(sourceButton('property',t.property_id,'Open property profile'));return;
  }
