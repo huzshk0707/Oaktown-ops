@@ -35,6 +35,8 @@ jobs:
           node --check lease-preparation-model.js
           node --check lease-preparation.js
           node --check lease-condition-pdf.js
+          node --check operations-model.js
+          node --check operations.js
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
 
