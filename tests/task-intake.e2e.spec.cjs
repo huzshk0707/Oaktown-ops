@@ -81,7 +81,8 @@ async function setup(page){
   if(p==='/rest/v1/leases')return reply(s.leases);
   if(p==='/rest/v1/tenancy_people')return reply(s.parties);
   if(p==='/rest/v1/tenancies')return reply(s.tenancies);
-  if(['/rest/v1/bookings','/rest/v1/renewal_cases','/rest/v1/ops_tasks','/rest/v1/ops_events'].includes(p))return reply([]);
+  if(p==='/rest/v1/ops_tasks')return reply(s.intake?.tasks||[]);
+  if(['/rest/v1/bookings','/rest/v1/renewal_cases','/rest/v1/ops_events','/rest/v1/rent_schedules','/rest/v1/lease_reference_documents'].includes(p))return reply([]);
   if(p==='/rest/v1/notice_batches'){if(!s.batch)return reply([]);if(url.searchParams.has('id'))return reply([s.batch]);const{id,title,version,updated_at}=s.batch;return reply([{id,title,version,updated_at}]);}
   if(p==='/rest/v1/rpc/save_notice_batch'){
    const b=req.postDataJSON();s.writes.push(clone(b));if(s.holdSave)await s.holdSave;
@@ -132,6 +133,7 @@ test('intake reviews final state, saves once and does not replay a repeated expo
  await expect(page.locator('#task-save')).toBeDisabled();
  await approve(page);await expect(page.locator('#task-save')).toBeEnabled();
  await page.locator('#task-save').click();await expect(page.locator('#task-status')).toContainText('Saved to Ops');
+ await expect(page.locator('#operations-queue')).toContainText('Prepare Unit 8 renewal lease');
  expect(s.intake.tasks).toHaveLength(1);
  expect(s.intake.items.filter(x=>x.kind==='activity')).toHaveLength(1);
  expect(s.intake.items.find(x=>x.kind==='activity').payload.minutes).toBe(10);
@@ -217,11 +219,13 @@ test('saved task cleanup separates session records and supports archive and rest
  await expect(first).toContainText('Prepare Unit 8 renewal lease');
  await first.getByRole('button',{name:/Archive task/}).click();
  await expect(page.locator('#task-status')).toContainText('Task archived');
+ await expect(page.locator('#operations-queue')).not.toContainText('Prepare Unit 8 renewal lease');
  await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (0)');
  await expect(page.locator('#task-history')).toContainText('Show archived tasks (1)');
  await page.getByRole('button',{name:'Show archived tasks (1)'}).click();
  await page.locator('.task-archived-list').getByRole('button',{name:/Restore task/}).click();
  await expect(page.locator('#task-status')).toContainText('Task restored');
+ await expect(page.locator('#operations-queue')).toContainText('Prepare Unit 8 renewal lease');
  await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (1)');
  expect(mock.archiveCalls.map(x=>x.p_archived)).toEqual([true,false]);
 });

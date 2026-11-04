@@ -17,7 +17,7 @@ create table ci.before_hardening_constraints as
   order by conrelid::regclass::text,conname) as definitions
  from pg_constraint where conrelid in ('public.units'::regclass,'public.tenancies'::regclass,'public.leases'::regclass,'public.renewal_cases'::regclass,'public.ops_tasks'::regclass);
 
-\ir ../supabase/migrations/20261104114559_portfolio_record_links_and_event_attribution.sql
+\ir ../supabase/migrations/20261104220620_portfolio_record_links_and_event_attribution.sql
 
 do $$declare baseline record; actual jsonb;begin
  for baseline in select * from ci.before_hardening loop
@@ -115,7 +115,7 @@ rollback;
 
 -- Rehearse the reviewed rollback, verify preservation, then restore new guards so
 -- the remaining CI intake/Today/archive tests exercise the hardened schema.
-\ir ../supabase/rollback/20261104114559_portfolio_record_links_and_event_attribution.sql
+\ir ../supabase/rollback/20261104220620_portfolio_record_links_and_event_attribution.sql
 select ci.assert_true((select pg_get_functiondef('public.ops_task_update_v1(uuid,timestamptz,jsonb)'::regprocedure)=definition from ci.before_hardening_rpc),'rollback restores the prior RPC definition');
 select ci.assert_true((select jsonb_agg(jsonb_build_object('table',conrelid::regclass::text,'name',conname,'definition',pg_get_constraintdef(oid),'validated',convalidated)
  order by conrelid::regclass::text,conname) from pg_constraint where conrelid in ('public.units'::regclass,'public.tenancies'::regclass,'public.leases'::regclass,'public.renewal_cases'::regclass,'public.ops_tasks'::regclass))=
@@ -126,5 +126,5 @@ do $$declare baseline record;actual jsonb;begin
   perform ci.assert_true(actual is not distinct from baseline.rows,'rollback preserves existing '||baseline.name||' rows');
  end loop;
 end $$;
-\ir ../supabase/migrations/20261104114559_portfolio_record_links_and_event_attribution.sql
+\ir ../supabase/migrations/20261104220620_portfolio_record_links_and_event_attribution.sql
 select 'Portfolio relationship guards, server attribution, same-unit lease changes and schema-only rollback passed' as result;

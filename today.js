@@ -131,5 +131,6 @@ window.addEventListener('ops-theme-change',()=>{if(viewData)renderSchedule(M.cla
 window.addEventListener('ops-today-show',()=>{if(!busy)refresh()});
 window.addEventListener('ops-today-refresh',()=>{if(!busy)refresh()});
 window.addEventListener('ops-auth-change',e=>{if(!e.detail?.user)clear();else if(!$('today-workflow').hidden)refresh()});
+window.OpsToday={refresh,getData:()=>viewData};
 clear();
 })();
