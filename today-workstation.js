@@ -27,6 +27,7 @@ function meta(t){
  if(t.schedule)pieces.push(t.schedule.type+': '+t.schedule.date+' (Eastern)');
  else pieces.push('No date recorded');
  if(t.assigned_label)pieces.push('Owner: '+t.assigned_label);
+ if(typeof t.intake_details?.waiting_on==='string'&&t.intake_details.waiting_on.trim())pieces.push('Waiting on: '+t.intake_details.waiting_on.trim());
  return pieces.join(' · ');
 }
 function choose(key,id){
@@ -72,6 +73,8 @@ function renderFocus(){
  host.append(el('h4',chosen.task_title||'Untitled task'),el('p',meta(chosen),'today-muted'));
  const next=chosen.intake_details?.next_action;
  if(typeof next==='string'&&next.trim())host.append(el('p','Next action: '+next,'today-focus-next'));
+ const blocker=chosen.intake_details?.blocked_reason;
+ if(typeof blocker==='string'&&blocker.trim())host.append(el('p','Blocker: '+blocker,'today-focus-next'));
  const actions=el('div',null,'today-focus-actions');
  if(data.canEdit){
   actions.append(button('Review task',()=>edit(chosen),'button primary'));
