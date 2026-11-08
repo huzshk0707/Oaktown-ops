@@ -1,41 +1,49 @@
 # Current Oaktown Ops status and next work
 
-Updated November 4, 2026. Main includes merged PR #40; PR #23 is closed as superseded.
-Use [the current technical audit](TECHNICAL-AUDIT-2026-11-04.md) for evidence and limits.
-Historical release/discovery notes preserve earlier states and decisions.
+Updated November 4, 2026. Main includes merged PRs #40 and #41; PR #23 is closed
+as superseded. The first database hardening migration is now applied live.
+The connected-workspace increment is implemented on the feature branch pending
+its PR/CI review; source changes do not establish a verified website deployment.
+See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
+[connected-workspace guide](CONNECTED-WORKSPACE.md) for scope and evidence.
 
 | Area | Current implementation | Remaining work |
 | --- | --- | --- |
-| Today/tasks/EOD | Intake, reviewed editing, activity tracking and EOD flows | Continue consistency, provenance and real operational validation |
-| Notices | Unit selection, local drafts, statement CSV import, tenant-message preparation, PDF/ZIP/Firm Book | Staff verification and real printing/recovery checks |
-| Properties | Imported protected portfolio, list/detail browser and legacy address editor | Consistent cross-record writes, source reconciliation and controlled editing |
-| Renewals | Five-page unsigned PDF, progress journal and separate tracking/preparation tabs | Document retention/signing/executed-contract lifecycle remains separate |
-| New leases | Guided draft, editable terms, fixed 5%/10% labels and full page 8 with N/A | Ten-page PDF mapping, deposit rules, disclosure handling; visit-only drafts |
-| Reference library | Ten original PDFs in restricted Drive; staff-only Supabase reference catalog | Recovery verification and future reference-based features |
-| Listings/leads/applications | Guides and prompt builders | Full operational integrations and application/deposit handoff |
-| Appearance | Six themes, depth/tab treatment, responsive and guided layouts | Targeted usability fixes; preserve the current design |
-| Maintenance/financial modules | Planned | Define business scope and data rules before building |
+| Today/tasks/EOD | Intake, reviewed editing, work reports; connected Action Centre with saved filter presets | Staff validation on the intended live site |
+| Navigation | Ctrl/Cmd+K global search, quick actions, comfortable/compact density | Measure real staff use; improve bounded problems |
+| Properties | Protected list/detail browser; connected property and independent unit profiles, recorded rents, linked people/leases/tasks and expandable activity | Source reconciliation, controlled editing and further integrity guards |
+| Notices | Unit selection, local drafts, CSV import, message preparation, PDF/ZIP/Firm Book | Shared evidence associations, staff verification and real printing |
+| Renewals | Five-page unsigned PDF; separate tracking/preparation; journal-backed action view | Retention/signing/executed-contract lifecycle remains separate |
+| New leases | Guided draft, editable terms, fixed 5%/10% labels and full page 8 with N/A | Ten-page PDF mapping, deposit rules, page 7 disclosures; visit-only drafts |
+| Reference library | Ten original PDFs in restricted Drive; staff-only catalog and browse/open UI | Categories, verified property/unit links, versions and controlled uploads |
+| Recovery | Verified restore of 24 application tables/1,678 rows and ten PDFs; restricted recovery ZIP with readback checksum | Scheduled retention and full Supabase Auth/provider/platform restoration |
+| Database hardening | Eight live composite keys, server journal attribution, nine indexes and reviewed Today RPC correction | Nullable task-to-renewal scopes, provenance/target controls and repeatable import tooling |
+| Listings/leads/applications | Guided workflows and prompt builders | Full operational integrations and application/deposit handoff |
+| Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
+| Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
-Priorities, in order:
+Next milestones, in order:
 
-1. **Hosting and release baseline.** Confirm the intended live URL. GitHub currently
-   reports Pages disabled on the private repository. Keep source private while resolving
-   the hosting configuration; verify actual deployed assets and staff workflows.
-2. **Review and roll out the first database hardening batch.** The staged migration
-   protects direct record relationships and journal attribution, with an RPC lease-switch
-   correction, indexes, read-only preflight and rehearsed rollback. Production data passed
-   the current preflight; the new guards are not yet applied live.
-3. **Finish data-integrity controls.** Cover task-to-renewal nullable scopes, immutable
-   provenance, supported source targets and repeatable portfolio import dry runs/replay safety.
-4. **Verify recovery.** Establish retention/access ownership and demonstrate an isolated
-   end-to-end database/document restore. Source PDFs and a schema rollback alone are not
-   a complete backup/recovery process.
-5. **Complete the new-lease PDF.** Confirm deposit/pet-fee rules and page 7 disclosures,
-   map pages 1/10 and compare all pages against the updated master and example layouts.
-6. **Improve existing modules gradually.** Standardize shared validation/errors and module
-   boundaries, then consolidate styles with screenshot comparisons. Preserve working PDF
-   outputs and UI. Broader maintenance, ledger and external integrations follow bounded scopes.
+1. **Release the connected experience and verify hosting.** Review the feature PR,
+   confirm the intended live URL (GitHub reports Pages disabled), and validate deployed
+   assets plus real staff workflows. Keep the repository private.
+2. **Complete operational recovery.** Establish retention/access ownership and scheduled
+   private snapshots. Restore Supabase Auth/provider settings through supported platform
+   backups; the verified application-data/document exercise has narrower scope.
+3. **Finish data integrity.** Enforce task-to-renewal context for nullable/property-level
+   cases, immutable source attribution, supported targets/parent changes and repeatable
+   import dry runs, fingerprints, conflict review and replay protection.
+4. **Complete the new-lease PDF.** Confirm deposit/pet-fee rules and page 7 disclosures,
+   map pages 1/10, and compare all ten pages to the approved masters and examples.
+5. **Expand document management.** Add explicit categories, property/unit associations,
+   dates, versions and permission-controlled retention without inferring links from names.
+6. **Build the full maintenance workflow.** Requests, exact property/unit, priority,
+   technician, confirmed entry arrangements, work, before/after evidence, review and
+   closure. Recurring work needs explicit schedules/ownership; no guessed defaults.
+7. **Complete operational handoffs.** Listings, lead/application records and the
+   application/deposit-to-lease flow, then reporting based on measured saved data.
 
-Native `AGENTS.md` instructions now record the stack, privacy rules, verification
-commands and current handoff sources. This is a small project-specific development
-setup; no third-party Claude hooks or automatic learning tools are installed.
+Autonomous messaging, signing, legal service and a replacement accounting ledger
+remain outside this phase. Preserve existing workflows and improve module boundaries
+gradually. The native `AGENTS.md` contains project-specific development instructions;
+no third-party Claude hooks or automatic learning tools are installed.

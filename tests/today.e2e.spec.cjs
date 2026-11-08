@@ -209,7 +209,8 @@ test('zero recorded tasks produce a truthful empty overview',async({page})=>{
 });
 
 test('personal home has working dual clocks without the sales copy or brief',async({page})=>{
- await page.clock.install({time:new Date('2026-11-01T06:00:00Z')});
+ await page.clock.install({time:new Date('2026-11-01T05:59:59Z')});
+ await page.clock.pauseAt(new Date('2026-11-01T06:00:00Z'));
  await setup(page);
  await expect(page.locator('#today-workflow')).toBeVisible();
  await expect(page.locator('[data-workspace="today"]')).toHaveAttribute('aria-current','page');

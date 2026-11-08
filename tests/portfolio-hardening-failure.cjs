@@ -18,11 +18,11 @@ if(Object.values(clean.violations).some(n=>n!==0))throw Error('Normal workspace 
 let created=false;
 try{
  sql('postgres',`create database ${target} template oaktown_portfolio_ci;`);created=true;
- sql(target,fs.readFileSync(path.join(root,'supabase/rollback/20261104114559_portfolio_record_links_and_event_attribution.sql'),'utf8'));
+ sql(target,fs.readFileSync(path.join(root,'supabase/rollback/20261104220620_portfolio_record_links_and_event_attribution.sql'),'utf8'));
  sql(target,"insert into public.renewal_cases(unit_id,tenancy_id,oak_record_id) values(ci.id(1,1),ci.id(5,2),'CI-DIRTY-CONTEXT');");
  const dirty=JSON.parse(sql(target,preflight).stdout);
  if(dirty.violations.renewal_tenancy_unit!==1)throw Error('Read-only preflight failed to detect the mismatched fixture');
- const result=sql(target,fs.readFileSync(path.join(root,'supabase/migrations/20261104114559_portfolio_record_links_and_event_attribution.sql'),'utf8'),true);
+ const result=sql(target,fs.readFileSync(path.join(root,'supabase/migrations/20261104220620_portfolio_record_links_and_event_attribution.sql'),'utf8'),true);
  if(result.status===0||!result.stderr.includes('renewal_cases_tenancy_unit_fkey'))throw Error('Migration did not reject the existing mismatched context as expected');
  const preserved=sql(target,`select
   not exists(select 1 from pg_constraint where conname in ('leases_id_unit_id_key','renewal_cases_tenancy_unit_fkey'))
@@ -35,7 +35,7 @@ try{
  const revised=definition.replace('actor uuid:=auth.uid();','actor uuid:=auth.uid(); -- CI concurrent revision');
  if(revised===definition)throw Error('Expected RPC baseline declaration missing');
  sql(target,revised);
- const changed=sql(target,fs.readFileSync(path.join(root,'supabase/migrations/20261104114559_portfolio_record_links_and_event_attribution.sql'),'utf8'),true);
+ const changed=sql(target,fs.readFileSync(path.join(root,'supabase/migrations/20261104220620_portfolio_record_links_and_event_attribution.sql'),'utf8'),true);
  if(changed.status===0||!changed.stderr.includes('Today editor definition changed'))throw Error('Unreviewed RPC revision was overwritten');
  const untouched=sql(target,"select position('CI concurrent revision' in prosrc)>0 and to_regclass('public.ops_tasks_archived_by_idx') is null from pg_proc where oid='public.ops_task_update_v1(uuid,timestamptz,jsonb)'::regprocedure;");
  if(untouched.stdout.trim()!=='t')throw Error('RPC version check left partial changes');

@@ -44,6 +44,7 @@ async function busy(button,action){
 function account(){if(!$('account-dialog').open)$('account-dialog').showModal()}
 function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in to access shared property records.');return false;}
 function showWorkflow(name){
+ if(!['today','tasks','notices','properties','leases','listings','leads','applications','maintenance'].includes(name))return;
  const changed=workflow!==name;
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
@@ -58,6 +59,7 @@ function showWorkflow(name){
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
  if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:scrollBehavior()})}
 }
+window.OpsWorkspace={navigate:(name,tab)=>{showWorkflow(name);if(name==='leases'&&tab)showLeaseTab(tab)}};
 function showTab(next){
  if(!['notices','message'].includes(next))next='notices';
  tab=next;
