@@ -2,14 +2,16 @@
 
 Updated November 4, 2026. Main includes merged PRs #40 and #41; PR #23 is closed
 as superseded. The first database hardening migration is now applied live.
-The connected-workspace increment is implemented on the feature branch pending
-its PR/CI review; source changes do not establish a verified website deployment.
+The connected-workspace increment from PR #42 is merged into main. A follow-up
+review simplifies the dashboard: its animated Connections panel is removed in
+favor of compact source-linked records inside task review. Source changes do not
+establish a verified website deployment.
 See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 [connected-workspace guide](CONNECTED-WORKSPACE.md) for scope and evidence.
 
 | Area | Current implementation | Remaining work |
 | --- | --- | --- |
-| Today/tasks/EOD | Intake, reviewed editing, work reports; connected Action Centre with saved filter presets | Staff validation on the intended live site |
+| Today/tasks/EOD | Intake, reviewed editing with saved related-record links, work reports; connected Action Centre with saved filter presets | Staff validation of task detail and deep links on the intended live site |
 | Navigation | Ctrl/Cmd+K global search, quick actions, comfortable/compact density | Measure real staff use; improve bounded problems |
 | Properties | Protected list/detail browser; connected property and independent unit profiles, recorded rents, linked people/leases/tasks and expandable activity | Source reconciliation, controlled editing and further integrity guards |
 | Notices | Unit selection, local drafts, CSV import, message preparation, PDF/ZIP/Firm Book | Shared evidence associations, staff verification and real printing |
