@@ -42,9 +42,9 @@ async function setup(page,{login=true,viewer=false}={}){
 async function signIn(page){await page.locator('#account-button').click();await page.locator('#pilot-email').fill('test@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#account-dialog')).not.toBeVisible()}
 async function openActions(page){await page.locator('#operations-centre>summary').click();await expect(page.locator('#operations-title')).toBeVisible()}
 
-test('Action Centre projects genuine tasks and latest saved renewal status, saves only a filter enum',async({page})=>{
+test('Action Centre shows genuine tasks without projecting raw renewal cases, and saves the filter',async({page})=>{
  const s=await setup(page);await openActions(page);
- await expect(page.locator('#operations-queue')).toContainText('Review fictional entry arrangements');await expect(page.locator('#operations-queue')).toContainText('TEST-A');await expect(page.locator('#operations-queue')).not.toContainText('TEST-B');await expect(page.locator('#operations-queue')).not.toContainText('Archived private');
+ await expect(page.locator('#operations-queue')).toContainText('Review fictional entry arrangements');await expect(page.locator('#operations-queue')).not.toContainText('TEST-A');await expect(page.locator('#operations-queue')).not.toContainText('TEST-B');await expect(page.locator('#operations-queue')).not.toContainText('Archived private');
  await expect(page.locator('#operations-coverage')).toContainText('Not tracked');await expect(page.locator('#operations-coverage')).toContainText('Open maintenance tasks');
  await page.locator('#operations-filter').selectOption('maintenance');await expect(page.locator('#operations-queue .operations-action')).toHaveCount(1);
  await page.locator('#operations-save-filter').click();expect(await page.evaluate(()=>localStorage.getItem('oaktown-action-filter-v1'))).toBe('maintenance');
