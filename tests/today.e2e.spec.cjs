@@ -515,6 +515,11 @@ test('Import never confirms success for a receipt with a different saved identit
  await expect(page.locator('#backlog-import-status')).toContainText('Save not verified');
  await expect(page.locator('#backlog-import-status')).toContainText('identity');
  await expect(page.locator('#backlog-import-save')).toBeDisabled();
+ await expect(page.locator('#backlog-import-reviewed')).not.toBeChecked();
+ await expect(page.locator('#backlog-import-confirmation')).toHaveValue('');
+ await page.locator('#backlog-import-preview').click();
+ await expect(page.locator('#backlog-import-status')).toContainText('Preview ready');
+ await expect(page.locator('#backlog-import-save')).toBeDisabled();
 });
 test('Import clears its private draft when the staff account changes',async({page})=>{
  await setup(page);const payload=importProbe();

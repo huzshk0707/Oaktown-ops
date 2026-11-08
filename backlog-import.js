@@ -56,6 +56,7 @@ $('backlog-import-input').addEventListener('input',()=>{
 $('backlog-import-form').addEventListener('submit',async event=>{
  event.preventDefault();if(busy||!manifest||!editor())return;
  const ticket=epoch,account=cloud.user.id,approvedManifest=manifest;
+ revokePreview();
  busy=true;controls();status('Comparing the reviewed manifest with Supabase…');
  try{
   const result=await request('preview',approvedManifest);
@@ -95,7 +96,7 @@ $('backlog-import-save').addEventListener('click',async()=>{
   preview=null;$('backlog-import-reviewed').checked=false;$('backlog-import-confirmation').value='';
   window.dispatchEvent(new Event('ops-today-refresh'));
  }catch(e){
-  if(ticket===epoch){preview=null;status('Save not verified: '+(e.message||'Connection error')+
+  if(ticket===epoch){revokePreview();status('Save not verified: '+(e.message||'Connection error')+
     '. The request may have succeeded. Re-preview and check saved records before retrying.');}
  }finally{if(ticket===epoch){busy=false;controls()}}
 });
