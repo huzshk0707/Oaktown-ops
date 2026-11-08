@@ -57,6 +57,7 @@ function render(){
 }
 $('today-history-search').addEventListener('input',applySearch);
 window.addEventListener('ops-today-data',event=>{if(!event.detail||!cloud.user){clear();return}data=event.detail;render()});
+window.addEventListener('ops-today-rendered',applySearch);
 window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user)clear()});
 clear();
 })();
