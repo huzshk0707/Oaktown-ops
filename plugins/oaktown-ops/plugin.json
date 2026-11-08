@@ -1,0 +1,9 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "oaktown-ops",
+  "version": "1.0.0",
+  "description": "Find saved Oaktown tasks, review proposed changes, save approved updates and verify receipts.",
+  "homepage": "https://huzshk0707.github.io/Oaktown-ops/",
+  "repository": "https://github.com/huzshk0707/Oaktown-ops",
+  "keywords": ["property-management", "tasks", "operations"]
+}

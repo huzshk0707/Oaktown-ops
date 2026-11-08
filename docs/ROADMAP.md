@@ -1,6 +1,6 @@
 # Current Oaktown Ops status and next work
 
-Updated November 8, 2026. Main includes merged PRs #40, #41 and #42; PR #23 is closed
+Updated November 8, 2026. Main includes merged PRs #40–#45; PR #23 is closed
 as superseded. The first database hardening migration is now applied live.
 The connected-workspace increment from PR #42 is merged into main. A follow-up
 review simplifies the dashboard: its animated Connections panel is removed in
@@ -61,6 +61,24 @@ read back the imported records, and verify Today. Preserve OAK-002 and the
 existing completed eight-property notice task. The daily Task Dashboard AI
 continues to propose user-approved task updates separately.
 See [controlled import plan](MASTER-BACKLOG-CONTROLLED-IMPORT.md).
+
+## ChatGPT task connection — Stage B
+
+The authenticated task-connection increment adds a portable plugin, OAuth MCP
+endpoint, dedicated database role, reviewed proposals and exact receipt read-back.
+It is independent of the still-unapplied Master Backlog schema. New tasks are
+General operations; the agent cannot change saved portfolio identities, delete,
+archive, send notices/messages or execute SQL. Today adds compact connection
+setup, client revocation and recent saved-change navigation. Normal staff sessions
+and existing task/document workflows are retained.
+
+The single migration is `20261108071838_authenticated_task_connection.sql`.
+The backend migration is applied and the Edge Function reports ACTIVE; existing
+business tasks/events were unchanged. Source merge, owner Auth configuration and
+a verified ChatGPT sign-in/save are separate states. Owner OAuth/token-hook setup
+and plugin installation must be checked explicitly; packaged source does not mean
+that a Project automatically has write tools. See the
+[task connection setup and verification guide](CHATGPT-TASK-CONNECTION.md).
 
 Next milestones, in order:
 

@@ -10,6 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned task connector dependencies
+        run: npm ci --no-fund --no-audit --prefix supabase/functions/oaktown-task-api
       - name: Check JavaScript syntax
         run: |
           node --check model.js
@@ -43,8 +48,16 @@ jobs:
           node --check lease-condition-pdf.js
           node --check operations-model.js
           node --check operations.js
+          node --check task-connection-model.js
+          node --check task-connection.js
+          node --check supabase/functions/oaktown-task-api/server.mjs
+          node --check supabase/functions/oaktown-task-api/auth.mjs
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
+      - name: Audit task connector dependencies
+        run: npm audit --omit=dev --audit-level=moderate --prefix supabase/functions/oaktown-task-api
+      - name: Check Edge Function in Deno
+        run: npx --yes deno@2.5.6 check --frozen --config supabase/functions/oaktown-task-api/deno.json --node-modules-dir=auto supabase/functions/oaktown-task-api/index.ts
 
   browser-downloads:
     runs-on: ubuntu-latest
@@ -140,3 +153,13 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/master-backlog-rollback-check.sql
       - name: Reject an inconsistent preexisting portfolio without partial schema changes
         run: node tests/portfolio-hardening-failure.cjs
+      - name: Verify scoped task connection without the staged backlog schema
+        run: |
+          psql -v ON_ERROR_STOP=1 \
+            -f tests/task-agent-setup.sql \
+            -f supabase/migrations/20261108071838_authenticated_task_connection.sql \
+            -f tests/task-agent-check.sql
+      - name: Reject duplicate concurrent saves and stale competing proposals
+        run: node tests/task-agent-concurrency.cjs
+      - name: Verify empty task connection rollback
+        run: psql -v ON_ERROR_STOP=1 -f tests/task-agent-rollback-check.sql
