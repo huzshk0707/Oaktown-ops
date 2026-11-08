@@ -113,7 +113,125 @@ begin
       or coalesce(stat,'') not in ('pending','in_progress','waiting','blocked','completed','cancelled')
       or coalesce(prio,'') not in ('low','normal','high','urgent')
       or length(btrim(coalesce(level,''))) not between 1 and 90
-      or coalesce(src,'') !~ '^Active Tasks!A[0-9]{1,4}:L[0-9]{1,4}
+      or coalesce(src,'') !~ '^Active Tasks!A[0-9]{1,4}:L[0-9]{1,4}      or length(coalesce(rowdata->>'next_action',''))>2000
+      or length(coalesce(rowdata->>'waiting_on',''))>120
+      or length(coalesce(rowdata->>'blocked_reason',''))>1200
+      or length(coalesce(rowdata->>'completion_summary',''))>2000
+      or (rowdata ? 'needs_verification' and pg_catalog.jsonb_typeof(rowdata->'needs_verification')<>'boolean')
+   then raise exception 'Invalid or duplicate task row %',coalesce(code,'?') using errcode='22023'; end if;
+   if stat='waiting' and length(btrim(coalesce(rowdata->>'waiting_on','')))=0
+     or stat='blocked' and length(btrim(coalesce(rowdata->>'blocked_reason','')))=0
+     or stat='completed' and length(btrim(coalesce(rowdata->>'completion_summary','')))=0
+     or stat<>'completed' and rowdata ? 'completed_on'
+     or stat<>'waiting' and length(btrim(coalesce(rowdata->>'waiting_on','')))>0
+   then raise exception 'Status details inconsistent for %',code using errcode='22023'; end if;
+   if rowdata ? 'completed_on' then
+     if rowdata->>'completed_on' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+     then raise exception 'Invalid historical completion date' using errcode='22023';end if;
+     perform (rowdata->>'completed_on')::date;
+   end if;
+   if parent_code is not null and (parent_code !~ '^[MWA][0-9]{2}$' or parent_code=code)
+   then raise exception 'Invalid parent task code' using errcode='22023'; end if;
+   refs:=refs||pg_catalog.jsonb_build_object(code,true);
+ end loop;
+
+ -- Every referenced parent must be included in the same reviewed manifest,
+ -- and existing task-code collisions are never silently adopted.
+ for rowdata in select value from pg_catalog.jsonb_array_elements(rows) loop
+   code:=rowdata->>'task_code'; parent_code:=nullif(rowdata->>'parent_code','');
+   if parent_code is not null and not (refs ? parent_code)
+   then raise exception 'Parent missing from manifest for %',code using errcode='22023'; end if;
+   if parent_code is not null and not exists(
+      select 1 from pg_catalog.jsonb_array_elements(rows) r
+       where r->>'task_code'=parent_code and nullif(r->>'parent_code','') is null
+   ) then raise exception 'Only root parents supported by initial import' using errcode='22023'; end if;
+   sourcekey:='master-backlog:'||batch||':'||code;
+   select * into existing from public.ops_tasks t where t.task_code=code or t.source_task_key=sourcekey;
+   if found then
+     if existing.task_code is distinct from code or existing.source_task_key is distinct from sourcekey
+        or existing.intake_details->>'source_fingerprint' is distinct from pg_catalog.md5(rowdata::text)
+     then raise exception 'Conflicting existing task for %',code using errcode='22023'; end if;
+     already:=already+1;
+   end if;
+ end loop;
+ if p_mode='preview' then
+   return pg_catalog.jsonb_build_object(
+      'schema_version','oaktown.master-backlog-preview.v1','batch_ref',batch,
+      'preview_token',token,'manifest_fingerprint',manifest_hash,
+      'rows',rowcount,'to_create',rowcount-already,'already_imported',already,
+      'completed', (select count(*) from pg_catalog.jsonb_array_elements(rows) r where r->>'status'='completed'),
+      'parent_links',(select count(*) from pg_catalog.jsonb_array_elements(rows) r where nullif(r->>'parent_code','') is not null),
+      'task_codes',(select pg_catalog.jsonb_agg(r->>'task_code') from pg_catalog.jsonb_array_elements(rows) r)
+   );
+ end if;
+
+ -- Do not allow overwriting a prior batch_ref with changed content.
+ select * into old from ops_intake_private.master_backlog_imports b where b.batch_ref=batch;
+ if found then
+   if old.fingerprint<>manifest_hash then raise exception 'Batch reference already used' using errcode='22023'; end if;
+   return old.receipt||pg_catalog.jsonb_build_object('replayed',true);
+ end if;
+
+ -- Create roots first, then children. Never update existing tasks or add links
+ -- to preexisting portfolio/lease/renewal records.
+ for n in 0..1 loop
+ for rowdata in select value from pg_catalog.jsonb_array_elements(rows) loop
+   parent_code:=nullif(rowdata->>'parent_code','');
+   if (n=0 and parent_code is not null) or (n=1 and parent_code is null) then continue; end if;
+   code:=rowdata->>'task_code'; title:=rowdata->>'task_title';stat:=rowdata->>'status';prio:=rowdata->>'priority';level:=rowdata->>'work_level';
+   sourcekey:='master-backlog:'||batch||':'||code;
+   select * into existing from public.ops_tasks where task_code=code;
+   if found then
+     new_id:=existing.id;
+   else
+     parentid:=null;
+     if parent_code is not null then
+       select id into parentid from public.ops_tasks where task_code=parent_code;
+       if parentid is null then raise exception 'Parent not imported' using errcode='22023'; end if;
+     end if;
+     detail:=pg_catalog.jsonb_build_object(
+       'work_level',level,
+       'source_ref',rowdata->>'source_ref',
+       'source_batch',batch,
+       'source_fingerprint',pg_catalog.md5(rowdata::text),
+       'original_status',rowdata->>'original_status',
+       'original_priority',rowdata->>'original_priority',
+       'needs_verification',coalesce((rowdata->>'needs_verification')::boolean,false)
+     );
+     if length(coalesce(rowdata->>'next_action',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('next_action',rowdata->>'next_action');end if;
+     if length(coalesce(rowdata->>'waiting_on',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('waiting_on',rowdata->>'waiting_on');end if;
+     if length(coalesce(rowdata->>'blocked_reason',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('blocked_reason',rowdata->>'blocked_reason');end if;
+     if length(coalesce(rowdata->>'completion_summary',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('completion_summary',rowdata->>'completion_summary');end if;
+     if rowdata ? 'completed_on' then detail:=detail||pg_catalog.jsonb_build_object('completed_on',rowdata->>'completed_on');end if;
+     insert into public.ops_tasks(task_code,parent_task_id,workflow_key,task_title,status,priority,source_task_key,intake_details,assigned_user_id)
+     values(code,parentid,'general',title,stat,prio,sourcekey,detail,actor)
+     returning id into new_id;
+     -- Historical "completed" is preserved without manufacturing a timestamp.
+     insert into public.ops_events(entity_type,entity_id,event_type,actor_id,summary,event_metadata)
+     values('task',new_id,'master_backlog_imported',actor,'Imported from reviewed Master Backlog',
+       pg_catalog.jsonb_build_object('batch_ref',batch,'task_code',code,'source_ref',rowdata->>'source_ref',
+        'fingerprint',pg_catalog.md5(rowdata::text),'original_status',rowdata->>'original_status',
+        'mapped_status',stat,'work_level',level,'parent_code',parent_code));
+   end if;
+   reply_rows:=reply_rows||pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('task_code',code,'id',new_id,'status',stat,'parent_code',parent_code));
+ end loop;
+ end loop;
+ outcome:=pg_catalog.jsonb_build_object(
+   'schema_version','oaktown.master-backlog-receipt.v1','batch_ref',batch,
+   'preview_token',token,'manifest_fingerprint',manifest_hash,
+   'created',rowcount-already,'already_imported',already,'rows',reply_rows,
+   'saved_at',pg_catalog.clock_timestamp()
+ );
+ insert into ops_intake_private.master_backlog_imports(batch_ref,fingerprint,receipt,imported_by)
+ values(batch,manifest_hash,outcome,actor);
+ return outcome;
+end $import$;
+revoke all on function public.ops_master_backlog_import(text,jsonb,text,boolean) from public,anon;
+grant execute on function public.ops_master_backlog_import(text,jsonb,text,boolean) to authenticated;
+comment on function public.ops_master_backlog_import(text,jsonb,text,boolean)
+ is 'Staff-reviewed, preview-token-gated Master Backlog import; no writes during preview, no portfolio link inference.';
+commit;
+
       or length(coalesce(rowdata->>'next_action',''))>2000
       or length(coalesce(rowdata->>'waiting_on',''))>120
       or length(coalesce(rowdata->>'blocked_reason',''))>1200
