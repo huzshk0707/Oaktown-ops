@@ -77,14 +77,14 @@ function associations({resetUnit=false,resetLease=false,resetRenewal=false}={}){
   'Choose only links for the selected property. Saved records will be validated together.':
   'General operations is allowed without a property link.';
 }
-function open(task){
+function open(task,suggestedStatus){
  if(!data?.canEdit||!cloud.user){feedback('Editor access is required.');return}
  const current=byId(data.tasks,task.id);
  if(!current||current.archived_at){feedback('This task is unavailable. Refresh first.');return}
  selected=current;nonce++;
  const dialog=$('today-edit-dialog');
  set('today-edit-title',current.task_title);
- set('today-edit-status',current.status||'pending');
+ set('today-edit-status',['completed','waiting','in_progress'].includes(suggestedStatus)?suggestedStatus:(current.status||'pending'));
  set('today-edit-priority',current.priority||'normal');
  set('today-edit-assignee',current.assigned_label||'');
  set('today-edit-action',current.intake_details?.next_action||'');
@@ -101,7 +101,7 @@ function open(task){
  set('today-edit-renewal',current.renewal_case_id||'');
  associations();
  renderRelated(current);
- feedback('');
+ feedback(suggestedStatus?'Suggested status: '+suggestedStatus+'. Review details and click Save to confirm; no change has been made yet.':'');
  if(!dialog.open)dialog.showModal();
  $('today-edit-title').focus();
 }
@@ -116,7 +116,7 @@ $('today-edit-unit').addEventListener('change',()=>associations({resetLease:true
 $('today-edit-close').addEventListener('click',close);
 $('today-edit-cancel').addEventListener('click',close);
 $('today-edit-dialog').addEventListener('cancel',event=>{if(saving)event.preventDefault();else{selected=null;clearRelated()}});
-window.addEventListener('ops-today-edit',event=>open(event.detail?.task||{}));
+window.addEventListener('ops-today-edit',event=>open(event.detail?.task||{},event.detail?.suggestedStatus));
 window.addEventListener('ops-today-data',event=>{
  data=event.detail||null;
  if(!data||!data.canEdit||!cloud.user){const d=$('today-edit-dialog');if(d.open)d.close();selected=null;clearRelated();nonce++;}
