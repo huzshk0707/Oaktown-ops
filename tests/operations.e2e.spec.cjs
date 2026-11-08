@@ -87,6 +87,20 @@ test('Profile links close the modal before opening an existing editor and show a
  await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));await page.locator('#operations-profile-content').getByRole('button',{name:'Review fictional entry arrangements · waiting',exact:true}).click();await expect(page.locator('#operations-profile-dialog')).not.toBeVisible();await expect(page.locator('#today-edit-dialog')).toBeVisible();await page.locator('#today-edit-cancel').click();
  s.failPortfolio=true;await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));await page.locator('#operations-profile-content').getByRole('button',{name:'TEST-A · Pending',exact:true}).click();await expect(page.locator('#operations-profile-title')).toHaveText('TEST-A');await expect(page.locator('#operations-profile-content')).toContainText('read-only summary');
 });
+test('Read-only task profile opens saved property, unit, lease and renewal without adding writes',async({page})=>{
+ const s=await setup(page,{viewer:true});
+ s.fixtures.ops_tasks[0].lease_id='l1';s.fixtures.ops_tasks[0].renewal_case_id='r1';
+ await page.evaluate(()=>window.OpsOperations.refresh(true));
+ await page.evaluate(()=>window.OpsOperations.openProfile('task','t1'));
+ const related=page.locator('#operations-profile-content .operations-profile-section').filter({hasText:'Saved related records'});
+ await expect(related).toContainText('100 Example Court');
+ await expect(related).toContainText('Unit A');
+ await expect(related).toContainText('Alpha reference lease');
+ await expect(related).toContainText('TEST-A');
+ await related.getByRole('button',{name:'Lease · Alpha reference lease'}).click();
+ await expect(page.locator('#operations-profile-title')).toHaveText('Alpha reference lease');
+ expect(s.writes).toHaveLength(0);
+});
 test('Anonymous, viewer, sign-out and late replies clear every connected private view',async({page})=>{
  const s=await setup(page,{login:false});expect(s.requests.filter(x=>x.query.includes('offset=')).length).toBe(0);await page.keyboard.press('Control+k');await expect(page.locator('#operations-search-dialog')).toBeVisible();await expect(page.locator('#operations-results')).not.toContainText('Fictional');await page.keyboard.press('Escape');await signIn(page);await expect(page.locator('#operations-status')).toContainText('active saved sources');
  s.viewer=true;await page.evaluate(()=>window.OpsToday.refresh());
