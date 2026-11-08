@@ -80,10 +80,84 @@ begin
  if (select count(*) from public.ops_tasks)<>before_count then raise exception '37-row preview wrote data';end if;
 end $volume$;
 reset role;
+-- The exposed RPC must not have owner rights. Private owner rights remain
+-- guarded, with an empty search_path and no direct receipt-table permissions.
+do $acl$ begin
+ if (select prosecdef from pg_proc where oid='public.ops_master_backlog_import(text,jsonb,text,boolean)'::regprocedure)
+   or not (select prosecdef from pg_proc where oid='ops_intake_private.master_backlog_import(text,jsonb,text,boolean)'::regprocedure)
+   or not (select relrowsecurity from pg_class where oid='ops_intake_private.master_backlog_imports'::regclass)
+   or has_table_privilege('authenticated','ops_intake_private.master_backlog_imports','SELECT,INSERT,UPDATE,DELETE')
+   or has_function_privilege('anon','public.ops_master_backlog_import(text,jsonb,text,boolean)','EXECUTE')
+   or has_function_privilege('anon','ops_intake_private.master_backlog_import(text,jsonb,text,boolean)','EXECUTE')
+   or exists(select 1 from pg_proc where oid in (
+     'public.ops_master_backlog_import(text,jsonb,text,boolean)'::regprocedure,
+     'ops_intake_private.master_backlog_import(text,jsonb,text,boolean)'::regprocedure,
+     'public.ops_task_check_parent_chain()'::regprocedure)
+     and not (coalesce(proconfig,'{}') @> array['search_path=""']))
+ then raise exception 'Import security boundary changed';end if;
+end $acl$;
+set role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false);
+do $malformed$
+declare manifest jsonb;preview jsonb;bad jsonb;field text;v jsonb;before_count int;
+begin
+ manifest:='{"schema_version":"oaktown.master-backlog.v1","batch_ref":"master-backlog-20990101","entries":[{"task_code":"A88","task_title":"Fictional validation probe","status":"pending","priority":"normal","work_level":"Test","source_ref":"Active Tasks!A1:L1"}]}';
+ select count(*) into before_count from public.ops_tasks;
+ preview:=public.ops_master_backlog_import('preview',manifest);
+ begin perform public.ops_master_backlog_import(null,manifest,null,false);raise exception 'NULL mode bypassed approval';exception when invalid_parameter_value then null;end;
+ begin perform public.ops_master_backlog_import('save',manifest,preview->>'preview_token',null);raise exception 'NULL reviewed flag accepted';exception when invalid_parameter_value then null;end;
+ foreach bad in array array[null::jsonb,'null'::jsonb,'[]'::jsonb,manifest-'schema_version',manifest-'entries',
+   jsonb_set(manifest,'{entries}','null'),jsonb_set(manifest,'{entries}','[]')]
+ loop
+  begin perform public.ops_master_backlog_import('preview',bad);raise exception 'Malformed manifest accepted';exception when invalid_parameter_value then null;end;
+ end loop;
+ foreach field in array array['task_code','task_title','status','priority','work_level','source_ref'] loop
+  foreach v in array array['null'::jsonb,'123'::jsonb,'{}'::jsonb] loop
+   bad:=jsonb_set(manifest,array['entries','0',field],v);
+   begin perform public.ops_master_backlog_import('preview',bad);raise exception 'Non-text required field accepted: %',field;exception when invalid_parameter_value then null;end;
+  end loop;
+ end loop;
+ foreach field in array array['parent_code','next_action','waiting_on','blocked_reason','completion_summary','original_status','original_priority','needs_verification'] loop
+  bad:=jsonb_set(manifest,array['entries','0',field],'{}');
+  begin perform public.ops_master_backlog_import('preview',bad);raise exception 'Non-text optional field accepted: %',field;exception when invalid_parameter_value then null;end;
+ end loop;
+ foreach field in array array['task_title','work_level','next_action','original_status','original_priority'] loop
+  bad:=jsonb_set(manifest,array['entries','0',field],to_jsonb(repeat(' ',2100)||'x'));
+  begin perform public.ops_master_backlog_import('preview',bad);raise exception 'Oversized field accepted: %',field;exception when invalid_parameter_value then null;end;
+ end loop;
+ bad:=jsonb_set(manifest,'{entries,0,status}','"completed"');
+ bad:=jsonb_set(bad,'{entries,0,completion_summary}','"Fictional completion"');
+ bad:=jsonb_set(bad,'{entries,0,completed_on}','null');
+ begin perform public.ops_master_backlog_import('preview',bad);raise exception 'NULL completion date accepted';exception when invalid_parameter_value then null;end;
+ -- A real state change since preview must invalidate a reviewed token.
+ update public.ops_tasks set notes='Fictional stale-token probe' where task_code='W03';
+ begin perform public.ops_master_backlog_import('save',manifest,preview->>'preview_token',true);raise exception 'Changed task state accepted';exception when invalid_parameter_value then null;end;
+ if (select count(*) from public.ops_tasks)<>before_count then raise exception 'Rejected request wrote tasks';end if;
+end $malformed$;
+-- Active administrators can preview, without writing. All other memberships
+-- and missing identities are denied even when the private function is called.
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000002',false);
+do $$begin
+ perform public.ops_master_backlog_import('preview','{"schema_version":"oaktown.master-backlog.v1","batch_ref":"master-backlog-20990102","entries":[{"task_code":"A89","task_title":"Fictional admin probe","status":"pending","priority":"normal","work_level":"Test","source_ref":"Active Tasks!A2:L2"}]}');
+end$$;
+do $denied$ declare uid text;begin
+ foreach uid in array array['00000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000004','00000000-0000-4000-8000-000000000005',''] loop
+  perform set_config('request.jwt.claim.sub',uid,false);
+  begin perform public.ops_master_backlog_import('preview','{}');raise exception 'Unauthorized wrapper call accepted';exception when insufficient_privilege then null;end;
+  begin perform ops_intake_private.master_backlog_import('save','{}',null,true);raise exception 'Unauthorized private call accepted';exception when insufficient_privilege then null;end;
+ end loop;
+end $denied$;
+reset role;
+do $$begin
+ if (select count(*) from ops_intake_private.master_backlog_imports)<>1
+   or (select count(*) from public.ops_events where event_type='master_backlog_imported')<>3
+ then raise exception 'Rejected/preview request wrote receipts or events';end if;
+end$$;
 -- Non-editors and anonymous calls cannot import or preview.
+set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000003',false);
 do $$begin
- begin perform public.ops_master_backlog_import('preview','{}'::jsonb);raise exception 'Viewer access permitted';exception when invalid_parameter_value then null;end;
+ begin perform public.ops_master_backlog_import('preview','{}'::jsonb);raise exception 'Viewer access permitted';exception when insufficient_privilege then null;end;
 end$$;
 reset role;
 set role anon;

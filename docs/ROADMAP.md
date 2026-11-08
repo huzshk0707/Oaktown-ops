@@ -48,7 +48,10 @@ verified ChatGPT-to-Supabase task updates. See [Today A1 design](TODAY-WORKSTATI
 PR #44 is merged into main and provides the focus-first Today workstation.
 PR #45 adds an additive task-code/parent schema and review-only importer with
 private receipts, optimistic preview confirmation, duplicate protection and
-fictional disposable database tests. The deployment is not equivalent to
+fictional disposable database tests. Review hardening adds strict NULL/type
+validation, a private guarded implementation, receipt-ledger RLS, concurrency-safe
+parent checks and identity-checked browser read-back. The staged migration is
+`20261108050604_master_backlog_controlled_import.sql`. The deployment is not equivalent to
 database migration; no live Supabase import or production schema change has
 been authorized in this PR.
 

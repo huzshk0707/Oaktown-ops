@@ -132,8 +132,11 @@ jobs:
             -f tests/task-cleanup-check.sql \
             -f tests/today-task-editor-check.sql \
             -f tests/task-delete-archived-check.sql \
-            -f supabase/migrations/20261108050000_master_backlog_controlled_import.sql \
-            -f tests/master-backlog-import-check.sql \
-            -f tests/master-backlog-rollback-check.sql
+            -f supabase/migrations/20261108050604_master_backlog_controlled_import.sql \
+            -f tests/master-backlog-import-check.sql
+      - name: Reject concurrent task cycles and destructive import rollback
+        run: node tests/master-backlog-security.cjs
+      - name: Verify empty import schema rollback
+        run: psql -v ON_ERROR_STOP=1 -f tests/master-backlog-rollback-check.sql
       - name: Reject an inconsistent preexisting portfolio without partial schema changes
         run: node tests/portfolio-hardening-failure.cjs

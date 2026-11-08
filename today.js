@@ -104,7 +104,10 @@ async function refresh(){
  resetSchedule('Loading the task breakdown…');
  try{
   const [tasks,renewals,properties,units,leases,memberships]=await Promise.all([
-   cloud.api('/rest/v1/ops_tasks?select=id,task_code,parent_task_id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000').catch(()=>cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000')),
+   cloud.api('/rest/v1/ops_tasks?select=id,task_code,parent_task_id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000').catch(error=>{
+    if(![400,404].includes(error.status))throw error;
+    return cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000');
+   }),
    cloud.api('/rest/v1/renewal_cases?select=id,property_id,unit_id,lease_id,oak_record_id,recorded_end,is_applicable,action_status&limit=1000'),
    cloud.api('/rest/v1/properties?select=id,street_address&limit=1000'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_label&limit=1000'),

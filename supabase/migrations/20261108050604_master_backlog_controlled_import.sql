@@ -1,6 +1,8 @@
 -- Stage A2: additive task hierarchy and a reviewed, repeat-safe Master Backlog import.
 -- STAGED ONLY. Do not apply to production through GitHub CI.
 begin;
+set local lock_timeout='5s';
+set local statement_timeout='60s';
 alter table public.ops_tasks
   add column task_code text,
   add column parent_task_id uuid;
@@ -14,21 +16,20 @@ create index ops_task_parent_idx on public.ops_tasks(parent_task_id);
 -- Defense in depth: reject cycles even if a privileged writer bypasses the importer.
 create function public.ops_task_check_parent_chain() returns trigger
 language plpgsql security invoker set search_path='' as $fn$
+declare ancestor uuid:=new.parent_task_id; seen uuid[]:=array[new.id];
 begin
- if new.parent_task_id is null then return new; end if;
- if new.id = new.parent_task_id then raise exception 'Task cannot parent itself' using errcode='23514'; end if;
- if exists (
-   with recursive ancestors(id,parent_task_id,path) as (
-     select t.id,t.parent_task_id,array[t.id]
-       from public.ops_tasks t where t.id=new.parent_task_id
-     union all
-     select t.id,t.parent_task_id,a.path||t.id
-       from public.ops_tasks t join ancestors a on t.id=a.parent_task_id
-      where not (t.id=any(a.path))
-   ) select 1 from ancestors where id=new.id
- ) then raise exception 'Circular task parent link' using errcode='23514'; end if;
+ -- Lock and follow each current ancestor, including any parent changed while
+ -- waiting. A snapshot-only recursive query permits concurrent write skew.
+ while ancestor is not null loop
+   if ancestor=any(seen) then raise exception 'Circular task parent link' using errcode='23514'; end if;
+   seen:=array_append(seen,ancestor);
+   select t.parent_task_id into ancestor from public.ops_tasks t
+    where t.id=ancestor for update;
+   if not found then raise exception 'Parent task unavailable' using errcode='23503'; end if;
+ end loop;
  return new;
 end $fn$;
+revoke all on function public.ops_task_check_parent_chain() from public,anon,authenticated;
 create trigger ops_task_guard_parent before insert or update of parent_task_id
  on public.ops_tasks for each row execute function public.ops_task_check_parent_chain();
 
@@ -40,11 +41,12 @@ create table ops_intake_private.master_backlog_imports(
  imported_by uuid not null references auth.users(id),
  imported_at timestamptz not null default clock_timestamp()
 );
+alter table ops_intake_private.master_backlog_imports enable row level security;
 revoke all on ops_intake_private.master_backlog_imports from public,anon,authenticated;
 
 -- p_mode = preview is read-only; p_mode = save requires an exact preview token,
 -- an affirmative reviewed flag and the existing authenticated staff editor scope.
-create function public.ops_master_backlog_import(
+create function ops_intake_private.master_backlog_import(
  p_mode text,p_manifest jsonb,p_preview_token text default null,p_reviewed boolean default false
 ) returns jsonb language plpgsql security definer set search_path='' as $import$
 declare
@@ -55,21 +57,22 @@ declare
  title text; stat text; prio text; level text; detail jsonb; batch text;
  existing public.ops_tasks%rowtype; manifest_hash text; state_hash text; token text;
  old ops_intake_private.master_backlog_imports%rowtype;
- outcome jsonb; new_id uuid; n integer; rowcount integer; already integer:=0;
+ outcome jsonb; new_id uuid; n integer; rowcount integer; already integer:=0; field text;
 begin
  if actor is null or not exists(
    select 1 from public.staff_memberships m where m.user_id=actor
    and m.is_active and m.role in ('admin','editor')
- ) then raise exception 'Active editor access required' using errcode='22023'; end if;
- if p_mode not in ('preview','save') then raise exception 'Invalid import mode' using errcode='22023'; end if;
- if jsonb_typeof(p_manifest)<>'object'
+ ) then raise exception 'Active editor access required' using errcode='42501'; end if;
+ if p_mode is null or p_mode not in ('preview','save') then raise exception 'Invalid import mode' using errcode='22023'; end if;
+ if jsonb_typeof(p_manifest) is distinct from 'object'
     or exists(select 1 from pg_catalog.jsonb_object_keys(p_manifest) k
               where k not in ('schema_version','batch_ref','entries'))
-    or p_manifest->>'schema_version'<>'oaktown.master-backlog.v1'
+    or p_manifest->>'schema_version' is distinct from 'oaktown.master-backlog.v1'
+    or jsonb_typeof(p_manifest->'batch_ref') is distinct from 'string'
     or coalesce(p_manifest->>'batch_ref','') !~ '^master-backlog-[0-9]{8}$'
  then raise exception 'Invalid Master Backlog manifest' using errcode='22023'; end if;
  rows:=p_manifest->'entries'; batch:=p_manifest->>'batch_ref';
- if jsonb_typeof(rows)<>'array' then raise exception 'Entries must be an array' using errcode='22023'; end if;
+ if jsonb_typeof(rows) is distinct from 'array' then raise exception 'Entries must be an array' using errcode='22023'; end if;
  rowcount:=pg_catalog.jsonb_array_length(rows);
  if rowcount<1 or rowcount>50 or pg_catalog.octet_length(p_manifest::text)>180000
  then raise exception 'Invalid import size' using errcode='22023'; end if;
@@ -83,12 +86,12 @@ begin
  token:=pg_catalog.md5(manifest_hash||':'||state_hash);
 
  if p_mode='save' then
-   if not p_reviewed or p_preview_token is distinct from token
+   if p_reviewed is not true or p_preview_token is distinct from token
    then
      -- A completed, byte-identical batch may be replayed with its original
      -- reviewed token: returns the existing receipt, never inserts again.
      select * into old from ops_intake_private.master_backlog_imports b where b.batch_ref=batch;
-     if found and old.fingerprint=manifest_hash and p_reviewed
+     if found and old.fingerprint=manifest_hash and p_reviewed is true
          and p_preview_token=old.receipt->>'preview_token'
      then return old.receipt||pg_catalog.jsonb_build_object('replayed',true); end if;
      raise exception 'Preview expired or not approved; refresh and review' using errcode='22023';
@@ -97,22 +100,31 @@ begin
 
  -- Validate all rows before any write. Never accept tenant/property link IDs.
  for rowdata in select value from pg_catalog.jsonb_array_elements(rows) loop
-   if pg_catalog.jsonb_typeof(rowdata)<>'object' or exists(
+   if pg_catalog.jsonb_typeof(rowdata) is distinct from 'object' or exists(
      select 1 from pg_catalog.jsonb_object_keys(rowdata) k where k not in
        ('task_code','task_title','status','priority','work_level','parent_code',
         'next_action','waiting_on','blocked_reason','completion_summary','completed_on',
         'needs_verification','source_ref','original_status','original_priority')
    ) then raise exception 'Unsupported row fields' using errcode='22023'; end if;
+   foreach field in array array['task_code','task_title','status','priority','work_level','source_ref'] loop
+     if jsonb_typeof(rowdata->field) is distinct from 'string'
+     then raise exception 'Required text field %',field using errcode='22023'; end if;
+   end loop;
+   foreach field in array array['parent_code','next_action','waiting_on','blocked_reason','completion_summary','original_status','original_priority'] loop
+     if rowdata ? field and jsonb_typeof(rowdata->field) not in ('string','null')
+        or length(coalesce(rowdata->>field,'')) > (case field when 'parent_code' then 3 when 'waiting_on' then 120 when 'blocked_reason' then 1200 else 2000 end)
+     then raise exception 'Invalid text field %',field using errcode='22023'; end if;
+   end loop;
    code:=rowdata->>'task_code'; src:=rowdata->>'source_ref';
    title:=rowdata->>'task_title'; stat:=rowdata->>'status';
    prio:=rowdata->>'priority';level:=rowdata->>'work_level';
    parent_code:=nullif(rowdata->>'parent_code','');
    if code is null or code !~ '^[MWA][0-9]{2}$'
       or refs ? code
-      or length(btrim(coalesce(title,''))) not between 1 and 300
+      or length(btrim(title))=0 or length(title)>300
       or coalesce(stat,'') not in ('pending','in_progress','waiting','blocked','completed','cancelled')
       or coalesce(prio,'') not in ('low','normal','high','urgent')
-      or length(btrim(coalesce(level,''))) not between 1 and 90
+      or length(btrim(level))=0 or length(level)>90
       or coalesce(src,'') !~ '^Active Tasks!A[0-9]{1,4}:L[0-9]{1,4}$'
       or length(coalesce(rowdata->>'waiting_on',''))>120
       or length(coalesce(rowdata->>'blocked_reason',''))>1200
@@ -126,7 +138,8 @@ begin
      or stat<>'waiting' and length(btrim(coalesce(rowdata->>'waiting_on','')))>0
    then raise exception 'Status details inconsistent for %',code using errcode='22023'; end if;
    if rowdata ? 'completed_on' then
-     if rowdata->>'completed_on' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+     if jsonb_typeof(rowdata->'completed_on') is distinct from 'string'
+       or rowdata->>'completed_on' !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
      then raise exception 'Invalid historical completion date' using errcode='22023';end if;
      perform (rowdata->>'completed_on')::date;
    end if;
@@ -226,6 +239,15 @@ begin
  values(batch,manifest_hash,outcome,actor);
  return outcome;
 end $import$;
+revoke all on function ops_intake_private.master_backlog_import(text,jsonb,text,boolean) from public,anon;
+grant execute on function ops_intake_private.master_backlog_import(text,jsonb,text,boolean) to authenticated;
+-- Match the existing intake boundary: exposed RPC is invoker-only; the private
+-- implementation checks the verified actor before using its owner's rights.
+create function public.ops_master_backlog_import(
+ p_mode text,p_manifest jsonb,p_preview_token text default null,p_reviewed boolean default false
+) returns jsonb language sql security invoker set search_path='' as $wrapper$
+ select ops_intake_private.master_backlog_import(p_mode,p_manifest,p_preview_token,p_reviewed);
+$wrapper$;
 revoke all on function public.ops_master_backlog_import(text,jsonb,text,boolean) from public,anon;
 grant execute on function public.ops_master_backlog_import(text,jsonb,text,boolean) to authenticated;
 comment on function public.ops_master_backlog_import(text,jsonb,text,boolean)

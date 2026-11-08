@@ -38,17 +38,34 @@ Only 1–50 rows; unknown fields, property IDs, lease IDs, automatic due dates a
 3. After schema deployment, staff editor opens Today → Master Backlog import, pastes private JSON, and clicks Preview. This is read-only. The preview returns a state-bound approval token and conflicts stop saving.
 4. Editor reviews every displayed row, checks the approval box, then types the exact IMPORT batch reference. Only then is Save enabled.
 5. The RPC validates all entries again, uses active editor/admin membership and a reviewed preview token, creates roots before children atomically, logs source-linked activity events and stores a private receipt.
-6. Replaying an identical approved batch returns its original receipt. Source-key/code conflicts reject. The browser re-reads every saved task and verifies status/parent links; a failed read-back never claims success.
+6. Replaying an identical approved batch returns its original receipt. Source-key/code conflicts reject. The browser re-reads every saved task and matches receipt IDs, codes, statuses and parent links; a failed read-back never claims success or overwrites later staff edits.
 7. Refresh Today to inspect task codes, linked levels, status and remaining blockers.
 
 ## Deployment and recovery safeguards
 
-- The migration and guarded rollback are in supabase/migrations and supabase/rollback. Review file/version with the official Supabase CLI before deployment (not available in authoring runtime).
+- The staged migration and matching rollback are `20261108050604_master_backlog_controlled_import.sql` in supabase/migrations and supabase/rollback. This unapplied version was generated with Supabase CLI 3.0.0 during review, replacing the original authoring timestamp. Applied historical migrations are unchanged. Both scripts use bounded lock/statement timeouts.
 - Run only against disposable oaktown_portfolio_ci in GitHub CI. Never use live Supabase for PR tests.
 - Reviewer must verify table privileges, RLS, active editor membership, private receipt ledger access, version checks and secure function search_path.
 - Rollback refuses to drop columns if any task codes, parent links or import receipts exist. This is deliberate data-loss protection. Schema rollback does not replace a verified Auth/Drive/platform backup.
 - Production migration and the exact 37-task production import are separate explicit approvals. This PR authorizes neither.
 - Existing task editor, intake, archiving, reference library, EOD, notices and lease workflows remain available.
+
+## PR #45 security review
+
+- SQL NULL modes and NULL review flags fail closed. Missing version/entries and malformed field types or oversized values are rejected independently of browser validation.
+- The exposed RPC runs as invoker. Its private definer implementation checks the authenticated identity and active editor/admin membership before accessing data. Both use an empty search_path. Anonymous execution and direct receipt-table access are revoked; the private receipt ledger also has RLS enabled without client policies.
+- The preview token is an optimistic state fingerprint, not a bearer credential or proof that a person read the preview. Staff authorization and an explicit true review flag are required independently. Preview does not store an approval or write tasks, events or receipts.
+- Parent-chain checks lock and follow current ancestors. Disposable tests cover competing updates and stale repeatable-read snapshots, as well as sequential cycles.
+- The browser holds the approved manifest fixed during requests, exposes all supplied fields in row details, clears private drafts on account changes/sign-out and requires saved identities to match the receipt before confirming success.
+- CI tests the real migration, staff role matrix, NULL/malformed input rejection, read-only previews, duplicate replay, stale tokens, concurrency, refusal of rollback after import and clean rollback before import. Browser tests use mocked APIs; they do not establish live Supabase behavior or production backup recovery.
+- Production schema rollout and the real workbook import remain pending separate approval. Existing project-wide Auth/advisor findings are outside this migration's scope.
+
+Read-only production check on November 8: migration history still ends at
+`20261104220620`; neither A2 migration version is applied. Existing security
+advisor warnings remain for the guarded archive-delete definer RPC and
+[disabled leaked-password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+Three private intake ledgers intentionally have RLS without client policies.
+These baseline findings do not certify the live project as free of security issues.
 
 ## Separate daily Task Dashboard AI
 

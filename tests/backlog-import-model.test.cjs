@@ -29,6 +29,20 @@ test('Requires exact stable batch and workbook row provenance',()=>{
   const d=make();invalid(d);assert.throws(()=>M.parse(d));
  }
 });
+test('Read-back must match receipt identities, statuses and exact parent links',()=>{
+ const d=make(),saved=d.entries.map(r=>({task_code:r.task_code,id:'fictional-'+r.task_code,status:r.status,parent_task_id:r.parent_code?'fictional-'+r.parent_code:null}));
+ const receipt={schema_version:'oaktown.master-backlog-receipt.v1',batch_ref:d.batch_ref,rows:d.entries.map(r=>({task_code:r.task_code,id:'fictional-'+r.task_code,status:r.status,parent_code:r.parent_code||null}))};
+ assert.equal(M.verifySaved(d,receipt,saved),3);
+ for(const change of [
+  (r,s)=>{r.rows[1].id='different-saved-record'},
+  (r,s)=>{s[1].task_code='W03'},
+  (r,s)=>{s[1].parent_task_id=null},
+  (r,s)=>{s[2].status='pending'},
+  (r,s)=>{r.rows[1].parent_code='M13'},
+  (r,s)=>{r.batch_ref='master-backlog-20990101'},
+  (r,s)=>{r.rows[1]=r.rows[0]}
+ ]){const r=structuredClone(receipt),s=structuredClone(saved);change(r,s);assert.throws(()=>M.verifySaved(d,r,s));}
+});
 
 test('Full fictional 37-row manifest validates with 4 historical completions and 9 verification tasks',()=>{
  const entries=[{task_code:'W03',task_title:'Fictional workstream',status:'pending',priority:'normal',work_level:'Renewals',source_ref:'Active Tasks!A5:L5'}];

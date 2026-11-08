@@ -435,10 +435,10 @@ test('Reviewed Master Backlog preview never saves without explicit approval and 
   const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
   if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
   const body=route.request().postDataJSON();calls.push(body);
-  if(body.p_mode==='preview')return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-preview.v1',batch_ref:payload.batch_ref,preview_token:'fictional-token',rows:3,to_create:3,already_imported:0})});
+  if(body.p_mode==='preview')return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-preview.v1',batch_ref:payload.batch_ref,preview_token:'fictional-token',rows:3,to_create:3,already_imported:0,task_codes:payload.entries.map(e=>e.task_code)})});
   if(body.p_mode==='save'&&body.p_reviewed===true&&body.p_preview_token==='fictional-token'){
    for(const e of payload.entries)s.tasks.push({id:'new-'+e.task_code,task_code:e.task_code,parent_task_id:e.parent_code?'new-'+e.parent_code:null,task_title:e.task_title,status:e.status,priority:e.priority,intake_details:{work_level:e.work_level,waiting_on:e.waiting_on,completion_summary:e.completion_summary},archived_at:null,updated_at:'2026-11-08T01:00:00Z'});
-   return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-receipt.v1',batch_ref:payload.batch_ref,rows:payload.entries.map(e=>({task_code:e.task_code,id:'new-'+e.task_code,status:e.status}))})});
+   return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-receipt.v1',batch_ref:payload.batch_ref,rows:payload.entries.map(e=>({task_code:e.task_code,id:'new-'+e.task_code,status:e.status,parent_code:e.parent_code||null}))})});
   }
   return route.fulfill({status:403,headers,body:'{"message":"Denied"}'});
  });
@@ -461,4 +461,81 @@ test('Reviewed Master Backlog preview never saves without explicit approval and 
  await expect(page.locator('#today-work-levels')).toContainText('M12 · Fictional reminder');
  await page.evaluate(()=>window.OpsCloud.signOut());
  await expect(page.locator('#backlog-import-input')).toHaveValue('');
+});
+
+const importProbe=()=>({schema_version:'oaktown.master-backlog.v1',batch_ref:'master-backlog-20990101',entries:[
+ {task_code:'A88',task_title:'Fictional import probe',status:'pending',priority:'high',work_level:'Test',source_ref:'Active Tasks!A1:L1',next_action:'Check this fictional detail'}
+]});
+async function importRoute(page,payload,onSave,previewGate){
+ await page.route('**/rest/v1/rpc/ops_master_backlog_import',async route=>{
+  const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
+  if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
+  const b=route.request().postDataJSON();
+  if(b.p_mode==='preview'){
+   if(previewGate)await previewGate;
+   return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-preview.v1',batch_ref:payload.batch_ref,preview_token:'fictional-token',rows:1,to_create:1,already_imported:0,task_codes:['A88']})});
+  }
+  return route.fulfill({status:200,headers,body:JSON.stringify(await onSave(b))});
+ });
+}
+async function openImport(page,payload){
+ await signInToday(page);await page.locator('#backlog-import-settings>summary').click();
+ await page.locator('#backlog-import-input').fill(JSON.stringify(payload));
+ await page.locator('#backlog-import-preview').click();
+}
+test('Import locks its reviewed inputs during requests and discards a signed-out preview',async({page})=>{
+ await setup(page);const payload=importProbe();let release;
+ const gate=new Promise(r=>{release=r});
+ await importRoute(page,payload,()=>{throw Error('Unexpected save')},gate);
+ await openImport(page,payload);
+ await expect(page.locator('#backlog-import-input')).toBeDisabled();
+ await expect(page.locator('#backlog-import-reviewed')).toBeDisabled();
+ await expect(page.locator('#backlog-import-confirmation')).toBeDisabled();
+ await page.evaluate(()=>window.OpsCloud.signOut());release();
+ await expect(page.locator('#backlog-import-input')).toHaveValue('');
+ await expect(page.locator('#backlog-import-summary')).toBeEmpty();
+ await expect(page.locator('#backlog-import-status')).toContainText('No manifest previewed');
+ await expect(page.locator('#backlog-import-save')).toBeDisabled();
+});
+test('Import never confirms success for a receipt with a different saved identity',async({page})=>{
+ const s=await setup(page),payload=importProbe();let release;
+ const gate=new Promise(r=>{release=r});
+ await importRoute(page,payload,async()=>{
+  s.tasks.push({...payload.entries[0],id:'fictional-actual-id',parent_task_id:null,intake_details:{}});
+  await gate;
+  return {schema_version:'oaktown.master-backlog-receipt.v1',batch_ref:payload.batch_ref,rows:[{task_code:'A88',id:'different-receipt-id',status:'pending',parent_code:null}]};
+ });
+ await openImport(page,payload);await expect(page.locator('#backlog-import-status')).toContainText('Preview ready');
+ await page.locator('#backlog-import-summary summary').click();
+ await expect(page.locator('#backlog-import-summary')).toContainText('Check this fictional detail');
+ await page.locator('#backlog-import-reviewed').check();
+ await page.locator('#backlog-import-confirmation').fill('IMPORT '+payload.batch_ref);
+ await page.locator('#backlog-import-save').click();
+ await expect(page.locator('#backlog-import-input')).toBeDisabled();release();
+ await expect(page.locator('#backlog-import-status')).toContainText('Save not verified');
+ await expect(page.locator('#backlog-import-status')).toContainText('identity');
+ await expect(page.locator('#backlog-import-save')).toBeDisabled();
+});
+test('Import clears its private draft when the staff account changes',async({page})=>{
+ await setup(page);const payload=importProbe();
+ await importRoute(page,payload,()=>{throw Error('Unexpected save')});
+ await openImport(page,payload);await expect(page.locator('#backlog-import-status')).toContainText('Preview ready');
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('ops-auth-change',{detail:{user:{id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'}}})));
+ await expect(page.locator('#backlog-import-input')).toHaveValue('');
+ await expect(page.locator('#backlog-import-summary')).toBeEmpty();
+ await expect(page.locator('#backlog-import-save')).toBeDisabled();
+});
+test('Today falls back for an undeployed task schema but does not retry a forbidden task read',async({page})=>{
+ await setup(page);let fail=false,legacy=0;
+ await page.route('**/rest/v1/ops_tasks?*',async route=>{
+  const q=new URL(route.request().url()).searchParams.get('select')||'';
+  const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*'};
+  if(q.startsWith('id,task_code,parent_task_id,'))return route.fulfill({status:fail?403:400,headers,body:JSON.stringify({message:fail?'Forbidden':'Column task_code does not exist',code:fail?'42501':'42703'})});
+  legacy++;return route.fulfill({status:200,headers,body:'[]'});
+ });
+ await signInToday(page);await expect(page.locator('#today-status')).toContainText('Updated');
+ expect(legacy).toBeGreaterThan(0);fail=true;const before=legacy;
+ await page.evaluate(()=>window.OpsToday.refresh());
+ await expect(page.locator('#today-status')).toContainText('Could not load the dashboard');
+ expect(legacy).toBe(before);
 });

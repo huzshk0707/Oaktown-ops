@@ -63,5 +63,23 @@
    parentLinks:d.entries.filter(r=>r.parent_code).length,
    codes:d.entries.map(r=>r.task_code)};
  }
- return Object.freeze({VERSION,parse,summarize,STATUSES,PRIORITIES});
+ function verifySaved(d,receipt,saved){
+  parse(d);
+  if(receipt?.schema_version!=='oaktown.master-backlog-receipt.v1'||receipt.batch_ref!==d.batch_ref||
+     !Array.isArray(receipt.rows)||receipt.rows.length!==d.entries.length||
+     !Array.isArray(saved)||saved.length!==d.entries.length)error('Import receipt or record read-back did not match');
+  const byCode=new Map(saved.map(r=>[r.task_code,r])),byReceipt=new Map(receipt.rows.map(r=>[r.task_code,r]));
+  if(byCode.size!==d.entries.length||byReceipt.size!==d.entries.length||
+     new Set(saved.map(r=>r.id)).size!==d.entries.length)error('Duplicate imported record identity');
+  for(const r of d.entries){
+   const actual=byCode.get(r.task_code),approved=byReceipt.get(r.task_code);
+   if(!actual||!approved||typeof actual.id!=='string'||!actual.id||actual.id!==approved.id||
+      actual.status!==r.status||approved.status!==r.status||
+      (approved.parent_code||null)!==(r.parent_code||null)||
+      actual.parent_task_id!==(r.parent_code?byCode.get(r.parent_code)?.id:null))
+    error('Imported record identity, status or parent links failed verification');
+  }
+  return saved.length;
+ }
+ return Object.freeze({VERSION,parse,summarize,verifySaved,STATUSES,PRIORITIES});
 });
