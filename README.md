@@ -8,7 +8,7 @@ Oaktown Ops brings property records and operational workflows together. Main inc
 
 ## Available now
 
-- **Today workstation (A1 proposed):** Cross-level urgent/due work, focus selection, grouped saved work levels, compact renewal watch, review-before-save task shortcuts, searchable history and version-checked archived-task restore. The old Tasks intake remains available temporarily until Today has a complete creation workflow; the Drive Master Backlog is not imported. See [A1 handoff](docs/TODAY-WORKSTATION-A1.md).
+- **Today workstation (PR #44 merged):** Cross-level urgent/due work, focus selection, grouped saved work levels, compact renewal watch, review-before-save task shortcuts, searchable history and version-checked archived-task restore. The old Tasks intake remains available temporarily until Today has a complete creation workflow; the Drive Master Backlog is not imported. See [A1 handoff](docs/TODAY-WORKSTATION-A1.md).
 - **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Create drafts**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
 - Tenant message: shows the selected tenant's email only when an exact name match exists among people linked to that unit's lease/tenancy records, beside **Copy message**. Staff must verify imported emails before use; nothing is sent automatically.
 - Court follow-up: not displayed in Notices. Previously saved court notes remain untouched inside existing batches for a future add-on.

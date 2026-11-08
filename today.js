@@ -23,7 +23,7 @@ function renderSchedule(tasks){
  if(!tasks.all.length)host.append(el('p','No active tasks recorded.','today-muted'));
 }
 function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';$('today-refresh').disabled=!cloud.user;resetSchedule('Sign in to view the task breakdown.');}
-function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=String(t.task_title||'Untitled task').toLowerCase();card.append(el('strong',t.task_title||'Untitled task'));
+function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=String(t.task_title||'Untitled task').toLowerCase();card.append(el('strong',(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task')));
  if(viewData){
   const units=new Map(viewData.units.map(x=>[x.id,x])),properties=new Map(viewData.properties.map(x=>[x.id,x]));
   const unit=units.get(t.unit_id),property=properties.get(t.property_id||unit?.property_id);
@@ -104,7 +104,10 @@ async function refresh(){
  resetSchedule('Loading the task breakdown…');
  try{
   const [tasks,renewals,properties,units,leases,memberships]=await Promise.all([
-   cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000'),
+   cloud.api('/rest/v1/ops_tasks?select=id,task_code,parent_task_id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000').catch(error=>{
+    if(![400,404].includes(error.status))throw error;
+    return cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000');
+   }),
    cloud.api('/rest/v1/renewal_cases?select=id,property_id,unit_id,lease_id,oak_record_id,recorded_end,is_applicable,action_status&limit=1000'),
    cloud.api('/rest/v1/properties?select=id,street_address&limit=1000'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_label&limit=1000'),
@@ -133,4 +136,7 @@ window.addEventListener('ops-today-refresh',()=>{if(!busy)refresh()});
 window.addEventListener('ops-auth-change',e=>{if(!e.detail?.user)clear();else if(!$('today-workflow').hidden)refresh()});
 window.OpsToday={refresh,getData:()=>viewData};
 clear();
+// A verified saved session can restore while earlier deferred scripts load.
+// Consume that state as well as future auth events; never infer a user locally.
+if(cloud.user&&!$('today-workflow').hidden)refresh();
 })();

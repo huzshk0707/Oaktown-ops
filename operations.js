@@ -12,7 +12,7 @@ const endpoints={
  people:'people?select=id,display_name,phone,email,contact_verification',
  parties:'tenancy_people?select=id,tenancy_id,person_id',
  renewals:'renewal_cases?select=id,property_id,unit_id,lease_id,oak_record_id,recorded_end,is_applicable,action_status,next_action,action_owner_label',
- tasks:'ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at',
+ tasks:'ops_tasks?select=id,task_code,parent_task_id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at',
  rents:'rent_schedules?select=id,lease_id,amount_usd,billing_period,effective_from,effective_to,rent_kind,verification_status,source_reference',
  events:'ops_events?select=id,entity_type,entity_id,event_type,actor_id,occurred_at,summary,event_metadata',
  documents:'lease_reference_documents?select=id,source_name,drive_file_id,page_count,received_at,sha256,reference_notes'
@@ -56,7 +56,14 @@ profile.addEventListener('close',()=>{if(profile.open)return;profileKey=null;$('
 async function readAll(endpoint,ticket){
  const out=[];
  for(let offset=0;offset<100000;offset+=1000){
-  const page=await cloud.api('/rest/v1/'+endpoint+'&order=id.asc&limit=1000&offset='+offset);
+  let page;
+  try{page=await cloud.api('/rest/v1/'+endpoint+'&order=id.asc&limit=1000&offset='+offset)}
+  catch(err){
+   // Source may deploy before the additive schema migration; keep old search working.
+   if(endpoint.startsWith('ops_tasks?select=id,task_code,parent_task_id,')&&[400,404].includes(err.status))
+    return readAll(endpoint.replace('id,task_code,parent_task_id,','id,'),ticket);
+   throw err;
+  }
   if(ticket!==generation||!cloud.user)throw Error('Session changed');
   if(!Array.isArray(page))throw Error('Unexpected saved-record response');
   out.push(...page);if(page.length<1000)return out;

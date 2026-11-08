@@ -25,6 +25,7 @@ test('Search combines words, normalizes accents, excludes archived work and link
  const i=M.searchIndex(d);assert.equal(M.search(i,'JOSE fictional')[0].id,'person');assert.equal(M.search(i,'application court')[0].id,'t');assert.equal(M.search(i,'private').length,0);assert.equal(M.search(i,'').length,0);
  assert.equal(M.search(i,'unit',1).length,1);assert.equal(M.search(i,'Unit B')[0].id,'b');
 });
+test('M/W/A task codes are searchable without confusing renewal records',()=>{const d=base();d.tasks=[{id:'t',task_code:'M12',task_title:'Fictional lease follow-up',status:'pending'}];const hits=M.search(M.searchIndex(d),'M12');assert.equal(hits[0].id,'t');assert.equal(M.actions(d,'2026-11-08')[0].title,'M12 · Fictional lease follow-up');});
 test('Original-document links only use a validated Drive ID',()=>{
  assert.equal(M.driveUrl({drive_file_id:'abc_123456789'}),'https://drive.google.com/file/d/abc_123456789/view');
  for(const value of ['javascript:alert(1)','https://evil.invalid','../abc','abc?secret=1',''])assert.equal(M.driveUrl({drive_file_id:value}),null);
