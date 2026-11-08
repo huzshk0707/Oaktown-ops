@@ -43,6 +43,22 @@ records and resolving OAK-002 with Leslie; it must not mistake all workbook rows
 for independent pending tasks. A separate Stage B will implement audited and
 verified ChatGPT-to-Supabase task updates. See [Today A1 design](TODAY-WORKSTATION-A1.md).
 
+## Controlled Master Backlog import — PR #45 (staged source, not deployed)
+
+PR #44 is merged into main and provides the focus-first Today workstation.
+PR #45 adds an additive task-code/parent schema and review-only importer with
+private receipts, optimistic preview confirmation, duplicate protection and
+fictional disposable database tests. The deployment is not equivalent to
+database migration; no live Supabase import or production schema change has
+been authorized in this PR.
+
+After PR review, request separate approval to apply the single migration,
+then generate and approve the private 37-row manifest, preview exact creates,
+read back the imported records, and verify Today. Preserve OAK-002 and the
+existing completed eight-property notice task. The daily Task Dashboard AI
+continues to propose user-approved task updates separately.
+See [controlled import plan](MASTER-BACKLOG-CONTROLLED-IMPORT.md).
+
 Next milestones, in order:
 
 1. **Verify the related-record workflow after deployment.** Pages is enabled at
