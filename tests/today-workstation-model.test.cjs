@@ -34,3 +34,7 @@ test('renewal watch uses recorded dates as context and keeps imported pending se
  const w=M.watch([{id:'a',is_applicable:true,action_status:'Pending',recorded_end:'2026-11-15'},{id:'b',is_applicable:false,action_status:'Pending',recorded_end:'2026-11-16'}],date);
  assert.equal(w.pendingCount,1);assert.equal(w.soon.length,1);assert.equal(w.total,1);
 });
+test('closed levels retain canceled work without counting it as completed',()=>{
+ const p=M.project(['completed','cancelled','declined','closed'].map((status,i)=>({id:String(i),status,workflow_key:'general'})),date);
+ assert.equal(p.active,0);assert.equal(p.completed,1);assert.equal(p.closed,4);assert.equal(p.levels[0].done.length,4);assert.equal(M.focus(p,'workflow:general').task,null);
+});

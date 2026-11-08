@@ -50,7 +50,7 @@
    .sort((a,b)=>compare(a,b,ref));
   return {levels:result,alerts,urgent:classed.all.filter(t=>t.schedule?.date<ref||String(t.priority||'').toLowerCase()==='urgent').length,
    inProgress:classed.all.filter(t=>String(t.status)==='in_progress').length,
-   waiting:classed.waiting.length,active:classed.all.length,completed:classed.completed.length};
+   waiting:classed.waiting.length,active:classed.all.length,completed:classed.completed.filter(t=>String(t.status||'').toLowerCase()==='completed').length,closed:classed.completed.length};
  }
  function focus(projected,key){
   const chosen=projected.levels.find(l=>l.key===key&&l.open.length);

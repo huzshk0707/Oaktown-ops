@@ -34,7 +34,7 @@ function choose(key,id){
  levelKey=key;taskId=id||'';
  if(cloud.user)savePreference();
  render();
- $('today-focus-heading').scrollIntoView({block:'nearest',behavior:'smooth'});
+ $('today-focus-heading').scrollIntoView({block:'nearest',behavior:document.documentElement.dataset.opsMotion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
 function renderAlerts(){
  const host=$('today-urgent');host.replaceChildren();
@@ -89,9 +89,9 @@ function renderLevels(){
  if(!projected.levels.length){host.append(el('p','No saved task levels yet. The Master Backlog is not imported.','today-muted'));return}
  for(const l of projected.levels){
   const d=document.createElement('details');d.className='today-level';
-  const summary=el('summary');summary.append(el('strong',l.label),el('span',l.open.length+' open · '+l.waiting.length+' waiting · '+l.done.length+' completed','today-level-count'));
+  const summary=el('summary');summary.append(el('strong',l.label),el('span',l.open.length+' open · '+l.waiting.length+' waiting · '+l.done.length+' closed','today-level-count'));
   d.append(summary);
-  if(!l.open.length){d.append(el('p','All saved tasks in this level are completed.','today-muted'));host.append(d);continue}
+  if(!l.open.length){d.append(el('p','No open tasks remain in this level. See task history and the saved statuses.','today-muted'));host.append(d);continue}
   const list=el('div',null,'today-level-items');
   for(const t of l.open){
    const row=el('div',null,'today-level-row'),body=el('div');
@@ -106,11 +106,13 @@ function render(){
  renderAlerts();renderFocus();renderLevels();
 }
 $('today-focus-level').addEventListener('change',()=>{if(!projected)return;choose($('today-focus-level').value,'')});
-window.addEventListener('ops-today-data',event=>{
- if(!event.detail||!cloud.user){clear();return}
+function receive(next){
+ if(!next||!cloud.user){clear();return}
  if(userId!==cloud.user.id){userId=cloud.user.id;levelKey=readPreference();taskId=''}
- data=event.detail;projected=M.project(data.tasks);render();
-});
+ data=next;projected=M.project(data.tasks);render();
+}
+window.addEventListener('ops-today-data',event=>receive(event.detail));
 window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user)clear()});
 clear();
+if(window.OpsToday?.getData())receive(window.OpsToday.getData());
 })();

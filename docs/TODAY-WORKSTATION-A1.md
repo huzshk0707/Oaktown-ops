@@ -13,7 +13,7 @@ Today should show what deserves attention, help an authorized staff member compl
 3. **Other work levels** — collapsible groups from the saved work_level identifier/label inside task intake_details, falling back to workflow_key when no level is stored. This is a presentation group, **not a claimed parent-child relationship**. Actual parent-child import mapping belongs to A2.
 4. **Action Centre** — shows **actionable saved tasks only**. Raw renewal_cases no longer become synthetic action rows. Explicit saved tasks with workflow_key=renewal still appear, and their exact renewal links are preserved. The universal search and full Renewals module still include renewal cases.
 5. **Renewal watch** — counts imported cases marked Pending and displays recorded lease ends within 45 days, expressly **not** a legal/renewal follow-up deadline. Data must be checked against executed leases and recent staff updates.
-6. **Task history & archive** — searchable completed/archived entries on Today. Restore uses the existing staff-only ops_task_set_archived RPC with the observed task version and explicit confirmation. A successful RPC must be corroborated by a fresh Today read. The journal is preserved; no permanent deletion from Today.
+6. **Task history & archive** — searchable completed/archived entries on Today. Restore uses the existing staff-only ops_task_set_archived RPC with the observed task version and explicit confirmation. A successful RPC must be corroborated by a fresh Today read. Restoring removes the archive flag and preserves the saved status: completed or canceled work is not reopened. Work-level summaries label terminal tasks as closed rather than implying all were completed. The journal is preserved; no permanent deletion from Today.
 7. **EOD, reference library, global Ctrl/Cmd+K search, PDF generators, notices, property profiles and verified staff auth** stay available.
 
 ### Why the legacy Tasks tab remains temporarily
@@ -46,6 +46,8 @@ Exact task ID matching, staff-scoped audited operations, optimistic version chec
 - Complete and Waiting do not persist until the reviewed task form is saved.
 - A viewer cannot edit or restore; sign-out removes private lists.
 - An archived task can be viewed, searched and restored after explicit confirmation, with RPC version and read-back verification.
+- Search filters both completed and archived titles after a refresh; restoring a completed task keeps it completed. Stale versions and failed read-backs never claim verified restoration.
+- Focus and history initialize from the saved dashboard snapshot even if their scripts load after its data event; focus scrolling respects the motion preference.
 - Raw renewal cases remain searchable and in Renewals; they do not duplicate tasks in Action Centre.
 - Six themes and mobile widths do not cause horizontal overflow.
 - Full existing notice/renewal/new-lease and EOD behavior remains untouched.

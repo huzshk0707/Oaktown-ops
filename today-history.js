@@ -5,7 +5,6 @@ if(!cloud||!$('today-history'))return;
 let data=null,restoring=false,epoch=0;
 const make=(tag,value,cls)=>{const n=document.createElement(tag);if(value!=null)n.textContent=String(value);if(cls)n.className=cls;return n};
 const status=text=>{$('today-history-status').textContent=text};
-const matches=t=>!$('today-history-search').value.trim()||String(t.task_title||'').toLowerCase().includes($('today-history-search').value.trim().toLowerCase());
 function applySearch(){
  for(const box of ['today-archived','today-completed'])
   for(const row of $(box).children)if(row.dataset.taskTitle)row.hidden=!row.dataset.taskTitle.includes($('today-history-search').value.trim().toLowerCase());
@@ -18,7 +17,7 @@ function clear(){
 async function restore(t){
  if(restoring||!data?.canEdit||!cloud.user||!t.updated_at||!t.archived_at)return;
  const id=cloud.user.id,ticket=epoch;
- if(!confirm('Restore "'+(t.task_title||'Untitled task')+'" to active work? Its saved history will be preserved.'))return;
+ if(!confirm('Restore "'+(t.task_title||'Untitled task')+'" from the archive? Its saved status and activity history will be preserved.'))return;
  restoring=true;status('Restoring the selected archived task…');
  try{
   const receipt=await cloud.api('/rest/v1/rpc/ops_task_set_archived',{
@@ -31,7 +30,7 @@ async function restore(t){
   if(ticket!==epoch||cloud.user?.id!==id)return;
   const saved=window.OpsToday?.getData()?.tasks?.find(row=>row.id===t.id);
   if(!saved||saved.archived_at)throw Error('Restore may have saved, but the latest task state is not verified');
-  status('Restored to active work and verified. The activity history was preserved.');
+  status('Restored from archive and verified. The saved status and activity history were preserved.');
   window.dispatchEvent(new Event('ops-task-archive-change'));
  }catch(error){
   if(ticket===epoch)status('Restore not verified: '+(error.message||'Request failed')+'. Refresh saved records before retrying.');
@@ -43,7 +42,7 @@ function render(){
  const all=data.tasks.filter(t=>!!t.archived_at).sort((a,b)=>String(b.archived_at).localeCompare(String(a.archived_at))||String(a.task_title||'').localeCompare(String(b.task_title||'')));
  $('today-archived-count').textContent='('+all.length+')';
  for(const t of all){
-  const row=make('article',null,'today-archive-row');row.dataset.taskTitle=String(t.task_title||'').toLowerCase();
+  const row=make('article',null,'today-archive-row');row.dataset.taskTitle=String(t.task_title||'Untitled task').toLowerCase();
   const body=make('div');body.append(make('strong',t.task_title||'Untitled task'),make('p','Archived · '+String(t.status||'pending')));
   const actions=make('div',null,'today-archive-actions');
   const view=make('button','View history','button');view.type='button';view.addEventListener('click',()=>window.OpsOperations?.openProfile('task',t.id));
@@ -56,8 +55,10 @@ function render(){
  applySearch();
 }
 $('today-history-search').addEventListener('input',applySearch);
-window.addEventListener('ops-today-data',event=>{if(!event.detail||!cloud.user){clear();return}data=event.detail;render()});
+function receive(next){if(!next||!cloud.user){clear();return}data=next;render()}
+window.addEventListener('ops-today-data',event=>receive(event.detail));
 window.addEventListener('ops-today-rendered',applySearch);
 window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user)clear()});
 clear();
+if(window.OpsToday?.getData())receive(window.OpsToday.getData());
 })();

@@ -23,7 +23,7 @@ function renderSchedule(tasks){
  if(!tasks.all.length)host.append(el('p','No active tasks recorded.','today-muted'));
 }
 function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';$('today-refresh').disabled=!cloud.user;resetSchedule('Sign in to view the task breakdown.');}
-function taskRow(t){const card=el('article',null,'today-task');card.append(el('strong',t.task_title||'Untitled task'));
+function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=String(t.task_title||'Untitled task').toLowerCase();card.append(el('strong',t.task_title||'Untitled task'));
  if(viewData){
   const units=new Map(viewData.units.map(x=>[x.id,x])),properties=new Map(viewData.properties.map(x=>[x.id,x]));
   const unit=units.get(t.unit_id),property=properties.get(t.property_id||unit?.property_id);
