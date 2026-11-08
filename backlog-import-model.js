@@ -78,12 +78,12 @@
    if(!actual||!approved||typeof actual.id!=='string'||!actual.id||actual.id!==approved.id||
       actual.status!==r.status||approved.status!==r.status||
       (actual.assigned_label||null)!==(r.owner_label||null)||actual.assigned_user_id!=null||
-      actual.intake_details?.source_origin!==(r.origin??null)||
-      actual.intake_details?.cluster_level!==(r.cluster_level??null)||
-      actual.intake_details?.source_owner_label!==(r.owner_label??null)||
-      actual.intake_details?.source_property_target!==(r.property_target??null)||
-      actual.intake_details?.source_caution!==(r.source_caution??null)||
-      actual.intake_details?.source_update_notes!==(r.update_notes??null)||
+      ('origin' in r && actual.intake_details?.source_origin!==(r.origin??null))||
+      ('cluster_level' in r && actual.intake_details?.cluster_level!==(r.cluster_level??null))||
+      ('owner_label' in r && actual.intake_details?.source_owner_label!==(r.owner_label??null))||
+      ('property_target' in r && actual.intake_details?.source_property_target!==(r.property_target??null))||
+      ('source_caution' in r && actual.intake_details?.source_caution!==(r.source_caution??null))||
+      ('update_notes' in r && actual.intake_details?.source_update_notes!==(r.update_notes??null))||
       (approved.parent_code||null)!==(r.parent_code||null)||
       actual.parent_task_id!==(r.parent_code?byCode.get(r.parent_code)?.id:null))
     error('Imported record identity, status or parent links failed verification');
