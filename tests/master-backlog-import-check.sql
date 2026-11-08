@@ -34,7 +34,7 @@ begin
  if (select count(*) from public.ops_events where event_type='master_backlog_imported' and entity_id in(parentid,childid))<>2 then raise exception 'Missing provenance events';end if;
  replay:=public.ops_master_backlog_import('save',manifest,preview->>'preview_token',true);
  if replay->>'replayed'<>'true' or (select count(*) from public.ops_tasks)<>count_before+3 then raise exception 'Idempotent replay failed';end if;
- if (select count(*) from ops_intake_private.master_backlog_imports where batch_ref='master-backlog-20991231')<>1 then raise exception 'Duplicate import receipt';end if;
+ begin perform 1 from ops_intake_private.master_backlog_imports; raise exception 'Private receipt ledger exposed'; exception when insufficient_privilege then null; end;
  -- Another manifest with the same task code and different content must be rejected.
  bad:=jsonb_set(manifest,'{batch_ref}','"master-backlog-20991230"');
  bad:=jsonb_set(bad,'{entries,1,task_title}','"Conflicting fictional title"');
