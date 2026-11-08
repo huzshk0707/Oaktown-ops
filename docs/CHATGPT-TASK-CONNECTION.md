@@ -89,6 +89,28 @@ completed through the available repository/database tools. Report these as
 pending until verified; do not claim direct in-chat writes are connected merely
 because the code was merged or the endpoint deployed.
 
+## ChatGPT custom plugin registration compatibility
+
+The ChatGPT plugin creator can probe the MCP endpoint with HTTP
+`Accept: */*` during registration. HTTP wildcards permit both supported
+MCP response types, but the pinned MCP SDK initially returned **406** because
+it requires literal `application/json` and `text/event-stream` strings.
+
+The handler normalizes this wildcard/no-Accept case before handing the
+request to the SDK. Explicitly incompatible types still receive 406.
+This fixes transport negotiation only; the OAuth client ID/secret, consent,
+asymmetric signing key, token hook and Oaktown client enablement are separate
+requirements. Keep the plugin set to OAuth with the registered confidential
+client and `client_secret_basic`; do not switch to No authentication.
+
+Production investigation: function-edge logs showed repeated
+`POST /functions/v1/oaktown-task-api/mcp` → **406** with
+`Accept: */*`, followed by successful OAuth-resource metadata GET → **200**.
+The developer must deploy the reviewed Edge Function change after PR merge;
+merging source alone does not update the deployed function. After deployment,
+retry ChatGPT registration. If it still fails, inspect the next server request,
+status and OAuth discovery, rather than guessing credentials.
+
 ## Activation smoke checks
 
 Use an approved staff test account and clearly labelled fictional test tasks.
