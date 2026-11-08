@@ -41,3 +41,5 @@
 .today-archive-actions{display:flex;flex-wrap:wrap;gap:7px}
 @media(max-width:900px){.today-workstation{grid-template-columns:1fr}.today-attention-card,.today-focus-card,.today-level-card{grid-column:1;grid-row:auto}}
 @media(max-width:540px){.today-alert,.today-archive-row{align-items:flex-start;flex-direction:column}.today-level summary{align-items:start;flex-direction:column;gap:3px}.today-level-count{text-align:left}}
+
+.today-history [hidden]{display:none!important}
