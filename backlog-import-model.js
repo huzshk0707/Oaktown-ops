@@ -11,7 +11,8 @@
  const PRIORITIES=['low','normal','high','urgent'];
  const COLUMNS=['task_code','task_title','status','priority','work_level','parent_code',
   'next_action','waiting_on','blocked_reason','completion_summary','completed_on',
-  'needs_verification','source_ref','original_status','original_priority'];
+  'needs_verification','source_ref','original_status','original_priority',
+  'origin','cluster_level','owner_label','property_target','source_caution','update_notes'];
  function error(message){throw Error(message)}
  function object(value,label){
   if(!value||typeof value!=='object'||Array.isArray(value))error(label+' must be an object');
@@ -42,8 +43,9 @@
    if(r.parent_code!==undefined&&r.parent_code!==null&&r.parent_code!==''){
     if(typeof r.parent_code!=='string'||!CODE.test(r.parent_code)||r.parent_code===c)error(c+': invalid parent');
    }else roots.add(c);
-   for(const k of ['next_action','waiting_on','blocked_reason','completion_summary','original_status','original_priority'])
-    if(r[k]!=null&&(typeof r[k]!=='string'||r[k].length>(k==='waiting_on'?120:k==='blocked_reason'?1200:2000)))error(c+': invalid '+k);
+   for(const k of ['next_action','waiting_on','blocked_reason','completion_summary','original_status','original_priority',
+     'origin','cluster_level','owner_label','property_target','source_caution','update_notes'])
+    if(r[k]!=null&&(typeof r[k]!=='string'||r[k].length>(['waiting_on','owner_label'].includes(k)?120:k==='blocked_reason'?1200:2000)))error(c+': invalid '+k);
    if(r.needs_verification!==undefined&&typeof r.needs_verification!=='boolean')error(c+': needs_verification must be boolean');
    if(r.status==='waiting'&&!String(r.waiting_on||'').trim())error(c+': waiting_on required');
    if(r.status==='blocked'&&!String(r.blocked_reason||'').trim())error(c+': blocked_reason required');
@@ -75,6 +77,13 @@
    const actual=byCode.get(r.task_code),approved=byReceipt.get(r.task_code);
    if(!actual||!approved||typeof actual.id!=='string'||!actual.id||actual.id!==approved.id||
       actual.status!==r.status||approved.status!==r.status||
+      (actual.assigned_label||null)!==(r.owner_label||null)||actual.assigned_user_id!=null||
+      actual.intake_details?.source_origin!==(r.origin??null)||
+      actual.intake_details?.cluster_level!==(r.cluster_level??null)||
+      actual.intake_details?.source_owner_label!==(r.owner_label??null)||
+      actual.intake_details?.source_property_target!==(r.property_target??null)||
+      actual.intake_details?.source_caution!==(r.source_caution??null)||
+      actual.intake_details?.source_update_notes!==(r.update_notes??null)||
       (approved.parent_code||null)!==(r.parent_code||null)||
       actual.parent_task_id!==(r.parent_code?byCode.get(r.parent_code)?.id:null))
     error('Imported record identity, status or parent links failed verification');
