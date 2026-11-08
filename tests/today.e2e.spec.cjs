@@ -44,7 +44,7 @@ async function setup(page){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);s.archives.push(b);
     if(s.archives.length===s.failArchiveAt)return reply({message:'Task changed; refresh.'},409);
     if(s.viewer||!task||task.updated_at!==b.p_expected_updated_at)return reply({message:'Denied or stale task'},403);
-    task.archived_at=new Date().toISOString();task.updated_at=task.archived_at;
+    task.archived_at=b.p_archived?new Date().toISOString():null;task.updated_at=new Date().toISOString();
     if(s.holdArchive)await s.holdArchive;
     if(s.failReadsAfterArchive)s.fail=true;
     if(s.loseArchiveReply)return route.abort('connectionreset');
