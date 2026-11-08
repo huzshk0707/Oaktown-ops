@@ -334,6 +334,46 @@ test('general task has no invented links and private related details clear on si
  await expect(page.locator('#today-related-notes')).toBeEmpty();
  expect(s.edits).toHaveLength(0);
 });
+test('Today keeps urgent work across levels and status shortcuts require reviewed save',async({page})=>{
+ const s=await setup(page);
+ s.tasks[0].workflow_key='maintenance';
+ s.tasks[1].workflow_key='accounting';
+ await signInToday(page);
+ await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
+ await expect(page.locator('#today-urgent')).toContainText('Fictional tenant reply due today');
+ await expect(page.locator('#today-focus-level')).toBeEnabled();
+ await page.locator('#today-focus-level').selectOption('workflow:maintenance');
+ await expect(page.locator('#today-focus-body')).toContainText('Fictional overdue inspection follow-up');
+ await page.locator('#today-focus-body').getByRole('button',{name:'Complete'}).click();
+ await expect(page.locator('#today-edit-dialog')).toBeVisible();
+ await expect(page.locator('#today-edit-status')).toHaveValue('completed');
+ expect(s.edits).toHaveLength(0);
+ await page.locator('#today-edit-cancel').click();
+ await page.locator('#today-focus-level').selectOption('workflow:accounting');
+ await expect(page.locator('#today-focus-body')).toContainText('Fictional tenant reply due today');
+ await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
+ await expect(page.locator('#operations-queue')).not.toContainText('FICTIONAL-001');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-urgent')).not.toContainText('Fictional overdue inspection follow-up');
+});
+test('Today archive supports verified restore and clears private history after sign-out',async({page})=>{
+ const s=await setup(page);
+ s.tasks[3].updated_at='2026-10-29T10:00:00Z';
+ await signInToday(page);
+ await page.locator('#today-history>summary').click();
+ await expect(page.locator('#today-archived')).toContainText('Private archived item');
+ await page.locator('#today-history-search').fill('Private archived');
+ await expect(page.locator('#today-archived .today-archive-row')).toHaveCount(1);
+ page.once('dialog',dialog=>dialog.accept());
+ await page.locator('#today-archived').getByRole('button',{name:'Restore'}).click();
+ await expect(page.locator('#today-history-status')).toContainText('Restored to active work and verified');
+ expect(s.archives).toHaveLength(1);
+ expect(s.archives[0].p_archived).toBe(false);
+ await expect(page.locator('#today-queue')).toContainText('Private archived item');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-archived')).toBeEmpty();
+ await expect(page.locator('#today-history-search')).toHaveValue('');
+});
 test('invalid theme preferences and unavailable local storage fall back safely',async({page})=>{
  await page.addInitScript(()=>{try{localStorage.setItem('oaktown-theme-v1','not-a-theme')}catch{}});await setup(page);await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'getItem',{value(){throw Error('Storage blocked')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}});});await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.getByLabel('Workspace theme').selectOption('nilo');await expect(page.locator('html')).toHaveAttribute('data-ops-theme','nilo');
 });
