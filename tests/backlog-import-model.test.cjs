@@ -10,6 +10,9 @@ test('Import model preserves real hierarchy and completion count without inventi
  const d=make(),s=M.summarize(d);
  assert.deepEqual(s,{rows:3,completed:1,verification:1,parentLinks:2,codes:['W03','M12','M13']});
  assert.equal(d.entries[2].completed_on,undefined);
+ d.entries[0].owner_label='Leslie';d.entries[0].origin='Meeting';d.entries[0].cluster_level='Renewals';
+ d.entries[0].property_target='Unverified fictional location';d.entries[0].source_caution='Check evidence';
+ d.entries[0].update_notes='Fictional note';assert.doesNotThrow(()=>M.parse(d));
 });
 test('Invalid codes, unknown fields and duplicate IDs are blocked',()=>{
  for(const invalid of [
@@ -21,7 +24,10 @@ test('Invalid codes, unknown fields and duplicate IDs are blocked',()=>{
   d=>{d.entries[2].completion_summary=''},
   d=>{d.entries[2].completed_on='invalid'},
   d=>{d.entries[0].due_at='2026-11-08'},
-  d=>{d.entries[1].waiting_on=''}
+  d=>{d.entries[1].waiting_on=''},
+  d=>{d.entries[0].owner_label=123},
+  d=>{d.entries[0].origin={untrusted:true}},
+  d=>{d.entries[0].owner_label='X'.repeat(121)}
  ]){const d=make();invalid(d);assert.throws(()=>M.parse(d));}
 });
 test('Requires exact stable batch and workbook row provenance',()=>{
