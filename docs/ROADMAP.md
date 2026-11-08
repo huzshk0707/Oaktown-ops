@@ -72,8 +72,9 @@ archive, send notices/messages or execute SQL. Today adds compact connection
 setup, client revocation and recent saved-change navigation. Normal staff sessions
 and existing task/document workflows are retained.
 
-The single migration is `20261108061801_authenticated_task_connection.sql`.
-Source merge, database application, Edge deployment, owner Auth configuration and
+The single migration is `20261108071838_authenticated_task_connection.sql`.
+The backend migration is applied and the Edge Function reports ACTIVE; existing
+business tasks/events were unchanged. Source merge, owner Auth configuration and
 a verified ChatGPT sign-in/save are separate states. Owner OAuth/token-hook setup
 and plugin installation must be checked explicitly; packaged source does not mean
 that a Project automatically has write tools. See the

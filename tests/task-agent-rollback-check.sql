@@ -10,7 +10,7 @@ delete from public.ops_tasks where task_title='Fictional integration task';
 delete from ops_agent_private.clients;
 drop function ci.agent_identity(int,boolean,text);
 revoke usage on schema ci from oaktown_task_agent;
-\ir ../supabase/rollback/20261108061801_authenticated_task_connection.sql
+\ir ../supabase/rollback/20261108071838_authenticated_task_connection.sql
 do $$begin
  if to_regprocedure('public.ops_task_agent(text,jsonb)') is not null or exists(select 1 from pg_roles where rolname='oaktown_task_agent')
   or not exists(select 1 from public.ops_tasks where task_title='Prepare reviewed Unit 8 renewal')

@@ -157,7 +157,7 @@ jobs:
         run: |
           psql -v ON_ERROR_STOP=1 \
             -f tests/task-agent-setup.sql \
-            -f supabase/migrations/20261108061801_authenticated_task_connection.sql \
+            -f supabase/migrations/20261108071838_authenticated_task_connection.sql \
             -f tests/task-agent-check.sql
       - name: Reject duplicate concurrent saves and stale competing proposals
         run: node tests/task-agent-concurrency.cjs

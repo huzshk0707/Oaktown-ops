@@ -37,7 +37,7 @@ async function main(){let created=false;try{
  const a=prepare('fictional-concurrent-first',{next_action:'Fictional first approved action'}),b=prepare('fictional-concurrent-second',{next_action:'Fictional stale action'});
  await competing(a,b,false);assert.equal(call('get',{task_id:id}).next_action,'Fictional first approved action');
  const before=sql(db,'select count(*) from ops_agent_private.proposals;').stdout.trim();
- const rollback=fs.readFileSync(path.join(__dirname,'../supabase/rollback/20261108061801_authenticated_task_connection.sql'),'utf8');
+ const rollback=fs.readFileSync(path.join(__dirname,'../supabase/rollback/20261108071838_authenticated_task_connection.sql'),'utf8');
  const refused=sql(db,rollback,true);assert.notEqual(refused.status,0);assert.match(refused.stderr,/configuration or proposal history/);
  assert.equal(sql(db,'select count(*) from ops_agent_private.proposals;').stdout.trim(),before);assert.equal(call('get',{task_id:id}).next_action,'Fictional first approved action');
  console.log('Concurrent retries saved once; competing stale proposals rejected; actual rollback preserved task and private audit history.');

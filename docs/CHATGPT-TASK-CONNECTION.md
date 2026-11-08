@@ -56,12 +56,10 @@ Server URL:
 
 `https://wjdzaexhhjsjtdgxivyw.supabase.co/functions/v1/oaktown-task-api/mcp`
 
-1. Review passing CI, apply only
-   `20261108061801_authenticated_task_connection.sql`, and deploy
-   `supabase/functions/oaktown-task-api` with gateway JWT verification **off**.
-   The function performs its own asymmetric JWT verification; metadata/tool
-   discovery is public, task data and operations require OAuth. The API must be
-   deployed before a ChatGPT connection can be tested.
+1. Confirm the deployment record below. The database migration and Edge Function
+   are already deployed; do not reapply the migration. Gateway JWT verification
+   is **off** because the function performs its own asymmetric JWT verification.
+   Metadata/tool discovery is public; task operations require scoped OAuth.
 2. In Supabase → Authentication → OAuth Server, enable OAuth and set the
    authorization path to `/` with Site URL
    `https://huzshk0707.github.io/Oaktown-ops/`. This serves the consent dialog at
@@ -120,6 +118,26 @@ CI uses fictional PostgreSQL sessions/consents, signed test JWTs, real MCP HTTP
 transport, concurrent SQL sessions and mocked browser APIs. It does not establish
 that owner Auth settings, live OAuth consent, ChatGPT host permissions, or an
 actual user-approved in-chat write have been completed.
+
+## Deployment record — November 8, 2026
+
+- Supabase applied migration **20261108071838_authenticated_task_connection**.
+  The source was created with CLI 3.0.0 under the earlier staging timestamp
+  20261108061801; its filename now matches the provider's recorded applied
+  version. The SQL body was unchanged. Applied migration history was not edited.
+- `oaktown-task-api` is deployed and reported **ACTIVE**, version 1. Explicit
+  SDK import-map entries support the hosted Edge bundler as well as local Deno.
+- Read-only production checks found no direct table/legacy-intake permission
+  for the task role and no public definer wrapper. Existing task count/content
+  and event count were unchanged. Client/proposal ledgers were empty.
+- The Master Backlog migration/import was not applied. Auth settings, signing
+  keys, registered OAuth clients and real tasks were not changed by rollout.
+- Local real Deno HTTP discovery/anonymous denial, signed JWT tests and the
+  disposable database suite passed. Direct live HTTP checks were blocked by this
+  execution environment's network policy; provider ACTIVE status is narrower
+  evidence than a successful live OAuth flow.
+- Owner OAuth/hook configuration and plugin installation/sign-in remain
+  pending. No successful user-approved in-chat write is claimed.
 
 Sources checked November 8, 2026:
 [OpenAI plugin connection](https://developers.openai.com/plugins/deploy/connect-chatgpt),

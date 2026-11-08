@@ -8,7 +8,7 @@ Oaktown Ops brings property records and operational workflows together. Main inc
 
 ## Available now
 
-- **ChatGPT task connection:** Scoped OAuth task tools with reviewed saves, receipts and independent verification; compact connection/activity UI in Today. Requires backend activation, owner OAuth setup and ChatGPT plugin installation. See [setup and current verification limits](docs/CHATGPT-TASK-CONNECTION.md). The Master Backlog import remains a separate workflow.
+- **ChatGPT task connection:** Scoped OAuth task tools with reviewed saves, receipts and independent verification; compact connection/activity UI in Today. Backend deployed; owner OAuth setup and ChatGPT plugin sign-in remain pending. See [setup and current verification limits](docs/CHATGPT-TASK-CONNECTION.md). The Master Backlog import remains a separate workflow.
 
 - **Today workstation (PR #44 merged):** Cross-level urgent/due work, focus selection, grouped saved work levels, compact renewal watch, review-before-save task shortcuts, searchable history and version-checked archived-task restore. The old Tasks intake remains available temporarily until Today has a complete creation workflow; the Drive Master Backlog is not imported. See [A1 handoff](docs/TODAY-WORKSTATION-A1.md).
 - **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Create drafts**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
