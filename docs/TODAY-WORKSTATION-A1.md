@@ -47,7 +47,7 @@ Exact task ID matching, staff-scoped audited operations, optimistic version chec
 - A viewer cannot edit or restore; sign-out removes private lists.
 - An archived task can be viewed, searched and restored after explicit confirmation, with RPC version and read-back verification.
 - Search filters both completed and archived titles after a refresh; restoring a completed task keeps it completed. Stale versions and failed read-backs never claim verified restoration.
-- Focus and history initialize from the saved dashboard snapshot even if their scripts load after its data event; focus scrolling respects the motion preference.
+- Focus, history and the review editor initialize from the saved dashboard snapshot even if their scripts load after its data event; the Review button still opens the existing editor and focus scrolling respects the motion preference.
 - Raw renewal cases remain searchable and in Renewals; they do not duplicate tasks in Action Centre.
 - Six themes and mobile widths do not cause horizontal overflow.
 - Full existing notice/renewal/new-lease and EOD behavior remains untouched.

@@ -168,4 +168,5 @@ $('today-edit-form').addEventListener('submit',async event=>{
   }
  }finally{saving=false;$('today-edit-save').disabled=false;}
 });
+if(cloud.user)data=window.OpsToday?.getData()||null;
 })();
