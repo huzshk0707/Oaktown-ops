@@ -9,9 +9,9 @@ test('Action Centre respects real office dates, archived/terminal tasks and reco
  assert.equal(M.filterActions(rows,'renewals').length,0);assert.equal(M.filterActions(rows,'overdue').length,1);assert.equal(M.filterActions(rows,'maintenance').length,1);assert.equal(M.filterActions(rows,'waiting').length,1);
 });
 test('A linked renewal task appears once while raw renewal cases stay searchable, not actionable',()=>{
- const d=base();d.renewals=[{id:'r1',unit_id:'a',action_status:'pending',next_action:'Check terms'}];d.tasks=[{id:'t1',task_title:'Signature follow-up',status:'pending',workflow_key:'renewal',renewal_case_id:'r1'}];
+ const d=base();d.renewals=[{id:'r1',unit_id:'a',oak_record_id:'R1-TEST',action_status:'pending',next_action:'Check terms'}];d.tasks=[{id:'t1',task_title:'Signature follow-up',status:'pending',workflow_key:'renewal',renewal_case_id:'r1'}];
  const rows=M.actions(d,'2026-11-08');assert.deepEqual(rows.map(r=>r.id),['t1']);assert.equal(M.filterActions(rows,'renewals').length,1);
- assert.equal(M.search(M.searchIndex(d),'r1').length,1);
+ assert.equal(M.search(M.searchIndex(d),'R1-TEST').length,1);
 });
 test('Unit scope never absorbs sibling units or property-only work and preserves property totals',()=>{
  const d=base();d.renewals=[{id:'ra',unit_id:'a',property_id:'p'},{id:'rb',unit_id:'b',property_id:'p'},{id:'rp',property_id:'p'}];
