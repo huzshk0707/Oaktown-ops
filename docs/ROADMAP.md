@@ -27,6 +27,22 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Today workstation — staged A1 increment
+
+Stage A1 is implemented on a separate feature branch for review, without database changes.
+The Today page adds cross-level urgent/due tasks, user-selected focus, groups derived
+only from saved task fields, compact renewal watch, and searchable archived-task
+history with a version-checked Restore route. The Action Centre no longer creates
+synthetic action items from every imported renewal case; saved renewal tasks remain
+visible and full cases remain searchable in Renewals. The existing legacy Tasks
+intake stays temporarily because it still owns manual creation/import. It will
+be removed only when Today can safely replace all of its required actions.
+
+Stage A2 must reconcile/import the Master Backlog after checking all existing
+records and resolving OAK-002 with Leslie; it must not mistake all workbook rows
+for independent pending tasks. A separate Stage B will implement audited and
+verified ChatGPT-to-Supabase task updates. See [Today A1 design](TODAY-WORKSTATION-A1.md).
+
 Next milestones, in order:
 
 1. **Verify the related-record workflow after deployment.** Pages is enabled at
