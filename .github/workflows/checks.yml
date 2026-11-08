@@ -129,6 +129,8 @@ jobs:
             -f tests/task-intake-check.sql \
             -f tests/task-cleanup-check.sql \
             -f tests/today-task-editor-check.sql \
-            -f tests/task-delete-archived-check.sql
+            -f tests/task-delete-archived-check.sql \
+            -f supabase/migrations/20261108050000_master_backlog_controlled_import.sql \
+            -f tests/master-backlog-import-check.sql
       - name: Reject an inconsistent preexisting portfolio without partial schema changes
         run: node tests/portfolio-hardening-failure.cjs
