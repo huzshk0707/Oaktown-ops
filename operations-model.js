@@ -16,7 +16,7 @@
  }
  function actions(data,reference=T.today(),tracking={}){
   const i=index(data),tasks=T.classify(data.tasks,reference),overdue=new Set(tasks.overdue.map(t=>t.id)),due=new Set(tasks.today.map(t=>t.id));
-  const out=tasks.all.map(t=>({kind:'task',id:t.id,title:t.task_title||'Untitled task',location:location(t,i),status:t.status||'pending',next:t.intake_details?.next_action||'',owner:t.assigned_label||'',schedule:t.schedule,group:overdue.has(t.id)?'overdue':due.has(t.id)?'today':t.schedule?'upcoming':'undated',workflow:t.workflow_key||'',row:t}));
+  const out=tasks.all.map(t=>({kind:'task',id:t.id,title:(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task'),location:location(t,i),status:t.status||'pending',next:t.intake_details?.next_action||'',owner:t.assigned_label||'',schedule:t.schedule,group:overdue.has(t.id)?'overdue':due.has(t.id)?'today':t.schedule?'upcoming':'undated',workflow:t.workflow_key||'',row:t}));
   // Renewal cases are reference records, not implicit work items. Only saved tasks appear here.
   const rank={overdue:0,today:1,undated:2,renewals:3,upcoming:4},priority={urgent:0,high:1,normal:2,low:3};
   return out.sort((a,b)=>rank[a.group]-rank[b.group]||(priority[a.row.priority]??2)-(priority[b.row.priority]??2)||String(a.schedule?.date||'').localeCompare(String(b.schedule?.date||''))||a.title.localeCompare(b.title)||a.id.localeCompare(b.id));
@@ -31,7 +31,7 @@
   for(const p of list(data.people))add('person',p,p.display_name||'Person','Source-linked person · verify current occupancy',[p.email,p.phone].join(' '));
   for(const l of list(data.leases))add('lease',l,l.lease_label||l.source_lease_key||'Lease record',location(l,i),[l.lease_status,l.source_lease_key].join(' '));
   for(const r of list(data.renewals))add('renewal',r,r.oak_record_id||'Renewal case',location(r,i),r.next_action);
-  for(const t of list(data.tasks).filter(t=>!t.archived_at))add('task',t,t.task_title||'Task',location(t,i),[t.status,t.assigned_label,t.intake_details?.next_action].join(' '));
+  for(const t of list(data.tasks).filter(t=>!t.archived_at))add('task',t,(t.task_code?t.task_code+' · ':'')+(t.task_title||'Task'),location(t,i),[t.task_code,t.status,t.assigned_label,t.intake_details?.next_action].join(' '));
   for(const d of list(data.documents))add('document',d,d.source_name||'Reference document','Lease reference · separate Drive access',d.reference_notes);
   return out;
  }
