@@ -29,3 +29,19 @@ test('Requires exact stable batch and workbook row provenance',()=>{
   const d=make();invalid(d);assert.throws(()=>M.parse(d));
  }
 });
+
+test('Full fictional 37-row manifest validates with 4 historical completions and 9 verification tasks',()=>{
+ const entries=[{task_code:'W03',task_title:'Fictional workstream',status:'pending',priority:'normal',work_level:'Renewals',source_ref:'Active Tasks!A5:L5'}];
+ for(let i=1;i<=36;i++){
+  const code='M'+String(i).padStart(2,'0');
+  entries.push({task_code:code,task_title:'Fictional task '+code,
+    status:i>=33?'completed':'pending',priority:'normal',work_level:'Renewals',
+    ...(i>=12&&i<=21?{parent_code:'W03'}:{}),
+    ...(i<=9?{needs_verification:true}:{}),
+    ...(i>=33?{completion_summary:'Fictional history confirmation'}:{}),
+    source_ref:'Active Tasks!A'+(i+5)+':L'+(i+5)});
+ }
+ const summary=M.summarize({schema_version:M.VERSION,batch_ref:'master-backlog-20991231',entries});
+ assert.equal(summary.rows,37);assert.equal(summary.completed,4);
+ assert.equal(summary.verification,9);assert.equal(summary.parentLinks,10);
+});
