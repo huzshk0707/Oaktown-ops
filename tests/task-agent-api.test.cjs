@@ -29,6 +29,29 @@ test('MCP discovery has OAuth policies and explicit write confirmation annotatio
  assert.equal(reads,0);
  const noAuth=await invoke(h,'get_task',{task_id:ID},null);assert.equal(noAuth.result.isError,true);assert.ok(noAuth.result._meta['mcp/www_authenticate'][0].includes('resource_metadata'));assert.equal(reads,0);
 });
+test('ChatGPT wildcard Accept probes discover MCP without HTTP 406 or opening task data',async()=>{
+ const [{createHandler}]=await modules;let reads=0;
+ const h=createHandler({supabaseUrl:SUPABASE,publishableKey:'fictional',
+   fetchImpl:async()=>{reads++;throw Error('Unexpected task data access')}});
+ for(const accept of ['*/*','application/json, */*; q=0.5',null]){
+  const headers={'Content-Type':'application/json'};
+  if(accept!==null)headers.Accept=accept;
+  const r=await h(new Request(URL,{method:'POST',headers,body:JSON.stringify({
+   jsonrpc:'2.0',id:1,method:'initialize',
+   params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'chatgpt-probe',version:'1'}}
+  })}));
+  assert.equal(r.status,200,'Wildcard registration probe failed: '+accept);
+  assert.equal((await r.json()).result.serverInfo.name,'oaktown-ops-tasks');
+ }
+ const incompatible=await h(new Request(URL,{method:'POST',headers:{
+  'Content-Type':'application/json','Accept':'text/html'
+ },body:JSON.stringify({jsonrpc:'2.0',id:2,method:'tools/list'})}));
+ assert.equal(incompatible.status,406,'Incompatible media types must still be rejected');
+ const noAuth=await invoke(h,'get_task',{task_id:ID},null);
+ assert.equal(noAuth.result.isError,true,'Task reads must remain OAuth-gated');
+ assert.equal(reads,0,'Discovery and unauthorized attempts must not read private tasks');
+});
+
 test('JWT verification binds signature, issuer, audience, role and live-session identity; editable metadata grants no rights',async()=>{
  const [, {createVerifier,RESOURCE},jose]=await modules;
  const {publicKey,privateKey}=await jose.generateKeyPair('ES256');
