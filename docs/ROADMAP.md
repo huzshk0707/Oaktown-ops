@@ -27,6 +27,16 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Today dashboard layout refinement
+
+The dashboard summary cards use a normal arrow cursor while their text remains
+selectable. Grid placement for the lower dashboard cards is now scoped to its own
+container, so Urgent and due, Focus now and Other work levels no longer overlap.
+Browser inspection with fictional tasks verified all six themes at seven widths
+from 320 to 1440 pixels, including the workstation breakpoint, with no overlapping
+cards or horizontal overflow. Focus selection and task review remain keyboard
+accessible. This is a stylesheet-only behavior fix; deployment is tracked in the PR.
+
 ## Today workstation — staged A1 increment
 
 Stage A1 is implemented on a separate feature branch for review, without database changes.

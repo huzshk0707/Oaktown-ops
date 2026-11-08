@@ -6,7 +6,7 @@
 .today-header-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.today-header button{flex-shrink:0}
 .today-workflow>.status{margin:16px 0;color:#455f51}
 .today-kpis{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:12px;margin:18px 0}
-.today-kpi{background:#fff;border:1px solid #d8e3d4;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.today-kpi{cursor:default;background:#fff;border:1px solid #d8e3d4;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:5px;min-width:0}
 .today-kpi strong{font-size:27px;color:#173e34;font-variant-numeric:tabular-nums}
 .today-kpi span{font-size:12px;color:#506d5b;font-weight:650}
 .today-columns{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px;align-items:start}
