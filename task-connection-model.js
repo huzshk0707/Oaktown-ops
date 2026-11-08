@@ -2,6 +2,7 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.OpsTaskConnectionModel=api})(typeof window!=='undefined'?window:null,()=>{
  'use strict';
  const server='https://wjdzaexhhjsjtdgxivyw.supabase.co/functions/v1/oaktown-task-api/mcp';
+ function authorizationId(value){return typeof value==='string'&&/^[A-Za-z0-9_-]{16,128}$/.test(value)?value:null}
  function redirect(value,expected){
   let u;try{u=new URL(value)}catch{throw Error('Invalid OAuth return address')}
   if(u.protocol!=='https:'||u.hostname!=='chatgpt.com'||u.port||u.username||u.password||
@@ -15,5 +16,5 @@
   return {id:t.id,title:(t.task_code?t.task_code+' · ':'')+(t.task_title||'Task'),status:t.status,
    action:t.next_action||'',operation:receipt.operation,when:receipt.saved_at,client:receipt.client_label||'ChatGPT'};
  }
- return Object.freeze({server,redirect,differences});
+ return Object.freeze({server,authorizationId,redirect,differences});
 });

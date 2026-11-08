@@ -1,7 +1,8 @@
 'use strict';
 const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co',USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-const AUTH='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+// Supabase generates a public opaque ID, not its internal UUID primary key.
+const AUTH='AbCdEfGhIjKlMnOpQrStUvWxYz012345';
 async function setup(page,{admin=true,authorization=false,callback='https://chatgpt.com/connector/oauth/fictional_callback'}={}){
  const state={calls:[],fail:false,hold:null,decision:null,clients:[{client_id:'fictional-chatgpt',label:'Fictional ChatGPT',enabled:true,can_write:true}],
   activity:[{schema_version:'oaktown.task-agent-receipt.v1',proposal_id:'fictional-proposal',task_id:'fictional-task',client_label:'Fictional ChatGPT',operation:'update',saved_at:'2099-01-01T10:00:00Z',task:{id:'fictional-task',task_code:'A03',task_title:'Fictional document collection',status:'in_progress',next_action:'Collect fictional documents'}}]};
@@ -25,7 +26,7 @@ async function setup(page,{admin=true,authorization=false,callback='https://chat
    if(b.action==='consent_client')return reply({label:'Fictional ChatGPT',can_write:true});
   }
   if(u.pathname==='/auth/v1/oauth/authorizations/'+AUTH)return reply({authorization_id:AUTH,client:{id:'fictional-chatgpt',name:'Untrusted name <img src=x>'},redirect_uri:callback,scope:'openid email'});
-  if(u.pathname==='/auth/v1/oauth/authorizations/'+AUTH+'/consent'){state.decision=req.postDataJSON();return reply({redirect_url:callback+'?error=access_denied'})}
+  if(u.pathname==='/auth/v1/oauth/authorizations/'+AUTH+'/consent'){state.decision=req.postDataJSON();return reply({redirect_url:callback+(state.decision.action==='approve'?'?code=fictional-code&state=fictional-state':'?error=access_denied')})}
   return reply([]);
  });
  await page.goto(ORIGIN+'/'+(authorization?'?authorization_id='+AUTH:''));return state;
@@ -85,4 +86,11 @@ test('OAuth refuses an untrusted redirect before enabling approval',async({page}
  await setup(page,{authorization:true,callback:'https://untrusted.invalid/callback'});await signIn(page,true);
  await expect(page.locator('#task-consent-message')).toContainText('registered ChatGPT callback');
  await expect(page.locator('#task-consent-approve')).toBeDisabled();await expect(page).toHaveURL(new RegExp('127.0.0.1'));
+});
+test('OAuth approval requires the user decision and returns only to the registered ChatGPT callback',async({page})=>{
+ const s=await setup(page,{authorization:true});await signIn(page,true);
+ await expect(page.locator('#task-consent-approve')).toBeEnabled();expect(s.decision).toBeNull();
+ await page.locator('#task-consent-approve').click();
+ await page.waitForURL('https://chatgpt.com/connector/oauth/fictional_callback?code=fictional-code&state=fictional-state');
+ expect(s.decision).toEqual({action:'approve'});expect(s.calls.filter(c=>c.action==='apply')).toHaveLength(0);
 });

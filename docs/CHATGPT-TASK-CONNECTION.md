@@ -42,7 +42,7 @@ approval of individual changes.
   key; it forwards the verified user's scoped token to the task RPC.
 - JWT verification requires ES256/RS256, the project's exact issuer, the exact
   resource audience, a nonanonymous staff identity, role, client and session.
-- Every RPC rechecks active editor/admin membership, the enabled client,
+- Every scoped OAuth task call rechecks active editor/admin membership, the enabled client,
   write permission, live Auth session and unrevoked OAuth consent. Disabling a
   client or revoking the OAuth grant blocks later calls. Private configuration,
   proposals and receipts have RLS and no client table access. Public functions

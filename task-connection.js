@@ -4,7 +4,9 @@ const $=id=>document.getElementById(id),cloud=window.OpsCloud,M=window.OpsTaskCo
 if(!cloud||!M||!$('task-connection'))return;
 let epoch=0,busy=false,owner=cloud.user?.id||null,clients=[],canManage=false,consent=null;
 const authId=new URLSearchParams(location.search).get('authorization_id');
-const authorization=/^[0-9a-f-]{36}$/i.test(authId||'')?authId:null;
+// Supabase's public interaction identifier is opaque (currently 32
+// alphanumeric characters), distinct from its internal UUID primary key.
+const authorization=M.authorizationId(authId);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!=null)n.textContent=String(text);return n};
 const status=text=>{$('task-connection-status').textContent=text};
 const rpc=(action,payload={})=>cloud.api('/rest/v1/rpc/ops_task_agent',{method:'POST',body:JSON.stringify({action,payload})});

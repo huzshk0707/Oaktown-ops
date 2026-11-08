@@ -1,5 +1,10 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),M=require('../task-connection-model.js');
+test('Consent accepts Supabase opaque authorization IDs and rejects path/size injection',()=>{
+ const id='AbCdEfGhIjKlMnOpQrStUvWxYz012345';assert.equal(id.length,32);assert.equal(M.authorizationId(id),id);
+ assert.equal(M.authorizationId('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+ for(const invalid of [null,'short','../authorizations/other','a'.repeat(129),'https://untrusted.invalid',id+'?approve=true'])assert.equal(M.authorizationId(invalid),null);
+});
 test('OAuth redirects accept only registered HTTPS ChatGPT callbacks and preserve the expected path',()=>{
  const callback='https://chatgpt.com/connector/oauth/fictional_callback';
  assert.equal(M.redirect(callback+'?code=fictional',callback),callback+'?code=fictional');
