@@ -8,7 +8,7 @@ Oaktown Ops brings property records and operational workflows together. Main inc
 
 ## Available now
 
-- **Today/tasks/EOD:** Task intake, reviewed task editing, activity tracking and end-of-day preparation.
+- **Today/tasks/EOD:** Task intake, reviewed task editing, activity tracking and end-of-day preparation. In **Review task**, a compact **Saved related records** section opens the exact saved property, unit, lease or renewal through existing connected profiles. It never infers links from task text. The former animated Connections panel has been removed from the dashboard; the existing relationships, audit history and record viewers remain intact.
 - **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Create drafts**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
 - Tenant message: shows the selected tenant's email only when an exact name match exists among people linked to that unit's lease/tenancy records, beside **Copy message**. Staff must verify imported emails before use; nothing is sent automatically.
 - Court follow-up: not displayed in Notices. Previously saved court notes remain untouched inside existing batches for a future add-on.
