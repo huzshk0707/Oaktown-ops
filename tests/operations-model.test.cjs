@@ -5,8 +5,13 @@ test('Action Centre respects real office dates, archived/terminal tasks and reco
  const d=base();d.tasks=[{id:'1',task_title:'Earlier follow-up',status:'waiting',workflow_key:'maintenance',due_at:'2026-11-05T02:00:00Z',intake_details:{follow_up:{date:'2026-11-03'}}},{id:'2',task_title:'Today',status:'pending',intake_details:{due:{date:'2026-11-04'}}},{id:'3',task_title:'Unscheduled',status:'pending'},{id:'4',task_title:'Hidden',archived_at:'2026-11-01'},{id:'5',status:'completed'}];
  d.renewals=[{id:'r1',unit_id:'a',recorded_end:'2026-10-01',next_action:'Verify terms',action_status:'pending'},{id:'r2',is_applicable:false,next_action:'Ignored',action_status:'pending'},{id:'r3',action_status:'pending'}];
  const rows=M.actions(d,'2026-11-04',{r3:{status:'completed',nextAction:'None'}});
- assert.deepEqual(rows.map(r=>[r.id,r.group]),[['1','overdue'],['2','today'],['3','undated'],['r1','renewals']]);
- assert.equal(rows[3].schedule,null);assert.equal(M.filterActions(rows,'overdue').length,1);assert.equal(M.filterActions(rows,'maintenance').length,1);assert.equal(M.filterActions(rows,'waiting').length,1);
+ assert.deepEqual(rows.map(r=>[r.id,r.group]),[['1','overdue'],['2','today'],['3','undated']]);
+ assert.equal(M.filterActions(rows,'renewals').length,0);assert.equal(M.filterActions(rows,'overdue').length,1);assert.equal(M.filterActions(rows,'maintenance').length,1);assert.equal(M.filterActions(rows,'waiting').length,1);
+});
+test('A linked renewal task appears once while raw renewal cases stay searchable, not actionable',()=>{
+ const d=base();d.renewals=[{id:'r1',unit_id:'a',action_status:'pending',next_action:'Check terms'}];d.tasks=[{id:'t1',task_title:'Signature follow-up',status:'pending',workflow_key:'renewal',renewal_case_id:'r1'}];
+ const rows=M.actions(d,'2026-11-08');assert.deepEqual(rows.map(r=>r.id),['t1']);assert.equal(M.filterActions(rows,'renewals').length,1);
+ assert.equal(M.search(M.searchIndex(d),'r1').length,1);
 });
 test('Unit scope never absorbs sibling units or property-only work and preserves property totals',()=>{
  const d=base();d.renewals=[{id:'ra',unit_id:'a',property_id:'p'},{id:'rb',unit_id:'b',property_id:'p'},{id:'rp',property_id:'p'}];
