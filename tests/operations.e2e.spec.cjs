@@ -74,11 +74,16 @@ test('Reference centre uses safe original links and never associates references 
 });
 
 test('Archiving removes active work while its source-linked journal remains readable',async({page})=>{
- const s=await setup(page);s.fixtures.ops_tasks[2].unit_id='u1';s.fixtures.ops_events.push({id:'archived-event',entity_type:'task',entity_id:'t3',event_type:'task_work_recorded',occurred_at:'2026-10-30T12:00:00Z',summary:'Fictional archived work journal'});
+ const s=await setup(page);Object.assign(s.fixtures.ops_tasks[2],{property_id:'p1',unit_id:'u1',lease_id:'l1',renewal_case_id:'r1'});s.fixtures.ops_events.push({id:'archived-event',entity_type:'task',entity_id:'t3',event_type:'task_work_recorded',occurred_at:'2026-10-30T12:00:00Z',summary:'Fictional archived work journal'});
  await page.evaluate(()=>window.OpsOperations.refresh(true));await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));
  await page.locator('#operations-profile-content summary').filter({hasText:'Activity timeline'}).click();
  const row=page.locator('.operations-history-row').filter({hasText:'Fictional archived work journal'});await expect(row).toBeVisible();await row.getByRole('button',{name:'Open source record'}).click();
  await expect(page.locator('#operations-profile-title')).toHaveText('Archived private task');await expect(page.locator('#operations-profile-content')).toContainText('restore from Tasks');await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
+ const related=page.locator('#operations-profile-content .operations-profile-section').filter({hasText:'Saved related records'});
+ await expect(related.getByRole('button')).toHaveCount(4);
+ for(const label of ['Property · 100 Example Court','Unit · Unit A','Lease · Alpha reference lease','Renewal · TEST-A'])await expect(related.getByRole('button',{name:label,exact:true})).toBeVisible();
+ await related.getByRole('button',{name:'Lease · Alpha reference lease',exact:true}).click();await expect(page.locator('#operations-profile-title')).toHaveText('Alpha reference lease');expect(s.writes).toHaveLength(0);
+ await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#operations-profile-dialog')).not.toBeVisible();await expect(page.locator('#operations-profile-content')).toBeEmpty();
 });
 
 test('Profile links close the modal before opening an existing editor and show a read-only renewal fallback on failure',async({page})=>{
@@ -88,7 +93,7 @@ test('Profile links close the modal before opening an existing editor and show a
  s.failPortfolio=true;await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));await page.locator('#operations-profile-content').getByRole('button',{name:'TEST-A · Pending',exact:true}).click();await expect(page.locator('#operations-profile-title')).toHaveText('TEST-A');await expect(page.locator('#operations-profile-content')).toContainText('read-only summary');
 });
 test('Read-only task profile opens saved property, unit, lease and renewal without adding writes',async({page})=>{
- const s=await setup(page,{viewer:true});
+ const s=await setup(page);
  s.fixtures.ops_tasks[0].lease_id='l1';s.fixtures.ops_tasks[0].renewal_case_id='r1';
  await page.evaluate(()=>window.OpsOperations.refresh(true));
  await page.evaluate(()=>window.OpsOperations.openProfile('task','t1'));

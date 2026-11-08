@@ -5,3 +5,10 @@ test('connection map follows stored task, property, unit, lease and renewal rela
 test('general task text never becomes a property or lease relationship',()=>{const d=fixture();d.tasks=[{id:'t',workflow_key:'general',task_title:'Notices for 100 Fictional Road',intake_details:{completion_summary:'Unit 1 and lease F-001'}}];const g=M.build(d,'t');assert.equal(g.nodes.length,1);assert.equal(g.edges.length,0);assert.match(g.notes[0],/not saved property/);});
 test('lease-linked unit and property are traversed without inventing direct task links',()=>{const d=fixture();d.tasks=[{id:'t',lease_id:'l'}];const g=M.build(d,'t');assert.deepEqual(g.edges,[{from:'task',to:'lease'},{from:'unit',to:'property'},{from:'lease',to:'unit'}]);});
 test('missing and inconsistent references stay explicit and never produce false edges',()=>{const d=fixture();d.tasks[0].lease_id='missing';d.units[0].property_id='different';const g=M.build(d,'t');assert.ok(g.notes.some(n=>n.includes('unavailable')));assert.ok(g.notes.some(n=>n.includes('disagree')));assert.ok(!g.edges.some(e=>e.from==='unit'&&e.to==='property'));assert.ok(!g.nodes.some(n=>n.key==='lease'));d.tasks[0].archived_at='2026-11-01';assert.equal(M.build(d,'t').nodes.length,0);});
+test('archived history resolves saved links only when explicitly requested, without changing task state',()=>{
+ const d=fixture();d.tasks[0].archived_at='2026-11-01T00:00:00Z';const original=JSON.stringify(d);
+ assert.equal(M.build(d,'t').nodes.length,0);
+ const g=M.build(d,'t',{includeArchived:true});assert.deepEqual(g.nodes.map(n=>[n.type,n.id]),[['task','t'],['property','p'],['unit','u'],['lease','l'],['renewal','r']]);assert.equal(g.edges.length,9);assert.deepEqual(g.notes,[]);assert.equal(JSON.stringify(d),original);
+ d.leases=[];const missing=M.build(d,'t',{includeArchived:true});assert.ok(!missing.nodes.some(n=>n.type==='lease'));assert.ok(missing.notes.some(n=>n.includes('unavailable')));
+ assert.equal(M.build(d,'missing',{includeArchived:true}).nodes.length,0);
+});

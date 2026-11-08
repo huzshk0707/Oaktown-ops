@@ -198,7 +198,7 @@ function renderProfile(kind,id){
   fact(host,'Status',t.status);fact(host,'Scope',M.location(t,i));fact(host,'Owner',t.assigned_label);fact(host,'Next action',t.intake_details?.next_action);fact(host,'Notes',t.notes);
   if(t.archived_at)fact(host,'Archived',date(String(t.archived_at).slice(0,10))+' · restore from Tasks → Saved records before editing');
   const schedule=T.scheduled(t);fact(host,schedule?.type||'Due / follow-up',schedule?date(schedule.date):'No date assigned');
-  const graph=window.OpsConnectionsModel?.build(records,id);
+  const graph=window.OpsConnectionsModel?.build(records,id,{includeArchived:true});
   if(graph){
    const related=section(host,'Saved related records');
    const linked=graph.nodes.filter(n=>n.type!=='task');
