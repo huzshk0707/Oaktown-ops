@@ -85,7 +85,7 @@ test('Today is protected, uses recorded dates only, and links to existing workfl
  await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();
  await expect(page.locator('#today-status')).toContainText('Updated ·');
- await expect(page.locator('#today-kpis')).toContainText('Open · no date');
+ await expect(page.locator('#today-kpis')).toContainText('Waiting / blocked');
  await expect(page.locator('#today-kpis .today-kpi').nth(0)).toContainText('Overdue');
  await expect(page.locator('#today-kpis .today-kpi').nth(0)).toContainText('1');
  await expect(page.locator('#today-queue')).toContainText('Fictional overdue inspection follow-up');
