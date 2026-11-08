@@ -9,6 +9,8 @@ Status: **review PR only**. This branch does not apply a production schema migra
 - Preserve OAK-002 and the completed eight-property notice batch unchanged.
 - The application continues to read work levels from intake_details.work_level; no duplicate work_level column.
 - New task_code and parent_task_id fields allow exact M/W/A codes and known parent-child links.
+- Preserve original workbook **Owner** in `assigned_label` exactly as a source label (`You`, `Leslie`, `You / Leslie` or null). Do not map these ambiguous labels to a staff UUID; `assigned_user_id` remains null until individually verified.
+- Preserve Origin, Cluster / Level, Property / Target, Source / Caution and Update notes as explicit named `intake_details.source_*` metadata. Do not manufacture property/tenant/lease relationships from textual targets.
 - The initial import creates general-operation tasks WITHOUT property/unit/lease/renewal links until each association is verified.
 - Four historically completed entries have status completed and completion_summary. Unknown completion timestamps remain NULL; a source date-only completed_on is preserved as metadata, not converted to an invented instant.
 - No recurrence engine, automatic notices/messages, payments, archival, or tenant outreach.
@@ -28,6 +30,7 @@ A fictional example (NEVER paste real sensitive workbook material in GitHub):
     }
 
 Optional fields: parent_code, next_action, waiting_on, blocked_reason, completion_summary, completed_on (known date only), needs_verification boolean, original_status and original_priority.
+Source-context fields: `origin`, `cluster_level`, `owner_label`, `property_target`, `source_caution`, `update_notes`. Null owner means no assignee; never overwrite it with the importing editor.
 
 Only 1–50 rows; unknown fields, property IDs, lease IDs, automatic due dates and unsupported statuses are rejected.
 
