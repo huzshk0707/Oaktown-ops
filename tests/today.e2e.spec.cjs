@@ -410,3 +410,43 @@ test('focus and history initialize if the saved dashboard loads before their scr
 test('invalid theme preferences and unavailable local storage fall back safely',async({page})=>{
  await page.addInitScript(()=>{try{localStorage.setItem('oaktown-theme-v1','not-a-theme')}catch{}});await setup(page);await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'getItem',{value(){throw Error('Storage blocked')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}});});await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.getByLabel('Workspace theme').selectOption('nilo');await expect(page.locator('html')).toHaveAttribute('data-ops-theme','nilo');
 });
+
+
+test('Reviewed Master Backlog preview never saves without explicit approval and confirms saved codes',async({page})=>{
+ const s=await setup(page);
+ const payload={schema_version:'oaktown.master-backlog.v1',batch_ref:'master-backlog-20991231',entries:[
+  {task_code:'W03',task_title:'Fictional renewal parent',status:'pending',priority:'normal',work_level:'Renewals',source_ref:'Active Tasks!A9:L9'},
+  {task_code:'M12',task_title:'Fictional reminder',status:'waiting',priority:'high',work_level:'Renewals',parent_code:'W03',waiting_on:'Fictional coordinator',source_ref:'Active Tasks!A10:L10'},
+  {task_code:'M13',task_title:'Fictional completed follow-up',status:'completed',priority:'normal',work_level:'Renewals',parent_code:'W03',completion_summary:'Reported complete',source_ref:'Active Tasks!A11:L11'}
+ ]};
+ const calls=[];
+ await page.route('**/rest/v1/rpc/ops_master_backlog_import',async route=>{
+  const body=route.request().postDataJSON();calls.push(body);
+  const headers={'content-type':'application/json','access-control-allow-origin':'*'};
+  if(body.p_mode==='preview')return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-preview.v1',batch_ref:payload.batch_ref,preview_token:'fictional-token',rows:3,to_create:3,already_imported:0})});
+  if(body.p_mode==='save'&&body.p_reviewed===true&&body.p_preview_token==='fictional-token'){
+   for(const e of payload.entries)s.tasks.push({id:'new-'+e.task_code,task_code:e.task_code,parent_task_id:e.parent_code?'new-'+e.parent_code:null,task_title:e.task_title,status:e.status,priority:e.priority,intake_details:{work_level:e.work_level,waiting_on:e.waiting_on,completion_summary:e.completion_summary},archived_at:null,updated_at:'2026-11-08T01:00:00Z'});
+   return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-receipt.v1',batch_ref:payload.batch_ref,rows:payload.entries.map(e=>({task_code:e.task_code,id:'new-'+e.task_code,status:e.status}))})});
+  }
+  return route.fulfill({status:403,headers,body:'{"message":"Denied"}'});
+ });
+ await signInToday(page);
+ await page.locator('#backlog-import-settings>summary').click();
+ await page.locator('#backlog-import-input').fill(JSON.stringify(payload));
+ await expect(page.locator('#backlog-import-save')).toBeDisabled();
+ await page.locator('#backlog-import-preview').click();
+ await expect(page.locator('#backlog-import-status')).toContainText('Preview ready');
+ expect(calls.map(c=>c.p_mode)).toEqual(['preview']);
+ await expect(page.locator('#backlog-import-summary')).toContainText('M12');
+ await expect(page.locator('#backlog-import-save')).toBeDisabled();
+ await page.locator('#backlog-import-reviewed').check();
+ await page.locator('#backlog-import-confirmation').fill('IMPORT '+payload.batch_ref);
+ await expect(page.locator('#backlog-import-save')).toBeEnabled();
+ await page.locator('#backlog-import-save').click();
+ await expect(page.locator('#backlog-import-status')).toContainText('Verified 3 task records');
+ expect(calls.map(c=>c.p_mode)).toEqual(['preview','save']);
+ expect(calls[1].p_reviewed).toBe(true);
+ await expect(page.locator('#today-work-levels')).toContainText('M12 · Fictional reminder');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#backlog-import-input')).toHaveValue('');
+});
