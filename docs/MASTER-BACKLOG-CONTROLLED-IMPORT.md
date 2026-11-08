@@ -57,6 +57,7 @@ Only 1–50 rows; unknown fields, property IDs, lease IDs, automatic due dates a
 - The preview token is an optimistic state fingerprint, not a bearer credential or proof that a person read the preview. Staff authorization and an explicit true review flag are required independently. Preview does not store an approval or write tasks, events or receipts.
 - Parent-chain checks lock and follow current ancestors. Disposable tests cover competing updates and stale repeatable-read snapshots, as well as sequential cycles.
 - The browser holds the approved manifest fixed during requests, exposes all supplied fields in row details, clears private drafts on account changes/sign-out and requires saved identities to match the receipt before confirming success.
+- Today also consumes an already verified shared session at initialization. A deterministic delayed-script regression covers the saved-session startup race exposed by the full CI browser run; sign-out still clears protected records.
 - CI tests the real migration, staff role matrix, NULL/malformed input rejection, read-only previews, duplicate replay, stale tokens, concurrency, refusal of rollback after import and clean rollback before import. Browser tests use mocked APIs; they do not establish live Supabase behavior or production backup recovery.
 - Production schema rollout and the real workbook import remain pending separate approval. Existing project-wide Auth/advisor findings are outside this migration's scope.
 

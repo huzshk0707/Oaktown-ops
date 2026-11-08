@@ -418,6 +418,21 @@ test('focus and history initialize if the saved dashboard loads before their scr
  await page.locator('#today-history>summary').click();await expect(page.locator('#today-archived')).toContainText('Private archived item');
  await page.locator('#today-focus-body').getByRole('button',{name:'Review task',exact:true}).click();await expect(page.locator('#today-edit-dialog')).toBeVisible();await page.locator('#today-edit-cancel').click();
 });
+test('Today initializes when the verified saved session restores before its script loads',async({page})=>{
+ await setup(page);await signInToday(page);
+ await page.route('**/today.js?*',async route=>{
+  await page.waitForFunction(()=>!!window.OpsCloud?.user);await route.continue();
+ });
+ await page.reload();
+ await expect(page.locator('#today-status')).toContainText('Updated');
+ await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
+ await page.locator('.today-reset-settings>summary').click();
+ await page.locator('#backlog-import-settings>summary').click();
+ await expect(page.locator('#backlog-import-input')).toBeEnabled();
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-status')).toContainText('Sign in to view private');
+ await expect(page.locator('#today-urgent')).toContainText('Sign in to view work');
+});
 test('invalid theme preferences and unavailable local storage fall back safely',async({page})=>{
  await page.addInitScript(()=>{try{localStorage.setItem('oaktown-theme-v1','not-a-theme')}catch{}});await setup(page);await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'getItem',{value(){throw Error('Storage blocked')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}});});await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.getByLabel('Workspace theme').selectOption('nilo');await expect(page.locator('html')).toHaveAttribute('data-ops-theme','nilo');
 });

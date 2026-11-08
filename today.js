@@ -136,4 +136,7 @@ window.addEventListener('ops-today-refresh',()=>{if(!busy)refresh()});
 window.addEventListener('ops-auth-change',e=>{if(!e.detail?.user)clear();else if(!$('today-workflow').hidden)refresh()});
 window.OpsToday={refresh,getData:()=>viewData};
 clear();
+// A verified saved session can restore while earlier deferred scripts load.
+// Consume that state as well as future auth events; never infer a user locally.
+if(cloud.user&&!$('today-workflow').hidden)refresh();
 })();
