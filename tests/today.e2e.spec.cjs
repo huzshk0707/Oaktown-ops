@@ -421,8 +421,9 @@ test('Reviewed Master Backlog preview never saves without explicit approval and 
  ]};
  const calls=[];
  await page.route('**/rest/v1/rpc/ops_master_backlog_import',async route=>{
+  const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'};
+  if(route.request().method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
   const body=route.request().postDataJSON();calls.push(body);
-  const headers={'content-type':'application/json','access-control-allow-origin':'*'};
   if(body.p_mode==='preview')return route.fulfill({status:200,headers,body:JSON.stringify({schema_version:'oaktown.master-backlog-preview.v1',batch_ref:payload.batch_ref,preview_token:'fictional-token',rows:3,to_create:3,already_imported:0})});
   if(body.p_mode==='save'&&body.p_reviewed===true&&body.p_preview_token==='fictional-token'){
    for(const e of payload.entries)s.tasks.push({id:'new-'+e.task_code,task_code:e.task_code,parent_task_id:e.parent_code?'new-'+e.parent_code:null,task_title:e.task_title,status:e.status,priority:e.priority,intake_details:{work_level:e.work_level,waiting_on:e.waiting_on,completion_summary:e.completion_summary},archived_at:null,updated_at:'2026-11-08T01:00:00Z'});
