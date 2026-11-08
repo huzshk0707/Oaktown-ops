@@ -27,13 +27,13 @@ function renderSummary(){
  box.append(elem('p','Reviewed '+preview.rows+' rows · '+preview.to_create+' to create · '+preview.already_imported+' already imported · '+s.completed+' completed · '+s.verification+' require verification · '+s.parentLinks+' child links'));
  const table=elem('table',null,'backlog-import-table');
  const header=document.createElement('tr');
- for(const label of ['Code','Task','Status','Level','Parent','Details'])header.append(elem('th',label));
+ for(const label of ['Code','Task','Status','Owner (source)','Level','Parent','Details'])header.append(elem('th',label));
  table.append(header);
  for(const row of manifest.entries){
   const tr=document.createElement('tr');
-  for(const val of [row.task_code,row.task_title,row.status,row.work_level,row.parent_code||'—'])tr.append(elem('td',val));
+  for(const val of [row.task_code,row.task_title,row.status,row.owner_label||'Unassigned',row.work_level,row.parent_code||'—'])tr.append(elem('td',val));
   const td=elem('td'),details=elem('details');details.append(elem('summary','Review fields'));
-  for(const key of ['priority','source_ref','needs_verification','next_action','waiting_on','blocked_reason','completion_summary','completed_on','original_status','original_priority'])
+  for(const key of ['priority','source_ref','needs_verification','next_action','waiting_on','blocked_reason','completion_summary','completed_on','original_status','original_priority','origin','cluster_level','property_target','source_caution','update_notes'])
    if(row[key]!=null)details.append(elem('p',key.replaceAll('_',' ')+': '+row[key]));
   td.append(details);tr.append(td);
   table.append(tr);
@@ -88,7 +88,7 @@ $('backlog-import-save').addEventListener('click',async()=>{
      receipt.batch_ref!==payload.batch_ref||!Array.isArray(receipt.rows)||
      receipt.rows.length!==payload.entries.length)throw Error('Server receipt not confirmed');
   const codes=payload.entries.map(r=>r.task_code);
-  const saved=await cloud.api('/rest/v1/ops_tasks?select=id,task_code,status,parent_task_id&task_code=in.('+codes.join(',')+')&limit=1000');
+  const saved=await cloud.api('/rest/v1/ops_tasks?select=id,task_code,status,parent_task_id,assigned_label,assigned_user_id,intake_details&task_code=in.('+codes.join(',')+')&limit=1000');
   if(ticket!==epoch||cloud.user?.id!==account||payload!==manifest)return;
   M.verifySaved(payload,receipt,saved);
   status('Verified '+saved.length+' task records after save. Receipt batch: '+receipt.batch_ref+

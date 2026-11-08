@@ -104,7 +104,8 @@ begin
      select 1 from pg_catalog.jsonb_object_keys(rowdata) k where k not in
        ('task_code','task_title','status','priority','work_level','parent_code',
         'next_action','waiting_on','blocked_reason','completion_summary','completed_on',
-        'needs_verification','source_ref','original_status','original_priority')
+        'needs_verification','source_ref','original_status','original_priority',
+        'origin','cluster_level','owner_label','property_target','source_caution','update_notes')
    ) then raise exception 'Unsupported row fields' using errcode='22023'; end if;
    foreach field in array array['task_code','task_title','status','priority','work_level','source_ref'] loop
      if jsonb_typeof(rowdata->field) is distinct from 'string'
@@ -114,6 +115,11 @@ begin
      if rowdata ? field and jsonb_typeof(rowdata->field) not in ('string','null')
         or length(coalesce(rowdata->>field,'')) > (case field when 'parent_code' then 3 when 'waiting_on' then 120 when 'blocked_reason' then 1200 else 2000 end)
      then raise exception 'Invalid text field %',field using errcode='22023'; end if;
+   end loop;
+   foreach field in array array['origin','cluster_level','owner_label','property_target','source_caution','update_notes'] loop
+     if rowdata ? field and jsonb_typeof(rowdata->field) not in ('string','null')
+        or length(coalesce(rowdata->>field,'')) > (case field when 'owner_label' then 120 else 2000 end)
+     then raise exception 'Invalid workbook source field %',field using errcode='22023'; end if;
    end loop;
    code:=rowdata->>'task_code'; src:=rowdata->>'source_ref';
    title:=rowdata->>'task_title'; stat:=rowdata->>'status';
@@ -209,22 +215,31 @@ begin
        'source_fingerprint',pg_catalog.md5(rowdata::text),
        'original_status',rowdata->>'original_status',
        'original_priority',rowdata->>'original_priority',
-       'needs_verification',coalesce((rowdata->>'needs_verification')::boolean,false)
+       'needs_verification',coalesce((rowdata->>'needs_verification')::boolean,false),
+       'source_origin',rowdata->'origin',
+       'cluster_level',rowdata->'cluster_level',
+       'source_owner_label',rowdata->'owner_label',
+       'source_property_target',rowdata->'property_target',
+       'source_caution',rowdata->'source_caution',
+       'source_update_notes',rowdata->'update_notes'
      );
      if length(coalesce(rowdata->>'next_action',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('next_action',rowdata->>'next_action');end if;
      if length(coalesce(rowdata->>'waiting_on',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('waiting_on',rowdata->>'waiting_on');end if;
      if length(coalesce(rowdata->>'blocked_reason',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('blocked_reason',rowdata->>'blocked_reason');end if;
      if length(coalesce(rowdata->>'completion_summary',''))>0 then detail:=detail||pg_catalog.jsonb_build_object('completion_summary',rowdata->>'completion_summary');end if;
      if rowdata ? 'completed_on' then detail:=detail||pg_catalog.jsonb_build_object('completed_on',rowdata->>'completed_on');end if;
-     insert into public.ops_tasks(task_code,parent_task_id,workflow_key,task_title,status,priority,source_task_key,intake_details,assigned_user_id)
-     values(code,parentid,'general',title,stat,prio,sourcekey,detail,actor)
+     insert into public.ops_tasks(task_code,parent_task_id,workflow_key,task_title,status,priority,source_task_key,intake_details,assigned_label,assigned_user_id)
+     values(code,parentid,'general',title,stat,prio,sourcekey,detail,nullif(btrim(rowdata->>'owner_label'),''),null)
      returning id into new_id;
      -- Historical "completed" is preserved without manufacturing a timestamp.
      insert into public.ops_events(entity_type,entity_id,event_type,actor_id,summary,event_metadata)
      values('task',new_id,'master_backlog_imported',actor,'Imported from reviewed Master Backlog',
        pg_catalog.jsonb_build_object('batch_ref',batch,'task_code',code,'source_ref',rowdata->>'source_ref',
         'fingerprint',pg_catalog.md5(rowdata::text),'original_status',rowdata->>'original_status',
-        'mapped_status',stat,'work_level',level,'parent_code',parent_code));
+        'mapped_status',stat,'work_level',level,'parent_code',parent_code,
+        'source_owner_label',rowdata->'owner_label','source_origin',rowdata->'origin',
+        'source_caution',rowdata->'source_caution'));
+
    end if;
    reply_rows:=reply_rows||pg_catalog.jsonb_build_array(pg_catalog.jsonb_build_object('task_code',code,'id',new_id,'status',stat,'parent_code',parent_code));
  end loop;
