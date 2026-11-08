@@ -1,0 +1,45 @@
+/* Focus-first Today layout. Theme tokens take precedence; no fixed-height graph. */
+.today-workstation{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:15px;margin-bottom:20px}
+.today-workstation .today-card{min-width:0;background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border)}
+.today-attention-card{grid-column:1 / -1}
+.today-level-card{grid-column:2;grid-row:2}
+.today-focus-card{grid-column:1;grid-row:2}
+.today-workstation h3{margin:0 0 5px}
+.today-workstation .today-muted{font-size:12px;line-height:1.55;color:var(--ui-muted)}
+.today-alert{display:flex;justify-content:space-between;align-items:center;gap:18px;border-top:1px solid var(--ui-border);padding:10px 0}
+.today-alert strong{font-size:13px;line-height:1.4;overflow-wrap:anywhere}
+.today-alert p{margin:4px 0}
+.today-alert-level{font-size:11px;color:var(--ui-muted)}
+.today-alert .button{flex-shrink:0}
+.today-focus-picker,.today-task-picker{display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:650}
+.today-focus-picker select,.today-task-picker select{width:100%;min-height:43px;border:1px solid var(--ui-control);border-radius:8px;background:var(--ui-soft);color:var(--ui-text);font:inherit;padding:8px}
+.today-focus-body{margin-top:14px;min-width:0}
+.today-focus-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.today-focus-level-label,.today-focus-waiting{font-size:11px;color:var(--ui-muted)}
+.today-focus-card h4{font-size:19px;margin:10px 0 8px;line-height:1.4;overflow-wrap:anywhere}
+.today-focus-next{font-size:13px;line-height:1.6;padding:10px 12px;background:var(--ui-soft);border-left:3px solid var(--mode-accent);border-radius:5px;overflow-wrap:anywhere}
+.today-focus-actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 7px}
+.today-focus-actions .button{min-height:42px}
+.today-task-picker{margin-top:12px}
+.today-level{border-top:1px solid var(--ui-border);padding:9px 0}
+.today-level summary{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;min-height:40px}
+.today-level summary strong{font-size:13px;overflow-wrap:anywhere}
+.today-level-count{font-size:11px;color:var(--ui-muted);text-align:right}
+.today-level-row{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 0;border-top:1px solid var(--ui-border)}
+.today-level-row>div{min-width:0}
+.today-level-row strong{display:block;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.today-level-row .today-muted{display:block}
+.today-history>summary{font-size:16px;font-weight:700;cursor:pointer;min-height:32px}
+.today-history[open]>summary{margin-bottom:12px}
+.today-history-search{display:flex;flex-direction:column;gap:5px;margin:12px 0;font-weight:650;font-size:12px}
+.today-history-search input{min-height:43px;border:1px solid var(--ui-control);border-radius:8px;background:var(--ui-soft);color:var(--ui-text);font:inherit;padding:8px}
+.today-history section{margin-top:14px;border-top:1px solid var(--ui-border)}
+.today-history section h3{font-size:15px;margin:13px 0}
+.today-history .today-archive-row{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--ui-border)}
+.today-archive-row strong{font-size:13px;overflow-wrap:anywhere}
+.today-archive-row p{font-size:11px;color:var(--ui-muted);margin:4px 0}
+.today-archive-actions{display:flex;flex-wrap:wrap;gap:7px}
+@media(max-width:900px){.today-workstation{grid-template-columns:1fr}.today-attention-card,.today-focus-card,.today-level-card{grid-column:1;grid-row:auto}}
+@media(max-width:540px){.today-alert,.today-archive-row{align-items:flex-start;flex-direction:column}.today-level summary{align-items:start;flex-direction:column;gap:3px}.today-level-count{text-align:left}}
+
+.today-history [hidden]{display:none!important}

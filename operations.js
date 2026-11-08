@@ -35,9 +35,9 @@ function toggleDensity(){const value=document.documentElement.dataset.opsDensity
 try{applyDensity(localStorage.getItem(densityKey))}catch{applyDensity('comfortable')}
 
 const centre=el('details',null,'operations-centre today-card');centre.id='operations-centre';
-centre.innerHTML='<div class="operations-section-head"><div><span class="operations-eyebrow">YOUR WORK, CONNECTED</span><h3 id="operations-title" tabindex="-1">Action Centre</h3><p>Saved tasks and renewal follow-ups, with their source records.</p></div><div class="operations-head-actions"><button type="button" class="button" id="operations-documents-open">Reference library</button><button type="button" class="button" id="operations-refresh">Refresh records</button></div></div><div id="operations-coverage" class="operations-coverage"></div><div class="operations-filters"><label>Show <select id="operations-filter"><option value="all">All active work</option><option value="overdue">Overdue tasks</option><option value="today">Due today</option><option value="waiting">Waiting / on hold</option><option value="undated">Tasks without dates</option><option value="renewals">Renewal follow-ups</option><option value="maintenance">Maintenance tasks</option></select></label><button type="button" class="button" id="operations-save-filter">Save this view</button><span id="operations-filter-status" role="status"></span></div><p id="operations-status" role="status"></p><div id="operations-queue"></div><button type="button" class="button" id="operations-more" hidden>Show 25 more</button>';
-const centreSummary=el('summary','Action Centre · saved tasks and renewal follow-ups');centre.prepend(centreSummary);
-$('today-kpis').after(centre);$('operations-filter').value=filter;
+centre.innerHTML='<div class="operations-section-head"><div><span class="operations-eyebrow">YOUR WORK, CONNECTED</span><h3 id="operations-title" tabindex="-1">Action Centre</h3><p>Saved actionable tasks. Renewal cases stay in Renewal Watch and the Renewals module.</p></div><div class="operations-head-actions"><button type="button" class="button" id="operations-documents-open">Reference library</button><button type="button" class="button" id="operations-refresh">Refresh records</button></div></div><div id="operations-coverage" class="operations-coverage"></div><div class="operations-filters"><label>Show <select id="operations-filter"><option value="all">All active work</option><option value="overdue">Overdue tasks</option><option value="today">Due today</option><option value="waiting">Waiting / on hold</option><option value="undated">Tasks without dates</option><option value="renewals">Linked renewal tasks</option><option value="maintenance">Maintenance tasks</option></select></label><button type="button" class="button" id="operations-save-filter">Save this view</button><span id="operations-filter-status" role="status"></span></div><p id="operations-status" role="status"></p><div id="operations-queue"></div><button type="button" class="button" id="operations-more" hidden>Show 25 more</button>';
+const centreSummary=el('summary','Action Centre · saved tasks');centre.prepend(centreSummary);
+document.querySelector('.today-workstation').after(centre);$('operations-filter').value=filter;
 $('operations-filter').onchange=()=>{filter=$('operations-filter').value;shown=25;text('operations-filter-status','');renderCentre()};
 $('operations-save-filter').onclick=()=>{savePref(pref,filter);text('operations-filter-status','View saved on this device.')};
 $('operations-more').onclick=()=>{shown+=25;renderCentre()};
@@ -120,7 +120,7 @@ function renderCentre(){
  $('operations-more').hidden=filtered.length<=shown;
 }
 const quick=[
- ['Open Action Centre','actions'],['Review task intake','tasks',null,'task-json'],['Draft a notice','notices'],['Prepare a renewal','leases','prepare'],['Prepare a new lease','leases','new'],['Browse properties','properties'],['Open reference library','library']
+ ['Open Action Centre','actions'],['Legacy task intake','tasks',null,'task-json'],['Draft a notice','notices'],['Prepare a renewal','leases','prepare'],['Prepare a new lease','leases','new'],['Browse properties','properties'],['Open reference library','library']
 ];
 async function openPalette(){
  if(document.querySelector('dialog[open]'))return;

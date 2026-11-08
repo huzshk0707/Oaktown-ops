@@ -44,7 +44,7 @@ async function setup(page){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);s.archives.push(b);
     if(s.archives.length===s.failArchiveAt)return reply({message:'Task changed; refresh.'},409);
     if(s.viewer||!task||task.updated_at!==b.p_expected_updated_at)return reply({message:'Denied or stale task'},403);
-    task.archived_at=new Date().toISOString();task.updated_at=task.archived_at;
+    task.archived_at=b.p_archived?new Date().toISOString():null;task.updated_at=new Date().toISOString();
     if(s.holdArchive)await s.holdArchive;
     if(s.failReadsAfterArchive)s.fail=true;
     if(s.loseArchiveReply)return route.abort('connectionreset');
@@ -85,7 +85,7 @@ test('Today is protected, uses recorded dates only, and links to existing workfl
  await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();
  await expect(page.locator('#today-status')).toContainText('Updated ·');
- await expect(page.locator('#today-kpis')).toContainText('Open · no date');
+ await expect(page.locator('#today-kpis')).toContainText('Waiting / blocked');
  await expect(page.locator('#today-kpis .today-kpi').nth(0)).toContainText('Overdue');
  await expect(page.locator('#today-kpis .today-kpi').nth(0)).toContainText('1');
  await expect(page.locator('#today-queue')).toContainText('Fictional overdue inspection follow-up');
@@ -333,6 +333,79 @@ test('general task has no invented links and private related details clear on si
  await expect(page.locator('#today-related-links')).toBeEmpty();
  await expect(page.locator('#today-related-notes')).toBeEmpty();
  expect(s.edits).toHaveLength(0);
+});
+test('Today keeps urgent work across levels and status shortcuts require reviewed save',async({page})=>{
+ const s=await setup(page);
+ s.tasks[0].workflow_key='maintenance';
+ s.tasks[1].workflow_key='accounting';
+ await signInToday(page);
+ await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
+ await expect(page.locator('#today-urgent')).toContainText('Fictional tenant reply due today');
+ await expect(page.locator('#today-focus-level')).toBeEnabled();
+ await page.locator('#today-focus-level').selectOption('workflow:maintenance');
+ await expect(page.locator('#today-focus-body')).toContainText('Fictional overdue inspection follow-up');
+ await page.locator('#today-focus-body').getByRole('button',{name:'Complete'}).click();
+ await expect(page.locator('#today-edit-dialog')).toBeVisible();
+ await expect(page.locator('#today-edit-status')).toHaveValue('completed');
+ expect(s.edits).toHaveLength(0);
+ await page.locator('#today-edit-cancel').click();
+ await page.locator('#today-focus-level').selectOption('workflow:accounting');
+ await expect(page.locator('#today-focus-body')).toContainText('Fictional tenant reply due today');
+ await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
+ await expect(page.locator('#operations-queue')).not.toContainText('FICTIONAL-001');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-urgent')).not.toContainText('Fictional overdue inspection follow-up');
+});
+test('Today archive supports verified restore and clears private history after sign-out',async({page})=>{
+ const s=await setup(page);
+ s.tasks[3].updated_at='2026-10-29T10:00:00Z';
+ await signInToday(page);
+ await page.locator('#today-history>summary').click();
+ await expect(page.locator('#today-archived')).toContainText('Private archived item');
+ await page.locator('#today-history-search').fill('Private archived');
+ await expect(page.locator('#today-archived .today-archive-row')).toHaveCount(1);
+ page.once('dialog',dialog=>dialog.accept());
+ await page.locator('#today-archived').getByRole('button',{name:'Restore'}).click();
+ await expect(page.locator('#today-history-status')).toContainText('Restored from archive and verified');
+ expect(s.archives).toHaveLength(1);
+ expect(s.archives[0].p_archived).toBe(false);
+ await expect(page.locator('#today-queue')).toContainText('Private archived item');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-archived')).toBeEmpty();
+ await expect(page.locator('#today-history-search')).toHaveValue('');
+});
+test('history search filters completed and archived titles, including after refresh',async({page})=>{
+ const s=await setup(page);s.tasks.push({id:'completed-search',task_title:'Completed fictional filing',status:'completed',completed_at:'2026-11-01T12:00:00Z'});
+ await signInToday(page);await page.locator('#today-history>summary').click();
+ const completed=page.locator('#today-completed .today-task:visible'),archived=page.locator('#today-archived .today-archive-row:visible');
+ await page.locator('#today-history-search').fill('fictional filing');await expect(completed).toHaveCount(1);await expect(archived).toHaveCount(0);
+ await page.locator('#today-history-search').fill('Private archived');await expect(completed).toHaveCount(0);await expect(archived).toHaveCount(1);
+ await page.evaluate(()=>window.OpsToday.refresh());await expect(completed).toHaveCount(0);await expect(archived).toHaveCount(1);
+ await page.locator('#today-history-search').fill('no matching title');await expect(completed).toHaveCount(0);await expect(archived).toHaveCount(0);
+ await page.locator('#today-history-search').fill('');await expect(completed).toHaveCount(1);await expect(archived).toHaveCount(1);
+});
+test('restoring completed history preserves its completed status and never reopens it',async({page})=>{
+ const s=await setup(page);Object.assign(s.tasks[3],{status:'completed',completed_at:'2026-11-01T12:00:00Z',updated_at:'2026-10-29T10:00:00Z'});
+ await signInToday(page);await page.locator('#today-history>summary').click();
+ let confirmation='';page.once('dialog',async dialog=>{confirmation=dialog.message();await dialog.accept()});
+ await page.locator('#today-archived').getByRole('button',{name:'Restore'}).click();await expect(page.locator('#today-history-status')).toContainText('Restored from archive and verified');
+ expect(confirmation).toContain('saved status');expect(s.tasks[3].status).toBe('completed');expect(s.archives).toHaveLength(1);
+ await expect(page.locator('#today-completed')).toContainText('Private archived item');await expect(page.locator('#today-queue')).not.toContainText('Private archived item');await expect(page.locator('#today-archived .today-archive-row')).toHaveCount(0);
+});
+for(const failure of ['stale version','read-back failure'])test('Today restore never claims verification after '+failure,async({page})=>{
+ const s=await setup(page);s.tasks[3].updated_at='2026-10-29T10:00:00Z';await signInToday(page);await page.locator('#today-history>summary').click();
+ if(failure==='stale version')s.failArchiveAt=1;else s.failReadsAfterArchive=true;
+ page.once('dialog',dialog=>dialog.accept());await page.locator('#today-archived').getByRole('button',{name:'Restore'}).click();
+ if(failure==='stale version'){await expect(page.locator('#today-history-status')).toContainText('Restore not verified');expect(s.tasks[3].archived_at).toBeTruthy()}
+ else{await expect(page.locator('#today-status')).toContainText('Could not load the dashboard');await expect(page.locator('#today-archived')).toBeEmpty()}
+ await expect(page.locator('#today-history-status')).not.toContainText('Restored from archive and verified');expect(s.archives).toHaveLength(1);
+});
+test('focus and history initialize if the saved dashboard loads before their scripts',async({page})=>{
+ await setup(page);await signInToday(page);
+ await page.route('**/today-workstation.js?*',async route=>{await page.waitForFunction(()=>!!window.OpsCloud?.user&&!!window.OpsToday);await page.evaluate(()=>window.OpsToday.refresh());await route.continue()});
+ await page.reload();await expect(page.locator('#today-status')).toContainText('Updated');await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');await expect(page.locator('#today-focus-body')).toContainText('Fictional overdue inspection follow-up');
+ await page.locator('#today-history>summary').click();await expect(page.locator('#today-archived')).toContainText('Private archived item');
+ await page.locator('#today-focus-body').getByRole('button',{name:'Review task',exact:true}).click();await expect(page.locator('#today-edit-dialog')).toBeVisible();await page.locator('#today-edit-cancel').click();
 });
 test('invalid theme preferences and unavailable local storage fall back safely',async({page})=>{
  await page.addInitScript(()=>{try{localStorage.setItem('oaktown-theme-v1','not-a-theme')}catch{}});await setup(page);await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'getItem',{value(){throw Error('Storage blocked')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}});});await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.getByLabel('Workspace theme').selectOption('nilo');await expect(page.locator('html')).toHaveAttribute('data-ops-theme','nilo');

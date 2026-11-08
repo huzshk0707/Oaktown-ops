@@ -22,8 +22,8 @@ function renderSchedule(tasks){
  layout.append(ring,legend);host.replaceChildren(layout);
  if(!tasks.all.length)host.append(el('p','No active tasks recorded.','today-muted'));
 }
-function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-refresh').disabled=!cloud.user;resetSchedule('Sign in to view the task breakdown.');}
-function taskRow(t){const card=el('article',null,'today-task');card.append(el('strong',t.task_title||'Untitled task'));
+function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';$('today-refresh').disabled=!cloud.user;resetSchedule('Sign in to view the task breakdown.');}
+function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=String(t.task_title||'Untitled task').toLowerCase();card.append(el('strong',t.task_title||'Untitled task'));
  if(viewData){
   const units=new Map(viewData.units.map(x=>[x.id,x])),properties=new Map(viewData.properties.map(x=>[x.id,x]));
   const unit=units.get(t.unit_id),property=properties.get(t.property_id||unit?.property_id);
@@ -55,18 +55,18 @@ function group(host,label,rows,empty,max=8){
  if(!rows.length)section.append(el('p',empty,'today-muted'));
  else{
   for(const row of rows.slice(0,max))section.append(taskRow(row));
-  if(rows.length>max)section.append(el('p',(rows.length-max)+' more. Open Tasks to review the full list.','today-muted'));
+  if(rows.length>max)section.append(el('p',(rows.length-max)+' more. Open Work Levels to review the full list.','today-muted'));
  }
  host.append(section);
 }
 function render(data){
  viewData=data;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:data}));
- const tasks=M.classify(data.tasks),leases=M.expiring(data.renewals);
+ const tasks=M.classify(data.tasks),leases=M.expiring(data.renewals),work=window.OpsWorkstationModel.project(data.tasks),watch=window.OpsWorkstationModel.watch(data.renewals);
  const byId=(list)=>new Map(list.map(v=>[v.id,v]));
  const properties=byId(data.properties),units=byId(data.units);
- const numbers=[['Overdue',tasks.overdue.length],['Due today',tasks.today.length],['Open · no date',tasks.undated.length],['Waiting / blocked',tasks.waiting.length],['Lease ends ≤45d',leases.length]];
+ const numbers=[['Overdue',tasks.overdue.length],['Due today',tasks.today.length],['Urgent / overdue',work.urgent],['In progress',work.inProgress],['Waiting / blocked',work.waiting]];
  const kpis=$('today-kpis');kpis.replaceChildren();
- const metrics=['overdue','today','undated','waiting','leases'];
+ const metrics=['overdue','today','urgent','progress','waiting'];
  const symbols=['<circle cx="12" cy="12" r="9"/><path d="M12 7v6l4 2"/>','<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 11h16m-11 5h6"/>','<path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/>','<circle cx="12" cy="12" r="9"/><path d="M9 8v8m6-8v8"/>','<path d="m3 10 9-7 9 7v10H3zM9 20v-7h6v7"/>'];
  numbers.forEach(([label,number],i)=>{const panel=el('div',null,'today-kpi'),icon=el('span',null,'metric-symbol');panel.dataset.metric=metrics[i];icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+symbols[i]+'</svg>';panel.append(el('strong',number),el('span',label),icon);kpis.append(panel)});
  renderSchedule(tasks);
@@ -76,15 +76,15 @@ function render(data){
  group(queue,'Overdue',tasks.overdue,'No recorded overdue tasks');
  group(queue,'Due today',tasks.today,'No recorded deadlines today');
  group(queue,'Next 7 days',soon,'No deadlines recorded in the next 7 days');
- group(queue,'Undated active tasks',tasks.undated,'All open tasks have dates recorded',1000);
+ group(queue,'Undated active tasks',tasks.undated,'All open tasks have dates recorded',8);
  const completed=tasks.completed.filter(t=>String(t.status).toLowerCase()==='completed').sort((a,b)=>String(b.completed_at||'').localeCompare(String(a.completed_at||''))||String(a.task_title||'').localeCompare(String(b.task_title||'')));
  $('today-completed-count').textContent=String(completed.length);
  const done=$('today-completed');done.replaceChildren();
  if(!completed.length)done.append(el('p','No completed tasks recorded.','today-muted'));
  for(const task of completed)done.append(taskRow(task));
- const renew=$('today-renewals');renew.replaceChildren();
+ const renew=$('today-renewals');renew.replaceChildren();$('today-renewal-watch').textContent=watch.pendingCount+' imported cases marked Pending · '+leases.length+' recorded lease ends within 45 days. Review source terms; neither is an automatic deadline.';
  if(!leases.length)renew.append(el('p','No applicable recorded lease-end dates within the next 45 days.','today-muted'));
- for(const r of leases.slice(0,10)){
+ for(const r of leases.slice(0,5)){
   const unit=units.get(r.unit_id),prop=properties.get(r.property_id||unit?.property_id);
   const location=[prop?.street_address,unit?.unit_label&&unit.unit_label!=='MAIN'?unit.unit_label:null].filter(Boolean).join(' · ');
   const row=el('article',null,'today-lease');
@@ -93,8 +93,8 @@ function render(data){
   if(r.oak_record_id)row.append(el('span','Record: '+r.oak_record_id,'today-task-meta'));
   renew.append(row);
  }
- if(leases.length>10)renew.append(el('p',(leases.length-10)+' more cases. Open Track renewals for the full list.','today-muted'));
- text('today-status','Updated · '+tasks.all.length+' active task'+(tasks.all.length===1?'':'s'));
+ if(leases.length>5)renew.append(el('p',(leases.length-5)+' more recorded lease ends. Open Track renewals for the full list.','today-muted'));
+ text('today-status','Updated · '+tasks.all.length+' active task'+(tasks.all.length===1?'':'s'));window.dispatchEvent(new Event('ops-today-rendered'));
 }
 async function refresh(){
  if(!cloud.user){clear();return}
@@ -105,7 +105,7 @@ async function refresh(){
  try{
   const [tasks,renewals,properties,units,leases,memberships]=await Promise.all([
    cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000'),
-   cloud.api('/rest/v1/renewal_cases?select=id,property_id,unit_id,lease_id,oak_record_id,recorded_end,is_applicable&limit=1000'),
+   cloud.api('/rest/v1/renewal_cases?select=id,property_id,unit_id,lease_id,oak_record_id,recorded_end,is_applicable,action_status&limit=1000'),
    cloud.api('/rest/v1/properties?select=id,street_address&limit=1000'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_label&limit=1000'),
    cloud.api('/rest/v1/leases?select=id,unit_id,lease_label,term_start,term_end,lease_status&limit=1000'),
@@ -117,7 +117,7 @@ async function refresh(){
   render({tasks,renewals,properties,units,leases,canEdit});
  }catch(error){
   if(ticket!==generation)return;
-  viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();
+  viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';
   text('today-status','Could not load the dashboard: '+error.message+'. No tasks were changed.');
   resetSchedule('Task breakdown unavailable.');
  }finally{if(ticket===generation){busy=false;$('today-refresh').disabled=!cloud.user}}
