@@ -98,7 +98,20 @@ export function createHandler({supabaseUrl,publishableKey,resource=RESOURCE,fetc
   const transport=new WebStandardStreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true,maxRequestBodySize:32000});
   try{
    await server.connect(transport);
-   const r=await transport.handleRequest(req);
+   // ChatGPT's registration probe currently sends Accept: */* rather than
+   // listing both MCP response media types. A wildcard accepts both per HTTP,
+   // but the upstream SDK checks for the literal media type strings and
+   // rejects it with HTTP 406. Normalize wildcard negotiation *only* for the
+   // MCP transport. Do not change authentication, request body or Origin.
+   const accepts=(req.headers.get('accept')||'').split(',');
+   const acceptsWildcard=accepts.some(value=>value.split(';')[0].trim().toLowerCase()==='*/*');
+   let transportReq=req;
+   if(!req.headers.has('accept')||acceptsWildcard){
+    const headers=new Headers(req.headers);
+    headers.set('Accept','application/json, text/event-stream');
+    transportReq=new Request(req,{headers});
+   }
+   const r=await transport.handleRequest(transportReq);
    // JSON responses are complete before closure; no sessions or user state leak
    // between requests on the reused Edge Function worker.
    const body=await r.arrayBuffer();await server.close();
