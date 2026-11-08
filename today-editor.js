@@ -9,6 +9,39 @@ const feedback=text=>{$('today-edit-feedback').textContent=text};
 const option=(label,value)=>new Option(label,value);
 const byId=(rows,id)=>rows.find(row=>row.id===id)||null;
 const ordered=rows=>[...rows].sort((a,b)=>String(a.street_address||a.unit_label||a.oak_record_id||'').localeCompare(String(b.street_address||b.unit_label||b.oak_record_id||'')));
+function clearRelated(){
+ $('today-related-links').replaceChildren();
+ $('today-related-notes').textContent='';
+}
+function renderRelated(task){
+ clearRelated();
+ const graph=window.OpsConnectionsModel?.build(data,task.id),host=$('today-related-links');
+ if(!graph){$('today-related-notes').textContent='Saved record links unavailable. Refresh the dashboard.';return}
+ const linked=graph.nodes.filter(node=>node.type!=='task');
+ if(!linked.length){
+  const empty=document.createElement('p');empty.className='today-muted';empty.textContent='No related records are saved for this task.';host.append(empty);
+ }
+ for(const node of linked){
+  const button=document.createElement('button');button.type='button';button.className='today-related-link';
+  const kind=document.createElement('span');kind.className='today-related-kind';kind.textContent=node.type;
+  const name=document.createElement('strong');name.textContent=node.label;
+  button.setAttribute('aria-label','Open saved '+node.type+': '+node.label);
+  button.append(kind,name);
+  if(node.detail&&node.detail!==node.type){
+   const detail=document.createElement('span');detail.className='today-related-detail';detail.textContent=node.detail;button.append(detail);
+  }
+  button.addEventListener('click',()=>{
+   if(saving||!cloud.user||!data?.canEdit)return;
+   const api=window.OpsOperations;
+   if(!api?.openSource&&!api?.openProfile){feedback('Connected record view is unavailable.');return}
+   close();
+   Promise.resolve(api.openSource?api.openSource(node.type,node.id):api.openProfile(node.type,node.id))
+    .catch(()=>{$('today-status').textContent='Could not open the saved record. Refresh and retry.'});
+  });
+  host.append(button);
+ }
+ if(graph.notes.length)$('today-related-notes').textContent=graph.notes.join(' ');
+}
 function fillSelect(id,rows,blank,chosen,label){
  const select=$(id);select.replaceChildren(option(blank,''));
  for(const row of rows)select.add(option(label(row),row.id));
@@ -67,6 +100,7 @@ function open(task){
  set('today-edit-lease',current.lease_id||'');
  set('today-edit-renewal',current.renewal_case_id||'');
  associations();
+ renderRelated(current);
  feedback('');
  if(!dialog.open)dialog.showModal();
  $('today-edit-title').focus();
@@ -74,20 +108,20 @@ function open(task){
 function close(){
  if(saving)return;
  const d=$('today-edit-dialog');if(d.open)d.close();
- selected=null;feedback('');
+ selected=null;feedback('');clearRelated();
 }
 $('today-edit-property-search').addEventListener('input',properties);
 $('today-edit-property').addEventListener('change',()=>associations({resetUnit:true,resetLease:true,resetRenewal:true}));
 $('today-edit-unit').addEventListener('change',()=>associations({resetLease:true,resetRenewal:true}));
 $('today-edit-close').addEventListener('click',close);
 $('today-edit-cancel').addEventListener('click',close);
-$('today-edit-dialog').addEventListener('cancel',event=>{if(saving)event.preventDefault();else selected=null});
+$('today-edit-dialog').addEventListener('cancel',event=>{if(saving)event.preventDefault();else{selected=null;clearRelated()}});
 window.addEventListener('ops-today-edit',event=>open(event.detail?.task||{}));
 window.addEventListener('ops-today-data',event=>{
  data=event.detail||null;
- if(!data||!data.canEdit||!cloud.user){const d=$('today-edit-dialog');if(d.open)d.close();selected=null;nonce++;}
+ if(!data||!data.canEdit||!cloud.user){const d=$('today-edit-dialog');if(d.open)d.close();selected=null;clearRelated();nonce++;}
 });
-window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user){const d=$('today-edit-dialog');if(d.open)d.close();selected=null;data=null;nonce++;}});
+window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user){const d=$('today-edit-dialog');if(d.open)d.close();selected=null;data=null;clearRelated();nonce++;}});
 $('today-edit-form').addEventListener('submit',async event=>{
  event.preventDefault();
  if(saving||!selected||!data?.canEdit||!cloud.user)return;
@@ -126,7 +160,7 @@ $('today-edit-form').addEventListener('submit',async event=>{
   if(!result||result.task_id!==task.id||!result.updated_at)throw Error('Server did not confirm an updated task. Refresh before trying again.');
   feedback('Saved successfully. Refreshing task list…');
   const d=$('today-edit-dialog');if(d.open)d.close();
-  selected=null;
+  selected=null;clearRelated();
   window.dispatchEvent(new Event('ops-today-refresh'));
  }catch(error){
   if(ticket===nonce){

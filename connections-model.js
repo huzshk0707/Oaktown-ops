@@ -1,9 +1,9 @@
 /* A bounded view of recorded foreign-key relationships, never text matching. */
 (function(root,factory){const value=factory();if(typeof module==='object'&&module.exports)module.exports=value;if(root)root.OpsConnectionsModel=value;})(typeof window!=='undefined'?window:null,function(){
  'use strict';
- function build(data,taskId){
+ function build(data,taskId,{includeArchived=false}={}){
   const rows=key=>Array.isArray(data?.[key])?data[key]:[],find=(key,id)=>rows(key).find(r=>r.id===id),task=find('tasks',taskId);
-  if(!task||task.archived_at)return {nodes:[],edges:[],notes:['Choose an available task.']};
+  if(!task||(task.archived_at&&!includeArchived))return {nodes:[],edges:[],notes:['Choose an available task.']};
   const notes=[],nodes=[],edges=[];
   function lookup(type,id){if(!id)return null;const record=find(type,id);if(!record)notes.push('The saved '+type+' reference is unavailable in this snapshot.');return record;}
   const lease=lookup('leases',task.lease_id),renewal=lookup('renewals',task.renewal_case_id);

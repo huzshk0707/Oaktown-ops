@@ -198,7 +198,15 @@ function renderProfile(kind,id){
   fact(host,'Status',t.status);fact(host,'Scope',M.location(t,i));fact(host,'Owner',t.assigned_label);fact(host,'Next action',t.intake_details?.next_action);fact(host,'Notes',t.notes);
   if(t.archived_at)fact(host,'Archived',date(String(t.archived_at).slice(0,10))+' · restore from Tasks → Saved records before editing');
   const schedule=T.scheduled(t);fact(host,schedule?.type||'Due / follow-up',schedule?date(schedule.date):'No date assigned');
-  if(t.unit_id)host.append(sourceButton('unit',t.unit_id,'Open unit profile'));else if(t.property_id)host.append(sourceButton('property',t.property_id,'Open property profile'));return;
+  const graph=window.OpsConnectionsModel?.build(records,id,{includeArchived:true});
+  if(graph){
+   const related=section(host,'Saved related records');
+   const linked=graph.nodes.filter(n=>n.type!=='task');
+   if(!linked.length)related.append(el('p','No related records are saved for this task.'));
+   for(const node of linked)related.append(sourceButton(node.type,node.id,node.type[0].toUpperCase()+node.type.slice(1)+' · '+node.label));
+   for(const note of graph.notes)related.append(el('p',note));
+  }
+  return;
  }
  if(kind==='renewal'){
   const r=i.renewals.get(id);text('operations-profile-title',r?.oak_record_id||'Renewal unavailable');if(!r)return;
@@ -254,6 +262,6 @@ window.addEventListener('ops-unit-selected',e=>{
  const host=$('ops-portfolio-detail');if(!host||host.querySelector('.operations-connected-profile'))return;
  const b=button('Open connected unit profile',()=>openProfile('unit',e.detail.id),'button operations-connected-profile');host.append(b);
 });
-window.OpsOperations={openSearch:openPalette,openProfile,refresh};
+window.OpsOperations={openSearch:openPalette,openProfile,openSource,refresh};
 owner=cloud.user?.id||null;renderCentre();if(owner)refresh();
 })();

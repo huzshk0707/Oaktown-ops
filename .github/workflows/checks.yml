@@ -27,7 +27,8 @@ jobs:
           node --check eod.js
           node --check workspace-theme.js
           node --check connections-model.js
-          node --check connections.js
+          node --check today.js
+          node --check today-editor.js
           node --check listing-guide-model.js
           node --check listing-guide.js
           node --check guided-workflows.js
@@ -67,7 +68,7 @@ jobs:
             test-results/ui-review/
             test-results/**/eod-*.png
             test-results/**/*-workspace.png
-            test-results/**/*-connections.png
+            test-results/**/*-task-queue.png
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload browser test diagnostics on failure

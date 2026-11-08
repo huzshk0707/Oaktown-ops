@@ -296,17 +296,43 @@ test('EOD denies partial results and clears stale exports after failure and late
 });
 
 for(const mode of ['veyra','oryn','nilo','ember','verdant','pearl'])test('appearance '+mode+' preserves records, persists and fits phone and desktop',async({page})=>{
- const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';await signInToday(page);await page.locator('#connection-task').selectOption('1');const before=JSON.stringify(s.tasks),reads=s.reads;
- await page.getByLabel('Workspace theme').selectOption(mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await expect(page.locator('#connection-nodes button')).toHaveCount(5);expect(JSON.stringify(s.tasks)).toBe(before);expect(s.edits).toHaveLength(0);expect(s.reads).toBe(reads);
+ const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';await signInToday(page);const before=JSON.stringify(s.tasks),reads=s.reads;
+ await page.getByLabel('Workspace theme').selectOption(mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await page.locator('#today-queue .today-edit-trigger').first().click();await expect(page.locator('#today-related-links button')).toHaveCount(4);await page.locator('#today-edit-cancel').click();expect(JSON.stringify(s.tasks)).toBe(before);expect(s.edits).toHaveLength(0);expect(s.reads).toBe(reads);
  if(process.env.OAKTOWN_THEME_AXE==='1'){const AxeBuilder=require('@axe-core/playwright').default;const results=await new AxeBuilder({page}).include('.sidebar').include('.topbar').include('#today-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(results.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);if(mode==='nilo'){for(const name of ['properties','leases','tasks']){await page.locator('[data-workspace=\"'+name+'\"]').click();const review=await new AxeBuilder({page}).include('#'+name+'-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(review.violations.map(v=>({view:name,id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);}await page.locator('[data-workspace=\"today\"]').click();await expect(page.locator('#today-status')).toContainText('Updated');}}
- for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);if(process.env.OAKTOWN_UI_SCREENSHOTS==='1'){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:test.info().outputPath(mode+'-'+width+'-workspace.png')});await page.locator('#connections-panel').screenshot({path:test.info().outputPath(mode+'-'+width+'-connections.png')});}}
+ for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);if(process.env.OAKTOWN_UI_SCREENSHOTS==='1'){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:test.info().outputPath(mode+'-'+width+'-workspace.png')});await page.locator('#today-queue').screenshot({path:test.info().outputPath(mode+'-'+width+'-task-queue.png')});}}
  await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue(mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await expect(page.locator('#today-status')).toContainText('Updated');
 });
-test('connections show real links, support keyboard inspection and clear on sign-out',async({page})=>{
- const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';await signInToday(page);await page.locator('#connection-task').selectOption('1');await expect(page.locator('#connection-nodes button')).toHaveCount(5);const node=page.locator('#connection-nodes [data-kind="property"]');await node.focus();await page.keyboard.press('Enter');await expect(node).toHaveAttribute('aria-pressed','true');await expect(page.locator('#connection-detail')).toContainText('100 Fictional Road');await page.locator('.connection-adjacency>summary').click();await expect(page.locator('#connection-list')).toContainText('property: 100 Fictional Road');await page.locator('#connection-task').selectOption('3');await expect(page.locator('#connection-nodes button')).toHaveCount(1);await expect(page.locator('#connection-edges line')).toHaveCount(0);await expect(page.locator('#connection-status')).toContainText('not saved property');expect(s.edits).toHaveLength(0);await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#connection-nodes')).toBeEmpty();await expect(page.locator('#connection-detail')).toBeEmpty();await expect(page.locator('#connection-list')).toBeEmpty();
+test('saved task links open exact related profiles without writing or showing a dashboard graph',async({page})=>{
+ const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';
+ await signInToday(page);
+ await expect(page.locator('#connections-panel')).toHaveCount(0);
+ await page.locator('#today-queue .today-edit-trigger').first().click();
+ const links=page.locator('#today-related-links button');
+ await expect(links).toHaveCount(4);
+ await expect(page.locator('#today-related-records')).toContainText('100 Fictional Road');
+ await expect(page.locator('#today-related-records')).toContainText('Fictional Lease 1');
+ const property=page.getByRole('button',{name:'Open saved property: 100 Fictional Road'});
+ await property.focus();await page.keyboard.press('Enter');
+ await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
+ await expect(page.locator('#operations-profile-title')).toHaveText('100 Fictional Road');
+ await page.keyboard.press('Escape');
+ await page.locator('#today-queue .today-edit-trigger').first().click();
+ await page.getByRole('button',{name:'Open saved lease: Fictional Lease 1'}).click();
+ await expect(page.locator('#operations-profile-title')).toHaveText('Fictional Lease 1');
+ expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
 });
-test('connection motion has a pause control and respects reduced motion',async({page})=>{
- await setup(page);await signInToday(page);await expect(page.locator('#connections-panel')).toHaveAttribute('data-motion','true');await page.locator('#connection-motion').uncheck();await expect(page.locator('#connections-panel')).toHaveAttribute('data-motion','false');await page.emulateMedia({reducedMotion:'reduce'});await expect(page.locator('#connection-motion')).toBeDisabled();expect(await page.locator('.connection-orb').evaluate(n=>getComputedStyle(n).animationName)).toBe('none');
+test('general task has no invented links and private related details clear on sign-out',async({page})=>{
+ const s=await setup(page);s.tasks[2].task_title='Check 100 Fictional Road and Lease 1';
+ await signInToday(page);
+ await page.locator('#today-queue .today-task').filter({hasText:'Check 100 Fictional Road and Lease 1'}).getByRole('button',{name:'Edit task'}).click();
+ await expect(page.locator('#today-related-links button')).toHaveCount(0);
+ await expect(page.locator('#today-related-records')).toContainText('No related records are saved');
+ await expect(page.locator('#today-related-notes')).toContainText('not saved property or lease links');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
+ await expect(page.locator('#today-related-links')).toBeEmpty();
+ await expect(page.locator('#today-related-notes')).toBeEmpty();
+ expect(s.edits).toHaveLength(0);
 });
 test('invalid theme preferences and unavailable local storage fall back safely',async({page})=>{
  await page.addInitScript(()=>{try{localStorage.setItem('oaktown-theme-v1','not-a-theme')}catch{}});await setup(page);await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'getItem',{value(){throw Error('Storage blocked')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}});});await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.getByLabel('Workspace theme').selectOption('nilo');await expect(page.locator('html')).toHaveAttribute('data-ops-theme','nilo');

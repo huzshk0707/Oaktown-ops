@@ -4,11 +4,11 @@
 
 [Current roadmap](docs/ROADMAP.md) · [Technical audit and staged fixes](docs/TECHNICAL-AUDIT-2026-11-04.md) · [Live validation](docs/LIVE-VALIDATION.md)
 
-Oaktown Ops brings property records and operational workflows together. Main includes the Today/tasks workspace, notices, protected portfolio, renewals, guided workflows, six themes and new-lease preparation through PR #40. **Hosting needs verification:** GitHub currently reports Pages disabled for this private repository; the workspace address above is the previously documented URL.
+Oaktown Ops brings property records and operational workflows together. Main includes the Today/tasks workspace, notices, protected portfolio, renewals, guided workflows, six themes, new-lease preparation and the connected workspace from PR #42. GitHub Pages is enabled at the workspace address above. Application data uses staff sign-in and database access controls; confidential reference PDFs remain in restricted Drive.
 
 ## Available now
 
-- **Today/tasks/EOD:** Task intake, reviewed task editing, activity tracking and end-of-day preparation.
+- **Today/tasks/EOD:** Task intake, reviewed task editing, activity tracking and end-of-day preparation. In **Review task**, a compact **Saved related records** section opens the exact saved property, unit, lease or renewal through existing connected profiles. Archived task profiles retain these links for read-only history without restoring the task. It never infers links from task text. The former animated Connections panel has been removed from the dashboard; the existing relationships, audit history and record viewers remain intact.
 - **Notices:** Search the full portfolio in the Notices tab, select one or more units, and click **Create drafts**. The existing notice editor opens editable drafts (including when recipients are still unknown); complete and verify each notice before download. Includes the reference-layout seven-day notice, USPS Firm Book, PDF/ZIP downloads, JSON import/export.
 - Tenant message: shows the selected tenant's email only when an exact name match exists among people linked to that unit's lease/tenancy records, beside **Copy message**. Staff must verify imported emails before use; nothing is sent automatically.
 - Court follow-up: not displayed in Notices. Previously saved court notes remain untouched inside existing batches for a future add-on.
