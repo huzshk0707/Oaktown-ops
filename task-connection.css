@@ -1,0 +1,24 @@
+.task-connection>summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;font-weight:700}
+.task-connection{margin:18px 0;color:var(--ui-text);min-width:0}
+.task-connection p{line-height:1.6;font-size:13px;color:var(--ui-muted)}
+.task-connection-state{font-size:11px;font-weight:600;padding:5px 9px;border:1px solid var(--ui-border);border-radius:20px;background:var(--ui-soft);white-space:nowrap}
+.task-connection-steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:14px 0;padding:0;counter-reset:connect-step}
+.task-connection-steps li{counter-increment:connect-step;font-size:12px;padding:8px 10px;border:1px solid var(--ui-border);border-radius:8px;background:var(--ui-soft)}
+.task-connection-steps li::before{content:counter(connect-step);margin-right:7px;color:var(--mode-accent);font-weight:750}
+.task-connection-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.task-connection-activity article{padding:12px 0;border-top:1px solid var(--ui-border);overflow-wrap:anywhere}
+.task-connection-activity strong{font-size:13px}.task-connection-activity p{margin:4px 0}
+.task-connection details{margin-top:14px}.task-connection details>summary{cursor:pointer;min-height:36px;font-size:13px}
+.task-connection form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.task-connection label{display:flex;flex-direction:column;gap:5px;font-size:12px;min-width:0}
+.task-connection input[type=text]{box-sizing:border-box;min-width:0;width:100%;min-height:42px;color:var(--ui-text);background:var(--ui-soft);border:1px solid var(--ui-control);border-radius:8px;padding:8px;font:inherit}
+.task-connection label.task-connection-check{flex-direction:row;align-items:center;gap:8px}
+.task-connection .task-connection-client{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--ui-border);overflow-wrap:anywhere}
+.task-connection-client>div{min-width:0}.task-connection-client .button{flex-shrink:0}
+#task-consent-dialog{max-width:520px;width:calc(100% - 48px);box-sizing:border-box;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:14px;padding:24px}
+#task-consent-dialog::backdrop{background:rgba(0,0,0,.65)}
+#task-consent-dialog h2{font-size:21px;margin:0 0 12px}#task-consent-dialog p,#task-consent-dialog li{line-height:1.6;font-size:13px}
+#task-consent-details{overflow-wrap:anywhere}#task-consent-dialog .button-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.task-connection [hidden],#task-consent-dialog [hidden]{display:none!important}
+@media(max-width:540px){.task-connection>summary{align-items:start;flex-direction:column;gap:6px}.task-connection form{grid-template-columns:1fr}.task-connection .task-connection-client{align-items:start;flex-direction:column}}
+@media(max-width:540px){.task-connection-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.task-connection-steps li{line-height:1.5;overflow-wrap:anywhere}}

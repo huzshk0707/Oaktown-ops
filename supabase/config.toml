@@ -1,0 +1,7 @@
+project_id = "oaktown-ops"
+
+[functions.oaktown-task-api]
+# Public OAuth discovery; all task calls verify asymmetric, resource-bound JWTs
+# in the handler and use the dedicated task role. No service-role credentials.
+verify_jwt = false
+entrypoint = "./functions/oaktown-task-api/index.ts"
