@@ -29,6 +29,9 @@ jobs:
           node --check connections-model.js
           node --check today.js
           node --check today-editor.js
+          node --check today-workstation-model.js
+          node --check today-workstation.js
+          node --check today-history.js
           node --check listing-guide-model.js
           node --check listing-guide.js
           node --check guided-workflows.js
