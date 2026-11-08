@@ -17,20 +17,12 @@
  function actions(data,reference=T.today(),tracking={}){
   const i=index(data),tasks=T.classify(data.tasks,reference),overdue=new Set(tasks.overdue.map(t=>t.id)),due=new Set(tasks.today.map(t=>t.id));
   const out=tasks.all.map(t=>({kind:'task',id:t.id,title:t.task_title||'Untitled task',location:location(t,i),status:t.status||'pending',next:t.intake_details?.next_action||'',owner:t.assigned_label||'',schedule:t.schedule,group:overdue.has(t.id)?'overdue':due.has(t.id)?'today':t.schedule?'upcoming':'undated',workflow:t.workflow_key||'',row:t}));
-  for(const r of list(data.renewals)){
-   const tracked=tracking[r.id];
-   if(r.is_applicable===false||terminal.has(fold(tracked?.status||r.action_status)))continue;
-   // A recorded lease end is context, never a follow-up deadline.
-   const next=tracked?tracked.nextAction:r.next_action;
-   if(tracked?.status==='month_to_month'&&!next)continue;
-   if(!tracked&&!next&&fold(r.action_status)!=='pending')continue;
-   out.push({kind:'renewal',id:r.id,title:r.oak_record_id||'Renewal case',location:location(r,i),status:tracked?.status||r.action_status||'unreviewed',next:next||'',owner:r.action_owner_label||'',schedule:null,group:'renewals',workflow:'renewal',row:r,reported:!!tracked});
-  }
+  // Renewal cases are reference records, not implicit work items. Only saved tasks appear here.
   const rank={overdue:0,today:1,undated:2,renewals:3,upcoming:4},priority={urgent:0,high:1,normal:2,low:3};
   return out.sort((a,b)=>rank[a.group]-rank[b.group]||(priority[a.row.priority]??2)-(priority[b.row.priority]??2)||String(a.schedule?.date||'').localeCompare(String(b.schedule?.date||''))||a.title.localeCompare(b.title)||a.id.localeCompare(b.id));
  }
  const filters=Object.freeze(['all','overdue','today','waiting','undated','renewals','maintenance']);
- function filterActions(rows,filter){return rows.filter(r=>filter==='all'||filter==='waiting'&&['waiting','blocked','on_hold','awaiting_signatures','sent_for_signature','partially_signed'].includes(r.status)||filter==='maintenance'&&r.kind==='task'&&r.workflow==='maintenance'||r.group===filter)}
+ function filterActions(rows,filter){return rows.filter(r=>filter==='all'||filter==='waiting'&&['waiting','blocked','on_hold','awaiting_signatures','sent_for_signature','partially_signed'].includes(r.status)||filter==='maintenance'&&r.kind==='task'&&r.workflow==='maintenance'||filter==='renewals'&&r.kind==='task'&&r.workflow==='renewal'||r.group===filter)}
  function searchIndex(data){
   const i=index(data),out=[];
   const add=(kind,row,title,detail,terms='')=>out.push({kind,id:row.id,title,detail,hay:fold([title,detail,terms].join(' '))});
