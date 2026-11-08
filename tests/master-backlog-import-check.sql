@@ -10,7 +10,9 @@ declare
  parentid uuid;childid uuid; count_before integer;bad jsonb;
 begin
  manifest:=jsonb_build_object('schema_version','oaktown.master-backlog.v1','batch_ref','master-backlog-20991231','entries',jsonb_build_array(
-  jsonb_build_object('task_code','W03','task_title','Fictional renewal plan','status','pending','priority','normal','work_level','Renewals','source_ref','Active Tasks!A12:L12','next_action','Review the hypothetical cases'),
+  jsonb_build_object('task_code','W03','task_title','Fictional renewal plan','status','pending','priority','normal','work_level','Renewals','source_ref','Active Tasks!A12:L12','next_action','Review the hypothetical cases',
+   'owner_label','Leslie','origin','Meeting','cluster_level','Renewals / fictional',
+   'property_target','Fictional property, not linked','source_caution','Verify fictional source','update_notes','Fictional note'),
   jsonb_build_object('task_code','M12','task_title','Fictional signed-check task','status','waiting','priority','high','work_level','Renewals','parent_code','W03','source_ref','Active Tasks!A13:L13','waiting_on','Fictional coordinator','needs_verification',true),
   jsonb_build_object('task_code','M13','task_title','Fictional completed verification','status','completed','priority','normal','work_level','Renewals','parent_code','W03','source_ref','Active Tasks!A14:L14','completion_summary','Reported complete in a fictional source')
  ));
@@ -24,6 +26,18 @@ begin
  if receipt->>'created'<>'3' or jsonb_array_length(receipt->'rows')<>3 then raise exception 'Bad import receipt';end if;
  select id into parentid from public.ops_tasks where task_code='W03';
  select id into childid from public.ops_tasks where task_code='M12';
+ if not exists(select 1 from public.ops_tasks t where t.id=parentid
+   and t.assigned_label='Leslie' and t.assigned_user_id is null
+   and t.intake_details->>'source_owner_label'='Leslie'
+   and t.intake_details->>'source_origin'='Meeting'
+   and t.intake_details->>'cluster_level'='Renewals / fictional'
+   and t.intake_details->>'source_property_target'='Fictional property, not linked'
+   and t.intake_details->>'source_caution'='Verify fictional source'
+   and t.intake_details->>'source_update_notes'='Fictional note'
+   and t.property_id is null and t.lease_id is null)
+ then raise exception 'Original owner or workbook context lost';end if;
+ if exists(select 1 from public.ops_tasks where task_code='M12' and (assigned_user_id is not null or assigned_label is not null))
+ then raise exception 'Importer silently assigned unowned task to executor';end if;
  if parentid is null or childid is null or not exists(
    select 1 from public.ops_tasks t where t.id=childid and t.parent_task_id=parentid and status='waiting'
      and t.intake_details->>'waiting_on'='Fictional coordinator'
