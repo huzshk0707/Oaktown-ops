@@ -39,7 +39,18 @@ async function setup(page){
    if(s.failReport)return reply({message:'Report unavailable'},503);
    return reply(s.events);
   }
-  if(p==='/rest/v1/ops_tasks'){if(url.searchParams.get('select')?.startsWith('id,task_title,status,priority')){s.reads++;if(s.fail)return reply({message:'RLS request failed'},403)}return reply(s.tasks)}
+  if(p==='/rest/v1/ops_tasks'){
+   const selected=url.searchParams.get('select')||'';
+   if(selected.startsWith('id,task_title,status,priority')||selected.startsWith('id,task_code,parent_task_id,task_title')){
+    s.reads++;if(s.fail)return reply({message:'RLS request failed'},403);
+   }
+   const codeFilter=url.searchParams.get('task_code');
+   if(codeFilter?.startsWith('in.(')){
+    const codes=codeFilter.slice(4,-1).split(',');
+    return reply(s.tasks.filter(t=>codes.includes(t.task_code)));
+   }
+   return reply(s.tasks);
+  }
   if(p==='/rest/v1/rpc/ops_task_set_archived'){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);s.archives.push(b);
     if(s.archives.length===s.failArchiveAt)return reply({message:'Task changed; refresh.'},409);
