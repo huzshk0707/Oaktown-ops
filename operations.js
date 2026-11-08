@@ -254,6 +254,6 @@ window.addEventListener('ops-unit-selected',e=>{
  const host=$('ops-portfolio-detail');if(!host||host.querySelector('.operations-connected-profile'))return;
  const b=button('Open connected unit profile',()=>openProfile('unit',e.detail.id),'button operations-connected-profile');host.append(b);
 });
-window.OpsOperations={openSearch:openPalette,openProfile,refresh};
+window.OpsOperations={openSearch:openPalette,openProfile,openSource,refresh};
 owner=cloud.user?.id||null;renderCentre();if(owner)refresh();
 })();
