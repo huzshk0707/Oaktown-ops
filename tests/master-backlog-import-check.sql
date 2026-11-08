@@ -60,6 +60,26 @@ begin
  exception when check_violation then null;end;
 end $test$;
 
+-- Volume preview: all 37 fictional tasks, without any writes.
+set role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001',false);
+do $volume$
+declare manifest jsonb;rows jsonb;preview jsonb;before_count int;
+begin
+ select jsonb_agg(jsonb_build_object(
+   'task_code','M'||lpad(n::text,2,'0'),
+   'task_title','Fictional row '||n,
+   'status','pending','priority','normal',
+   'work_level','Fictional accounting','source_ref','Active Tasks!A'||(n+50)||':L'||(n+50)
+ ) order by n) into rows from generate_series(40,76)n;
+ manifest:=jsonb_build_object('schema_version','oaktown.master-backlog.v1',
+   'batch_ref','master-backlog-20991227','entries',rows);
+ select count(*) into before_count from public.ops_tasks;
+ preview:=public.ops_master_backlog_import('preview',manifest);
+ if preview->>'rows'<>'37' or preview->>'to_create'<>'37' then raise exception '37-row preview was not accepted';end if;
+ if (select count(*) from public.ops_tasks)<>before_count then raise exception '37-row preview wrote data';end if;
+end $volume$;
+reset role;
 -- Non-editors and anonymous calls cannot import or preview.
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000003',false);
 do $$begin
