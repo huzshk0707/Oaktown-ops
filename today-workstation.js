@@ -42,7 +42,7 @@ function renderAlerts(){
  if(!alerts.length){host.append(el('p','No urgent, overdue or due-today tasks are recorded.','today-muted'));return}
  for(const t of alerts){
   const row=el('article',null,'today-alert'),content=el('div');
-  content.append(el('strong',t.task_title||'Untitled task'),el('p',meta(t),'today-alert-meta'));
+  content.append(el('strong',(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task')),el('p',meta(t),'today-alert-meta'));
   const l=M.level(t);content.append(el('span',l.label,'today-alert-level'));row.append(content);
   if(data.canEdit)row.append(button('Review',()=>edit(t),'button'));
   host.append(row);
@@ -70,7 +70,8 @@ function renderFocus(){
   for(const t of current.open)sel.add(new Option(t.task_title||'Untitled task',t.id));
   sel.value=taskId;sel.addEventListener('change',()=>{taskId=sel.value;renderFocus()});lab.append(sel);host.append(lab);
  }
- host.append(el('h4',chosen.task_title||'Untitled task'),el('p',meta(chosen),'today-muted'));
+ host.append(el('h4',(chosen.task_code?chosen.task_code+' · ':'')+(chosen.task_title||'Untitled task')),el('p',meta(chosen),'today-muted'));
+ if(chosen.parent_task_id){const parent=data.tasks.find(t=>t.id===chosen.parent_task_id);if(parent)host.append(el('p','Subtask of '+(parent.task_code||parent.task_title),'today-muted'));}
  const next=chosen.intake_details?.next_action;
  if(typeof next==='string'&&next.trim())host.append(el('p','Next action: '+next,'today-focus-next'));
  const blocker=chosen.intake_details?.blocked_reason;
@@ -95,7 +96,7 @@ function renderLevels(){
   const list=el('div',null,'today-level-items');
   for(const t of l.open){
    const row=el('div',null,'today-level-row'),body=el('div');
-   body.append(el('strong',t.task_title||'Untitled task'),el('span',meta(t),'today-muted'));
+   body.append(el('strong',(t.parent_task_id?'↳ ':'')+(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task')),el('span',meta(t),'today-muted'));
    row.append(body,button('Focus',()=>choose(l.key,t.id),'button'));list.append(row);
   }
   d.append(list);host.append(d);
