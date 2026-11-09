@@ -43,3 +43,13 @@
 @media(max-width:540px){.today-alert,.today-archive-row{align-items:flex-start;flex-direction:column}.today-level summary{align-items:start;flex-direction:column;gap:3px}.today-level-count{text-align:left}}
 
 .today-history [hidden]{display:none!important}
+
+/* Completed work has a first-class home; archived records remain collapsed separately. */
+.today-completed-work{margin-top:18px;background:var(--ui-surface);color:var(--ui-text);border:1px solid var(--ui-border)}
+.today-completed-work .today-section-head h3{margin:0}
+.today-completed-work .today-history-search{max-width:440px}
+#today-completed{max-height:430px;overflow:auto;overscroll-behavior:contain}
+#today-completed .today-task{border-bottom:1px solid var(--ui-border);padding:12px 0}
+#today-completed .today-task:last-child{border-bottom:0}
+.today-history{margin-top:14px}
+.today-history>summary{display:list-item}
