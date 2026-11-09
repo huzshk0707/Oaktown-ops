@@ -559,6 +559,14 @@ function applyEmbeddedMode() {
             }
             data.selected=notice.id;
           }
+          if(event.data.ordered===true&&(added||updated)){
+            // Only imported units are reordered; preserve other existing drafts after the requested list.
+            // Existing imported notices retain their fields and original identifiers.
+            const ids=items.map(p=>p&&p.id).filter(Boolean),ordered=[];
+            for(const id of ids){const existing=data.notices.find(n=>n.sourcePropertyId===id);if(existing&&!ordered.includes(existing))ordered.push(existing)}
+            data.notices=ordered.concat(data.notices.filter(n=>!ordered.includes(n)));
+            if(ordered.length)data.selected=ordered[0].id;
+          }
           if(added||updated){persist();renderForm()}
           window.parent.postMessage({type:'oaktown-import-confirmed',added,updated,skipped,total:items.length},location.origin);
           requestAnimationFrame(reportHeight);
