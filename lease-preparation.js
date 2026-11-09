@@ -6,7 +6,9 @@
  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
  const button=(text,fn,cls='button')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',fn);return b};
  const tool=el('div','lease-draft-tool'),title=el('h2','','Prepare a new lease');title.id='new-lease-title';title.tabIndex=-1;
- tool.append(el('span','lease-draft-badge','DRAFT · TEMPLATE MATCHING IN PROGRESS'),title,el('p','guide-hint','Use confirmed application and deposit details, then review the new tenancy’s terms and unit condition sheet.'));
+ tool.append(el('span','lease-draft-badge','PREPARATION PREVIEW'),title,el('p','guide-hint','Use confirmed application and deposit details, then review the new tenancy’s terms and unit condition sheet.'));
+ const limitations=el('section','lease-draft-limitations');limitations.setAttribute('aria-label','New lease preparation limits');
+ limitations.append(el('strong','','Before you start'),el('p','','Inputs are temporary and are not saved to a case. Reloading or signing out clears this draft.'),el('p','','Full ten-page lease export is unavailable. You can review your inputs and download a draft page 8 condition sheet only. Nothing here signs a lease or confirms approval or payment.'));tool.append(limitations);
  const blockers=el('details','lease-draft-sources');blockers.append(el('summary','','PDF materials still needed'));
  const sourceList=el('ul');for(const reason of M.sourceBlockers)sourceList.append(el('li','',reason));blockers.append(sourceList);
  tool.append(blockers);
@@ -14,7 +16,7 @@
  const work=el('div'),form=el('form');form.id='newlease-form';form.autocomplete='off';form.noValidate=true;form.addEventListener('submit',e=>e.preventDefault());
  const toolbar=el('div','lease-draft-toolbar'),modeControls=el('div','guide-segments');modeControls.setAttribute('role','group');modeControls.setAttribute('aria-label','New lease reading mode');
  let all=false,step=0,conditions={},roomLabels={},room='kitchen',userId=cloud.user?.id||null,lastUnit='',units=new Map(),manualFive=false,manualTen=false,dirty=false;
- const one=button('One step',()=>{all=false;render()}),every=button('View all',()=>{all=true;render()});modeControls.append(one,every);toolbar.append(modeControls,button('Clear draft',()=>reset()));
+ const one=button('One step',()=>{all=false;render()}),every=button('View all',()=>{all=true;render()});modeControls.append(one,every);toolbar.append(modeControls,button('Clear draft',()=>{if(!dirty||window.confirm('Clear all new-lease inputs? This temporary draft cannot be recovered.'))reset()}));
  const nav=el('nav','guide-form-nav');nav.setAttribute('aria-label','New lease preparation steps');const jumps=[],steps=[];
  const names=['Handoff','Page 1 · Terms','People & services','Page 8 · Conditions','Late charges & review'];
  names.forEach((name,i)=>{
@@ -158,10 +160,14 @@
  roomLabelInput.addEventListener('input',()=>{roomLabels[room]=roomLabelInput.value;const title=roomLabelInput.value.trim()||M.roomPlan(val('bedrooms'),val('bathrooms'),val('basement'),{},$('additionalRoom').checked).find(r=>r.key===room)?.title||'Other room';conditionFields.querySelector('h4').textContent=title;roomSelect.selectedOptions[0].textContent=title;$('conditionsReviewed').checked=false});
  roomSelect.addEventListener('change',()=>{room=roomSelect.value;renderRoom()});
  form.addEventListener('input',e=>{
-  dirty=true;if(e.target===$('five'))manualFive=true;if(e.target===$('ten'))manualTen=true;
+  if(e.target!==roomSelect)dirty=true;if(e.target===$('five'))manualFive=true;if(e.target===$('ten'))manualTen=true;
   if([$('rent'),$('five'),$('ten')].includes(e.target))updateFees();invalidate();
  });
  form.addEventListener('change',e=>{if(['newlease-bedrooms','newlease-bathrooms','newlease-basement','newlease-additionalRoom'].includes(e.target.id)){$('conditionsReviewed').checked=false;renderRoom()}invalidate()});
+ window.addEventListener('beforeunload',event=>{
+  if(!dirty||!cloud.user)return;
+  event.preventDefault();event.returnValue='';
+ });
  window.addEventListener('ops-portfolio-loaded',refreshUnits);
  window.addEventListener('ops-auth-change',()=>{const nextId=cloud.user?.id||null;if(nextId!==userId){userId=nextId;reset()}refreshUnits();gate()});
  reset();refreshUnits();gate();

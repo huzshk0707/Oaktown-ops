@@ -1,4 +1,5 @@
 'use strict';
+const {chooseTheme,navigate,openAdvanced}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 const M=require('../today-model.js');
 test.use({browserName:'chromium'});
@@ -87,7 +88,7 @@ async function setup(page){
 }
 test('Today is protected, uses recorded dates only, and links to existing workflows',async({page})=>{
  const s=await setup(page);
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await expect(page.locator('#today-status')).toContainText('Sign in to view private');
  expect(s.reads).toBe(0);
  await page.locator('#today-signin').click();
@@ -105,7 +106,7 @@ test('Today is protected, uses recorded dates only, and links to existing workfl
  await expect(page.locator('#today-renewals')).toContainText('100 Fictional Road');
  await page.locator('#today-open-tasks').click();
  await expect(page.locator('#tasks-workflow')).toBeVisible();
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await page.evaluate(()=>window.OpsCloud.signOut());
  await expect(page.locator('#today-status')).toContainText('Sign in to view private');
  await expect(page.locator('#today-queue')).not.toContainText('Fictional overdue inspection');
@@ -115,7 +116,7 @@ test('Today handles denied data reads without exposing stale entries',async({pag
  await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();await expect(page.locator('#account-dialog')).not.toBeVisible();
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await expect(page.locator('#today-status')).toContainText('Updated ·');
  s.fail=true;await page.locator('#today-refresh').click();
  await expect(page.locator('#today-status')).toContainText('Could not load the dashboard');
@@ -129,7 +130,7 @@ test('Staff can link an existing task to exact property/unit/lease/renewal and s
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await expect(page.locator('#today-status')).toContainText('Updated ·');
  await page.locator('#today-queue .today-edit-trigger').first().click();
  await expect(page.locator('#today-edit-dialog')).toBeVisible();
@@ -166,7 +167,7 @@ test('Editor rejects stale changes without claiming save and only editors can op
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await expect(page.locator('#today-status')).toContainText('Updated ·');
  await page.locator('#today-queue .today-edit-trigger').first().click();
  state.rejectEdit=true;
@@ -181,23 +182,23 @@ test('Editor rejects stale changes without claiming save and only editors can op
  await expect(page.locator('#today-queue')).toContainText('Fictional overdue inspection');
 });
 
-test('chart uses disjoint recorded-date groups, clears on denial, and quick actions navigate',async({page})=>{
+test('chart uses disjoint recorded-date groups, clears on denial, and workflow navigation reaches preparation',async({page})=>{
  const state=await setup(page);
  state.tasks.push({id:'5',task_title:'Fictional later task',status:'pending',priority:'normal',intake_details:{due:{date:offset(M.today(),12)}}});
  await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await expect(page.locator('#today-schedule .schedule-legend li')).toHaveText(['Overdue1','Due today1','Upcoming1','No date1']);
  await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
- await page.locator('[data-today-go="properties"]').click();
+ await navigate(page,'properties');
  await expect(page.locator('#properties-workflow')).toBeVisible();
- await page.locator('[data-workspace="today"]').click();
- await page.locator('[data-today-go="leases"]').click();
+ await navigate(page,'today');
+ await navigate(page,'leases');await page.locator('#lease-tab-prepare').click();
  await expect(page.locator('#lease-prepare-panel')).toBeVisible();
  await expect(page.locator('#ops-renewals-panel')).toBeHidden();
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
  state.fail=true;await page.locator('#today-refresh').click();
  await expect(page.locator('#today-status')).toContainText('Could not load');
@@ -214,7 +215,7 @@ test('zero recorded tasks produce a truthful empty overview',async({page})=>{
  await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');
  await page.locator('#pilot-login').click();
- await page.locator('[data-workspace="today"]').click();
+ await navigate(page,'today');
  await expect(page.locator('#today-schedule .schedule-legend li strong')).toHaveText(['0','0','0','0']);
  await expect(page.locator('#today-schedule')).toContainText('No active tasks recorded');
 });
@@ -238,7 +239,7 @@ async function signInToday(page){
  await page.locator('#account-button').click();await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
  await expect(page.locator('#today-status')).toContainText('Updated ·');
- await page.locator('.today-reset-settings>summary').click();
+ await openAdvanced(page);await page.locator('.today-reset-settings>summary').click();
 }
 test('clean start archives only reviewed active tasks and can be cancelled without writes',async({page})=>{
  const s=await setup(page);s.tasks.push({id:'completed',task_title:'Finished earlier',status:'completed',updated_at:'2026-10-29T10:00:00Z'});
@@ -310,7 +311,7 @@ test('Completed work is immediately visible, searchable by code, and separate fr
  await page.locator('#today-history-search').fill('');
  await page.locator('#today-history>summary').click();
  await expect(page.locator('#today-archived')).toContainText('Private archived item');
- await page.locator('[data-workspace="tasks"]').click();
+ await navigate(page,'tasks');
  await expect(page.locator('#tasks-workflow')).toBeVisible();
  await expect(page.locator('#workspace-title')).toHaveText('Task Intake');
  expect(s.edits).toHaveLength(0);
@@ -398,8 +399,8 @@ test('EOD denies partial results and clears stale exports after failure and late
 
 for(const mode of ['veyra','oryn','nilo','ember','verdant','pearl'])test('appearance '+mode+' preserves records, persists and fits phone and desktop',async({page})=>{
  const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';await signInToday(page);const before=JSON.stringify(s.tasks),reads=s.reads;
- await page.getByLabel('Workspace theme').selectOption(mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await page.locator('#today-queue .today-edit-trigger').first().click();await expect(page.locator('#today-related-links button')).toHaveCount(4);await page.locator('#today-edit-cancel').click();expect(JSON.stringify(s.tasks)).toBe(before);expect(s.edits).toHaveLength(0);expect(s.reads).toBe(reads);
- if(process.env.OAKTOWN_THEME_AXE==='1'){const AxeBuilder=require('@axe-core/playwright').default;const results=await new AxeBuilder({page}).include('.sidebar').include('.topbar').include('#today-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(results.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);if(mode==='nilo'){for(const name of ['properties','leases','tasks']){await page.locator('[data-workspace=\"'+name+'\"]').click();const review=await new AxeBuilder({page}).include('#'+name+'-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(review.violations.map(v=>({view:name,id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);}await page.locator('[data-workspace=\"today\"]').click();await expect(page.locator('#today-status')).toContainText('Updated');}}
+ await chooseTheme(page,mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await page.locator('#today-queue .today-edit-trigger').first().click();await expect(page.locator('#today-related-links button')).toHaveCount(4);await page.locator('#today-edit-cancel').click();expect(JSON.stringify(s.tasks)).toBe(before);expect(s.edits).toHaveLength(0);expect(s.reads).toBe(reads);
+ if(process.env.OAKTOWN_THEME_AXE==='1'){const AxeBuilder=require('@axe-core/playwright').default;const results=await new AxeBuilder({page}).include('.sidebar').include('.topbar').include('#today-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(results.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);if(mode==='nilo'){for(const name of ['properties','leases','tasks']){await navigate(page,name);const review=await new AxeBuilder({page}).include('#'+name+'-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(review.violations.map(v=>({view:name,id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);}await navigate(page,'today');await expect(page.locator('#today-status')).toContainText('Updated');}}
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);if(process.env.OAKTOWN_UI_SCREENSHOTS==='1'){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:test.info().outputPath(mode+'-'+width+'-workspace.png')});await page.locator('#today-queue').screenshot({path:test.info().outputPath(mode+'-'+width+'-task-queue.png')});}}
  await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue(mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await expect(page.locator('#today-status')).toContainText('Updated');
 });
@@ -516,15 +517,15 @@ test('Today initializes when the verified saved session restores before its scri
  await page.reload();
  await expect(page.locator('#today-status')).toContainText('Updated');
  await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
- await page.locator('.today-reset-settings>summary').click();
- await page.locator('#backlog-import-settings>summary').click();
+ await openAdvanced(page);await page.locator('.today-reset-settings>summary').click();
+ await openAdvanced(page);await page.locator('#backlog-import-settings>summary').click();
  await expect(page.locator('#backlog-import-input')).toBeEnabled();
  await page.evaluate(()=>window.OpsCloud.signOut());
  await expect(page.locator('#today-status')).toContainText('Sign in to view private');
  await expect(page.locator('#today-urgent')).toContainText('Sign in to view work');
 });
 test('invalid theme preferences and unavailable local storage fall back safely',async({page})=>{
- await page.addInitScript(()=>{try{localStorage.setItem('oaktown-theme-v1','not-a-theme')}catch{}});await setup(page);await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'getItem',{value(){throw Error('Storage blocked')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}});});await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.getByLabel('Workspace theme').selectOption('nilo');await expect(page.locator('html')).toHaveAttribute('data-ops-theme','nilo');
+ await page.addInitScript(()=>{try{localStorage.setItem('oaktown-theme-v1','not-a-theme')}catch{}});await setup(page);await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'getItem',{value(){throw Error('Storage blocked')}});Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}});});await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue('veyra');await chooseTheme(page,'nilo');await expect(page.locator('html')).toHaveAttribute('data-ops-theme','nilo');
 });
 
 
@@ -548,7 +549,7 @@ test('Reviewed Master Backlog preview never saves without explicit approval and 
   return route.fulfill({status:403,headers,body:'{"message":"Denied"}'});
  });
  await signInToday(page);
- await page.locator('#backlog-import-settings>summary').click();
+ await openAdvanced(page);await page.locator('#backlog-import-settings>summary').click();
  await page.locator('#backlog-import-input').fill(JSON.stringify(payload));
  await expect(page.locator('#backlog-import-save')).toBeDisabled();
  await page.locator('#backlog-import-preview').click();
@@ -584,7 +585,7 @@ async function importRoute(page,payload,onSave,previewGate){
  });
 }
 async function openImport(page,payload){
- await signInToday(page);await page.locator('#backlog-import-settings>summary').click();
+ await signInToday(page);await openAdvanced(page);await page.locator('#backlog-import-settings>summary').click();
  await page.locator('#backlog-import-input').fill(JSON.stringify(payload));
  await page.locator('#backlog-import-preview').click();
 }

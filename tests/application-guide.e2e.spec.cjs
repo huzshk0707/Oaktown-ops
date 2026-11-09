@@ -1,4 +1,5 @@
 'use strict';
+const {chooseTheme,navigate}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765';
 for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl'])test('Applications guide works without saving cases in '+theme,async({page})=>{
@@ -8,8 +9,8 @@ for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl'])test('Appli
   external.push(route.request().url());return route.abort();
  });
  await page.goto(ORIGIN+'/');
- await page.getByLabel('Workspace theme').selectOption(theme);
- await page.locator('[data-workspace="applications"]').click();
+ await chooseTheme(page,theme);
+ await navigate(page,'applications');
  await expect(page.locator('#applications-workflow')).toBeVisible();
  await expect(page.locator('#listings-workflow')).toBeHidden();
  await expect(page.locator('#future-workflow')).toBeHidden();
@@ -38,12 +39,12 @@ for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl'])test('Appli
  await expect(page.locator('#application-guide-prompt')).toHaveValue(/Confirmed Step Sequence/);
  await page.setViewportSize({width:390,height:850});
  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.locator('[data-workspace="listings"]').click();await expect(page.locator('#listings-workflow')).toBeVisible();
- await page.locator('[data-workspace="applications"]').click();await expect(page.locator('#application-status')).toHaveValue('Authorization not yet received');
+ await navigate(page,'listings');await expect(page.locator('#listings-workflow')).toBeVisible();
+ await navigate(page,'applications');await expect(page.locator('#application-status')).toHaveValue('Authorization not yet received');
  await page.locator('#application-guide-clear').click();
  await expect(page.locator('#application-status')).toHaveValue('');
  await expect(page.locator('#application-mode')).toHaveValue('next');
- await page.reload();await page.locator('[data-workspace="applications"]').click();
+ await page.reload();await navigate(page,'applications');
  await expect(page.locator('#application-property')).toHaveValue('');
  await expect(page.locator('#application-status')).toHaveValue('');
  expect(external).toEqual([]);

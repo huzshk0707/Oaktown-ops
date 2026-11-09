@@ -1,4 +1,5 @@
 'use strict';
+const {navigate}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 test.use({browserName:'chromium'});
 const P='00000000-0000-4000-8000-000000000001',U1='00000000-0000-4000-8000-000000000002',U8='00000000-0000-4000-8000-000000000003',T='00000000-0000-4000-8000-000000000004',H='00000000-0000-4000-8000-000000000005',R='00000000-0000-4000-8000-000000000006';
@@ -47,7 +48,7 @@ async function login(page){
 }
 test('full portfolio shows multiple units at one street and keeps historical contact distinct from notice addressee',async({page})=>{
  await login(page);
- await page.locator('[data-workspace="properties"]').click();
+ await navigate(page,'properties');
  await expect(page.locator('#ops-portfolio-status')).toContainText('2 of 2 units/lots shown');
  await expect(page.locator('#ops-portfolio-summary')).toContainText('2Units / lots');
  await page.locator('#ops-portfolio-search').fill('Unit 8');
@@ -60,7 +61,7 @@ test('full portfolio shows multiple units at one street and keeps historical con
 });
 test('renewals screen shows pending case and task from normalized Supabase tables',async({page})=>{
  await login(page);
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'leases');
  await expect(page.locator('#ops-renewals-panel')).toBeVisible();
  await expect(page.locator('#ops-renewals-status')).toContainText('1 of 1 renewal/asset cases shown');
  await page.locator('#ops-renewals-list .property-record').click();
@@ -71,7 +72,7 @@ test('renewals screen shows pending case and task from normalized Supabase table
 
 test('renewal preparation uses selected unit, validates choices and formats late fees without writing records',async({page})=>{
  await login(page);
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'leases');
  await page.locator('#lease-tab-prepare').click();
  await expect(page.locator('#ops-renewal-generator')).toBeVisible();
  await page.locator('#renewal-unit').selectOption(U8);
@@ -97,7 +98,7 @@ test('renewal preparation uses selected unit, validates choices and formats late
 
 test('renewal generator downloads a five-page unsigned PDF from approved inputs',async({page})=>{
  await login(page);
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'leases');
  await page.locator('#lease-tab-prepare').click();
  await page.locator('#renewal-unit').selectOption(U8);
  await expect(page.locator('#renewal-lease')).toHaveValue(H);
@@ -121,7 +122,7 @@ test('renewal generator downloads a five-page unsigned PDF from approved inputs'
 
 test('one-line renewal update saves status, next action and optional note in the staff event journal',async({page})=>{
  const activity=await login(page);
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'leases');
  await expect(page.locator('#ops-renewals-status')).toContainText('1 of 1');
  await page.locator('#ops-renewals-list .property-record').click();
  await expect(page.locator('#ops-renewal-tracker')).toBeVisible();
@@ -138,14 +139,14 @@ test('one-line renewal update saves status, next action and optional note in the
  expect(activity[0].event_metadata.note).toContain('follow up Wednesday');
  expect(activity[0].entity_id).toBe(R);
  await page.reload();
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'leases');
  await page.locator('#ops-renewals-list .property-record').click();
  await expect(page.locator('#ops-renewal-tracker')).toContainText('Tenant should check their email');
  await expect(page.locator('#tracker-status')).toHaveValue('sent_for_signature');
 });
 test('renewal workflow never interprets not sent as sent and allows optional notes',async({page})=>{
  const activity=await login(page);
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'leases');
  await page.locator('#ops-renewals-list .property-record').click();
  await page.locator('#tracker-message').fill('I have not sent the lease yet');
  await expect(page.locator('#tracker-status')).toHaveValue('unreviewed');
@@ -159,7 +160,7 @@ test('renewal workflow never interprets not sent as sent and allows optional not
 test('lease tabs preserve generator edits, review state, tracker selection and unsaved notes',async({page})=>{
  const activity=await login(page);
  await page.emulateMedia({reducedMotion:'reduce'});
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'leases');
  await expect(page.locator('#lease-tab-track')).toHaveAttribute('aria-selected','true');
  await expect(page.locator('#ops-renewals-panel')).toBeVisible();
  await expect(page.locator('#lease-prepare-panel')).toBeHidden();
@@ -183,8 +184,8 @@ test('lease tabs preserve generator edits, review state, tracker selection and u
  await expect(page.locator('#tracker-message')).toHaveValue('Unsubmitted fictional note');
  await expect(page.locator('#tracker-note')).toHaveValue('Draft must survive tab navigation');
  await expect(page.locator('#ops-renewals-search')).toHaveValue('OAK');
- await page.locator('[data-workspace="properties"]').click();
- await page.locator('[data-workspace="leases"]').click();
+ await navigate(page,'properties');
+ await navigate(page,'leases');
  await expect(page.locator('#lease-tab-track')).toHaveAttribute('aria-selected','true');
  await page.locator('#lease-tab-prepare').click();
  await expect(page.locator('#renewal-rent')).toHaveValue('1,234.00');
@@ -197,7 +198,7 @@ test('lease inner tabs support keyboard arrows and remain usable at all required
  await page.emulateMedia({reducedMotion:'reduce'});
  for(const width of [320,768,1024,1440]){
   await page.setViewportSize({width,height:900});
-  await page.locator('[data-workspace="leases"]').click();
+  await navigate(page,'leases');
   await expect(page.locator('#lease-tab-track')).toHaveAttribute('aria-selected','true');
   await page.locator('#lease-tab-track').focus();
   await page.locator('#lease-tab-track').press('ArrowRight');
@@ -212,7 +213,7 @@ test('lease inner tabs support keyboard arrows and remain usable at all required
 
 test('Properties shows desktop 40/60 layout and accessible small-screen Back navigation',async({page})=>{
  await login(page);await page.emulateMedia({reducedMotion:'reduce'});
- await page.locator('[data-workspace="properties"]').click();
+ await navigate(page,'properties');
  for(const width of [320,768,1024,1440]){
   await page.setViewportSize({width,height:900});
   const results=page.locator('#ops-portfolio-results'),details=page.locator('#ops-portfolio-detail-shell');
@@ -243,7 +244,7 @@ test('Properties shows desktop 40/60 layout and accessible small-screen Back nav
 test('Properties holds selected unit outside search and preserves correct Back focus',async({page})=>{
  await login(page);await page.emulateMedia({reducedMotion:'reduce'});
  await page.setViewportSize({width:768,height:800});
- await page.locator('[data-workspace="properties"]').click();
+ await navigate(page,'properties');
  const selected=page.locator('#ops-portfolio-list [data-unit-id="'+U1+'"]');
  await selected.click();
  await page.locator('#ops-portfolio-back').click();
@@ -265,7 +266,7 @@ test('Properties refreshes selected record, clears missing unit, and removes pro
  try{
   fixtures.units=original.map(u=>({...u}));
   await login(page);await page.setViewportSize({width:1440,height:900});
-  await page.locator('[data-workspace="properties"]').click();
+  await navigate(page,'properties');
   await page.locator('#ops-portfolio-list [data-unit-id="'+U1+'"]').click();
   fixtures.units[0].occupancy_status='Illustrative refreshed status';
   await page.locator('#ops-portfolio-refresh').click();

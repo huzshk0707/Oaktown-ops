@@ -2,6 +2,9 @@
  .ops-workspace .lease-draft-tool {max-width:1180px}
  .ops-workspace .lease-draft-tool>h2 {font-size:26px;letter-spacing:-.03em;margin:12px 0 8px}
  .ops-workspace .lease-draft-badge {display:inline-block;font:600 10px/1.6 ui-monospace,monospace;letter-spacing:.08em;color:var(--mode-accent);background:var(--ui-soft);padding:7px 10px;border:1px solid var(--ui-border);border-radius:8px}
+ .ops-workspace .lease-draft-limitations {margin:18px 0;padding:16px 18px;border:1px solid var(--ui-control);border-left:4px solid var(--mode-accent);border-radius:10px;background:var(--ui-soft);color:var(--ui-text);font-size:14px;line-height:1.6}
+ .ops-workspace .lease-draft-limitations strong {display:block;font-size:15px;margin-bottom:6px}
+ .ops-workspace .lease-draft-limitations p+p {margin-top:8px}
  .ops-workspace .lease-draft-sources {margin:20px 0;border:1px solid var(--ui-border);border-radius:12px;padding:0 16px;background:var(--ui-soft);color:var(--ui-muted);font-size:13px;line-height:1.7}
  .ops-workspace .lease-draft-sources summary {min-height:48px;cursor:pointer;align-content:center;color:var(--ui-text)}
  .ops-workspace .lease-draft-sources ul {padding:0 8px 14px 20px}

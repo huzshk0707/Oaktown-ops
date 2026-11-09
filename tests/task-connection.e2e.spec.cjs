@@ -1,4 +1,5 @@
 'use strict';
+const {chooseTheme,openAdvanced}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co',USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 // Supabase generates a public opaque ID, not its internal UUID primary key.
@@ -37,13 +38,13 @@ async function signIn(page,consent=false){
  await expect(page.locator('#today-status')).toContainText('Updated');
 }
 test('Task connection shows saved receipts without claiming a live ChatGPT link and fits all six themes',async({page})=>{
- const s=await setup(page);await signIn(page);await page.locator('#task-connection>summary').click();
+ const s=await setup(page);await signIn(page);await openAdvanced(page);await page.locator('#task-connection>summary').click();
  await expect(page.locator('#task-connection-state')).toHaveText('Client registered');
  await expect(page.locator('#task-connection-status')).toContainText('does not confirm');
  await expect(page.locator('#task-connection-activity')).toContainText('A03 · Fictional document collection');
  await expect(page.locator('#task-connection-activity')).toContainText('Collect fictional documents');
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
-  await page.getByLabel('Workspace theme').selectOption(theme);
+  await chooseTheme(page,theme);
   for(const width of [1440,320]){await page.setViewportSize({width,height:1000});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
    if(process.env.OAKTOWN_UI_SCREENSHOTS==='1')await page.locator('#task-connection').screenshot({path:test.info().outputPath(theme+'-'+width+'-workspace.png')});}
  }
@@ -52,7 +53,7 @@ test('Task connection shows saved receipts without claiming a live ChatGPT link 
  expect(s.calls.every(c=>['connections','activity'].includes(c.action))).toBe(true);
 });
 test('Administrator disables a client and verifies saved settings; editor cannot manage connections',async({page})=>{
- const s=await setup(page);await signIn(page);await page.locator('#task-connection>summary').click();
+ const s=await setup(page);await signIn(page);await openAdvanced(page);await page.locator('#task-connection>summary').click();
  await expect(page.locator('#task-connection-state')).toHaveText('Client registered');
  await page.locator('#task-connection-admin>summary').click();await page.getByRole('button',{name:'Disable access'}).click();
  await expect(page.locator('#task-connection-status')).toContainText('disabled and verified');expect(s.clients[0].enabled).toBe(false);
@@ -60,7 +61,7 @@ test('Administrator disables a client and verifies saved settings; editor cannot
  await page.evaluate(()=>window.OpsCloud.signOut());
 });
 test('An undeployed task API or failed refresh clears receipts while normal Today remains available',async({page})=>{
- const s=await setup(page,{admin:false});await signIn(page);await page.locator('#task-connection>summary').click();
+ const s=await setup(page,{admin:false});await signIn(page);await openAdvanced(page);await page.locator('#task-connection>summary').click();
  await expect(page.locator('#task-connection-activity')).toContainText('Fictional document collection');
  await expect(page.locator('#task-connection-admin')).toBeHidden();s.fail=true;
  await page.locator('#task-connection-refresh').click();await expect(page.locator('#task-connection-state')).toHaveText('Setup required');
@@ -68,7 +69,7 @@ test('An undeployed task API or failed refresh clears receipts while normal Toda
 });
 test('A late task-connection response cannot restore private receipts after sign-out',async({page})=>{
  const s=await setup(page);await signIn(page);let release;s.hold=new Promise(r=>{release=r});
- await page.locator('#task-connection>summary').click();await expect(page.locator('#task-connection-status')).toContainText('Checking');
+ await openAdvanced(page);await page.locator('#task-connection>summary').click();await expect(page.locator('#task-connection-status')).toContainText('Checking');
  await page.evaluate(()=>window.OpsCloud.signOut());release();
  await expect(page.locator('#task-connection-activity')).toBeEmpty();await expect(page.locator('#task-connection-state')).toHaveText('Sign in');
  await expect(page.locator('#task-connection-clients')).toBeEmpty();await expect(page.locator('#task-connection-refresh')).toBeDisabled();

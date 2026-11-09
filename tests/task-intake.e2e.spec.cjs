@@ -1,4 +1,5 @@
 'use strict';
+const {chooseTheme,navigate}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 test.use({browserName:'chromium'});test.setTimeout(60000);
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co';
@@ -100,13 +101,13 @@ async function setup(page){
   return reply({message:'Unexpected mocked request: '+p},500);
  });
  page.on('dialog',d=>d.accept());
- await page.goto(ORIGIN+'/');await page.locator('[data-workspace="notices"]').click();await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
+ await page.goto(ORIGIN+'/');await navigate(page,'notices');await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
  s.email='tester@example.invalid';await page.locator('#pilot-email').fill(s.email);
  await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();await expect(page.locator('#account-button')).toContainText('Signed in');return s;
 }
 async function importProperty(page){
- await page.locator('[data-workspace="notices"]').click();
+ await navigate(page,'notices');
  await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
  await page.locator('#notice-picker-list input[type="checkbox"]').check();
  await page.locator('#notice-picker-make').click();
@@ -115,7 +116,7 @@ async function importProperty(page){
 
 const intakeFixture=require('./fixtures/task-intake.json');
 async function openIntake(page){
- const state=await setup(page);await page.locator('[data-workspace="tasks"]').click();
+ const state=await setup(page);await navigate(page,'tasks');
  await page.locator('#task-new-session').click();
  await expect(page.locator('#task-status')).toContainText('New intake session created');
  await page.locator('#task-json').fill(JSON.stringify(intakeFixture));
@@ -150,7 +151,7 @@ test('lost response can retry the same reviewed request without duplicating work
 });
 test('missing staged backend fails closed but allows a local preview',async({page})=>{
  const s=await setup(page);s.intakeUnavailable=true;
- await page.locator('[data-workspace="tasks"]').click();
+ await navigate(page,'tasks');
  await expect(page.locator('#task-status')).toContainText('not enabled yet');
  await page.locator('#task-json').fill(JSON.stringify(intakeFixture));await page.locator('#task-preview').click();
  await expect(page.locator('#task-review')).toContainText('Preview only');
@@ -295,5 +296,5 @@ test('a general batch explicitly confirms its scope and never offers misleading 
 });
 
 test('changing appearance preserves an unsaved reviewed intake and its selected property',async({page})=>{
- const s=await openIntake(page);await approve(page);const json=await page.locator('#task-json').inputValue();await expect(page.locator('#task-save')).toBeEnabled();await page.getByLabel('Workspace theme').selectOption('nilo');await expect(page.locator('#task-json')).toHaveValue(json);await expect(page.getByLabel('Resolve property / unit for Prepare Unit 8 renewal lease')).toHaveValue('u:'+UNIT);await expect(page.locator('#task-confirm')).toBeChecked();await expect(page.locator('#task-save')).toBeEnabled();expect(s.intake.saves).toBe(0);
+ const s=await openIntake(page);await approve(page);const json=await page.locator('#task-json').inputValue();await expect(page.locator('#task-save')).toBeEnabled();await chooseTheme(page,'nilo');await expect(page.locator('#task-json')).toHaveValue(json);await expect(page.getByLabel('Resolve property / unit for Prepare Unit 8 renewal lease')).toHaveValue('u:'+UNIT);await expect(page.locator('#task-confirm')).toBeChecked();await expect(page.locator('#task-save')).toBeEnabled();expect(s.intake.saves).toBe(0);
 });

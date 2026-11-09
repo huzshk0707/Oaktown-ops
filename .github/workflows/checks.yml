@@ -21,6 +21,8 @@ jobs:
           node --check app.js
           node --check cloud.js
           node --check workspace.js
+          node --check workspace-experience.js
+          node --check notice-workflow.js
           node --check portfolio.js
           node --check renewal-rules.js
           node --check renewal-pdf.js

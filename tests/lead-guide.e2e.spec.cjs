@@ -1,10 +1,11 @@
 'use strict';
+const {chooseTheme,navigate}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765';
 for(const theme of ['veyra','oryn','nilo']) test('Lead Handling guide generates local portable prompt in '+theme, async({page})=>{
  const external=[];await page.route('**/*',route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();external.push(route.request().url());return route.abort();});
- await page.goto(ORIGIN+'/');await page.getByLabel('Workspace theme').selectOption(theme);
- await page.locator('[data-workspace="leads"]').click();
+ await page.goto(ORIGIN+'/');await chooseTheme(page,theme);
+ await navigate(page,'leads');
  await expect(page.locator('#leads-workflow')).toBeVisible();
  await expect(page.locator('#listings-workflow')).toBeHidden();
  await page.locator('#leads-workflow').getByRole('button',{name:'Build prompt',exact:true}).click();await page.locator('#leads-workflow').getByRole('button',{name:'View all',exact:true}).click();
@@ -23,13 +24,13 @@ for(const theme of ['veyra','oryn','nilo']) test('Lead Handling guide generates 
  await expect(page.locator('#lead-guide-prompt')).toHaveValue(/Rewrite in Leslie Style/);
  await page.setViewportSize({width:390,height:850});
  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.locator('[data-workspace="listings"]').click();await expect(page.locator('#listings-workflow')).toBeVisible();
- await page.locator('[data-workspace="leads"]').click();
+ await navigate(page,'listings');await expect(page.locator('#listings-workflow')).toBeVisible();
+ await navigate(page,'leads');
  await expect(page.locator('#lead-thread')).toHaveValue(/How much are utilities/);
  await page.locator('#lead-guide-clear').click();
  await expect(page.locator('#lead-thread')).toHaveValue('');
  await expect(page.locator('#lead-mode')).toHaveValue('reply');
- await page.reload();await page.locator('[data-workspace="leads"]').click();
+ await page.reload();await navigate(page,'leads');
  await expect(page.locator('#lead-thread')).toHaveValue('');
  await expect(page.locator('#lead-facts')).toHaveValue('');
  expect(external).toEqual([]);

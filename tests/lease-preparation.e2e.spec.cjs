@@ -1,4 +1,5 @@
 'use strict';
+const {chooseTheme,navigate}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co';
 async function setup(page,signin=true){
@@ -17,12 +18,12 @@ async function setup(page,signin=true){
  });
  await page.goto(ORIGIN+'/');
  if(signin){await page.locator('#account-button').click();await page.locator('#pilot-email').fill('staff@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#account-label')).toHaveText('Signed in')}
- await page.locator('[data-workspace="leases"]').click();await page.locator('#lease-tab-new').click();return writes;
+ await navigate(page,'leases');await page.locator('#lease-tab-new').click();return writes;
 }
 async function step(page,i){await page.locator('#new-lease-panel .guide-form-jump').nth(i).click()}
 test('new lease has its own staff-only tab and opens from the application handoff',async({page})=>{
  await setup(page,false);await expect(page.locator('.lease-draft-lock')).toBeVisible();await expect(page.locator('#newlease-form')).toBeHidden();await expect(page.locator('#newlease-tenantName')).toBeDisabled();
- await page.locator('[data-workspace="applications"]').click();await page.locator('#applications-workflow .guide-step-button').last().click();await page.getByRole('button',{name:'Open new lease preparation'}).click();
+ await navigate(page,'applications');await page.locator('#applications-workflow .guide-step-button').last().click();await page.getByRole('button',{name:'Open new lease preparation'}).click();
  await expect(page.locator('#lease-tab-new')).toHaveAttribute('aria-selected','true');await expect(page.locator('#new-lease-panel')).toBeVisible();await expect(page.locator('#newlease-approvalReviewed')).not.toBeChecked();
  await page.locator('#lease-tab-track').focus();await page.keyboard.press('End');await expect(page.locator('#lease-tab-new')).toBeFocused();await page.keyboard.press('ArrowRight');await expect(page.locator('#lease-tab-track')).toBeFocused();
 });
@@ -39,7 +40,7 @@ test('conditions are blank, editable, independent by room and retained only for 
  await expect(page.locator('#newlease-condition-0')).toHaveValue('');await page.locator('#newlease-condition-0').fill('Good & Fresh Paint');await page.locator('#newlease-room').selectOption('bedroom-5');await expect(page.locator('#newlease-condition-0')).toHaveValue('');await page.locator('#newlease-condition-0').fill('Fictional bedroom five note');
  await page.locator('#newlease-bedrooms').selectOption('2');await expect(page.locator('#newlease-room option[value="bedroom-5"]')).toHaveCount(1);await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');await expect(page.locator('#newlease-condition-0')).toHaveAttribute('readonly','');await expect(page.locator('#newlease-room-applicability')).toContainText('not included');
  await page.locator('#newlease-bedrooms').selectOption('5');await page.locator('#newlease-room').selectOption('bedroom-5');await expect(page.locator('#newlease-condition-0')).toHaveValue('Fictional bedroom five note');await page.locator('#newlease-room').selectOption('kitchen');await expect(page.locator('#newlease-condition-0')).toHaveValue('Good & Fresh Paint');
- await page.getByRole('button',{name:'Clear draft',exact:true}).click();await step(page,3);await expect(page.locator('#newlease-condition-0')).toHaveValue('');await expect(page.locator('#newlease-bedrooms')).toHaveValue('');
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Clear draft',exact:true}).click();await step(page,3);await expect(page.locator('#newlease-condition-0')).toHaveValue('');await expect(page.locator('#newlease-bedrooms')).toHaveValue('');
 });
 test('sign-out clears names, conditions and reviews; changing a protected unit cannot carry prior details',async({page})=>{
  const writes=await setup(page);await step(page,1);await page.locator('#newlease-unit').selectOption('u1');await step(page,2);await page.locator('#newlease-tenantName').fill('Fictional new resident');
@@ -49,7 +50,7 @@ test('sign-out clears names, conditions and reviews; changing a protected unit c
 });
 test('all six themes and mobile layouts retain the renewal tool and disabled new-lease export',async({page})=>{
  await setup(page);for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
-  await page.getByLabel('Workspace theme').selectOption(theme);
+  await chooseTheme(page,theme);
   for(const width of [320,768,1440]){
    await page.setViewportSize({width,height:950});await page.locator('#lease-tab-new').click();await step(page,3);await page.locator('#newlease-bedrooms').selectOption('5');await page.locator('#newlease-bathrooms').selectOption('3');await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
    await page.locator('#new-lease-panel').getByRole('button',{name:'View all',exact:true}).click();await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await expect(page.locator('#newlease-download')).toBeDisabled();await page.locator('#new-lease-panel').getByRole('button',{name:'One step',exact:true}).click();
@@ -62,7 +63,7 @@ test('staff can rename rooms and download a corrected unsigned condition-sheet p
  const writes=await setup(page);await step(page,3);await page.locator('#newlease-bedrooms').selectOption('3');await page.locator('#newlease-bathrooms').selectOption('2');await page.locator('#newlease-basement').selectOption('not-included');await page.locator('#newlease-additionalRoom').check();await page.locator('#newlease-room').selectOption('additional');await page.locator('#newlease-roomLabel').fill('Den');await page.locator('#newlease-condition-0').fill('Rekeyed');
  await page.locator('#newlease-room').selectOption('bedroom-3');await page.locator('#newlease-roomLabel').fill('Primary bedroom');await page.locator('#newlease-room').selectOption('additional');await expect(page.locator('#newlease-roomLabel')).toHaveValue('Den');await expect(page.locator('#newlease-condition-0')).toHaveValue('Rekeyed');
  const download=page.waitForEvent('download');await page.locator('#newlease-condition-preview').click();const file=await download;await file.saveAs(testInfo.outputPath('condition-preview.pdf'));const bytes=require('node:fs').readFileSync(testInfo.outputPath('condition-preview.pdf'));expect(bytes.subarray(0,4).toString()).toBe('%PDF');await expect(page.locator('#newlease-condition-preview-status')).toContainText('Draft condition-sheet preview downloaded');await expect(page.locator('#newlease-download')).toBeDisabled();expect(writes).toEqual([]);
- await page.getByRole('button',{name:'Clear draft',exact:true}).click();await step(page,3);await expect(page.locator('#newlease-roomLabel')).toHaveValue('');await expect(page.locator('#newlease-condition-preview-status')).toHaveText('');
+ page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Clear draft',exact:true}).click();await step(page,3);await expect(page.locator('#newlease-roomLabel')).toHaveValue('');await expect(page.locator('#newlease-condition-preview-status')).toHaveText('');
 });
 
 test('the complete condition form marks absent bedrooms, bathroom groups, den and basement N/A and restores draft observations only when applicable',async({page})=>{
@@ -79,4 +80,21 @@ test('the complete condition form marks absent bedrooms, bathroom groups, den an
  await page.locator('#newlease-bedrooms').selectOption('1');await page.locator('#newlease-room').selectOption('bedroom-2');await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');await page.locator('#newlease-bedrooms').selectOption('2');await expect(page.locator('#newlease-condition-0')).toHaveValue('');
  await page.locator('#newlease-room').selectOption('additional');await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');await page.locator('#newlease-additionalRoom').check();await page.locator('#newlease-condition-0').fill('Fictional den observation');await page.locator('#newlease-additionalRoom').uncheck();await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');
  await expect(page.locator('#newlease-room option')).toHaveCount(15);expect(writes).toEqual([]);
+});
+
+
+test('temporary new-lease inputs have visible limitations and require confirmation before destructive clearing or reload',async({page})=>{
+ await setup(page);
+ await expect(page.locator('.lease-draft-limitations')).toBeVisible();
+ await expect(page.locator('.lease-draft-limitations')).toContainText('Full ten-page lease export is unavailable');
+ await expect(page.locator('.lease-draft-limitations')).toContainText('not saved to a case');
+ await step(page,2);await page.locator('#newlease-tenantName').fill('Fictional temporary name');
+ page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'Clear draft',exact:true}).click();
+ await expect(page.locator('#newlease-tenantName')).toHaveValue('Fictional temporary name');
+ const pending=page.waitForEvent('dialog');const reload=page.reload({timeout:2000}).catch(()=>{});
+ const warning=await pending;expect(warning.type()).toBe('beforeunload');await warning.dismiss();await reload;
+ await expect(page.locator('#newlease-tenantName')).toHaveValue('Fictional temporary name');
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#newlease-tenantName')).toHaveValue('');
+ await page.reload();await expect(page.locator('#newlease-form')).toBeHidden();
 });
