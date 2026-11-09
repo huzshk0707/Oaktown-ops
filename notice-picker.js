@@ -92,8 +92,9 @@ async function refresh(){
    cloud.api('/rest/v1/tenancy_people?select=tenancy_id,person_id,party_role,to_date&limit=400'),
    cloud.api('/rest/v1/people?select=id,display_name,email&limit=300'),
    cloud.api('/rest/v1/leases?select=unit_id,tenancy_id&limit=300'),
-   cloud.api('/rest/v1/property_aliases?select=property_id,alias&limit=500'),
-   cloud.api('/rest/v1/unit_aliases?select=unit_id,alias&limit=500')
+   // Alias indexes are optional for matching; a failed alias lookup must not block address-based notice selection.
+   cloud.api('/rest/v1/property_aliases?select=property_id,alias&limit=500').catch(()=>[]),
+   cloud.api('/rest/v1/unit_aliases?select=unit_id,alias&limit=500').catch(()=>[])
   ]);
   if(gen!==generation||cloud.user?.id!==account)return;
   const p=new Map(props.map(x=>[x.id,x])),counts=new Map();
