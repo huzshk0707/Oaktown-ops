@@ -52,6 +52,13 @@ test('tenant message uses live printed notice blocks and excludes the return add
   assert.ok(!fn.includes('.statement'), 'must exclude current statement table');
   assert.ok(fn.includes('return parts.filter(Boolean).join('), 'must preserve paragraph breaks');
 });
+test('embedded notice toolbar offers only a manual shortcut to the selected tenant message', () => {
+  assert.ok(generator.includes('id="goTenantMessage" hidden'));
+  assert.ok(generator.includes("type:'oaktown-go-tenant-message',noticeId:active().id"));
+  assert.ok(shell.includes("message.type==='oaktown-go-tenant-message'"));
+  assert.ok(shell.includes('id="copy-tenant-email" disabled'));
+});
+
 test('tenant message has one working copy button and no duplicate Firm Book tab', () => {
   assert.ok(shell.includes('data-notice-tab="message"'));
   assert.ok(shell.includes('id="copy-message"'));
