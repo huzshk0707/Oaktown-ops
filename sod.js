@@ -105,8 +105,9 @@
   event.preventDefault();if(!cloud.user||!data)return;
   try{
    const constants=M.CONSTANTS.filter(s=>$('sod-constant-'+s.id).checked).map(s=>({id:s.id,text:$('sod-text-'+s.id).value}));
+   const workDate=T.today();$('sod-workdate').textContent=workDate+' · Louisville/Eastern';
    const result=M.compose({
-     greeting:$('sod-greeting').value,
+     workDate,greeting:$('sod-greeting').value,
      selected:selected.map(({id,subject,action})=>({id,subject,action})),
      extras:$('sod-extras').value,constants
    });

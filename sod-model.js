@@ -1,15 +1,16 @@
 /* SOD email composition from reviewed, in-memory daily plan. No database or email writes. */
 (function(root,factory){
  'use strict';
- const api=factory();
+ const dates=typeof module==='object'&&module.exports?require('./today-model.js'):root.OpsTodayModel;
+ const api=factory(dates);
  if(typeof module==='object'&&module.exports)module.exports=api;
  if(root)root.OpsSodModel=api;
-})(typeof window!=='undefined'?window:null,function(){
+})(typeof window!=='undefined'?window:null,function(T){
  'use strict';
  const CONSTANTS=Object.freeze([
   Object.freeze({id:'tenant',text:'Tenant Communications: Review outstanding messages and respond to tenant requests and payment-related inquiries.'}),
   Object.freeze({id:'rei',text:'REI Hub – Import Feed: Review pending transactions and process those ready to be categorized or booked.'}),
-  Object.freeze({id:'leasing',text:'Leasing & Maintenance: Follow up on outstanding maintenance requests and active rental inquiries.'})
+  Object.freeze({id:'leasing',text:'Maintenance & Leasing: Follow up on outstanding maintenance requests and active inquiries.'})
  ]);
  const CLOSED=new Set(['completed','cancelled','canceled','closed','done','declined']);
  const PRIORITY={urgent:0,high:1,normal:2,low:3};
@@ -49,6 +50,8 @@
   const input=options&&typeof options==='object'?options:{};
   const greeting=input.greeting==='weekend'?'Hope you had a good weekend!':input.greeting==='normal'?"Hope you're doing well!":null;
   if(!greeting)throw Error('Choose one greeting before generating the SOD');
+  if(!T.validDate(input.workDate))throw Error('A valid Louisville work date is required');
+  const weekday=new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(input.workDate+'T12:00:00Z'));
   const tasks=Array.isArray(input.selected)?input.selected:[];
   if(tasks.length>30)throw Error('Too many selected tasks');
   const used=new Set(),specific=[];
@@ -78,8 +81,10 @@
   }
   if(!specific.length&&!recurring.length)throw Error('Add at least one priority or recurring responsibility');
   return {
-    text:'Good Morning Leslie,\n\n'+greeting+'\n\nHere are my priorities for today:\n\n'+
-       [...specific,...recurring].join('\n')+'\n\nThank you!',
+    text:'Good Morning Leslie,\n\n'+greeting+"\n\nI'm getting started for the day. My priorities today are:\n\n"+
+       [...specific,...recurring].map(line=>'- '+line).join('\n')+
+       "\n\nPlease let me know if there's anything else you'd like me to prioritize today.\n\n"+
+       'Thank you, and wishing you a wonderful '+weekday+'!',
     specificCount:specific.length,recurringCount:recurring.length
   };
  }
