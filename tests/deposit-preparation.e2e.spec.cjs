@@ -54,3 +54,8 @@ test('a late template response after sign-out cannot download applicant details'
  await page.evaluate(()=>window.OpsCloud.signOut());const response=page.waitForResponse('**/assets/deposit/holding-template.docx');release();await (await response).finished();
  await page.waitForTimeout(300);await expect(page.locator('#deposit-status')).toContainText('Sign in');await expect(page.locator('#deposit-preview')).toBeEmpty();expect(downloads).toBe(0);
 });
+
+test('signing preview aligns identity, yellow blank areas and labels in two columns',async({page})=>{
+ await setup(page);await fill(page);await page.locator('#deposit-add-signer').click();await page.locator('[data-signer="name"]').nth(1).fill('Second Fictional Applicant With A Longer Name');await page.locator('[data-signer="email"]').nth(1).fill('longer.fictional.email.address@example.invalid');await page.locator('#deposit-review').click();
+ for(const width of [390,1440]){await page.setViewportSize({width,height:950});const geometry=await page.locator('.deposit-signature-grid').evaluateAll(blocks=>blocks.map(block=>{const c=[...block.children],b=c.map(e=>e.getBoundingClientRect());return {aligned:Math.abs(b[0].left-b[2].left)<1&&Math.abs(b[1].left-b[3].left)<1&&Math.abs(b[2].top-b[3].top)<1&&Math.abs(b[4].top-b[5].top)<1,colors:[getComputedStyle(c[2]).backgroundColor,getComputedStyle(c[3]).backgroundColor],blank:c[2].textContent===''&&c[3].textContent===''};}));expect(geometry).toHaveLength(2);for(const g of geometry){expect(g.aligned).toBe(true);expect(g.colors).toEqual(['rgb(255, 255, 0)','rgb(255, 255, 0)']);expect(g.blank).toBe(true);}}
+});
