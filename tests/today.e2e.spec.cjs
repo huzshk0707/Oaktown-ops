@@ -356,7 +356,7 @@ test('Morning Plan requires a confirmed action, offers optional Monday wording a
  await page.locator('#sod-plan-selected').getByLabel('Action for this morning').fill('Check source records and confirm the next step.');
  await page.locator('#sod-greeting').selectOption('weekend');
  await page.locator('#sod-generate').click();
- await expect(page.locator('#sod-output')).toContainText('Hope you had a good weekend!');
+ await expect(page.locator('#sod-output')).toHaveValue(/Hope you had a good weekend!/);
  await page.locator('#sod-extras').fill('One line missing a colon');
  await expect(page.locator('#sod-copy')).toBeDisabled();
  await page.locator('#sod-generate').click();
