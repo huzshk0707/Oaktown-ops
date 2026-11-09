@@ -34,6 +34,9 @@ function choose(key,id){
  levelKey=key;taskId=id||'';
  if(cloud.user)savePreference();
  render();
+ if(window.OpsWorkspace.getRoute().workflow!=='today'){
+  window.OpsWorkspace.navigate('today');$('today-focus-heading').setAttribute('tabindex','-1');$('today-focus-heading').focus({preventScroll:true});
+ }
  $('today-focus-heading').scrollIntoView({block:'nearest',behavior:document.documentElement.dataset.opsMotion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
 }
 function renderAlerts(){

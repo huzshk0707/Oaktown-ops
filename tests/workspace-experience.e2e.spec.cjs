@@ -36,6 +36,7 @@ test('compact workspace exposes mobile destinations and appearance without hidin
  await page.locator('#today-open-plan').click();
  await expect(page.locator('#sod-morning')).toHaveAttribute('open','');
  await expect(page.locator('#sod-status')).toContainText('Sign in');
+ await expect(page.locator('#today-workflow #workspace-advanced')).toHaveCount(0);
  await expect(page.locator('#workspace-advanced')).not.toHaveAttribute('open','');
  await expect(page.locator('#task-connection')).toBeHidden();
 });
