@@ -212,6 +212,7 @@ function sendTenantMessageToShell() {
     type:'oaktown-tenant-message',
     noticeId:String(n.id),
     sourceUnitId:String(n.sourcePropertyId||''),
+    street:String(n.street||''),
     recipient:String(n.tenant||''),
     content:tenantMessageFromNotice(n),
     issues:tenantMessageIssues(n)
