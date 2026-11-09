@@ -640,17 +640,29 @@ test('Import clears its private draft when the staff account changes',async({pag
  await expect(page.locator('#backlog-import-save')).toBeDisabled();
 });
 test('Today falls back for an undeployed task schema but does not retry a forbidden task read',async({page})=>{
- await setup(page);let fail=false,legacy=0;
+ await setup(page);let fail=false,legacy=0,backgroundLegacy=0,releaseBackground;
+ const backgroundGate=new Promise(resolve=>{releaseBackground=resolve});
  await page.route('**/rest/v1/ops_tasks?*',async route=>{
-  const q=new URL(route.request().url()).searchParams.get('select')||'';
+  const params=new URL(route.request().url()).searchParams,q=params.get('select')||'';
   const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*'};
+  // Connected-record search loads concurrently and has its own schema fallback.
+  // Delay that request until Today's forbidden refresh to prove it is independent.
+  if(params.has('offset')){
+   if(q.startsWith('id,task_code,parent_task_id,')){
+    await backgroundGate;
+    return route.fulfill({status:400,headers,body:JSON.stringify({message:'Column task_code does not exist',code:'42703'})});
+   }
+   backgroundLegacy++;return route.fulfill({status:200,headers,body:'[]'});
+  }
   if(q.startsWith('id,task_code,parent_task_id,'))return route.fulfill({status:fail?403:400,headers,body:JSON.stringify({message:fail?'Forbidden':'Column task_code does not exist',code:fail?'42501':'42703'})});
   legacy++;return route.fulfill({status:200,headers,body:'[]'});
  });
  await signInToday(page);await expect(page.locator('#today-status')).toContainText('Updated');
  expect(legacy).toBeGreaterThan(0);fail=true;const before=legacy;
+ releaseBackground();
  await page.evaluate(()=>window.OpsToday.refresh());
  await expect(page.locator('#today-status')).toContainText('Could not load the dashboard');
+ await expect.poll(()=>backgroundLegacy).toBeGreaterThan(0);
  expect(legacy).toBe(before);
 });
 
