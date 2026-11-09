@@ -27,6 +27,30 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Notice preparation workflow — PR #53
+
+The notice editor improvement follows the staff's repeatable manual sequence:
+select ordered properties; open each property's TurboTenant Payments tab separately;
+export and paste its CSV statement; review imported charge rows and the notice PDF
+preview; download that property's PDF; copy the selected tenant's message/email;
+then attach the PDF and paste the message into email and TurboTenant manually.
+
+- The notice selector accepts a pasted ordered list, requires explicit
+  unit choices for ambiguous names, and keeps drafts in list order.
+- The embedded editor adds **Go to tenant message** beside **Download property PDF**.
+  This follows the currently selected notice without scrolling to the top tabs.
+  The message screen displays the current notice address, offers **Copy email**
+  only for one exact-linked address, retains **Copy message**, and returns to the
+  same selected notice via **Back to notice editor**.
+- This PR does not download external payment data, connect to TurboTenant, send
+  email, upload PDFs, mark notices as served, or change the legal notice template.
+- Review hardening assigns returned alias arrays, invalidates changed paste
+  lists, locks preparation controls during requests and uses shared theme colors.
+  Fictional browser checks cover ordering, ambiguous/duplicate units, edited-draft
+  preservation, optional alias failures, CSV import, PDF downloads, contact
+  association and the message/back path. CI and publication are tracked in PR #53;
+  real notice sending and service remain separate manual actions.
+
 ## Daily workspace and task library — November 9 follow-up
 
 Today now keeps the morning plan/SOD, themed summary cards, urgent and due work,
@@ -43,6 +67,7 @@ with contextual reminders, motion and swipe interactions. Left-swipe snooze and
 right-swipe completion are ideas for a later increment, with explicit snooze timing,
 reviewed completion and keyboard/button alternatives. They are not implemented in
 this layout change. Today’s final name and EOD refinements remain open decisions.
+
 
 ## Today dashboard layout refinement
 
