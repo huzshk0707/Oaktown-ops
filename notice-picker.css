@@ -23,3 +23,14 @@
 
 /* Hidden legacy notice import controls must stay hidden despite .button display rules. */
 #notices-load-all[hidden],#open-properties[hidden],#pilot-load[hidden],#property-batch-tools[hidden]{display:none!important}
+
+/* Ordered paste workflow is additive to manual search and selection. */
+.notice-bulk{margin:12px 0 18px;padding:14px;border:1px solid var(--line);border-radius:10px;background:#f8faf6}
+.notice-bulk>label{display:block;font-size:13px;font-weight:700}
+.notice-bulk .subtle{margin:5px 0 10px;font-size:12px}
+#notice-bulk-input{width:100%;min-height:110px;box-sizing:border-box;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:13px;color:var(--ink);background:white;resize:vertical}
+.notice-bulk-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.notice-bulk-results{display:grid;gap:8px;max-height:340px;overflow:auto}
+.notice-bulk-result{display:flex;flex-direction:column;gap:4px;padding:9px;border:1px solid #d6dfd2;border-radius:8px;background:white;font-size:12px;min-width:0}
+.notice-bulk-result strong{overflow-wrap:anywhere}.notice-bulk-result select{width:100%;min-height:36px;border:1px solid var(--line);border-radius:6px;padding:6px;background:white;color:var(--ink)}
+.notice-bulk-warning{color:#9a3b27;font-weight:600}
