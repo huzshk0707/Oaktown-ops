@@ -18,31 +18,22 @@ const endpoints={
  documents:'lease_reference_documents?select=id,source_name,drive_file_id,page_count,received_at,sha256,reference_notes'
 };
 const optional=new Set(['rents','events','documents']);
-let records=null,entries=[],generation=0,pending=null,owner=null,error='',filter='all',shown=25,active=-1,paletteRows=[],lastFocus=null,profileKey=null,canEdit=!!window.OpsToday?.getData()?.canEdit;
-const pref='oaktown-action-filter-v1',densityKey='oaktown-density-v1';
-try{const saved=localStorage.getItem(pref);if(M.filters.includes(saved))filter=saved}catch{}
+let records=null,entries=[],generation=0,pending=null,owner=null,error='',active=-1,paletteRows=[],lastFocus=null,profileKey=null,canEdit=!!window.OpsToday?.getData()?.canEdit;
+const densityKey='oaktown-density-v1';
 function navigate(name,tab){window.OpsWorkspace?.navigate(name,tab)}
 function text(id,value){$(id).textContent=value}
 function savePref(key,value){try{localStorage.setItem(key,value)}catch{}}
 
 const toolbar=el('div',null,'operations-toolbar');
-toolbar.append(button('Search / quick actions',openPalette,'button operations-search'),button('Comfortable',toggleDensity,'button operations-density'));
+toolbar.append(button('Search / quick actions',openPalette,'button operations-search'),button('Reference library',()=>openProfile('library','library'),'button'),button('Refresh records',()=>refresh(true),'button'),button('Comfortable',toggleDensity,'button operations-density'));
 toolbar.firstChild.id='operations-search-open';toolbar.firstChild.setAttribute('aria-keyshortcuts','Control+k Meta+k');
+toolbar.children[1].id='operations-library-open';toolbar.children[2].id='operations-refresh';
 toolbar.lastChild.id='operations-density';toolbar.lastChild.setAttribute('aria-pressed','false');
 $('today-workflow').before(toolbar);
+const storeStatus=el('p','Sign in to search saved records.','operations-loading-status');storeStatus.id='operations-status';storeStatus.setAttribute('role','status');toolbar.after(storeStatus);
 function applyDensity(value){const compact=value==='compact';document.documentElement.dataset.opsDensity=compact?'compact':'comfortable';text('operations-density',compact?'Compact':'Comfortable');$('operations-density').setAttribute('aria-pressed',String(compact))}
 function toggleDensity(){const value=document.documentElement.dataset.opsDensity==='compact'?'comfortable':'compact';applyDensity(value);savePref(densityKey,value)}
 try{applyDensity(localStorage.getItem(densityKey))}catch{applyDensity('comfortable')}
-
-const centre=el('details',null,'operations-centre today-card');centre.id='operations-centre';
-centre.innerHTML='<div class="operations-section-head"><div><span class="operations-eyebrow">YOUR WORK, CONNECTED</span><h3 id="operations-title" tabindex="-1">Action Centre</h3><p>Saved actionable tasks. Renewal cases stay in Renewal Watch and the Renewals module.</p></div><div class="operations-head-actions"><button type="button" class="button" id="operations-documents-open">Reference library</button><button type="button" class="button" id="operations-refresh">Refresh records</button></div></div><div id="operations-coverage" class="operations-coverage"></div><div class="operations-filters"><label>Show <select id="operations-filter"><option value="all">All active work</option><option value="overdue">Overdue tasks</option><option value="today">Due today</option><option value="waiting">Waiting / on hold</option><option value="undated">Tasks without dates</option><option value="renewals">Linked renewal tasks</option><option value="maintenance">Maintenance tasks</option></select></label><button type="button" class="button" id="operations-save-filter">Save this view</button><span id="operations-filter-status" role="status"></span></div><p id="operations-status" role="status"></p><div id="operations-queue"></div><button type="button" class="button" id="operations-more" hidden>Show 25 more</button>';
-const centreSummary=el('summary','Action Centre · saved tasks');centre.prepend(centreSummary);
-document.querySelector('.today-workstation').after(centre);$('operations-filter').value=filter;
-$('operations-filter').onchange=()=>{filter=$('operations-filter').value;shown=25;text('operations-filter-status','');renderCentre()};
-$('operations-save-filter').onclick=()=>{savePref(pref,filter);text('operations-filter-status','View saved on this device.')};
-$('operations-more').onclick=()=>{shown+=25;renderCentre()};
-$('operations-refresh').onclick=()=>refresh(true);
-$('operations-documents-open').onclick=()=>openProfile('library','library');
 
 const palette=el('dialog');palette.id='operations-search-dialog';palette.className='operations-dialog';palette.setAttribute('aria-labelledby','operations-search-title');
 palette.innerHTML='<div class="operations-dialog-head"><h2 id="operations-search-title">Find a record or take an action</h2><button type="button" class="button" data-close>Close</button></div><label class="operations-search-label" for="operations-query">Search properties, units, people, leases, tasks and references</label><input id="operations-query" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="operations-results"><p id="operations-search-status" role="status"></p><div id="operations-results" role="listbox" aria-label="Search results and quick actions"></div><p class="operations-hint">↑ ↓ to choose · Enter to open · Esc to close</p>';
@@ -72,9 +63,9 @@ async function readAll(endpoint,ticket){
 }
 function invalidate(){
  generation++;pending=null;records=null;entries=[];error='';canEdit=false;profileKey=null;
- $('operations-queue').replaceChildren();$('operations-coverage').replaceChildren();$('operations-results').replaceChildren();$('operations-query').value='';paletteRows=[];
+ $('operations-results').replaceChildren();$('operations-query').value='';paletteRows=[];
  if(palette.open)palette.close();if(profile.open)profile.close();
- $('operations-profile-content').replaceChildren();text('operations-profile-title','');text('operations-profile-kind','');renderCentre();
+ $('operations-profile-content').replaceChildren();text('operations-profile-title','');text('operations-profile-kind','');renderStoreStatus();
 }
 async function refresh(force=false){
  if(!cloud.user){invalidate();return}
@@ -87,47 +78,22 @@ async function refresh(force=false){
   if(ticket!==generation||cloud.user?.id!==userId)return;
   const next={unavailable:[]};
   result.forEach((r,i)=>{const key=Object.keys(endpoints)[i];if(r.status==='fulfilled')next[key]=r.value[1];else if(optional.has(key)){next[key]=[];next.unavailable.push(key)}else throw Error('Saved '+key+' could not be loaded')});
-  records=next;entries=M.searchIndex(records);renderCentre();if(palette.open)renderSearch();if(profile.open&&profileKey)renderProfile(...profileKey);
+  records=next;entries=M.searchIndex(records);renderStoreStatus();if(palette.open)renderSearch();if(profile.open&&profileKey)renderProfile(...profileKey);
   window.dispatchEvent(new CustomEvent('ops-operations-data',{detail:records}));return records;
  })().catch(()=>{
   if(ticket!==generation)return;
-  records=null;entries=[];error='Could not load saved records. Refresh to retry.';renderCentre();if(palette.open)renderSearch();if(profile.open){$('operations-profile-content').replaceChildren(el('p',error))}
+  records=null;entries=[];error='Could not load saved records. Refresh to retry.';renderStoreStatus();if(palette.open)renderSearch();if(profile.open){$('operations-profile-content').replaceChildren(el('p',error))}
  }).finally(()=>{if(ticket===generation)pending=null});
  pending=job;return job;
 }
-function tracking(){
- const R=window.OpsRenewalTrackingRules,result={};if(!R||!records||records.unavailable.includes('events'))return result;
- for(const r of records.renewals){const snapshot=R.snapshot(R.latest(records.events,r.id));if(snapshot)result[r.id]=snapshot}
- return result;
-}
-function sourceButton(kind,id,label){return button(label,()=>openSource(kind,id),'button operations-source')}
-function renderCentre(){
- const host=$('operations-queue');host.replaceChildren();$('operations-more').hidden=true;$('operations-refresh').disabled=!cloud.user;
- if(!cloud.user){text('operations-status','Sign in to see saved work across your portfolio.');$('operations-coverage').replaceChildren();return}
- if(!records){text('operations-status',error||'Loading saved work…');$('operations-coverage').replaceChildren();return}
- const rows=M.actions(records,T.today(),tracking()),filtered=M.filterActions(rows,filter),maintenance=rows.filter(r=>r.kind==='task'&&r.workflow==='maintenance').length;
- const coverage=$('operations-coverage');coverage.replaceChildren();
- for(const [value,label] of [[maintenance,'Open maintenance tasks'],['Not tracked','Approvals'],['Guides only','Leads / applications']]){const metric=el('div');metric.append(el('strong',value),el('span',label));coverage.append(metric)}
- text('operations-status',filtered.length+' item'+(filtered.length===1?'':'s')+' in this view · '+rows.length+' active saved sources'+(records.unavailable.includes('events')?' · Journal unavailable; renewal statuses use imported records.':''));
- if(!filtered.length)host.append(el('p','No saved work matches this view.','operations-empty'));
- for(const a of filtered.slice(0,shown)){
-  const row=el('article',null,'operations-action');row.dataset.group=a.group;
-  const content=el('div',null,'operations-action-body'),meta=el('div',null,'operations-meta');
-  const label=a.kind==='task'?a.status:window.OpsRenewalTrackingRules?.label(a.status)||a.status;
-  meta.append(el('span',a.kind==='task'?'TASK':'RENEWAL','operations-badge'),el('span',a.kind==='renewal'&&!a.reported?'Imported · '+a.status:label));
-  content.append(meta,el('h4',a.title),el('p',a.location,'operations-location'));
-  if(a.next)content.append(el('p',a.next));
-  const facts=[];if(a.schedule)facts.push(a.schedule.type+': '+date(a.schedule.date));else if(a.kind==='task')facts.push('No date assigned');
-  if(a.kind==='renewal'&&a.row.recorded_end)facts.push('Recorded lease end: '+date(a.row.recorded_end));if(a.owner)facts.push('Owner: '+a.owner);
-  if(facts.length)content.append(el('p',facts.join(' · '),'operations-meta'));
-  const actions=el('div',null,'operations-row-actions');actions.append(sourceButton(a.kind,a.id,a.kind==='task'?(canEdit?'Review task':'View task'):'Open renewal'));
-  if(a.row.unit_id)actions.append(sourceButton('unit',a.row.unit_id,'Unit profile'));else if(a.row.property_id)actions.append(sourceButton('property',a.row.property_id,'Property profile'));
-  row.append(content,actions);host.append(row);
- }
- $('operations-more').hidden=filtered.length<=shown;
+function renderStoreStatus(){
+ $('operations-refresh').disabled=!cloud.user;
+ if(!cloud.user){text('operations-status','Sign in to search saved records.');return}
+ if(!records){text('operations-status',error||'Loading saved records…');return}
+ text('operations-status','Connected records ready for search'+(records.unavailable.includes('events')?' · Journal unavailable':'')+'.');
 }
 const quick=[
- ['Open Action Centre','actions'],['Legacy task intake','tasks',null,'task-json'],['Draft a notice','notices'],['Prepare a renewal','leases','prepare'],['Prepare a new lease','leases','new'],['Browse properties','properties'],['Open reference library','library']
+ ['Completed tasks','completed'],['Task intake','tasks',null,'task-json'],['Draft a notice','notices'],['Prepare a renewal','leases','prepare'],['Prepare a new lease','leases','new'],['Browse properties','properties'],['Open reference library','library']
 ];
 async function openPalette(){
  if(document.querySelector('dialog[open]'))return;
@@ -135,7 +101,7 @@ async function openPalette(){
 }
 function renderSearch(){
  const host=$('operations-results'),query=$('operations-query').value.trim();host.replaceChildren();paletteRows=[];active=-1;$('operations-query').removeAttribute('aria-activedescendant');
- const commands=quick.filter(q=>!query||q[0].toLowerCase().includes(query.toLowerCase())).map(q=>({title:q[0],detail:'Quick action',run:()=>{if(q[1]==='library')openProfile('library','library');else if(q[1]==='actions'){navigate('today');centre.open=true;$('operations-title').focus()}else{navigate(q[1],q[2]);if(q[3])$(q[3])?.focus()}}}));
+ const commands=quick.filter(q=>!query||q[0].toLowerCase().includes(query.toLowerCase())).map(q=>({title:q[0],detail:'Quick action',run:()=>{if(q[1]==='library')openProfile('library','library');else if(q[1]==='completed'){navigate('today');$('today-completed-panel')?.scrollIntoView({block:'start'});$('today-history-search')?.focus({preventScroll:true})}else{navigate(q[1],q[2]);if(q[3])$(q[3])?.focus()}}}));
  const found=records?M.search(entries,query):[];
  const rows=[...commands,...found.map(r=>({...r,detail:r.kind+' · '+r.detail,run:()=>openSource(r.kind,r.id)}))];
  text('operations-search-status',!cloud.user?'Sign in to search private records. Quick actions open the existing workflows.':error||(!records?'Loading saved records…':query?(found.length===30?'Showing the first 30 matching records. Refine your search.':found.length+' matching records.'):'Search your saved records, or choose a quick action.'));
@@ -263,12 +229,12 @@ function renderProfile(kind,id){
  coverage.append(button('Browse reference library',()=>openProfile('library','library')));
 }
 window.addEventListener('ops-auth-change',e=>{const id=e.detail?.user?.id||null;if(id!==owner){owner=id;invalidate();if(id)refresh()}});
-window.addEventListener('ops-today-data',e=>{canEdit=!!e.detail?.canEdit;if(records)renderCentre()});
+window.addEventListener('ops-today-data',e=>{canEdit=!!e.detail?.canEdit});
 for(const event of ['ops-today-refresh','ops-task-archive-change','ops-renewal-tracking-change'])window.addEventListener(event,()=>{if(cloud.user)refresh(true)});
 window.addEventListener('ops-unit-selected',e=>{
  const host=$('ops-portfolio-detail');if(!host||host.querySelector('.operations-connected-profile'))return;
  const b=button('Open connected unit profile',()=>openProfile('unit',e.detail.id),'button operations-connected-profile');host.append(b);
 });
 window.OpsOperations={openSearch:openPalette,openProfile,openSource,refresh};
-owner=cloud.user?.id||null;renderCentre();if(owner)refresh();
+owner=cloud.user?.id||null;renderStoreStatus();if(owner)refresh();
 })();
