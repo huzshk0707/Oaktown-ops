@@ -385,7 +385,7 @@ test('Today keeps urgent work across levels and status shortcuts require reviewe
  await page.locator('#today-focus-level').selectOption('workflow:accounting');
  await expect(page.locator('#today-focus-body')).toContainText('Fictional tenant reply due today');
  await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
- await expect(page.locator('#operations-queue')).not.toContainText('FICTIONAL-001');
+ await expect(page.locator('#today-queue')).not.toContainText('FICTIONAL-001');
  await page.evaluate(()=>window.OpsCloud.signOut());
  await expect(page.locator('#today-urgent')).not.toContainText('Fictional overdue inspection follow-up');
 });
