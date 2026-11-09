@@ -112,13 +112,20 @@ test('Tenant message shows exact unit-linked email next to Copy message and clea
  await expect(page.locator('#tenant-email-value')).toHaveText('alex@example.invalid');
  await expect(page.locator('#tenant-email-note')).toContainText('verify');
  await expect(page.locator('#copy-message')).toBeVisible();
+ await expect(page.locator('#copy-tenant-email')).toBeEnabled();
+ await page.context().grantPermissions(['clipboard-read','clipboard-write']);
+ await page.locator('#copy-tenant-email').click();
+ await expect(page.locator('#message-copy-status')).toContainText('Tenant email copied');
+ expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe('alex@example.invalid');
  await page.locator('[data-notice-tab="notices"]').click();
  await frame.locator('#tenant').fill('Other Example');
  await page.locator('[data-notice-tab="message"]').click();
  await expect(page.locator('#tenant-email-value')).toContainText('No matching tenant email');
+ await expect(page.locator('#copy-tenant-email')).toBeDisabled();
  await page.locator('#account-button').click();await page.locator('#pilot-logout').click();
  await expect(page.locator('#tenant-email-value')).toContainText('Sign in to view tenant email');
  await expect(page.locator('#tenant-email-value')).not.toContainText('alex@example.invalid');
+ await expect(page.locator('#copy-tenant-email')).toBeDisabled();
 });
 test('Notices remain local without cloud actions and retain edits after reload',async({page})=>{
  const state=await setup(page);await importProperty(page);
