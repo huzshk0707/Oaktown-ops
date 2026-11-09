@@ -29,6 +29,7 @@ async function mockSupabase(page){
   else if(pathname==='/rest/v1/properties')data=properties;
   else if(pathname==='/rest/v1/property_addressees')data=addressees;
   else if(pathname==='/rest/v1/units')data=units;
+  else if(pathname==='/rest/v1/property_aliases'||pathname==='/rest/v1/unit_aliases')data=[];
   else if(['/rest/v1/leases','/rest/v1/bookings','/rest/v1/people','/rest/v1/tenancy_people','/rest/v1/tenancies','/rest/v1/renewal_cases','/rest/v1/ops_tasks','/rest/v1/ops_events','/rest/v1/rent_schedules','/rest/v1/lease_reference_documents'].includes(pathname))data=[];
   else if(pathname==='/auth/v1/logout')data={};
   else throw Error('Unmocked Supabase request: '+req.url());
@@ -88,4 +89,29 @@ test('preview bulk selection searches matching addresses without losing checked 
  await expect(page.locator('#pilot-checklist label:visible')).toHaveCount(55);
  await page.locator('#pilot-clear-all').click();
  await expect(page.locator('#pilot-count')).toHaveText('0 selected');
+});
+
+test('pasted list matches in user order, reviews missing rows and creates ordered drafts',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/');
+ await login(page);
+ await page.locator('#notice-bulk-input').fill('Sequoia\nDemo Avenue');
+ await page.locator('#notice-bulk-match').click();
+ await expect(page.locator('#notice-bulk-results .notice-bulk-result')).toHaveCount(2);
+ await expect(page.locator('#notice-bulk-status')).toContainText('Ready to create ordered drafts');
+ await page.locator('#notice-picker-make').click();
+ await expect(page.locator('#notice-picker-status')).toContainText('2 created');
+ const chips=page.frameLocator('#studio-frame').locator('#noticeList .chip');
+ await expect(chips.nth(0)).toContainText('Sequoia Example Way');
+ await expect(chips.nth(1)).toContainText('Demo Avenue');
+});
+test('pasted list refuses missing matches until corrected',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/');
+ await login(page);
+ await page.locator('#notice-bulk-input').fill('Sequoia\nUnknown Fictional Address');
+ await page.locator('#notice-bulk-match').click();
+ await expect(page.locator('#notice-bulk-status')).toContainText('1 need a choice');
+ await expect(page.locator('#notice-picker-make')).toBeDisabled();
+ await page.locator('#notice-bulk-input').fill('Sequoia\nDemo Avenue');
+ await page.locator('#notice-bulk-match').click();
+ await expect(page.locator('#notice-picker-make')).toBeEnabled();
 });
