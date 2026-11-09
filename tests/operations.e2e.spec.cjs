@@ -36,31 +36,37 @@ async function setup(page,{login=true,viewer=false}={}){
   return reply(rows.slice(offset,offset+limit));
  });
  await page.goto(ORIGIN+'/');
- if(login){await signIn(page);await expect(page.locator('#operations-status')).toContainText('active saved sources')}
+ if(login){await signIn(page);await expect(page.locator('#operations-status')).toContainText('Connected records ready for search')}
  return state;
 }
 async function signIn(page){await page.locator('#account-button').click();await page.locator('#pilot-email').fill('test@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#account-dialog')).not.toBeVisible()}
-async function openActions(page){await page.locator('#operations-centre>summary').click();await expect(page.locator('#operations-title')).toBeVisible()}
-
-test('Action Centre shows genuine tasks without projecting raw renewal cases, and saves the filter',async({page})=>{
- const s=await setup(page);await openActions(page);
- await expect(page.locator('#operations-queue')).toContainText('Review fictional entry arrangements');await expect(page.locator('#operations-queue')).not.toContainText('TEST-A');await expect(page.locator('#operations-queue')).not.toContainText('TEST-B');await expect(page.locator('#operations-queue')).not.toContainText('Archived private');
- await expect(page.locator('#operations-coverage')).toContainText('Not tracked');await expect(page.locator('#operations-coverage')).toContainText('Open maintenance tasks');
- await page.locator('#operations-filter').selectOption('maintenance');await expect(page.locator('#operations-queue .operations-action')).toHaveCount(1);
- await page.locator('#operations-save-filter').click();expect(await page.evaluate(()=>localStorage.getItem('oaktown-action-filter-v1'))).toBe('maintenance');
- await page.locator('#operations-queue').getByRole('button',{name:'Review task',exact:true}).click();await expect(page.locator('#today-edit-dialog')).toBeVisible();await expect(page.locator('#today-edit-title')).toHaveValue('Review fictional entry arrangements');await page.locator('#today-edit-cancel').click();
+test('Today remains the only saved task feed while global search opens reviewed tasks',async({page})=>{
+ const s=await setup(page);
+ await expect(page.locator('#operations-centre')).toHaveCount(0);
+ await expect(page.locator('#today-queue')).toContainText('Review fictional entry arrangements');
+ await expect(page.locator('#today-queue')).not.toContainText('Archived private task');
+ await page.keyboard.press('Control+k');
+ await page.locator('#operations-query').fill('Review fictional entry arrangements');
+ await expect(page.locator('#operations-results')).toContainText('Review fictional entry arrangements');
+ await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
+ await expect(page.locator('#today-edit-dialog')).toBeVisible();
+ await expect(page.locator('#today-edit-title')).toHaveValue('Review fictional entry arrangements');
+ await page.locator('#today-edit-cancel').click();
  expect(s.writes).toHaveLength(0);
 });
-
-test('Reload retains reviewed editor access when Today finishes before the connected module loads',async({page})=>{
+test('Late connected-module initialization preserves reviewed editor access through search',async({page})=>{
  await setup(page);
  await page.route('**/operations.js?*',async route=>{
   await page.waitForFunction(()=>!!window.OpsCloud?.user&&!!window.OpsToday);
   await page.evaluate(()=>window.OpsToday.refresh());await route.continue();
  });
- await page.reload();await expect(page.locator('#operations-status')).toContainText('active saved sources');await openActions(page);
- await expect(page.locator('#operations-queue').getByRole('button',{name:'Review task',exact:true}).first()).toBeVisible();
+ await page.reload();
+ await expect(page.locator('#operations-status')).toContainText('Connected records ready for search');
+ await page.keyboard.press('Control+k');await page.locator('#operations-query').fill('Review fictional entry arrangements');
+ await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');
+ await expect(page.locator('#today-edit-dialog')).toBeVisible();
 });
+
 test('Keyboard search routes exact units, historical people and renewal sources',async({page})=>{
  await setup(page);await page.keyboard.press('Control+k');await expect(page.locator('#operations-query')).toBeFocused();await page.locator('#operations-query').fill('Unit A');await expect(page.locator('#operations-results')).toContainText('100 Example Court · Unit A');
  await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await expect(page.locator('#operations-profile-title')).toHaveText('100 Example Court · Unit A');
@@ -69,7 +75,7 @@ test('Keyboard search routes exact units, historical people and renewal sources'
  await page.keyboard.press('Escape');await page.keyboard.press('Control+k');await page.locator('#operations-query').fill('TEST-A');await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await expect(page.locator('#ops-renewals-detail')).toContainText('TEST-A');await expect(page.locator('#ops-renewals-panel')).toBeVisible();
 });
 test('Reference centre uses safe original links and never associates references by filename',async({page})=>{
- await setup(page);await openActions(page);await page.locator('#operations-documents-open').click();await expect(page.locator('#operations-profile-title')).toHaveText('Lease reference library');
+ await setup(page);await page.locator('#operations-library-open').click();await expect(page.locator('#operations-profile-title')).toHaveText('Lease reference library');
  await expect(page.locator('#operations-profile-content')).toContainText('not automatically linked');const a=page.locator('#operations-profile-content a');await expect(a).toHaveAttribute('href','https://drive.google.com/file/d/fictional123456789/view');await expect(a).toHaveAttribute('rel','noopener noreferrer');
 });
 
@@ -107,11 +113,11 @@ test('Read-only task profile opens saved property, unit, lease and renewal witho
  expect(s.writes).toHaveLength(0);
 });
 test('Anonymous, viewer, sign-out and late replies clear every connected private view',async({page})=>{
- const s=await setup(page,{login:false});expect(s.requests.filter(x=>x.query.includes('offset=')).length).toBe(0);await page.keyboard.press('Control+k');await expect(page.locator('#operations-search-dialog')).toBeVisible();await expect(page.locator('#operations-results')).not.toContainText('Fictional');await page.keyboard.press('Escape');await signIn(page);await expect(page.locator('#operations-status')).toContainText('active saved sources');
+ const s=await setup(page,{login:false});expect(s.requests.filter(x=>x.query.includes('offset=')).length).toBe(0);await page.keyboard.press('Control+k');await expect(page.locator('#operations-search-dialog')).toBeVisible();await expect(page.locator('#operations-results')).not.toContainText('Fictional');await page.keyboard.press('Escape');await signIn(page);await expect(page.locator('#operations-status')).toContainText('Connected records ready for search');
  s.viewer=true;await page.evaluate(()=>window.OpsToday.refresh());
- await openActions(page);await page.locator('#operations-queue').getByRole('button',{name:'View task',exact:true}).first().click();await expect(page.locator('#operations-profile-title')).toContainText('Review fictional');await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
+ await page.evaluate(()=>window.OpsOperations.openSource('task','t1'));await expect(page.locator('#operations-profile-title')).toContainText('Review fictional');await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
  let release;s.hold=new Promise(r=>release=r);await page.evaluate(()=>{void window.OpsOperations.refresh(true)});
- await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#operations-profile-dialog')).not.toBeVisible();await expect(page.locator('#operations-queue')).toBeEmpty();await expect(page.locator('#operations-profile-content')).toBeEmpty();
+ await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#operations-profile-dialog')).not.toBeVisible();await expect(page.locator('#operations-results')).toBeEmpty();await expect(page.locator('#operations-profile-content')).toBeEmpty();
  release();await expect(page.locator('#operations-status')).toContainText('Sign in');await page.keyboard.press('Control+k');await page.locator('#operations-query').fill('Fictional');await expect(page.locator('#operations-results')).not.toContainText('Review fictional');
 });
 
@@ -127,13 +133,13 @@ test('Global search reads later API pages rather than silently omitting records 
 });
 
 test('Unavailable optional data is labeled and denied core reads remove stale search and profiles',async({page})=>{
- const s=await setup(page);await openActions(page);s.fail='ops_events';await page.locator('#operations-refresh').click();await expect(page.locator('#operations-status')).toContainText('Journal unavailable');
+ const s=await setup(page);s.fail='ops_events';await page.locator('#operations-refresh').click();await expect(page.locator('#operations-status')).toContainText('Journal unavailable');
  await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));await expect(page.locator('#operations-profile-content')).toContainText('Activity could not be loaded');await page.keyboard.press('Escape');
- s.fail='people';await page.locator('#operations-refresh').click();await expect(page.locator('#operations-status')).toContainText('Could not load saved records');await expect(page.locator('#operations-queue')).toBeEmpty();await page.keyboard.press('Control+k');await page.locator('#operations-query').fill('Avery');await expect(page.locator('#operations-results')).not.toContainText('Avery Fictional');
+ s.fail='people';await page.locator('#operations-refresh').click();await expect(page.locator('#operations-status')).toContainText('Could not load saved records');await expect(page.locator('#operations-results')).toBeEmpty();await page.keyboard.press('Control+k');await page.locator('#operations-query').fill('Avery');await expect(page.locator('#operations-results')).not.toContainText('Avery Fictional');
 });
 
 test('Connected views fit all six themes at 320px and compact mode persists without work data',async({page})=>{
- await setup(page);await page.setViewportSize({width:320,height:840});await openActions(page);await page.locator('#operations-density').click();
+ await setup(page);await page.setViewportSize({width:320,height:840});await page.locator('#operations-density').click();
  expect(await page.evaluate(()=>localStorage.getItem('oaktown-density-v1'))).toBe('compact');
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
   await page.locator('#ops-theme-select').selectOption(theme);await page.evaluate(()=>window.OpsOperations.openProfile('property','p1'));await expect(page.locator('#operations-profile-title')).toHaveText('100 Example Court');

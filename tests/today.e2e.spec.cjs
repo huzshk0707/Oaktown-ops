@@ -294,6 +294,28 @@ test('completed work is visible independently of intake sessions and clears on s
  await signInToday(page);await expect(page.locator('#today-completed-count')).toHaveText('1');await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).toContainText('Prepared fictional notices');await expect(page.locator('#today-completed')).toContainText('no property or lease linked');await expect(page.locator('#today-queue')).not.toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).not.toContainText('Cancelled record');await expect(page.locator('#today-completed')).not.toContainText('Archived completed record');
  s.fail=true;await page.locator('#today-refresh').click();await expect(page.locator('#today-status')).toContainText('Could not load');await expect(page.locator('#today-completed')).toBeEmpty();s.fail=false;await page.locator('#today-refresh').click();await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#today-completed')).toBeEmpty();
 });
+test('Completed work is immediately visible, searchable by code, and separate from archived history and intake',async({page})=>{
+ const s=await setup(page);
+ s.tasks.push({id:'saved-complete',task_code:'M13',task_title:'Fictional SOD filing complete',status:'completed',completed_at:null,workflow_key:'general',intake_details:{completion_summary:'Source confirms completion, date unavailable.'}});
+ await signInToday(page);
+ await expect(page.locator('#today-completed-panel')).toBeVisible();
+ await expect(page.locator('#today-completed-panel')).toContainText('M13 · Fictional SOD filing complete');
+ await expect(page.locator('#today-history')).not.toHaveAttribute('open','');
+ await page.locator('#today-open-completed').click();
+ await expect(page.locator('#today-history-search')).toBeFocused();
+ await page.locator('#today-history-search').fill('M13');
+ await expect(page.locator('#today-completed .today-task:visible')).toHaveCount(1);
+ await page.locator('#today-history-search').fill('unrelated');
+ await expect(page.locator('#today-completed .today-task:visible')).toHaveCount(0);
+ await page.locator('#today-history-search').fill('');
+ await page.locator('#today-history>summary').click();
+ await expect(page.locator('#today-archived')).toContainText('Private archived item');
+ await page.locator('[data-workspace="tasks"]').click();
+ await expect(page.locator('#tasks-workflow')).toBeVisible();
+ await expect(page.locator('#workspace-title')).toHaveText('Task Intake');
+ expect(s.edits).toHaveLength(0);
+ expect(s.archives).toHaveLength(0);
+});
 test('EOD uses saved work dates, exports estimated time once, and never writes',async({page})=>{
  const s=await setup(page),day=M.today();s.events=[{id:'e1',event_type:'task_work_recorded',event_metadata:{activity:{work_date:day,summary:'Fictional multi-property batch',minutes:90,duration_basis:'user_estimate'}}}];s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),intake_details:{completion_summary:'Fictional properties included.'}});
  await expect(page.locator('#eod-generate')).toBeDisabled();await signInToday(page);await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('Fictional multi-property batch');await expect(page.locator('#eod-report')).not.toContainText('minutes');if(process.env.OAKTOWN_UI_SCREENSHOTS==='1'){for(const width of [390,1440]){await page.setViewportSize({width,height:950});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);await page.locator('section[aria-labelledby=\"eod-heading\"]').screenshot({path:test.info().outputPath('eod-'+width+'.png')});}}await page.locator('#eod-include-time').check();await expect(page.locator('#eod-report')).toBeHidden();await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('Known recorded time: 90 minutes');await expect(page.locator('#eod-report')).toContainText('90 minutes (estimated by you)');await expect(page.locator('#eod-report')).toContainText('Fictional properties included.');expect(s.reportRequests).toEqual([{method:'GET',date:'eq.'+day},{method:'GET',date:'eq.'+day}]);expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
@@ -363,7 +385,7 @@ test('Today keeps urgent work across levels and status shortcuts require reviewe
  await page.locator('#today-focus-level').selectOption('workflow:accounting');
  await expect(page.locator('#today-focus-body')).toContainText('Fictional tenant reply due today');
  await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');
- await expect(page.locator('#operations-queue')).not.toContainText('FICTIONAL-001');
+ await expect(page.locator('#today-queue')).not.toContainText('FICTIONAL-001');
  await page.evaluate(()=>window.OpsCloud.signOut());
  await expect(page.locator('#today-urgent')).not.toContainText('Fictional overdue inspection follow-up');
 });

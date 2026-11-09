@@ -23,7 +23,7 @@ function renderSchedule(tasks){
  if(!tasks.all.length)host.append(el('p','No active tasks recorded.','today-muted'));
 }
 function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';$('today-refresh').disabled=!cloud.user;resetSchedule('Sign in to view the task breakdown.');}
-function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=String(t.task_title||'Untitled task').toLowerCase();card.append(el('strong',(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task')));
+function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=((t.task_code||'')+' '+(t.task_title||'Untitled task')).toLowerCase();card.append(el('strong',(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task')));
  if(viewData){
   const units=new Map(viewData.units.map(x=>[x.id,x])),properties=new Map(viewData.properties.map(x=>[x.id,x]));
   const unit=units.get(t.unit_id),property=properties.get(t.property_id||unit?.property_id);
@@ -128,6 +128,7 @@ async function refresh(){
 document.querySelectorAll('[data-today-go]').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.todayGo;document.querySelector('[data-workspace="'+target+'"]')?.click();if(target==='leases')document.getElementById('lease-tab-prepare')?.click()}));
 $('today-signin').addEventListener('click',()=>document.getElementById('account-button')?.click());
 $('today-refresh').addEventListener('click',()=>{if(!busy)refresh()});
+$('today-open-completed').addEventListener('click',()=>{if(!cloud.user){$('today-signin').click();return} $('today-completed-panel').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});$('today-history-search').focus({preventScroll:true});});
 $('today-open-tasks').addEventListener('click',()=>document.querySelector('[data-workspace="tasks"]')?.click());
 $('today-open-renewals').addEventListener('click',()=>document.querySelector('[data-workspace="leases"]')?.click());
 window.addEventListener('ops-theme-change',()=>{if(viewData)renderSchedule(M.classify(viewData.tasks))});

@@ -42,7 +42,7 @@ function render(){
  const all=data.tasks.filter(t=>!!t.archived_at).sort((a,b)=>String(b.archived_at).localeCompare(String(a.archived_at))||String(a.task_title||'').localeCompare(String(b.task_title||'')));
  $('today-archived-count').textContent='('+all.length+')';
  for(const t of all){
-  const row=make('article',null,'today-archive-row');row.dataset.taskTitle=String(t.task_title||'Untitled task').toLowerCase();
+  const row=make('article',null,'today-archive-row');row.dataset.taskTitle=((t.task_code||'')+' '+(t.task_title||'Untitled task')).toLowerCase();
   const body=make('div');body.append(make('strong',t.task_title||'Untitled task'),make('p','Archived · '+String(t.status||'pending')));
   const actions=make('div',null,'today-archive-actions');
   const view=make('button','View history','button');view.type='button';view.addEventListener('click',()=>window.OpsOperations?.openProfile('task',t.id));
