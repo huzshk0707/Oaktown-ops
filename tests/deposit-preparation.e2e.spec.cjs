@@ -41,7 +41,7 @@ test('no-pet and multiple-signer drafts keep the credit line; changed inputs and
 test('deposit form fits all six themes on phone and desktop and includes an optional payment image only in the packet',async({page})=>{
  await setup(page);await fill(page);
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
-  await chooseTheme(page,theme);for(const width of [1440,390,320]){await page.setViewportSize({width,height:950});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);}
+  await chooseTheme(page,theme);for(const width of [1440,390,320]){await page.setViewportSize({width,height:950});await expect.poll(()=>page.evaluate(()=>({fits:document.documentElement.scrollWidth<=innerWidth,width:innerWidth,page:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('#deposit-preparation *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1).map(el=>el.id||el.tagName).slice(0,12)})),{message:theme+' at '+width+'px'}).toMatchObject({fits:true});}
  }
  await page.locator('#deposit-image').setInputFiles({name:'fictional-payment.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl2nSIAAAAASUVORK5CYII=','base64')});await page.locator('#deposit-review').click();await expect(page.locator('#deposit-image-preview')).toBeVisible();
  const promise=page.waitForEvent('download');await page.locator('#deposit-packet').click();const zip=await Zip.loadAsync(await fs.readFile(await (await promise).path()));expect(zip.file('Payment details.png')).toBeTruthy();expect(await zip.file('Deposit email.txt').async('string')).toContain('Payment details are included in the attached image.');
