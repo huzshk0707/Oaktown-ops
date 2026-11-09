@@ -4,13 +4,41 @@
 const cloud=window.OpsCloud;
 const $=id=>document.getElementById(id);
 if(!cloud||!$('notice-picker'))return;
-let items=[],chosen=new Set(),generation=0,loading=false,making=false;
+let items=[],chosen=new Set(),generation=0,loading=false,making=false,bulkRows=[],bulkActive=false,bulkOrder=[];
+const bulk=window.OpsNoticeBulk;
 const state=message=>{$('notice-picker-status').textContent=message};
 const unitName=u=>{
  const label=String(u.unit_label||'').trim();
  return !label||label.toUpperCase()==='MAIN'?'':/^\d+[A-Za-z]?$/.test(label)?'Unit '+label:label;
 };
 const labelOf=item=>[item.prop.street_address,unitName(item.unit)].filter(Boolean).join(' · ');
+function resetBulk(clearInput=false){bulkRows=[];bulkOrder=[];bulkActive=false;if(clearInput)$('notice-bulk-input').value='';$('notice-bulk-results').replaceChildren();$('notice-bulk-status').textContent='';}
+function syncBulk(){
+ if(!bulkActive||!bulk)return;
+ const review=bulk.review(bulkRows);
+ bulkOrder=review.selectedIds;
+ chosen=new Set(bulkOrder);
+ const host=$('notice-bulk-results');host.replaceChildren();
+ bulkRows.forEach((row,index)=>{
+  const wrap=document.createElement('div');wrap.className='notice-bulk-result';
+  const heading=line('strong',(index+1)+'. '+row.text);wrap.append(heading);
+  if(row.matches.length===1){
+   wrap.append(line('span','Matched: '+labelOf(row.matches[0])));
+  }else{
+   const select=document.createElement('select');
+   select.setAttribute('aria-label','Choose property for '+row.text);
+   const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=row.matches.length?'Choose unit or property ('+row.matches.length+' matches)':'No match — edit the list and match again';select.append(placeholder);
+   for(const item of row.matches){const opt=document.createElement('option');opt.value=item.unit.id;opt.textContent=labelOf(item);select.append(opt)}
+   select.value=row.selectedId;
+   select.disabled=!row.matches.length||making;
+   select.addEventListener('change',()=>{row.selectedId=select.value;syncBulk();draw()});
+   wrap.append(select);
+  }
+  if(review.duplicateIds.includes(row.selectedId))wrap.append(line('small','This unit is already used in your list. Choose another unit or remove the duplicate line.','notice-bulk-warning'));
+  host.append(wrap);
+ });
+ $('notice-bulk-status').textContent=bulkRows.length+' list entries · '+review.unresolved+' need a choice'+(review.duplicateIds.length?' · duplicate unit selected':'')+'. '+(review.ready?'Ready to create ordered drafts.':'Resolve every entry before creating drafts.');
+}
 const line=(tag,value,cls)=>{const e=document.createElement(tag);e.textContent=String(value??'');if(cls)e.className=cls;return e};
 function matching(){
  const raw=$('notice-picker-search').value.trim().toLowerCase();
@@ -32,9 +60,9 @@ function selectionFeedback(matches=matching()){
  $('notice-picker-selection-summary').textContent=chosen.size?chosen.size+' selected'+(outside?' · '+outside+' outside this search':''):'No units selected';
  $('notice-picker-reset-search').hidden=!$('notice-picker-search').value;
  $('notice-picker-list').setAttribute('aria-busy',String(loading||making));
- $('notice-picker-make').disabled=!chosen.size||!cloud.user||making;
+ $('notice-picker-make').disabled=!chosen.size||!cloud.user||making||(bulkActive&&!bulk.review(bulkRows).ready);
  $('notice-picker-make').textContent='Create drafts'+(chosen.size?' ('+chosen.size+')':'');
- $('notice-picker-select-matching').disabled=!matches.length||making;
+ $('notice-picker-select-matching').disabled=!matches.length||making||bulkActive;
  $('notice-picker-clear').disabled=!chosen.size||making;
  $('notice-picker-list').querySelectorAll('input').forEach(check=>{check.disabled=making});
 }
@@ -44,7 +72,7 @@ function draw(){
  for(const item of matches){
   const row=document.createElement('label');row.className='notice-picker-row';
   const check=document.createElement('input');check.type='checkbox';check.checked=chosen.has(item.unit.id);check.disabled=making;check.setAttribute('aria-label','Select '+labelOf(item));
-  check.addEventListener('change',()=>{if(check.checked)chosen.add(item.unit.id);else chosen.delete(item.unit.id);selectionFeedback()});
+  check.addEventListener('change',()=>{if(bulkActive)resetBulk();if(check.checked)chosen.add(item.unit.id);else chosen.delete(item.unit.id);selectionFeedback()});
   const body=line('span','');body.className='notice-picker-row-body';
   body.append(line('strong',labelOf(item)),line('small',[item.prop.city,item.prop.state,item.prop.postal_code,item.unit.occupancy_status].filter(Boolean).join(' · ')),line('small',item.tenant?(item.tenant+' · Verify imported recipient'):item.tenantSource));
   row.append(check,body);host.append(row);
@@ -63,12 +91,17 @@ async function refresh(){
    cloud.api('/rest/v1/tenancies?select=id,unit_id,status&limit=300'),
    cloud.api('/rest/v1/tenancy_people?select=tenancy_id,person_id,party_role,to_date&limit=400'),
    cloud.api('/rest/v1/people?select=id,display_name,email&limit=300'),
-   cloud.api('/rest/v1/leases?select=unit_id,tenancy_id&limit=300')
+   cloud.api('/rest/v1/leases?select=unit_id,tenancy_id&limit=300'),
+   cloud.api('/rest/v1/property_aliases?select=property_id,alias&limit=500'),
+   cloud.api('/rest/v1/unit_aliases?select=unit_id,alias&limit=500')
   ]);
   if(gen!==generation||cloud.user?.id!==account)return;
   const p=new Map(props.map(x=>[x.id,x])),counts=new Map();
   for(const u of units)counts.set(u.property_id,(counts.get(u.property_id)||0)+1);
   const recips=new Map(addressees.map(x=>[x.property_id,x.notice_addressee_text]));
+  const propertyAliasMap=new Map(),unitAliasMap=new Map();
+  for(const alias of propertyAliases){const arr=propertyAliasMap.get(alias.property_id)||[];arr.push(alias.alias);propertyAliasMap.set(alias.property_id,arr)}
+  for(const alias of unitAliases){const arr=unitAliasMap.get(alias.unit_id)||[];arr.push(alias.alias);unitAliasMap.set(alias.unit_id,arr)}
   items=units.filter(u=>p.has(u.property_id)).map(unit=>{
    const prop=p.get(unit.property_id),sole=counts.get(unit.property_id)===1;
    const linked=window.OpsNoticeRecipient.fromUnit(unit.id,{tenancies,parties,people});
@@ -76,9 +109,10 @@ async function refresh(){
    const tenant=existing||linked.name;
    const tenantSource=existing?'Existing address addressee (verify)':linked.reason;
    const search=[prop.street_address,prop.city,prop.state,prop.postal_code,unitName(unit),unit.unit_code,unit.unit_class,unit.occupancy_status].join(' ').toLowerCase();
-   return {unit,prop,tenant,tenantSource,sole,search};
+   return {unit,prop,tenant,tenantSource,sole,search,unitDisplay:unitName(unit),propertyAliases:propertyAliasMap.get(prop.id)||[],unitAliases:unitAliasMap.get(unit.id)||[]};
   }).sort((a,b)=>labelOf(a).localeCompare(labelOf(b),undefined,{numeric:true}));
   chosen=new Set([...chosen].filter(id=>items.some(x=>x.unit.id===id)));
+  if(bulkActive){const previous=bulkRows.map(row=>({text:row.text,selectedId:row.selectedId}));bulkRows=bulk.matchList(previous.map(row=>row.text),items);for(let i=0;i<bulkRows.length;i++)if(bulkRows[i].matches.some(x=>x.unit.id===previous[i].selectedId))bulkRows[i].selectedId=previous[i].selectedId;syncBulk();}
   // Share only this authenticated in-memory snapshot; never write contact emails into notice batches.
   window.dispatchEvent(new CustomEvent('ops-notice-contacts-loaded',{detail:{units,leases,parties,people}}));
   state(items.length+' units and lots ready. Current tenancy names are suggested when linked; verify them in each notice before use.');
@@ -87,17 +121,32 @@ async function refresh(){
  finally{if(gen===generation){loading=false;$('notice-picker-refresh').disabled=false;selectionFeedback()}}
 }
 $('notice-picker-refresh').onclick=refresh;
+$('notice-bulk-input').addEventListener('input',()=>{if(bulkActive){resetBulk();draw()}});
+$('notice-bulk-reset').onclick=()=>{resetBulk(true);chosen.clear();draw();state('Pasted list cleared. Select units or paste a new list.')};
+$('notice-bulk-match').onclick=()=>{
+ if(!bulk){state('Bulk matching is unavailable. Reload the page.');return}
+ if(loading||making){state('Wait for the current operation to finish.');return}
+ if(!cloud.user||!items.length){state('Sign in and load the portfolio before matching a list.');return}
+ try{
+  const names=bulk.parse($('notice-bulk-input').value);
+  if(!names.length){resetBulk();draw();state('Paste one property or unit per line.');return}
+  bulkRows=bulk.matchList(names,items);bulkActive=true;syncBulk();draw();
+  state('Review the list matches below. Ambiguous or missing units must be resolved before drafting.');
+ }catch(e){state(e.message)}
+};
 $('notice-picker-search').addEventListener('input',draw);
 $('notice-picker-reset-search').onclick=()=>{$('notice-picker-search').value='';draw();$('notice-picker-search').focus()};
 $('notice-picker-select-matching').onclick=()=>{
+ if(bulkActive)resetBulk();
  for(const item of matching())chosen.add(item.unit.id);
  draw();
 };
-$('notice-picker-clear').onclick=()=>{chosen.clear();draw()};
+$('notice-picker-clear').onclick=()=>{chosen.clear();resetBulk();draw()};
 $('notice-picker-make').onclick=()=>{
  if(making)return;
  if(!cloud.user){$('account-button').click();state('Sign in to create drafts.');return}
- const selected=items.filter(x=>chosen.has(x.unit.id));if(!selected.length){state('Select at least one property.');return}
+ if(bulkActive&&!bulk.review(bulkRows).ready){state('Resolve all pasted-list entries and duplicate units before creating drafts.');return}
+ const selected=bulkActive?bulk.orderedItems(items,bulkOrder):items.filter(x=>chosen.has(x.unit.id));if(!selected.length){state('Select at least one property.');return}
  if(selected.length>250){state('Select 250 or fewer units in one batch.');return}
  const iframe=$('studio-frame');
  if(!iframe?.contentWindow||iframe.contentDocument?.readyState!=='complete'){state('The notice editor is loading. Try Create drafts again.');return}
@@ -109,14 +158,14 @@ $('notice-picker-make').onclick=()=>{
    owner:x.prop.landlord_entity||''
  }));
  making=true;draw();state('Preparing '+selected.length+' editable notice draft(s)…');
- iframe.contentWindow.postMessage({type:'oaktown-import-properties',properties},location.origin);
+ iframe.contentWindow.postMessage({type:'oaktown-import-properties',properties,ordered:bulkActive},location.origin);
 };
 window.addEventListener('message',event=>{
  if(event.origin!==location.origin||event.source!==$('studio-frame').contentWindow||!event.data||event.data.type!=='oaktown-import-confirmed'||!making)return;
  making=false;
  const msg=event.data;
  if(msg.added||msg.updated){
-  chosen.clear();
+  chosen.clear();if(bulkActive)resetBulk(true);
   const heading=$('notice-editor-title');
   heading.focus({preventScroll:true});
   $('notice-editor-overview').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'});
@@ -125,7 +174,7 @@ window.addEventListener('message',event=>{
 });
 window.addEventListener('ops-auth-change',event=>{
  generation++;loading=false;$('notice-picker-refresh').disabled=false;
- if(!event.detail.user){items=[];chosen.clear();making=false;window.dispatchEvent(new CustomEvent('ops-notice-contacts-loaded',{detail:null}));draw();state('Sign in to search protected units and create drafts.');}
+ if(!event.detail.user){items=[];chosen.clear();resetBulk(true);making=false;window.dispatchEvent(new CustomEvent('ops-notice-contacts-loaded',{detail:null}));draw();state('Sign in to search protected units and create drafts.');}
  else refresh();
 });
 state('Sign in to search protected units and create drafts.');
