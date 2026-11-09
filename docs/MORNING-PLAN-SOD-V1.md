@@ -1,23 +1,24 @@
 # Morning Plan & SOD — V1
 
-**Source-only stacked PR on SOD-0. No database migration, task writes, email sending or tenant-data imports.**
+The Morning Plan/SOD workflow is part of Today. This format update keeps its review-and-copy behavior and temporary storage.
 
 ## Source-derived SOD format
 
-The user's three supplied SOD examples use exactly these sections, in order:
+The user's latest SOD examples define these sections, in order:
 
 1. `Good Morning Leslie,`
 2. A chosen greeting: `Hope you're doing well!` or `Hope you had a good weekend!`
-3. `Here are my priorities for today:`
-4. Specific priorities, one line each: `Subject: concrete next action`.
-5. Recurring daily lines: Tenant Communications; REI Hub – Import Feed; Leasing & Maintenance.
-6. `Thank you!`
+3. `I'm getting started for the day. My priorities today are:`
+4. Specific priorities, one bullet per line: `- Subject: concrete next action`.
+5. Recurring bullets: Tenant Communications; REI Hub – Import Feed; Maintenance & Leasing.
+6. `Please let me know if there's anything else you'd like me to prioritize today.`
+7. `Thank you, and wishing you a wonderful [weekday]!` using the Louisville/Eastern work date.
 
 Recurring sections vary slightly across examples. V1 uses a coherent source-derived default and allows the author to edit or uncheck any recurring line. The Monday/weekend greeting must be chosen, never inferred from a date. The email examples contained actual addresses and special notice exclusions; **those case details are not committed as defaults or fixtures**, and never apply to a different day without fresh evidence.
 
 ## Data and review workflow
 
-- A signed-in Oaktown staff member opens Today → Morning Plan & SOD email. The Louisville/Eastern work date is shown on screen, not imposed on the email text.
+- A signed-in Oaktown staff member opens Today → Morning Plan & SOD email. The Louisville/Eastern work date is shown on screen and supplies the weekday in the closing. It is not inserted into priority wording or task deadlines.
 - Pick from actual active, non-archived tasks. Waiting tasks can be selected deliberately but are not automatically marked actionable, urgent or completed.
 - Task choice imports the saved title and existing `intake_details.next_action` into an editable daily line. Blank actions require a concrete author-supplied action. Current tasks may be reordered/removed without changing their original priority or status.
 - Add new email/screenshot priorities manually as `Subject: Action` lines. These are **draft content only**; they do not create duplicate Supabase task records.

@@ -331,13 +331,16 @@ test('Morning Plan generates the established SOD with saved tasks, a new priorit
  await page.locator('#sod-extras').fill('Example Property – Document Review: Confirm the emailed document is the correct one before filing.');
  await page.locator('#sod-generate').click();
  const email=await page.locator('#sod-output').inputValue();
- expect(email).toContain('Good Morning Leslie,\n\nHope you\'re doing well!\n\nHere are my priorities for today:\n\n');
+ expect(email).toContain('Good Morning Leslie,\n\nHope you\'re doing well!\n\nI\'m getting started for the day. My priorities today are:\n\n');
  expect(email).toContain('Fictional overdue inspection follow-up: Check the recorded inspection details before follow-up.');
  expect(email).toContain('Example Property – Document Review: Confirm the emailed document is the correct one before filing.');
  expect(email.indexOf('Example Property – Document Review')).toBeLessThan(email.indexOf('Tenant Communications:'));
  expect(email.indexOf('Tenant Communications:')).toBeLessThan(email.indexOf('REI Hub – Import Feed:'));
- expect(email.indexOf('REI Hub – Import Feed:')).toBeLessThan(email.indexOf('Leasing & Maintenance:'));
- expect(email).toMatch(/\n\nThank you!$/);
+ expect(email.indexOf('REI Hub – Import Feed:')).toBeLessThan(email.indexOf('Maintenance & Leasing:'));
+ const weekday=new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'UTC'}).format(new Date(M.today()+'T12:00:00Z'));
+ expect(email).toContain("\n\nPlease let me know if there's anything else you'd like me to prioritize today.\n\n");
+ expect(email).toMatch(new RegExp('Thank you, and wishing you a wonderful '+weekday+'!$'));
+ expect(email.split('\n').filter(line=>line.startsWith('- '))).toHaveLength(5);
  expect(email).not.toContain('M08'); // Internal task codes are not emailed
  await expect(page.locator('#sod-copy')).toBeEnabled();
  await page.context().grantPermissions(['clipboard-read','clipboard-write']);
@@ -679,4 +682,16 @@ test('Tasks deep link loads after sign-in and level focus returns to Today witho
  await level.locator('summary').click();await level.getByRole('button',{name:'Focus',exact:true}).first().click();
  await expect(page.locator('#today-workflow')).toBeVisible();await expect(page.locator('#today-focus-body')).toContainText('Fictional overdue inspection follow-up');
  await expect(page.locator('#today-focus-heading')).toBeFocused();expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
+});
+
+test('SOD closing follows the Eastern workday when UTC is already the next day',async({page})=>{
+ await page.clock.install({time:new Date('2026-11-09T04:59:00Z')});
+ const s=await setup(page);await signInToday(page);await page.locator('#sod-morning>summary').click();
+ await page.locator('#sod-generate').click();
+ await expect(page.locator('#sod-workdate')).toContainText('2026-11-08');
+ await expect(page.locator('#sod-output')).toHaveValue(/Thank you, and wishing you a wonderful Sunday!$/);
+ await page.clock.setSystemTime(new Date('2026-11-09T05:01:00Z'));
+ await page.locator('#sod-generate').click();
+ await expect(page.locator('#sod-output')).toHaveValue(/Thank you, and wishing you a wonderful Monday!$/);
+ expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
 });

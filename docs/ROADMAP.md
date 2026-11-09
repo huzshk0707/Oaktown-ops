@@ -27,6 +27,14 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## SOD email format — November 9 refinement
+
+The SOD uses the owner's supplied opening, one priority per bullet, the request
+for additional priorities, and a warm closing for the Louisville/Eastern weekday.
+Specific reviewed tasks precede editable Tenant Communications, REI Hub – Import
+Feed, and Maintenance & Leasing defaults. Historic example tasks and personal
+information are not seeded into a new daily plan. See [the SOD guide](MORNING-PLAN-SOD-V1.md).
+
 ## Notice preparation workflow — PR #53
 
 The notice editor improvement follows the staff's repeatable manual sequence:
