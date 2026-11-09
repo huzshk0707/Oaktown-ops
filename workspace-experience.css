@@ -32,7 +32,7 @@
  html[data-ops-theme] .ops-workspace .operations-toolbar {display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 6px}
  html[data-ops-theme] .ops-workspace .operations-search {min-width:245px;text-align:left;margin-right:auto;background:var(--ui-soft)}
  html[data-ops-theme] .ops-workspace .operations-loading-status {font-size:11px;margin:0 0 16px;min-height:17px}
- html[data-ops-theme] .ops-workspace :is(.button,.workflow-tabs button,.lease-inner-tabs button) {box-shadow:none;background-image:none;transform:none;min-height:42px;font-size:12px;border-radius:8px}
+ html[data-ops-theme] .ops-workspace :is(.button,.workflow-tabs button,.lease-inner-tabs button) {box-shadow:none;background-image:none;transform:none;min-height:44px;font-size:12px;border-radius:8px}
  html[data-ops-theme] .ops-workspace .button {padding:9px 14px}
  html[data-ops-theme] .ops-workspace .button.primary {font-weight:650}
  html[data-ops-theme] .ops-workspace :is(.today-card,.task-card,.message-card,.notice-picker,#ops-portfolio-panel,#ops-renewals-panel,.guide-step-card,.lease-draft-tool) {box-shadow:none;background-image:none;border-radius:12px}

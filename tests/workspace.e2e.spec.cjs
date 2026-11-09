@@ -139,7 +139,7 @@ test('property writes validate fields and retain edits on network failure',async
  await expect(page.locator('#prop-unit')).toHaveValue('Unit C');expect(s.properties.find(p=>p.id===CREATED).unit).toBe('Unit B');
 });
 test('revoked membership blocks a restored session',async({page})=>{
- const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#today-signin')).toBeVisible();
+ const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#staff-access')).toBeVisible();
  await expect(page.locator('#pilot-auth-status')).toContainText('not approved');await expect(page.locator('#pilot-properties')).not.toBeVisible();
 });
 test('pending property saves lock actions that could switch their targets',async({page})=>{
@@ -161,8 +161,8 @@ test('a delayed account verification cannot restore a signed-out session',async(
  const s=await setup(page);let release;s.holdMembership=new Promise(resolve=>release=resolve);
  await page.reload();await expect.poll(()=>s.membershipWaiting).toBe(true);
  await page.evaluate(()=>window.OpsCloud.signOut());release();
- await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#today-signin')).toBeVisible();
- await page.reload();await expect(page.locator('#today-signin')).toBeVisible();expect(s.logins).toBe(1);
+ await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#staff-access')).toBeVisible();
+ await page.reload();await expect(page.locator('#staff-access')).toBeVisible();expect(s.logins).toBe(1);
 });
 test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
