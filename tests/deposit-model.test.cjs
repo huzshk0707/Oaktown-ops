@@ -19,7 +19,9 @@ test('clean blank DOCX merges approved fields, escapes XML and keeps all signatu
  const input={...base(),signers:[{name:'Example & Co <Tenant>',email:'first@example.invalid'},{name:'Second Example',email:'second@example.invalid'}]};
  const r=M.review(input);assert.equal(r.valid,true);
  const bytes=await E.documentBytes(Zip,fs.readFileSync('assets/deposit/holding-template.docx'),r.report),zip=await Zip.loadAsync(bytes),xml=await zip.file('word/document.xml').async('string');
- assert.match(xml,/Example &amp; Co &lt;Tenant&gt;/);assert.match(xml,/1,150.00/);assert.match(xml,/1,025.00/);assert.match(xml,/02\/20\/2027/);assert.match(xml,/first@example.invalid/);assert.match(xml,/second@example.invalid/);assert.equal((xml.match(/Signature /g)||[]).length,2);assert.doesNotMatch(xml,/\{\{[A-Z_]+\}\}/);assert.match(xml,/keepNext/);
+ assert.match(xml,/Example &amp; Co &lt;Tenant&gt;/);assert.match(xml,/1,150.00/);assert.match(xml,/1,025.00/);assert.match(xml,/02\/20\/2027/);assert.match(xml,/first@example.invalid/);assert.match(xml,/second@example.invalid/);assert.equal((xml.match(/>Signature<\/w:t>/g)||[]).length,2);assert.doesNotMatch(xml,/\{\{[A-Z_]+\}\}/);assert.match(xml,/keepNext/);
+ assert.equal((xml.match(/<w:tbl>/g)||[]).length,2);assert.equal((xml.match(/w:fill="FFFF00"/g)||[]).length,4);assert.match(xml,/<w:tblLayout w:type="fixed"\/>/);assert.match(xml,/<w:cantSplit\/>/);
+ for(const table of xml.match(/<w:tbl>[\s\S]*?<\/w:tbl>/g)||[]){const rows=table.match(/<w:tr>[\s\S]*?<\/w:tr>/g);assert.equal(rows.length,3);assert.match(rows[0],/Email:/);assert.doesNotMatch(rows[1],/example\.invalid|Example|Signature|Date/);assert.match(rows[2],/>Signature<\/w:t>/);assert.match(rows[2],/>Date<\/w:t>/);}
  assert.equal(Object.keys(zip.files).some(n=>n.toLowerCase().startsWith('customxml/')),false);
 });
 test('no-pet form keeps the security-deposit credit and omits the pet exception',async()=>{

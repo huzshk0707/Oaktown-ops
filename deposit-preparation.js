@@ -24,7 +24,12 @@
   const amounts=node('dl',null,'deposit-summary');for(const [label,value] of [['Base security deposit','$'+M.dollars(r.securityCents)],['Pet deposit',r.pets+' × $150 = $'+M.dollars(r.petCents)],['Holding deposit due now','$'+M.dollars(r.holdingCents)],['First-month rent due at move-in','$'+M.dollars(r.rentCents)+' · '+r.moveInLabel]]){amounts.append(node('dt',label),node('dd',value))}host.append(amounts);
   const paper=node('article',null,'deposit-document');paper.append(node('h3','NON-REFUNDABLE HOLDING DEPOSIT'));
   for(const p of r.paragraphs)paper.append(node('p',p));
-  for(const s of r.signers){paper.append(node('p','Email: '+s.email+' · '+s.name),node('p','____________________________   __________________','deposit-signature'),node('p','Signature                                           Date','deposit-signature'))}
+  for(const s of r.signers){
+   const block=node('div',null,'deposit-signature-grid');
+   const signature=node('div',null,'deposit-signature-field'),date=node('div',null,'deposit-signature-field');
+   signature.setAttribute('role','img');signature.setAttribute('aria-label','Blank signature area');date.setAttribute('role','img');date.setAttribute('aria-label','Blank date area');
+   block.append(node('p','Email: '+s.email,'deposit-signature-identity'),node('p',s.name,'deposit-signature-identity'),signature,date,node('p','Signature'),node('p','Date'));paper.append(block);
+  }
   paper.append(node('p',r.credit,'deposit-credit'));host.append(paper);$('deposit-email').value=imageFile?r.email.replace('\n\nPlease feel free','\n\nPayment details are included in the attached image.\n\nPlease feel free'):r.email;
  }
  form.addEventListener('input',invalidate);form.addEventListener('change',invalidate);

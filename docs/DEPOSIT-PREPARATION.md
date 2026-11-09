@@ -56,3 +56,17 @@ can continue naturally to additional Word pages. Browser downloads use DOCX;
 no full new-lease PDF export or external sender has been added.
 
 CI, merge and website publication are recorded in the implementation PR.
+
+## Signing-area alignment — November 9 refinement
+
+The Word export uses a fixed, borderless two-column signing layout with a clear
+column gutter. Email aligns with the signature area; printed name aligns with
+the date area. Both writing areas have the supplied yellow highlight and a real
+bottom rule. Each identity/field/label block stays together when Word paginates.
+The in-app preview uses the same two-column structure and blank yellow areas.
+
+Two newly supplied DOCX examples were inspected as layout references. No filled
+applicant data is included in the source, fixtures or template. Rendered fictional
+pet/one-signer, pet/two-signer and no-pet/two-signer samples each fit one Letter
+page; six signers use two pages with intact blocks. Tests cover escaped names,
+blank highlighted cells and aligned preview geometry at phone/desktop widths.
