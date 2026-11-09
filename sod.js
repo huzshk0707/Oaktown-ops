@@ -12,6 +12,7 @@
  };
  function controls(){
   const ready=!!cloud.user&&!!data;
+  $('sod-saved-task').disabled=!ready;
   $('sod-add').disabled=!ready||!$('sod-saved-task').value;
   $('sod-generate').disabled=!ready;
   $('sod-copy').disabled=!ready||!draft;
@@ -87,6 +88,7 @@
   renderSelected();renderCandidates();
   if(!changed)status('Ready. Select saved work and add new instructions; no task changes are made.');
  }
+ $('sod-saved-task').addEventListener('change',controls);
  $('sod-add').addEventListener('click',()=>{
   if(!data||!cloud.user)return;
   const task=data.tasks.find(t=>t.id===$('sod-saved-task').value);
