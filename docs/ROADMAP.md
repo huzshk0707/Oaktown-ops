@@ -27,6 +27,28 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Notice preparation workflow — PR #53 (draft, source only)
+
+The notice editor improvement follows the staff's repeatable manual sequence:
+select ordered properties; open each property's TurboTenant Payments tab separately;
+export and paste its CSV statement; review imported charge rows and the notice PDF
+preview; download that property's PDF; copy the selected tenant's message/email;
+then attach the PDF and paste the message into email and TurboTenant manually.
+
+- The proposed notice selector accepts a pasted ordered list, requires explicit
+  unit choices for ambiguous names, and keeps drafts in list order.
+- The embedded editor adds **Go to tenant message** beside **Download property PDF**.
+  This follows the currently selected notice without scrolling to the top tabs.
+  The message screen displays the current notice address, offers **Copy email**
+  only for one exact-linked address, retains **Copy message**, and returns to the
+  same selected notice via **Back to notice editor**.
+- This PR does not download external payment data, connect to TurboTenant, send
+  email, upload PDFs, mark notices as served, or change the legal notice template.
+- Before merge/deployment: run CI and a staff review of CSV import, notice
+  readiness, PDF download, correct contact association, the message/back path,
+  and all six workspace themes with fictional records. Avoid inferring successful
+  service or sending from a generated draft.
+
 ## Today dashboard layout refinement
 
 The dashboard summary cards use a normal arrow cursor while their text remains
