@@ -135,7 +135,7 @@ test('Global search reads later API pages rather than silently omitting records 
 test('Unavailable optional data is labeled and denied core reads remove stale search and profiles',async({page})=>{
  const s=await setup(page);s.fail='ops_events';await page.locator('#operations-refresh').click();await expect(page.locator('#operations-status')).toContainText('Journal unavailable');
  await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));await expect(page.locator('#operations-profile-content')).toContainText('Activity could not be loaded');await page.keyboard.press('Escape');
- s.fail='people';await page.locator('#operations-refresh').click();await expect(page.locator('#operations-status')).toContainText('Could not load saved records');await expect(page.locator('#operations-queue')).toBeEmpty();await page.keyboard.press('Control+k');await page.locator('#operations-query').fill('Avery');await expect(page.locator('#operations-results')).not.toContainText('Avery Fictional');
+ s.fail='people';await page.locator('#operations-refresh').click();await expect(page.locator('#operations-status')).toContainText('Could not load saved records');await expect(page.locator('#operations-results')).toBeEmpty();await page.keyboard.press('Control+k');await page.locator('#operations-query').fill('Avery');await expect(page.locator('#operations-results')).not.toContainText('Avery Fictional');
 });
 
 test('Connected views fit all six themes at 320px and compact mode persists without work data',async({page})=>{
