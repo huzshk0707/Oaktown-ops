@@ -49,6 +49,7 @@ test('active notice PDF toolbar jumps to the matching tenant message and returns
  await expect(page.locator('#message-area')).toBeVisible();
  await expect(page.locator('#message-title')).toBeFocused();
  await expect(page.locator('#message-recipient')).toContainText('First Fictional Resident');
+ await expect(page.locator('#message-recipient')).toContainText('100 Example Court');
  await expect(page.locator('#copy-tenant-email')).toBeDisabled();
  await page.locator('#message-edit-notice').click();
  await expect(page.locator('#notice-editor-title')).toBeFocused();
