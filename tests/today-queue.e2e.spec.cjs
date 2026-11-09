@@ -1,5 +1,6 @@
 'use strict';
 const {test,expect}=require('@playwright/test');
+const {openTasks}=require('./ui-helpers.cjs');
 const M=require('../today-model.js');
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co',USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 function shifted(days){const d=new Date(M.today()+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
@@ -25,7 +26,7 @@ async function open(page,viewer=false){
   if(req.method()==='POST')writes++;
   return reply([]);
  });
- await page.goto(ORIGIN+'/');await page.locator('#today-signin').click();await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#today-status')).toContainText('Updated');return ()=>writes;
+ await page.goto(ORIGIN+'/');await page.locator('#today-signin').click();await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#today-status')).toContainText('Updated');await openTasks(page);return ()=>writes;
 }
 test('Active task queue searches codes, filters saved status, includes later dates and reveals remaining rows',async({page})=>{
  const writes=await open(page);

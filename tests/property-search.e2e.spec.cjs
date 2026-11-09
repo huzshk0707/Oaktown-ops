@@ -103,6 +103,10 @@ test('pasted list matches in user order, reviews missing rows and creates ordere
  const chips=page.frameLocator('#studio-frame').locator('#noticeList .chip');
  await expect(chips.nth(0)).toContainText('Sequoia Example Way');
  await expect(chips.nth(1)).toContainText('Demo Avenue');
+ const frame=page.frameLocator('#studio-frame');await frame.locator('#tenant').fill('Fictional reviewed recipient');
+ await page.locator('#notice-bulk-input').fill('Demo Avenue\nSequoia');await page.locator('#notice-bulk-match').click();await page.locator('#notice-picker-make').click();
+ await expect(page.locator('#notice-picker-status')).toContainText('2 existing');await expect(chips.nth(0)).toContainText('Demo Avenue');await expect(chips.nth(1)).toContainText('Sequoia');
+ await frame.locator('#noticeList button[data-select]').nth(1).click();await expect(frame.locator('#tenant')).toHaveValue('Fictional reviewed recipient');
 });
 test('pasted list refuses missing matches until corrected',async({page})=>{
  await page.goto('http://127.0.0.1:8765/');
@@ -114,4 +118,41 @@ test('pasted list refuses missing matches until corrected',async({page})=>{
  await page.locator('#notice-bulk-input').fill('Sequoia\nDemo Avenue');
  await page.locator('#notice-bulk-match').click();
  await expect(page.locator('#notice-picker-make')).toBeEnabled();
+});
+
+test('editing a matched notice list invalidates its selections and sign-out clears private matches',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/');await login(page);
+ await page.locator('#notice-bulk-input').fill('Sequoia\nDemo Avenue');await page.locator('#notice-bulk-match').click();
+ await expect(page.locator('#notice-picker-make')).toBeEnabled();
+ await page.locator('#notice-bulk-input').fill('Sequoia');
+ await expect(page.locator('#notice-bulk-results')).toBeEmpty();await expect(page.locator('#notice-picker-make')).toBeDisabled();
+ await page.locator('#notice-bulk-match').click();await expect(page.locator('#notice-picker-make')).toBeEnabled();
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#notice-bulk-input')).toHaveValue('');await expect(page.locator('#notice-bulk-results')).toBeEmpty();
+ await expect(page.locator('#notice-picker-list')).toBeEmpty();await expect(page.locator('#notice-bulk-match')).toBeDisabled();
+});
+test('unavailable optional aliases retain normal notice address search and draft creation',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/');await login(page);
+ await page.route('**/rest/v1/*_aliases?*',route=>route.fulfill({status:403,headers:{'access-control-allow-origin':'*','content-type':'application/json'},body:JSON.stringify({message:'Optional alias lookup unavailable'})}));
+ await page.locator('#notice-picker-refresh').click();
+ await expect(page.locator('#notice-picker-status')).toContainText('55 units and lots ready');
+ await page.locator('#notice-picker-search').fill('1111 Demo');await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
+ await page.locator('#notice-picker-list input').check();await page.locator('#notice-picker-make').click();
+ await expect(page.locator('#notice-picker-status')).toContainText('1 created');
+ await expect(page.frameLocator('#studio-frame').locator('#street')).toHaveValue('1111 Demo Avenue');
+});
+
+test('ambiguous pasted properties require unit choices and duplicate units block creation',async({page})=>{
+ await page.goto('http://127.0.0.1:8765/');await login(page);
+ const extra={id:'66666666-6666-4666-8666-666666666666',property_id:properties[0].id,unit_code:'DEMO-B',unit_label:'Unit B',unit_class:'residential',occupancy_status:'Leased'};
+ const headers={'access-control-allow-origin':'*','content-type':'application/json'};
+ await page.route('**/rest/v1/units?*',route=>route.fulfill({headers,body:JSON.stringify([...units,extra])}));
+ await page.locator('#notice-picker-refresh').click();await expect(page.locator('#notice-picker-status')).toContainText('56 units and lots ready');
+ await page.locator('#notice-bulk-input').fill('Demo Avenue\nDemo Avenue');await page.locator('#notice-bulk-match').click();
+ const choices=page.locator('#notice-bulk-results select');await expect(choices).toHaveCount(2);await expect(page.locator('#notice-picker-make')).toBeDisabled();
+ await choices.nth(0).selectOption(units[0].id);await choices.nth(1).selectOption(units[0].id);
+ await expect(page.locator('#notice-bulk-status')).toContainText('duplicate unit');await expect(page.locator('#notice-picker-make')).toBeDisabled();
+ await choices.nth(1).selectOption(extra.id);await expect(page.locator('#notice-picker-make')).toBeEnabled();
+ await page.locator('#notice-picker-make').click();await expect(page.locator('#notice-picker-status')).toContainText('2 created');
+ await expect(page.frameLocator('#studio-frame').locator('#noticeList .chip').nth(1)).toContainText('Unit B');
 });

@@ -60,18 +60,20 @@ function selectionFeedback(matches=matching()){
  $('notice-picker-selection-summary').textContent=chosen.size?chosen.size+' selected'+(outside?' · '+outside+' outside this search':''):'No units selected';
  $('notice-picker-reset-search').hidden=!$('notice-picker-search').value;
  $('notice-picker-list').setAttribute('aria-busy',String(loading||making));
- $('notice-picker-make').disabled=!chosen.size||!cloud.user||making||(bulkActive&&!bulk.review(bulkRows).ready);
+ $('notice-picker-make').disabled=!chosen.size||!cloud.user||making||loading||(bulkActive&&!bulk.review(bulkRows).ready);
  $('notice-picker-make').textContent='Create drafts'+(chosen.size?' ('+chosen.size+')':'');
  $('notice-picker-select-matching').disabled=!matches.length||making||bulkActive;
- $('notice-picker-clear').disabled=!chosen.size||making;
- $('notice-picker-list').querySelectorAll('input').forEach(check=>{check.disabled=making});
+ $('notice-picker-clear').disabled=!chosen.size||making||loading;
+ $('notice-picker-refresh').disabled=making||loading||!cloud.user;
+ $('notice-picker-list').querySelectorAll('input').forEach(check=>{check.disabled=making||loading});
+ for(const id of ['notice-bulk-input','notice-bulk-match','notice-bulk-reset'])$(id).disabled=making||loading||!cloud.user;
 }
 function draw(){
  const matches=matching(),host=$('notice-picker-list');host.replaceChildren();
  selectionFeedback(matches);
  for(const item of matches){
   const row=document.createElement('label');row.className='notice-picker-row';
-  const check=document.createElement('input');check.type='checkbox';check.checked=chosen.has(item.unit.id);check.disabled=making;check.setAttribute('aria-label','Select '+labelOf(item));
+  const check=document.createElement('input');check.type='checkbox';check.checked=chosen.has(item.unit.id);check.disabled=making||loading;check.setAttribute('aria-label','Select '+labelOf(item));
   check.addEventListener('change',()=>{if(bulkActive)resetBulk();if(check.checked)chosen.add(item.unit.id);else chosen.delete(item.unit.id);selectionFeedback()});
   const body=line('span','');body.className='notice-picker-row-body';
   body.append(line('strong',labelOf(item)),line('small',[item.prop.city,item.prop.state,item.prop.postal_code,item.unit.occupancy_status].filter(Boolean).join(' · ')),line('small',item.tenant?(item.tenant+' · Verify imported recipient'):item.tenantSource));
@@ -81,10 +83,10 @@ function draw(){
 }
 async function refresh(){
  if(!cloud.user){state('Sign in to access protected properties.');return}
- if(loading)return;loading=true;const gen=++generation,account=cloud.user.id;
- $('notice-picker-refresh').disabled=true;state('Loading the complete property and unit directory…');
+ if(loading||making)return;loading=true;const gen=++generation,account=cloud.user.id;
+ $('notice-picker-refresh').disabled=true;state('Loading the complete property and unit directory…');selectionFeedback();
  try{
-  const [props,units,addressees,tenancies,parties,people,leases]=await Promise.all([
+  const [props,units,addressees,tenancies,parties,people,leases,propertyAliases,unitAliases]=await Promise.all([
    cloud.api('/rest/v1/properties?select=id,street_address,city,state,postal_code,landlord_entity,portfolio_state&order=street_address.asc&limit=300'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_code,unit_label,unit_class,occupancy_status&order=unit_code.asc&limit=300'),
    cloud.api('/rest/v1/property_addressees?select=property_id,notice_addressee_text&limit=300'),
@@ -122,7 +124,7 @@ async function refresh(){
  finally{if(gen===generation){loading=false;$('notice-picker-refresh').disabled=false;selectionFeedback()}}
 }
 $('notice-picker-refresh').onclick=refresh;
-$('notice-bulk-input').addEventListener('input',()=>{if(bulkActive){resetBulk();draw()}});
+$('notice-bulk-input').addEventListener('input',()=>{if(bulkActive){chosen.clear();resetBulk();draw();state('List changed. Match it again before creating drafts.')}});
 $('notice-bulk-reset').onclick=()=>{resetBulk(true);chosen.clear();draw();state('Pasted list cleared. Select units or paste a new list.')};
 $('notice-bulk-match').onclick=()=>{
  if(!bulk){state('Bulk matching is unavailable. Reload the page.');return}
@@ -130,10 +132,10 @@ $('notice-bulk-match').onclick=()=>{
  if(!cloud.user||!items.length){state('Sign in and load the portfolio before matching a list.');return}
  try{
   const names=bulk.parse($('notice-bulk-input').value);
-  if(!names.length){resetBulk();draw();state('Paste one property or unit per line.');return}
+  if(!names.length){chosen.clear();resetBulk();draw();state('Paste one property or unit per line.');return}
   bulkRows=bulk.matchList(names,items);bulkActive=true;syncBulk();draw();
   state('Review the list matches below. Ambiguous or missing units must be resolved before drafting.');
- }catch(e){state(e.message)}
+ }catch(e){chosen.clear();resetBulk();draw();state(e.message)}
 };
 $('notice-picker-search').addEventListener('input',draw);
 $('notice-picker-reset-search').onclick=()=>{$('notice-picker-search').value='';draw();$('notice-picker-search').focus()};
@@ -175,8 +177,8 @@ window.addEventListener('message',event=>{
 });
 window.addEventListener('ops-auth-change',event=>{
  generation++;loading=false;$('notice-picker-refresh').disabled=false;
- if(!event.detail.user){items=[];chosen.clear();resetBulk(true);making=false;window.dispatchEvent(new CustomEvent('ops-notice-contacts-loaded',{detail:null}));draw();state('Sign in to search protected units and create drafts.');}
- else refresh();
+ items=[];chosen.clear();resetBulk(true);making=false;window.dispatchEvent(new CustomEvent('ops-notice-contacts-loaded',{detail:null}));draw();
+ if(!event.detail.user)state('Sign in to search protected units and create drafts.');else refresh();
 });
 state('Sign in to search protected units and create drafts.');
 draw();

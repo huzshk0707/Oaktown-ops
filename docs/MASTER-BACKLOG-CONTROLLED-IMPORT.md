@@ -38,11 +38,11 @@ Only 1–50 rows; unknown fields, property IDs, lease IDs, automatic due dates a
 
 1. Independently reconcile every manifest entry against the source workbook and existing Supabase task records. Confirm 37 codes, 4 completed, 9 needs-verification and 10 W03 children before approving the real manifest.
 2. Reviewer merges the PR after CI checks and security review. Production database migration is a separate approval; code deployment DOES NOT apply the schema.
-3. After schema deployment, staff editor opens Today → Master Backlog import, pastes private JSON, and clicks Preview. This is read-only. The preview returns a state-bound approval token and conflicts stop saving.
+3. After schema deployment, staff editor opens Tasks → Settings & connections → Master Backlog import, pastes private JSON, and clicks Preview. This is read-only. The preview returns a state-bound approval token and conflicts stop saving.
 4. Editor reviews every displayed row, checks the approval box, then types the exact IMPORT batch reference. Only then is Save enabled.
 5. The RPC validates all entries again, uses active editor/admin membership and a reviewed preview token, creates roots before children atomically, logs source-linked activity events and stores a private receipt.
 6. Replaying an identical approved batch returns its original receipt. Source-key/code conflicts reject. The browser re-reads every saved task and matches receipt IDs, codes, statuses and parent links; a failed read-back never claims success or overwrites later staff edits.
-7. Refresh Today to inspect task codes, linked levels, status and remaining blockers.
+7. Refresh Tasks → All work to inspect task codes, linked levels, status and remaining blockers.
 
 ## Deployment and recovery safeguards
 

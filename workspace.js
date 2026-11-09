@@ -4,14 +4,14 @@ const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-fr
 let workflow='today',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null,singleTenantEmail='';
 const pending=new Map();
 const scrollBehavior=()=>document.documentElement.dataset.opsMotion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
-let leaseTab='track';
+let leaseTab='track',taskTab='work';
 const workflows=['today','tasks','notices','properties','leases','listings','leads','applications','maintenance'];
 const recordKinds=['property','unit','lease','person','task','renewal','document','library'];
 let routeReady=false,routePaused=false,routeRecord=null,lastRoute='';
-function workspaceState(){return {workflow,tab:workflow==='leases'?leaseTab:workflow==='notices'?tab:null,record:routeRecord?{...routeRecord}:null}}
+function workspaceState(){return {workflow,tab:workflow==='leases'?leaseTab:workflow==='notices'?tab:workflow==='tasks'?taskTab:null,record:routeRecord?{...routeRecord}:null}}
 function routeHash(){
  const state=workspaceState(),parts=[state.workflow];
- if(state.tab&&state.tab!==(workflow==='leases'?'track':'notices'))parts.push(state.tab);
+ if(state.tab&&state.tab!==(workflow==='leases'?'track':workflow==='tasks'?'work':'notices'))parts.push(state.tab);
  if(routeRecord)parts.push('record',routeRecord.kind,routeRecord.id);
  return '#/'+parts.map(encodeURIComponent).join('/');
 }
@@ -30,9 +30,9 @@ function readRoute(){
  if(!location.hash.startsWith('#/'))return null;
  let parts;try{parts=location.hash.slice(2).split('/').map(decodeURIComponent)}catch{return false}
  const name=parts.shift();if(!workflows.includes(name))return false;
- let subtab=name==='leases'?'track':name==='notices'?'notices':null;
+ let subtab=name==='leases'?'track':name==='notices'?'notices':name==='tasks'?'work':null;
  if(parts.length&&parts[0]!=='record'){
-  const allowed=name==='leases'?['track','prepare','new']:name==='notices'?['notices','message']:[];
+  const allowed=name==='leases'?['track','prepare','new']:name==='notices'?['notices','message']:name==='tasks'?['work','history','intake']:[];
   if(!allowed.includes(parts[0]))return false;subtab=parts.shift();
  }
  let record=null;
@@ -52,6 +52,7 @@ function restoreRoute(){
   if(workflow!==state.workflow)showWorkflow(state.workflow);
   if(state.workflow==='leases'&&leaseTab!==state.tab)showLeaseTab(state.tab);
   if(state.workflow==='notices'&&tab!==state.tab)showTab(state.tab);
+  if(state.workflow==='tasks'&&taskTab!==state.tab)showTaskTab(state.tab);
   routeRecord=state.record;
  }finally{routePaused=false}
  syncRoute(true);
@@ -59,10 +60,36 @@ function restoreRoute(){
 function navigateWorkspace(name,next){
  if(!workflows.includes(name))return;
  routePaused=true;
- try{showWorkflow(name);if(name==='leases'&&next)showLeaseTab(next);if(name==='notices'&&next)showTab(next)}
+ try{showWorkflow(name);if(name==='leases'&&next)showLeaseTab(next);if(name==='notices'&&next)showTab(next);if(name==='tasks'&&next)showTaskTab(next)}
  finally{routePaused=false}
  routeRecord=null;syncRoute();
 }
+function showTaskTab(next,focus=false){
+ if(!['work','history','intake'].includes(next))next='work';
+ const changed=taskTab!==next;taskTab=next;
+ document.querySelectorAll('[data-task-tab]').forEach(button=>{
+  const selected=button.dataset.taskTab===next;
+  button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;
+  if(selected&&focus)button.focus();
+ });
+ for(const key of ['work','history','intake'])$('tasks-'+key+'-panel').hidden=key!==next;
+ if(workflow==='tasks'){if(changed)routeRecord=null;syncRoute()}
+}
+function openTasks(next='work',target){
+ navigateWorkspace('tasks',next);
+ const node=$(target||(next==='history'?'today-history-search':next==='intake'?'task-json':'today-task-search'));
+ if(target==='today-history')$('today-history').open=true;
+ if(node){node.scrollIntoView({block:'start',behavior:scrollBehavior()});(node.matches('details')?node.querySelector('summary'):node).focus({preventScroll:true})}
+}
+document.querySelectorAll('[data-task-tab]').forEach(button=>{
+ button.addEventListener('click',()=>showTaskTab(button.dataset.taskTab));
+ button.addEventListener('keydown',event=>{
+  if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+  event.preventDefault();const order=['work','history','intake'],at=order.indexOf(taskTab);
+  showTaskTab(event.key==='Home'?'work':event.key==='End'?'intake':order[(at+(event.key==='ArrowRight'?1:2))%3],true);
+ });
+});
+$('tasks-back-today').addEventListener('click',()=>navigateWorkspace('today'));
 function showLeaseTab(next,focus=false){
  if(!['track','prepare','new'].includes(next))next='track';
  const changed=leaseTab!==next;
@@ -110,18 +137,19 @@ function showWorkflow(name){
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
  $('today-workflow').hidden=name!=='today';$('tasks-workflow').hidden=name!=='tasks';$('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('leases-workflow').hidden=name!=='leases';$('listings-workflow').hidden=name!=='listings';$('leads-workflow').hidden=name!=='leads';$('applications-workflow').hidden=name!=='applications';$('future-workflow').hidden=name!=='maintenance';
- const titles={today:'Today',tasks:'Task Intake',notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',leads:'Lead Handling',applications:'Applications',maintenance:'Maintenance'};
- const descriptions={today:'See dated follow-ups, open tasks and recorded lease-end dates in one place.',tasks:'Create or import reviewed tasks manually, and inspect intake receipts. Existing tasks are managed from Today.',notices:'Select properties, create notice drafts and prepare tenant messages.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Follow the listing SOP and copy source-aware prompts for ChatGPT or Gemini; no auto-publishing.',leads:'Review entire conversations and copy a Leslie-style AI prompt for a human-approved suggested reply.',applications:'Follow source-labeled application steps and draft a staff-reviewed verification prompt.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
+ const titles={today:'Today',tasks:'Tasks',notices:'Notices',properties:'Properties',leases:'Leases & renewals',listings:'Listings',leads:'Lead Handling',applications:'Applications',maintenance:'Maintenance'};
+ const descriptions={today:'Plan your morning, focus on today’s work and prepare your end-of-day report.',tasks:'Browse active work, completed and archived history, and reviewed task imports.',notices:'Select properties, create notice drafts and prepare tenant messages.',properties:'Manage shared property records, addresses and verified notice addressees.',leases:'Generate renewal leases, track signatures and record status updates.',listings:'Follow the listing SOP and copy source-aware prompts for ChatGPT or Gemini; no auto-publishing.',leads:'Review entire conversations and copy a Leslie-style AI prompt for a human-approved suggested reply.',applications:'Follow source-labeled application steps and draft a staff-reviewed verification prompt.',maintenance:'Maintenance requests, assignments and follow-up tasks will live here.'};
  say('workspace-title',titles[name]);say('breadcrumb',titles[name]);say('workspace-summary',descriptions[name]);
  if(name==='maintenance'){say('future-title',titles[name]);say('future-description',descriptions[name]);}
  if(name==='leases')showLeaseTab(leaseTab);
- if(name==='today')window.dispatchEvent(new Event('ops-today-show'));
+ if(name==='tasks')showTaskTab(taskTab);
+ if(name==='today'||name==='tasks')window.dispatchEvent(new Event('ops-today-show'));
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
  if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:scrollBehavior()})}
  syncRoute();
 }
-window.OpsWorkspace={navigate:navigateWorkspace,getRoute:workspaceState,
+window.OpsWorkspace={navigate:navigateWorkspace,getRoute:workspaceState,openTasks,
  setRecord:(kind,id)=>{if(!recordKinds.includes(kind)||!/^[-_a-zA-Z0-9]{1,128}$/.test(String(id)))return;routeRecord={kind,id:String(id)};syncRoute()},
  clearRecord:(replace=false)=>{if(!routeRecord)return;routeRecord=null;syncRoute(replace)}
 };

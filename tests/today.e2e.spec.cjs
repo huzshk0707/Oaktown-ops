@@ -1,5 +1,5 @@
 'use strict';
-const {chooseTheme,navigate,openAdvanced}=require('./ui-helpers.cjs');
+const {chooseTheme,navigate,openAdvanced,openTasks,openTaskSettings}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 const M=require('../today-model.js');
 test.use({browserName:'chromium'});
@@ -104,7 +104,7 @@ test('Today is protected, uses recorded dates only, and links to existing workfl
  await expect(page.locator('#today-queue')).toContainText('Undated imported task');
  await expect(page.locator('#today-queue')).not.toContainText('Private archived item');
  await expect(page.locator('#today-renewals')).toContainText('100 Fictional Road');
- await page.locator('#today-open-tasks').click();
+ await openTasks(page);await page.locator('#today-open-tasks').click();
  await expect(page.locator('#tasks-workflow')).toBeVisible();
  await navigate(page,'today');
  await page.evaluate(()=>window.OpsCloud.signOut());
@@ -118,7 +118,7 @@ test('Today handles denied data reads without exposing stale entries',async({pag
  await page.locator('#pilot-login').click();await expect(page.locator('#account-dialog')).not.toBeVisible();
  await navigate(page,'today');
  await expect(page.locator('#today-status')).toContainText('Updated ·');
- s.fail=true;await page.locator('#today-refresh').click();
+ s.fail=true;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();
  await expect(page.locator('#today-status')).toContainText('Could not load the dashboard');
  await expect(page.locator('#today-queue')).toBeEmpty();
 });
@@ -132,7 +132,7 @@ test('Staff can link an existing task to exact property/unit/lease/renewal and s
  await page.locator('#pilot-login').click();
  await navigate(page,'today');
  await expect(page.locator('#today-status')).toContainText('Updated ·');
- await page.locator('#today-queue .today-edit-trigger').first().click();
+ await openTasks(page);await page.locator('#today-queue .today-edit-trigger').first().click();
  await expect(page.locator('#today-edit-dialog')).toBeVisible();
  await page.locator('#today-edit-title').fill('Fictional inspection follow-up');
  await page.locator('#today-edit-property').selectOption('p1');
@@ -169,7 +169,7 @@ test('Editor rejects stale changes without claiming save and only editors can op
  await page.locator('#pilot-login').click();
  await navigate(page,'today');
  await expect(page.locator('#today-status')).toContainText('Updated ·');
- await page.locator('#today-queue .today-edit-trigger').first().click();
+ await openTasks(page);await page.locator('#today-queue .today-edit-trigger').first().click();
  state.rejectEdit=true;
  await page.locator('#today-edit-save').click();
  await expect(page.locator('#today-edit-dialog')).toBeVisible();
@@ -177,7 +177,7 @@ test('Editor rejects stale changes without claiming save and only editors can op
  expect(state.edits).toHaveLength(1);
  await page.locator('#today-edit-cancel').click();
  state.viewer=true;
- await page.locator('#today-refresh').click();
+ await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();
  await expect(page.locator('#today-queue .today-edit-trigger')).toHaveCount(0);
  await expect(page.locator('#today-queue')).toContainText('Fictional overdue inspection');
 });
@@ -200,10 +200,10 @@ test('chart uses disjoint recorded-date groups, clears on denial, and workflow n
  await expect(page.locator('#ops-renewals-panel')).toBeHidden();
  await navigate(page,'today');
  await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
- state.fail=true;await page.locator('#today-refresh').click();
+ state.fail=true;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();
  await expect(page.locator('#today-status')).toContainText('Could not load');
  await expect(page.locator('#today-schedule .schedule-ring')).toHaveCount(0);
- state.fail=false;await page.locator('#today-refresh').click();
+ state.fail=false;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();
  await expect(page.locator('#today-schedule .schedule-center strong')).toHaveText('4');
  await page.evaluate(()=>window.OpsCloud.signOut());
  await expect(page.locator('#today-schedule .schedule-ring')).toHaveCount(0);
@@ -239,15 +239,15 @@ async function signInToday(page){
  await page.locator('#account-button').click();await page.locator('#pilot-email').fill('example@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
  await expect(page.locator('#today-status')).toContainText('Updated ·');
- await openAdvanced(page);await page.locator('.today-reset-settings>summary').click();
 }
+
 test('clean start archives only reviewed active tasks and can be cancelled without writes',async({page})=>{
  const s=await setup(page);s.tasks.push({id:'completed',task_title:'Finished earlier',status:'completed',updated_at:'2026-10-29T10:00:00Z'});
  await signInToday(page);expect(s.archives).toHaveLength(0);
- await page.locator('#today-reset-open').click();
+ await openTaskSettings(page);await page.locator('#today-reset-open').click();
  await expect(page.locator('#today-reset-list li')).toHaveCount(3);
  await page.locator('#today-reset-cancel').click();expect(s.archives).toHaveLength(0);
- await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await openTaskSettings(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
  await expect(page.locator('#today-reset-status')).toContainText('Archived 3 tasks');
  expect(s.archives.map(x=>x.p_task)).toEqual(['1','2','3']);
  expect(s.archives.every(x=>x.p_archived===true&&x.p_expected_updated_at)).toBe(true);
@@ -257,7 +257,7 @@ test('clean start archives only reviewed active tasks and can be cancelled witho
 });
 test('a stale task stops the clean start and reports partial success',async({page})=>{
  const s=await setup(page);s.failArchiveAt=2;
- await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await signInToday(page);await openTaskSettings(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
  await expect(page.locator('#today-reset-status')).toContainText('Confirmed 1 of 3 archived');
  expect(s.archives.map(x=>x.p_task)).toEqual(['1','2']);
  expect(s.tasks.find(x=>x.id==='3').archived_at).toBeNull();
@@ -265,7 +265,7 @@ test('a stale task stops the clean start and reports partial success',async({pag
 });
 test('lost archive replies remain uncertain and do not trigger another task write',async({page})=>{
  const s=await setup(page);s.loseArchiveReply=true;
- await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await signInToday(page);await openTaskSettings(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
  await expect(page.locator('#today-reset-status')).toContainText('last request may have saved');
  expect(s.archives).toHaveLength(1);expect(s.tasks[0].archived_at).toBeTruthy();
  await expect(page.locator('#today-status')).toContainText('2 active tasks');
@@ -273,7 +273,7 @@ test('lost archive replies remain uncertain and do not trigger another task writ
 
 test('confirmed archives remain visible when the subsequent list refresh fails',async({page})=>{
  const s=await setup(page);s.failReadsAfterArchive=true;
- await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await signInToday(page);await openTaskSettings(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
  await expect(page.locator('#today-status')).toContainText('Could not load');
  await expect(page.locator('#today-reset-dialog')).toBeVisible();
  await expect(page.locator('#today-reset-status')).toContainText('Archived 3 tasks');
@@ -281,7 +281,7 @@ test('confirmed archives remain visible when the subsequent list refresh fails',
 });
 test('sign-out during archiving clears private review and stops further archive requests',async({page})=>{
  const s=await setup(page);let release;s.holdArchive=new Promise(r=>release=r);
- await signInToday(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
+ await signInToday(page);await openTaskSettings(page);await page.locator('#today-reset-open').click();await page.locator('#today-reset-confirm').click();
  await expect.poll(()=>s.archives.length).toBe(1);
  await page.evaluate(()=>window.OpsCloud.signOut());release();
  await expect(page.locator('#today-reset-dialog')).not.toBeVisible();
@@ -293,27 +293,27 @@ test('sign-out during archiving clears private review and stops further archive 
 test('completed work is visible independently of intake sessions and clears on sign-out and refresh failure',async({page})=>{
  const s=await setup(page);s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),workflow_key:'general',intake_details:{completion_summary:'Prepared fictional notices for two addresses.'}},{id:'cancelled',task_title:'Cancelled record',status:'cancelled'},{id:'archived-done',task_title:'Archived completed record',status:'completed',archived_at:new Date().toISOString()});
  await signInToday(page);await expect(page.locator('#today-completed-count')).toHaveText('1');await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).toContainText('Prepared fictional notices');await expect(page.locator('#today-completed')).toContainText('no property or lease linked');await expect(page.locator('#today-queue')).not.toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).not.toContainText('Cancelled record');await expect(page.locator('#today-completed')).not.toContainText('Archived completed record');
- s.fail=true;await page.locator('#today-refresh').click();await expect(page.locator('#today-status')).toContainText('Could not load');await expect(page.locator('#today-completed')).toBeEmpty();s.fail=false;await page.locator('#today-refresh').click();await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#today-completed')).toBeEmpty();
+ s.fail=true;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();await expect(page.locator('#today-status')).toContainText('Could not load');await expect(page.locator('#today-completed')).toBeEmpty();s.fail=false;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#today-completed')).toBeEmpty();
 });
-test('Completed work is immediately visible, searchable by code, and separate from archived history and intake',async({page})=>{
+test('Completed shortcut opens searchable task history, separate from the daily plan and intake',async({page})=>{
  const s=await setup(page);
  s.tasks.push({id:'saved-complete',task_code:'M13',task_title:'Fictional SOD filing complete',status:'completed',completed_at:null,workflow_key:'general',intake_details:{completion_summary:'Source confirms completion, date unavailable.'}});
  await signInToday(page);
- await expect(page.locator('#today-completed-panel')).toBeVisible();
+ await expect(page.locator('#today-completed-panel')).toBeHidden();
+ await page.locator('#today-open-completed').click();
  await expect(page.locator('#today-completed-panel')).toContainText('M13 · Fictional SOD filing complete');
  await expect(page.locator('#today-history')).not.toHaveAttribute('open','');
- await page.locator('#today-open-completed').click();
  await expect(page.locator('#today-history-search')).toBeFocused();
  await page.locator('#today-history-search').fill('M13');
  await expect(page.locator('#today-completed .today-task:visible')).toHaveCount(1);
  await page.locator('#today-history-search').fill('unrelated');
  await expect(page.locator('#today-completed .today-task:visible')).toHaveCount(0);
  await page.locator('#today-history-search').fill('');
- await page.locator('#today-history>summary').click();
+ await openTasks(page,'history');await page.locator('#today-history>summary').click();
  await expect(page.locator('#today-archived')).toContainText('Private archived item');
  await navigate(page,'tasks');
  await expect(page.locator('#tasks-workflow')).toBeVisible();
- await expect(page.locator('#workspace-title')).toHaveText('Task Intake');
+ await expect(page.locator('#workspace-title')).toHaveText('Tasks');
  expect(s.edits).toHaveLength(0);
  expect(s.archives).toHaveLength(0);
 });
@@ -398,9 +398,9 @@ test('EOD denies partial results and clears stale exports after failure and late
 });
 
 for(const mode of ['veyra','oryn','nilo','ember','verdant','pearl'])test('appearance '+mode+' preserves records, persists and fits phone and desktop',async({page})=>{
- const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';await signInToday(page);const before=JSON.stringify(s.tasks),reads=s.reads;
- await chooseTheme(page,mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await page.locator('#today-queue .today-edit-trigger').first().click();await expect(page.locator('#today-related-links button')).toHaveCount(4);await page.locator('#today-edit-cancel').click();expect(JSON.stringify(s.tasks)).toBe(before);expect(s.edits).toHaveLength(0);expect(s.reads).toBe(reads);
- if(process.env.OAKTOWN_THEME_AXE==='1'){const AxeBuilder=require('@axe-core/playwright').default;const results=await new AxeBuilder({page}).include('.sidebar').include('.topbar').include('#today-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(results.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);if(mode==='nilo'){for(const name of ['properties','leases','tasks']){await navigate(page,name);const review=await new AxeBuilder({page}).include('#'+name+'-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(review.violations.map(v=>({view:name,id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);}await navigate(page,'today');await expect(page.locator('#today-status')).toContainText('Updated');}}
+ const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';await signInToday(page);await openTasks(page);await expect(page.locator('#tasks-status')).toContainText('Updated');const before=JSON.stringify(s.tasks),reads=s.reads;
+ await chooseTheme(page,mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await openTasks(page);await page.locator('#today-queue .today-edit-trigger').first().click();await expect(page.locator('#today-related-links button')).toHaveCount(4);await page.locator('#today-edit-cancel').click();expect(JSON.stringify(s.tasks)).toBe(before);expect(s.edits).toHaveLength(0);expect(s.reads).toBe(reads);
+ if(process.env.OAKTOWN_THEME_AXE==='1'){const AxeBuilder=require('@axe-core/playwright').default;const results=await new AxeBuilder({page}).include('.sidebar').include('.topbar').include('#tasks-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(results.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);if(mode==='nilo'){for(const name of ['properties','leases','tasks']){await navigate(page,name);const review=await new AxeBuilder({page}).include('#'+name+'-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(review.violations.map(v=>({view:name,id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);}await navigate(page,'today');await expect(page.locator('#today-status')).toContainText('Updated');}}
  for(const width of [1440,390,320]){await page.setViewportSize({width,height:1000});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);if(process.env.OAKTOWN_UI_SCREENSHOTS==='1'){await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:test.info().outputPath(mode+'-'+width+'-workspace.png')});await page.locator('#today-queue').screenshot({path:test.info().outputPath(mode+'-'+width+'-task-queue.png')});}}
  await page.reload();await expect(page.getByLabel('Workspace theme')).toHaveValue(mode);await expect(page.locator('html')).toHaveAttribute('data-ops-theme',mode);await expect(page.locator('#today-status')).toContainText('Updated');
 });
@@ -408,7 +408,7 @@ test('saved task links open exact related profiles without writing or showing a 
  const s=await setup(page);s.tasks[0].property_id='p1';s.tasks[0].unit_id='u1';s.tasks[0].lease_id='l1';s.tasks[0].renewal_case_id='r1';
  await signInToday(page);
  await expect(page.locator('#connections-panel')).toHaveCount(0);
- await page.locator('#today-queue .today-edit-trigger').first().click();
+ await openTasks(page);await page.locator('#today-queue .today-edit-trigger').first().click();
  const links=page.locator('#today-related-links button');
  await expect(links).toHaveCount(4);
  await expect(page.locator('#today-related-records')).toContainText('100 Fictional Road');
@@ -418,7 +418,7 @@ test('saved task links open exact related profiles without writing or showing a 
  await expect(page.locator('#today-edit-dialog')).not.toBeVisible();
  await expect(page.locator('#operations-profile-title')).toHaveText('100 Fictional Road');
  await page.keyboard.press('Escape');
- await page.locator('#today-queue .today-edit-trigger').first().click();
+ await openTasks(page);await page.locator('#today-queue .today-edit-trigger').first().click();
  await page.getByRole('button',{name:'Open saved lease: Fictional Lease 1'}).click();
  await expect(page.locator('#operations-profile-title')).toHaveText('Fictional Lease 1');
  expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
@@ -426,7 +426,7 @@ test('saved task links open exact related profiles without writing or showing a 
 test('general task has no invented links and private related details clear on sign-out',async({page})=>{
  const s=await setup(page);s.tasks[2].task_title='Check 100 Fictional Road and Lease 1';
  await signInToday(page);
- await page.locator('#today-queue .today-task').filter({hasText:'Check 100 Fictional Road and Lease 1'}).getByRole('button',{name:'Edit task'}).click();
+ await openTasks(page);await page.locator('#today-queue .today-task').filter({hasText:'Check 100 Fictional Road and Lease 1'}).getByRole('button',{name:'Edit task'}).click();
  await expect(page.locator('#today-related-links button')).toHaveCount(0);
  await expect(page.locator('#today-related-records')).toContainText('No related records are saved');
  await expect(page.locator('#today-related-notes')).toContainText('not saved property or lease links');
@@ -462,7 +462,7 @@ test('Today archive supports verified restore and clears private history after s
  const s=await setup(page);
  s.tasks[3].updated_at='2026-10-29T10:00:00Z';
  await signInToday(page);
- await page.locator('#today-history>summary').click();
+ await openTasks(page,'history');await page.locator('#today-history>summary').click();
  await expect(page.locator('#today-archived')).toContainText('Private archived item');
  await page.locator('#today-history-search').fill('Private archived');
  await expect(page.locator('#today-archived .today-archive-row')).toHaveCount(1);
@@ -478,7 +478,7 @@ test('Today archive supports verified restore and clears private history after s
 });
 test('history search filters completed and archived titles, including after refresh',async({page})=>{
  const s=await setup(page);s.tasks.push({id:'completed-search',task_title:'Completed fictional filing',status:'completed',completed_at:'2026-11-01T12:00:00Z'});
- await signInToday(page);await page.locator('#today-history>summary').click();
+ await signInToday(page);await openTasks(page,'history');await page.locator('#today-history>summary').click();
  const completed=page.locator('#today-completed .today-task:visible'),archived=page.locator('#today-archived .today-archive-row:visible');
  await page.locator('#today-history-search').fill('fictional filing');await expect(completed).toHaveCount(1);await expect(archived).toHaveCount(0);
  await page.locator('#today-history-search').fill('Private archived');await expect(completed).toHaveCount(0);await expect(archived).toHaveCount(1);
@@ -488,14 +488,14 @@ test('history search filters completed and archived titles, including after refr
 });
 test('restoring completed history preserves its completed status and never reopens it',async({page})=>{
  const s=await setup(page);Object.assign(s.tasks[3],{status:'completed',completed_at:'2026-11-01T12:00:00Z',updated_at:'2026-10-29T10:00:00Z'});
- await signInToday(page);await page.locator('#today-history>summary').click();
+ await signInToday(page);await openTasks(page,'history');await page.locator('#today-history>summary').click();
  let confirmation='';page.once('dialog',async dialog=>{confirmation=dialog.message();await dialog.accept()});
  await page.locator('#today-archived').getByRole('button',{name:'Restore'}).click();await expect(page.locator('#today-history-status')).toContainText('Restored from archive and verified');
  expect(confirmation).toContain('saved status');expect(s.tasks[3].status).toBe('completed');expect(s.archives).toHaveLength(1);
  await expect(page.locator('#today-completed')).toContainText('Private archived item');await expect(page.locator('#today-queue')).not.toContainText('Private archived item');await expect(page.locator('#today-archived .today-archive-row')).toHaveCount(0);
 });
 for(const failure of ['stale version','read-back failure'])test('Today restore never claims verification after '+failure,async({page})=>{
- const s=await setup(page);s.tasks[3].updated_at='2026-10-29T10:00:00Z';await signInToday(page);await page.locator('#today-history>summary').click();
+ const s=await setup(page);s.tasks[3].updated_at='2026-10-29T10:00:00Z';await signInToday(page);await openTasks(page,'history');await page.locator('#today-history>summary').click();
  if(failure==='stale version')s.failArchiveAt=1;else s.failReadsAfterArchive=true;
  page.once('dialog',dialog=>dialog.accept());await page.locator('#today-archived').getByRole('button',{name:'Restore'}).click();
  if(failure==='stale version'){await expect(page.locator('#today-history-status')).toContainText('Restore not verified');expect(s.tasks[3].archived_at).toBeTruthy()}
@@ -506,8 +506,8 @@ test('focus and history initialize if the saved dashboard loads before their scr
  await setup(page);await signInToday(page);
  await page.route('**/today-workstation.js?*',async route=>{await page.waitForFunction(()=>!!window.OpsCloud?.user&&!!window.OpsToday);await page.evaluate(()=>window.OpsToday.refresh());await route.continue()});
  await page.reload();await expect(page.locator('#today-status')).toContainText('Updated');await expect(page.locator('#today-urgent')).toContainText('Fictional overdue inspection follow-up');await expect(page.locator('#today-focus-body')).toContainText('Fictional overdue inspection follow-up');
- await page.locator('#today-history>summary').click();await expect(page.locator('#today-archived')).toContainText('Private archived item');
- await page.locator('#today-focus-body').getByRole('button',{name:'Review task',exact:true}).click();await expect(page.locator('#today-edit-dialog')).toBeVisible();await page.locator('#today-edit-cancel').click();
+ await openTasks(page,'history');await page.locator('#today-history>summary').click();await expect(page.locator('#today-archived')).toContainText('Private archived item');
+ await navigate(page,'today');await page.locator('#today-focus-body').getByRole('button',{name:'Review task',exact:true}).click();await expect(page.locator('#today-edit-dialog')).toBeVisible();await page.locator('#today-edit-cancel').click();
 });
 test('Today initializes when the verified saved session restores before its script loads',async({page})=>{
  await setup(page);await signInToday(page);
@@ -649,4 +649,34 @@ test('Today falls back for an undeployed task schema but does not retry a forbid
  await page.evaluate(()=>window.OpsToday.refresh());
  await expect(page.locator('#today-status')).toContainText('Could not load the dashboard');
  expect(legacy).toBe(before);
+});
+
+test('daily shortcuts open task work and history with keyboard tabs and browser history',async({page})=>{
+ const s=await setup(page);await signInToday(page);
+ await expect(page.locator('#today-workflow #sod-morning')).toBeVisible();
+ await expect(page.locator('#today-workflow #eod-generate')).toBeVisible();
+ for(const id of ['today-queue','today-work-levels','today-completed-panel','today-history','today-renewals','workspace-advanced'])await expect(page.locator('#today-workflow #'+id)).toHaveCount(0);
+ await page.locator('#today-open-all').click();await expect(page).toHaveURL(/#\/tasks$/);
+ await expect(page.locator('#today-queue')).toBeVisible();await expect(page.locator('#today-work-levels')).toBeVisible();
+ await page.locator('#task-tab-work').focus();await page.keyboard.press('ArrowRight');
+ await expect(page.locator('#task-tab-history')).toBeFocused();await expect(page.locator('#today-completed-panel')).toBeVisible();
+ await expect(page).toHaveURL(/#\/tasks\/history$/);
+ await page.goBack();await expect(page.locator('#tasks-work-panel')).toBeVisible();
+ await page.goForward();await expect(page.locator('#tasks-history-panel')).toBeVisible();
+ await page.reload();await expect(page.locator('#tasks-status')).toContainText('Updated');await expect(page.locator('#tasks-history-panel')).toBeVisible();
+ await page.locator('#tasks-back-today').click();await page.locator('#today-open-archived').click();
+ await expect(page.locator('#today-history')).toHaveAttribute('open','');await expect(page.locator('#today-history>summary')).toBeFocused();
+ await expect(page.locator('#today-archived')).toContainText('Private archived item');
+ await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#today-archived')).toBeEmpty();await expect(page.locator('#today-queue')).toBeEmpty();
+ await expect(page.locator('#tasks-signin')).toBeVisible();expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
+});
+test('Tasks deep link loads after sign-in and level focus returns to Today without saving',async({page})=>{
+ const s=await setup(page);s.tasks[0].intake_details.work_level='Fictional inspections';
+ await page.goto(ORIGIN+'/#/tasks');await expect(page.locator('#tasks-work-panel')).toBeVisible();expect(s.reads).toBe(0);
+ await page.locator('#tasks-signin').click();await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
+ await expect(page.locator('#tasks-status')).toContainText('Updated');
+ const level=page.locator('#today-work-levels details').filter({hasText:'Fictional inspections'});
+ await level.locator('summary').click();await level.getByRole('button',{name:'Focus',exact:true}).first().click();
+ await expect(page.locator('#today-workflow')).toBeVisible();await expect(page.locator('#today-focus-body')).toContainText('Fictional overdue inspection follow-up');
+ await expect(page.locator('#today-focus-heading')).toBeFocused();expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
 });

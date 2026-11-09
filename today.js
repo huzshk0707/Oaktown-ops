@@ -4,7 +4,9 @@ const cloud=window.OpsCloud,M=window.OpsTodayModel,$=id=>document.getElementById
 if(!cloud||!M||!$('today-workflow'))return;
 let generation=0,busy=false,viewData=null,queueFilter='all',queueQuery='',queueLimits=new Map();
 const el=(tag,value,klass)=>{const x=document.createElement(tag);if(value!=null)x.textContent=String(value);if(klass)x.className=klass;return x};
-const text=(id,value)=>{$(id).textContent=value};
+const text=(id,value)=>{$(id).textContent=value;if(id==='today-status')$('tasks-status').textContent=value};
+const visible=()=>!$('today-workflow').hidden||!$('tasks-workflow').hidden;
+function accessControls(){for(const id of ['today-signin','tasks-signin'])$(id).hidden=!!cloud.user;for(const id of ['today-refresh','tasks-refresh'])$(id).disabled=busy||!cloud.user}
 const dateLabel=value=>{if(!M.validDate(value))return 'Date not recorded';return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'))};
 function resetSchedule(chartMessage){
  $('today-schedule').replaceChildren(el('p',chartMessage,'today-muted'));
@@ -22,7 +24,7 @@ function renderSchedule(tasks){
  layout.append(ring,legend);host.replaceChildren(layout);
  if(!tasks.all.length)host.append(el('p','No active tasks recorded.','today-muted'));
 }
-function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';$('today-refresh').disabled=!cloud.user;queueControlState(true);resetSchedule('Sign in to view the task breakdown.');}
+function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';accessControls();queueControlState(true);resetSchedule('Sign in to view the task breakdown.');}
 function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=((t.task_code||'')+' '+(t.task_title||'Untitled task')).toLowerCase();card.append(el('strong',(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task')));
  if(viewData){
   const units=new Map(viewData.units.map(x=>[x.id,x])),properties=new Map(viewData.properties.map(x=>[x.id,x]));
@@ -132,7 +134,7 @@ function render(data){
 async function refresh(){
  if(!cloud.user){clear();return}
  $('today-signin').hidden=true;
- const ticket=++generation;busy=true;$('today-refresh').disabled=true;
+ const ticket=++generation;busy=true;accessControls();
  text('today-status','Loading tasks…');
  resetSchedule('Loading the task breakdown…');
  try{
@@ -156,21 +158,24 @@ async function refresh(){
   viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';
   text('today-status','Could not load the dashboard: '+error.message+'. No tasks were changed.');
   queueControlState();resetSchedule('Task breakdown unavailable.');
- }finally{if(ticket===generation){busy=false;$('today-refresh').disabled=!cloud.user}}
+ }finally{if(ticket===generation){busy=false;accessControls()}}
 }
 document.querySelectorAll('[data-today-go]').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.todayGo;document.querySelector('[data-workspace="'+target+'"]')?.click();if(target==='leases')document.getElementById('lease-tab-prepare')?.click()}));
 $('today-signin').addEventListener('click',()=>document.getElementById('account-button')?.click());
 $('today-refresh').addEventListener('click',()=>{if(!busy)refresh()});
-$('today-open-completed').addEventListener('click',()=>{if(!cloud.user){$('today-signin').click();return} $('today-completed-panel').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});$('today-history-search').focus({preventScroll:true});});
-$('today-open-tasks').addEventListener('click',()=>document.querySelector('[data-workspace="tasks"]')?.click());
+$('tasks-signin').addEventListener('click',()=>$('today-signin').click());
+$('tasks-refresh').addEventListener('click',()=>{if(!busy)refresh()});
+$('today-open-completed').addEventListener('click',()=>window.OpsWorkspace.openTasks('history'));
+$('today-open-archived').addEventListener('click',()=>window.OpsWorkspace.openTasks('history','today-history'));
+$('today-open-tasks').addEventListener('click',()=>window.OpsWorkspace.openTasks('intake'));
 $('today-open-renewals').addEventListener('click',()=>document.querySelector('[data-workspace="leases"]')?.click());
 window.addEventListener('ops-theme-change',()=>{if(viewData)renderSchedule(M.classify(viewData.tasks))});
 window.addEventListener('ops-today-show',()=>{if(!busy)refresh()});
 window.addEventListener('ops-today-refresh',()=>{if(!busy)refresh()});
-window.addEventListener('ops-auth-change',e=>{if(!e.detail?.user)clear();else if(!$('today-workflow').hidden)refresh()});
+window.addEventListener('ops-auth-change',()=>{clear();if(cloud.user&&visible())refresh()});
 window.OpsToday={refresh,getData:()=>viewData};
 clear();
 // A verified saved session can restore while earlier deferred scripts load.
 // Consume that state as well as future auth events; never infer a user locally.
-if(cloud.user&&!$('today-workflow').hidden)refresh();
+if(cloud.user&&visible())refresh();
 })();

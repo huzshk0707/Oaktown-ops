@@ -116,7 +116,7 @@ async function importProperty(page){
 
 const intakeFixture=require('./fixtures/task-intake.json');
 async function openIntake(page){
- const state=await setup(page);await navigate(page,'tasks');
+ const state=await setup(page);await navigate(page,'tasks','intake');
  await page.locator('#task-new-session').click();
  await expect(page.locator('#task-status')).toContainText('New intake session created');
  await page.locator('#task-json').fill(JSON.stringify(intakeFixture));
@@ -151,7 +151,7 @@ test('lost response can retry the same reviewed request without duplicating work
 });
 test('missing staged backend fails closed but allows a local preview',async({page})=>{
  const s=await setup(page);s.intakeUnavailable=true;
- await navigate(page,'tasks');
+ await navigate(page,'tasks','intake');
  await expect(page.locator('#task-status')).toContainText('not enabled yet');
  await page.locator('#task-json').fill(JSON.stringify(intakeFixture));await page.locator('#task-preview').click();
  await expect(page.locator('#task-review')).toContainText('Preview only');

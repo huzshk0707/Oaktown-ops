@@ -196,11 +196,13 @@ $('task-save').addEventListener('click',()=>action(async ticket=>{
 }));
 $('task-copy-receipt').addEventListener('click',()=>action(async()=>{if(!R.validReceipt(receipt))throw Error('No valid receipt is available. Refresh the saved session first.');if(!await copyText(JSON.stringify(receipt,null,2)))throw Error('Clipboard permission denied. Select and copy the displayed receipt manually.');msg('Import receipt copied to clipboard.')}));
 $('task-signin').addEventListener('click',()=>$('account-button').click());
-document.querySelector('[data-workspace="tasks"]').addEventListener('click',()=>{
- active=true;controls();if(cloud.user)action(async()=>{await listSessions();if(session)await refresh()});else msg('Sign in to review and save task imports.');
-});
+function syncWorkspace(){
+ const route=window.OpsWorkspace?.getRoute(),wasActive=active;active=route?.workflow==='tasks'&&route.tab==='intake';
+ if(active&&!wasActive){controls();if(cloud.user)action(async()=>{await listSessions();if(session)await refresh()});else msg('Sign in to review and save task imports.')}
+}
+window.addEventListener('ops-workspace-change',syncWorkspace);
 window.addEventListener('ops-auth-change',e=>{reset();$('task-locked').hidden=!!e.detail.user;if(e.detail.user&&active)action(listSessions)});
 window.addEventListener('ops-portfolio-loaded',()=>{if(draft)renderReview()});
 $('task-locked').hidden=!!cloud.user;
-controls();
+controls();syncWorkspace();
 })();
