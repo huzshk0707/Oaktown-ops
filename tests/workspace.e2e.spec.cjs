@@ -72,8 +72,8 @@ test('shared sign-in survives nested workflow navigation, reload and refresh',as
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.logins).toBe(1);
  await page.evaluate(()=>{const key='oaktown-session-v04',v=JSON.parse(localStorage.getItem(key));v.expires_at=1;localStorage.setItem(key,JSON.stringify(v))});
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.refreshes).toBe(1);expect(s.logins).toBe(1);
- await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#today-signin')).toBeVisible();
- await page.reload();await expect(page.locator('#today-signin')).toBeVisible();expect(s.logins).toBe(1);
+ await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#staff-access')).toBeVisible();await expect(page.locator('#account-button')).toContainText('Sign in');
+ await page.reload();await expect(page.locator('#staff-access')).toBeVisible();await expect(page).toHaveURL(/#\/notices\/message$/);expect(s.logins).toBe(1);
 });
 test('historical court details survive local JSON import and reload without cloud saving',async({page})=>{
  const state=await setup(page);await importProperty(page);

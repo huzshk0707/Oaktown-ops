@@ -28,7 +28,7 @@
   const count=doc.querySelectorAll('#noticeList .chip').length;
   const selected=doc.querySelector('#noticeList .chip.active')?.textContent?.trim();
   const readiness=doc.getElementById('notice-readiness-summary')?.textContent?.trim();
-  context.textContent=(count?count+' local draft'+(count===1?'':'s'):'Local notice drafts')+(selected?' · Selected: '+selected:'')+(readiness?' · '+readiness:'')+'. Saved on this browser; not sent.';
+  context.textContent=(count?count+' local draft'+(count===1?'':'s'):'Local notice drafts')+(selected?' · Selected: '+selected:'')+(readiness?' · '+readiness:'')+'. Browser-only draft; export a JSON backup. Not sent.';
  }
  function bindStudio(){
   observer?.disconnect();

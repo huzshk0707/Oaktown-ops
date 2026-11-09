@@ -24,6 +24,10 @@ test('compact workspace exposes mobile destinations and appearance without hidin
   }
  }
  await page.setViewportSize({width:390,height:844});
+ await page.locator('#workspace-menu-toggle').click();
+ await page.locator('.sidebar [data-workspace="today"]').click();
+ await expect(page.locator('#workspace-title')).toBeFocused();
+ await expect(page.locator('.sidebar nav')).toBeHidden();
  await navigate(page,'applications');
  await expect(page.locator('#workspace-mode')).toContainText('Guide & prompt builder');
  await expect(page.locator('.sidebar nav')).toBeHidden();

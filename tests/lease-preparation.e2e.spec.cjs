@@ -49,6 +49,7 @@ test('sign-out clears names, conditions and reviews; changing a protected unit c
  await step(page,4);await page.locator('#newlease-review').click();await expect(page.locator('#newlease-output')).toBeVisible();await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#newlease-output')).toBeHidden();await expect(page.locator('#newlease-tenantName')).toHaveValue('');await expect(page.locator('.lease-draft-lock')).toBeVisible();expect(writes).toEqual([]);
 });
 test('all six themes and mobile layouts retain the renewal tool and disabled new-lease export',async({page})=>{
+ test.setTimeout(90000); // Six themes × three widths, with real Appearance-dialog interactions.
  await setup(page);for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
   await chooseTheme(page,theme);
   for(const width of [320,768,1440]){
