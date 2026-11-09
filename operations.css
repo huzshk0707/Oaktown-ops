@@ -65,3 +65,11 @@ html[data-ops-density="compact"] .ops-workspace .operations-action h4{margin:4px
  html[data-ops-theme] .ops-workspace .operations-dialog{padding:16px;width:calc(100vw - 20px);border-radius:14px}
  .operations-dialog-head{top:-16px}.operations-dialog-head h2{font-size:19px}
 }
+
+/* Global search and linked record profiles remain; the duplicate Action Centre is removed. */
+.operations-loading-status{margin:-10px 0 12px;color:var(--ui-muted);font-size:11px;line-height:1.45}
+@media(max-width:580px){
+ .operations-toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .operations-toolbar .operations-search{grid-column:1/-1;min-width:0;width:100%}
+ .operations-toolbar button{min-width:0}
+}
