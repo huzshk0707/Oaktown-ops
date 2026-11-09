@@ -38,6 +38,8 @@ jobs:
           node --check connections-model.js
           node --check sod-model.js
           node --check sod.js
+          node --check bill-reminders-model.js
+          node --check bill-reminders.js
           node --check deposit-model.js
           node --check deposit-export.js
           node --check deposit-preparation.js
@@ -170,3 +172,10 @@ jobs:
         run: node tests/task-agent-concurrency.cjs
       - name: Verify empty task connection rollback
         run: psql -v ON_ERROR_STOP=1 -f tests/task-agent-rollback-check.sql
+      - name: Verify private monthly reminders and guarded rollback
+        run: |
+          psql -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/20261109213957_monthly_bill_reminders.sql \
+            -f tests/bill-reminders-check.sql
+          node tests/bill-reminders-concurrency.cjs
+          psql -v ON_ERROR_STOP=1 -f tests/bill-reminders-rollback-check.sql

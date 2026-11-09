@@ -27,6 +27,14 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Monthly reminder follow-up
+
+Today adds private recurring bill/reminder windows, separate per-month sent and
+verified states, copy/Add to SOD actions and an optional recurring calendar export.
+Dates and payees are read behind the existing staff session; no production
+schedule is embedded in the site. Source merge, protected configuration and
+database rollout are tracked separately. See [monthly reminders](MONTHLY-BILL-REMINDERS.md).
+
 ## Approved-application deposit preparation
 
 Applications now offers a reviewed holding-deposit DOCX and email packet, followed
