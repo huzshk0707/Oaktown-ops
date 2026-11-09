@@ -56,6 +56,7 @@ body.embedded .paper-stage{overflow:auto}
 .statement-backups{margin:12px 0;padding:9px 11px;border:1px solid #dde5da;border-radius:8px}
 .statement-backups summary{cursor:pointer;font-size:12px;font-weight:600}
 
+#goTenantMessage[hidden]{display:none!important}
 </style>
 <link rel="stylesheet" href="editor-polish.css?v=1.0" media="screen">
 <link rel="stylesheet" href="notice-readiness.css?v=1.0" media="screen">
@@ -107,7 +108,7 @@ body.embedded .paper-stage{overflow:auto}
 <div class="hint" style="margin-top:10px">Exported JSON remains an optional offline backup; Oaktown Ops no longer uploads Notice batches. The Firm Book uses the same notices as the PDF download.</div></details>
 <div class="alert"><b>Required checks before use:</b> Confirm the property, correct landlord/entity, tenant names, lease, charges, notice text, legally applicable timing, and method of delivery. The wording below is reproduced from the supplied examples, not independently certified as legally valid. Do not claim certified mailing occurred unless it did.</div>
 </div></section>
-<section class="panel preview-panel"><div class="toolbar"><span class="pages-info" id="pageInfo"></span><button class="btn" id="viewNotice">Notice preview</button><button class="btn" id="viewFirm">Firm Book preview</button><button class="btn" id="downloadFirm" type="button" title="Download USPS PS Form 3877 PDF" aria-label="Download Firm Book PDF">↓ Firm Book PDF</button><button class="btn btn-primary" type="button" id="downloadOne">Download property PDF</button><button class="btn btn-primary" type="button" id="downloadBatch">Download batch ZIP</button><details class="export-details"><summary>Print options</summary><button class="btn" id="printOne" type="button">Print current</button><button class="btn" id="printBatch" type="button">Print batch</button></details><span id="downloadStatus" class="export-feedback" role="status" aria-live="polite"></span></div><div class="paper-stage" id="noticeStage"><div id="printPages" class="paper-scale"></div><div class="no-print-notice">Print settings: <b>Letter</b> paper, <b>scale 100%</b>, <b>headers and footers OFF</b>, and <b>background graphics ON</b> so the yellow amount remains highlighted. A notice with multiple charge rows may continue onto the next page, as in the Wintergreen reference.</div></div><div id="firmStage" class="paper-stage" hidden><div id="firmPages" class="firm-scale"></div><div class="no-print-notice">Firm Mailing Book: <b>US Letter landscape (11 × 8.5 in)</b>, 100% scale, <b>headers/footers off</b>, with original scale. The sheet artwork reproduces the supplied PS Form 3877 sheet. Confirm with the accepting Post Office whether its form-approval requirements apply to this computer-generated printout.</div></div></section>
+<section class="panel preview-panel"><div class="toolbar"><span class="pages-info" id="pageInfo"></span><button class="btn" id="viewNotice">Notice preview</button><button class="btn" id="viewFirm">Firm Book preview</button><button class="btn" id="downloadFirm" type="button" title="Download USPS PS Form 3877 PDF" aria-label="Download Firm Book PDF">↓ Firm Book PDF</button><button class="btn btn-primary" type="button" id="downloadOne">Download property PDF</button><button class="btn" type="button" id="goTenantMessage" hidden>Go to tenant message →</button><button class="btn btn-primary" type="button" id="downloadBatch">Download batch ZIP</button><details class="export-details"><summary>Print options</summary><button class="btn" id="printOne" type="button">Print current</button><button class="btn" id="printBatch" type="button">Print batch</button></details><span id="downloadStatus" class="export-feedback" role="status" aria-live="polite"></span></div><div class="paper-stage" id="noticeStage"><div id="printPages" class="paper-scale"></div><div class="no-print-notice">Print settings: <b>Letter</b> paper, <b>scale 100%</b>, <b>headers and footers OFF</b>, and <b>background graphics ON</b> so the yellow amount remains highlighted. A notice with multiple charge rows may continue onto the next page, as in the Wintergreen reference.</div></div><div id="firmStage" class="paper-stage" hidden><div id="firmPages" class="firm-scale"></div><div class="no-print-notice">Firm Mailing Book: <b>US Letter landscape (11 × 8.5 in)</b>, 100% scale, <b>headers/footers off</b>, with original scale. The sheet artwork reproduces the supplied PS Form 3877 sheet. Confirm with the accepting Post Office whether its form-approval requirements apply to this computer-generated printout.</div></div></section>
 </main>
 <style id="dynamicPrintPageSize"></style>
 <script src="vendor/html2canvas-1.4.1.min.js"></script>
@@ -394,6 +395,7 @@ function saveDownloadedBlob(blob,filename) {
 function setDownloadBusy(busy,caption) {
   $('downloadOne').disabled=busy;
   $('downloadBatch').disabled=busy;
+  $('goTenantMessage').disabled=busy;
   $('downloadStatus').textContent=caption||'';
 }
 async function createNoticePdf(notice) {
@@ -501,19 +503,23 @@ async function downloadNoticeFiles(which) {
     $('downloadStatus').textContent='Download failed. Try print options or retry.';
     alert('Could not create the download: '+error.message);
   }finally{
-    $('downloadOne').disabled=false;$('downloadBatch').disabled=false;
+    $('downloadOne').disabled=false;$('downloadBatch').disabled=false;$('goTenantMessage').disabled=false;
   }
 }
 $('downloadOne').addEventListener('click',()=>downloadNoticeFiles('one'));
+// Keep this shortcut local to Oaktown Ops; the standalone generator has no tenant-message tab.
+$('goTenantMessage').addEventListener('click',()=>{if(!pageEmbedded())return;postToShell({type:'oaktown-go-tenant-message',noticeId:active().id});});
 $('downloadBatch').addEventListener('click',()=>downloadNoticeFiles('all'));
 
 function print(which){let target=which==='all'?data.notices:[active()];let invalid=target.map(validateNotice).filter(Boolean);if(invalid.length){alert('Cannot print yet:\n'+invalid.join('\n'));return}if(!confirm('Before printing, have you verified the tenant, landlord, balances, dates, and applicability of the notice wording? The template states the notice is delivered via USPS Certified Mail; ensure the actual delivery process supports that statement.'))return;previewAll=which==='all';renderPreview();showPreview('notices');$('dynamicPrintPageSize').textContent='@page {size:8.5in 11in;margin:0}';window.print();setTimeout(()=>{previewAll=false;renderPreview()},1000)}$('printOne').onclick=()=>print('one');$('printBatch').onclick=()=>print('all');window.addEventListener('afterprint',()=>{previewAll=false;$('dynamicPrintPageSize').textContent='';renderPreview()});
 renderForm();persist();
 const pageParams = new URLSearchParams(location.search);
+function pageEmbedded(){return pageParams.has('embedded')&&window.parent!==window;}
 function applyEmbeddedMode() {
   if (pageParams.has('embedded')) {
     document.body.classList.add('embedded');
     if (window.parent !== window) {
+      $('goTenantMessage').hidden=false;
       const reportHeight=()=>window.parent.postMessage({type:'oaktown-studio-size',height:document.documentElement.scrollHeight},location.origin);
       if (typeof ResizeObserver !== 'undefined') new ResizeObserver(reportHeight).observe(document.querySelector('.workspace'));
       window.addEventListener('load',reportHeight);
