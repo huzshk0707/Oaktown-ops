@@ -58,7 +58,7 @@ function renderFocus(){
  pick.replaceChildren(new Option(open.length?'Choose a saved work level':'No active work levels',''));
  for(const l of open)pick.add(new Option(l.label+' · '+l.open.length+' open',l.key));
  pick.value=levelKey;pick.disabled=!open.length;
- if(!current){host.append(el('p','No open tasks are recorded. Import and reconcile your reviewed backlog in Stage A2.','today-muted'));$('today-focus-note').textContent='';return}
+ if(!current){host.append(el('p','No open tasks are recorded. Use Task Intake to import reviewed work.','today-muted'));$('today-focus-note').textContent='';return}
  const chosen=current.open.find(t=>t.id===taskId)||selected.task;
  taskId=chosen?.id||'';
  const head=el('div',null,'today-focus-top');
@@ -87,7 +87,7 @@ function renderFocus(){
 }
 function renderLevels(){
  const host=$('today-work-levels');host.replaceChildren();
- if(!projected.levels.length){host.append(el('p','No saved task levels yet. The Master Backlog is not imported.','today-muted'));return}
+ if(!projected.levels.length){host.append(el('p','No work groups are available yet. Groups appear when tasks are saved.','today-muted'));return}
  for(const l of projected.levels){
   const d=document.createElement('details');d.className='today-level';
   const summary=el('summary');summary.append(el('strong',l.label),el('span',l.open.length+' open · '+l.waiting.length+' waiting · '+l.done.length+' closed','today-level-count'));

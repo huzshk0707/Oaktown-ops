@@ -186,3 +186,13 @@ suite on the published commit. Fictional visual review covered Today, search and
 connected mobile checks covered all six themes at 320px. The search dialog's axe scan
 reported zero violations. Real staff browser/write/printing and hosting remain separate
 unverified controls, not substitutes for these mocked checks.
+
+
+## November 9 UI/UX refinement
+
+PRs #50 and #51 were reviewed and merged in order, with the second PR retargeted
+to main. Two SOD task-selection control defects were fixed before #51 was merged;
+its exact final head passed unit/syntax, schema and browser CI. The follow-up
+interface work is recorded in [UI/UX refinement](UI-UX-REFINEMENT.md). It retains
+the shared staff session and read/write boundaries and adds no production data
+operation. Mocked browser checks are not a live staff permission certification.

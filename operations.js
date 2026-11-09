@@ -42,7 +42,7 @@ palette.addEventListener('close',()=>{$('operations-query').value='';$('operatio
 const profile=el('dialog');profile.id='operations-profile-dialog';profile.className='operations-dialog operations-profile';profile.setAttribute('aria-labelledby','operations-profile-title');
 profile.innerHTML='<div class="operations-dialog-head"><div><span id="operations-profile-kind" class="operations-eyebrow"></span><h2 id="operations-profile-title" tabindex="-1"></h2></div><button type="button" class="button" data-close>Close</button></div><div id="operations-profile-content"></div>';
 document.body.append(profile);profile.querySelector('[data-close]').onclick=()=>profile.close();
-profile.addEventListener('close',()=>{if(profile.open)return;profileKey=null;$('operations-profile-content').replaceChildren();text('operations-profile-title','');text('operations-profile-kind','')});
+profile.addEventListener('close',()=>{if(profile.open)return;profileKey=null;$('operations-profile-content').replaceChildren();text('operations-profile-title','');text('operations-profile-kind','');window.OpsWorkspace?.clearRecord()});
 
 async function readAll(endpoint,ticket){
  const out=[];
@@ -146,7 +146,14 @@ async function openProfile(kind,id){
  if(!cloud.user){$('account-button').click();return}
  if(palette.open)palette.close();profileKey=[kind,id];
  if(!profile.open)profile.showModal();text('operations-profile-title','Loading saved record…');$('operations-profile-content').replaceChildren();
+ window.OpsWorkspace?.setRecord(kind,id);
  await refresh();if(profile.open&&profileKey?.[0]===kind&&profileKey?.[1]===id){renderProfile(kind,id);profile.scrollTop=0;$('operations-profile-title').focus({preventScroll:true})}
+}
+function restoreProfileRoute(){
+ const record=window.OpsWorkspace?.getRoute()?.record;
+ if(!record||!cloud.user){if(profile.open)profile.close();return}
+ if(profile.open&&profileKey?.[0]===record.kind&&profileKey?.[1]===record.id)return;
+ openProfile(record.kind,record.id);
 }
 function section(host,title,collapsed=false){const s=el(collapsed?'details':'section',null,'operations-profile-section');s.append(el(collapsed?'summary':'h3',title));host.append(s);return s}
 function fact(host,label,value){const p=el('p');p.append(el('strong',label+': '),document.createTextNode(String(value||'Not recorded')));host.append(p)}
@@ -234,7 +241,8 @@ function renderProfile(kind,id){
  const coverage=section(host,'Other records');coverage.append(el('p','Notices and generated drafts remain in their existing workflows. Reference files have no verified property/unit associations yet. Maintenance tasks appear under Related work; a work-order and approval system is not tracked.'));
  coverage.append(button('Browse reference library',()=>openProfile('library','library')));
 }
-window.addEventListener('ops-auth-change',e=>{const id=e.detail?.user?.id||null;if(id!==owner){owner=id;invalidate();if(id)refresh()}});
+window.addEventListener('ops-workspace-route',restoreProfileRoute);
+window.addEventListener('ops-auth-change',e=>{const id=e.detail?.user?.id||null;if(id!==owner){const previous=owner;owner=id;invalidate();if(previous)window.OpsWorkspace?.clearRecord(true);if(id){refresh();restoreProfileRoute()}}});
 window.addEventListener('ops-today-data',e=>{canEdit=!!e.detail?.canEdit});
 for(const event of ['ops-today-refresh','ops-task-archive-change','ops-renewal-tracking-change'])window.addEventListener(event,()=>{if(cloud.user)refresh(true)});
 window.addEventListener('ops-unit-selected',e=>{
@@ -243,4 +251,5 @@ window.addEventListener('ops-unit-selected',e=>{
 });
 window.OpsOperations={openSearch:openPalette,openProfile,openSource,refresh};
 owner=cloud.user?.id||null;renderStoreStatus();if(owner)refresh();
+restoreProfileRoute();
 })();

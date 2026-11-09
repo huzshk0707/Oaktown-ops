@@ -5,8 +5,67 @@ let workflow='today',tab='notices',records=[],editing=null,currentUser=null,prop
 const pending=new Map();
 const scrollBehavior=()=>document.documentElement.dataset.opsMotion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
 let leaseTab='track';
+const workflows=['today','tasks','notices','properties','leases','listings','leads','applications','maintenance'];
+const recordKinds=['property','unit','lease','person','task','renewal','document','library'];
+let routeReady=false,routePaused=false,routeRecord=null,lastRoute='';
+function workspaceState(){return {workflow,tab:workflow==='leases'?leaseTab:workflow==='notices'?tab:null,record:routeRecord?{...routeRecord}:null}}
+function routeHash(){
+ const state=workspaceState(),parts=[state.workflow];
+ if(state.tab&&state.tab!==(workflow==='leases'?'track':'notices'))parts.push(state.tab);
+ if(routeRecord)parts.push('record',routeRecord.kind,routeRecord.id);
+ return '#/'+parts.map(encodeURIComponent).join('/');
+}
+function notifyRoute(){
+ const state=workspaceState();
+ window.dispatchEvent(new CustomEvent('ops-workspace-change',{detail:state}));
+ window.dispatchEvent(new CustomEvent('ops-workspace-route',{detail:state}));
+}
+function syncRoute(replace=false){
+ if(!routeReady||routePaused)return;
+ const hash=routeHash();
+ if(location.hash!==hash)history[replace?'replaceState':'pushState'](null,'',location.pathname+location.search+hash);
+ if(lastRoute!==hash){lastRoute=hash;notifyRoute()}
+}
+function readRoute(){
+ if(!location.hash.startsWith('#/'))return null;
+ let parts;try{parts=location.hash.slice(2).split('/').map(decodeURIComponent)}catch{return false}
+ const name=parts.shift();if(!workflows.includes(name))return false;
+ let subtab=name==='leases'?'track':name==='notices'?'notices':null;
+ if(parts.length&&parts[0]!=='record'){
+  const allowed=name==='leases'?['track','prepare','new']:name==='notices'?['notices','message']:[];
+  if(!allowed.includes(parts[0]))return false;subtab=parts.shift();
+ }
+ let record=null;
+ if(parts.length){
+  if(parts.length!==3||parts[0]!=='record'||!recordKinds.includes(parts[1])||!/^[-_a-zA-Z0-9]{1,128}$/.test(parts[2]))return false;
+  record={kind:parts[1],id:parts[2]};
+ }
+ return {workflow:name,tab:subtab,record};
+}
+function restoreRoute(){
+ let state=readRoute();
+ // Password-recovery tokens and ordinary page anchors belong to their existing handlers.
+ if(state===null&&location.hash)return;
+ if(!state)state={workflow:'today',tab:null,record:null};
+ routePaused=true;
+ try{
+  if(workflow!==state.workflow)showWorkflow(state.workflow);
+  if(state.workflow==='leases'&&leaseTab!==state.tab)showLeaseTab(state.tab);
+  if(state.workflow==='notices'&&tab!==state.tab)showTab(state.tab);
+  routeRecord=state.record;
+ }finally{routePaused=false}
+ syncRoute(true);
+}
+function navigateWorkspace(name,next){
+ if(!workflows.includes(name))return;
+ routePaused=true;
+ try{showWorkflow(name);if(name==='leases'&&next)showLeaseTab(next);if(name==='notices'&&next)showTab(next)}
+ finally{routePaused=false}
+ routeRecord=null;syncRoute();
+}
 function showLeaseTab(next,focus=false){
  if(!['track','prepare','new'].includes(next))next='track';
+ const changed=leaseTab!==next;
  leaseTab=next;
  for(const button of document.querySelectorAll('[data-lease-tab]')){
   const active=button.dataset.leaseTab===next;
@@ -17,6 +76,7 @@ function showLeaseTab(next,focus=false){
  $('lease-prepare-panel').hidden=next!=='prepare';
  $('new-lease-panel').hidden=next!=='new';
  $('ops-renewals-panel').hidden=next!=='track';
+ if(workflow==='leases'){if(changed)routeRecord=null;syncRoute()}
 }
 document.querySelectorAll('[data-lease-tab]').forEach(button=>{
  button.addEventListener('click',()=>showLeaseTab(button.dataset.leaseTab));
@@ -29,7 +89,7 @@ document.querySelectorAll('[data-lease-tab]').forEach(button=>{
  });
 });
 showLeaseTab('track');
-window.addEventListener('ops-open-new-lease',()=>{showWorkflow('leases');showLeaseTab('new');document.getElementById('new-lease-title')?.focus({preventScroll:true})});
+window.addEventListener('ops-open-new-lease',()=>{navigateWorkspace('leases','new');document.getElementById('new-lease-title')?.focus({preventScroll:true})});
 const say=(id,text)=>$(id).textContent=text;
 const post=message=>frame.contentWindow?.postMessage(message,location.origin);
 function frameRequest(type,extra={}){
@@ -44,8 +104,9 @@ async function busy(button,action){
 function account(){if(!$('account-dialog').open)$('account-dialog').showModal()}
 function requireUser(){if(cloud.user)return true;account();say('pilot-auth-status','Sign in to access shared property records.');return false;}
 function showWorkflow(name){
- if(!['today','tasks','notices','properties','leases','listings','leads','applications','maintenance'].includes(name))return;
+ if(!workflows.includes(name))return;
  const changed=workflow!==name;
+ routeRecord=null;
  workflow=name;
  document.querySelectorAll('[data-workspace]').forEach(b=>{const on=b.dataset.workspace===name;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
  $('today-workflow').hidden=name!=='today';$('tasks-workflow').hidden=name!=='tasks';$('notices-workflow').hidden=name!=='notices';$('properties-workflow').hidden=name!=='properties';$('leases-workflow').hidden=name!=='leases';$('listings-workflow').hidden=name!=='listings';$('leads-workflow').hidden=name!=='leads';$('applications-workflow').hidden=name!=='applications';$('future-workflow').hidden=name!=='maintenance';
@@ -58,10 +119,15 @@ function showWorkflow(name){
  if(name==='notices')showTab(tab);
  if(name==='properties'&&cloud.user)loadProperties().catch(e=>say('pilot-status',e.message));
  if(changed){$('workspace-title').focus({preventScroll:true});window.scrollTo({top:0,behavior:scrollBehavior()})}
+ syncRoute();
 }
-window.OpsWorkspace={navigate:(name,tab)=>{showWorkflow(name);if(name==='leases'&&tab)showLeaseTab(tab)}};
+window.OpsWorkspace={navigate:navigateWorkspace,getRoute:workspaceState,
+ setRecord:(kind,id)=>{if(!recordKinds.includes(kind)||!/^[-_a-zA-Z0-9]{1,128}$/.test(String(id)))return;routeRecord={kind,id:String(id)};syncRoute()},
+ clearRecord:(replace=false)=>{if(!routeRecord)return;routeRecord=null;syncRoute(replace)}
+};
 function showTab(next){
  if(!['notices','message'].includes(next))next='notices';
+ const changed=tab!==next;
  tab=next;
  document.querySelectorAll('[data-notice-tab]').forEach(b=>{const on=b.dataset.noticeTab===tab;b.classList.toggle('active',on);on?b.setAttribute('aria-current','page'):b.removeAttribute('aria-current')});
  $('generator-area').hidden=tab!=='notices';$('message-area').hidden=tab!=='message';
@@ -71,9 +137,10 @@ function showTab(next){
   $('copy-message').disabled=true;say('message-copy-status','Loading selected notice…');
   post({type:'oaktown-tenant-message-request'});
  }
+ if(workflow==='notices'){if(changed)routeRecord=null;syncRoute()}
 }
 function editSelectedNotice(){
- showWorkflow('notices');showTab('notices');
+ navigateWorkspace('notices','notices');
  $('notice-editor-title').focus({preventScroll:true});
  $('notice-editor-overview').scrollIntoView({behavior:scrollBehavior(),block:'start'});
 }
@@ -216,7 +283,7 @@ function importMany(items){
  if(!confirm('Create or refresh '+ready.length+' notices'+(skipped?'? '+skipped+' vacant/unverified properties will be skipped.':'?')+' Existing linked notices keep their charges. Verify all addressees, landlords, dates and balances.'))return;
  post({type:'oaktown-import-properties',properties:ready.map(p=>({id:p.id,street:[p.street_address,p.unit].filter(Boolean).join(' '),cityline:p.city+', '+p.state+' '+p.postal_code,tenant:p.tenant,owner:p.landlord_entity||''}))});
  say('notice-picker-status','Loading '+ready.length+' properties into notices'+(skipped?' · '+skipped+' without addressees skipped':'')+'…');
- showWorkflow('notices');showTab('notices');
+ navigateWorkspace('notices','notices');
 }
 $('pilot-load').onclick=()=>{const i=$('pilot-property').value;importMany(i===''?[]:[records[Number(i)]])};
 $('pilot-load-selected').onclick=()=>importMany(selectedIndices().map(i=>records[i]));
@@ -267,5 +334,8 @@ window.addEventListener('message',event=>{
  }
 });
 frame.addEventListener('load',()=>{if(workflow==='notices')showTab(tab)});
+window.addEventListener('popstate',restoreRoute);
+window.addEventListener('hashchange',restoreRoute);
+routeReady=true;restoreRoute();
 cloud.start().catch(e=>{say('pilot-auth-status',e.message);$('staff-access').hidden=false;document.body.classList.add('ops-signed-out')});
 })();

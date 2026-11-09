@@ -1,4 +1,5 @@
 'use strict';
+const {chooseTheme,toggleDensity}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test'),T=require('../today-model.js');
 test.use({browserName:'chromium'});
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co',USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
@@ -139,10 +140,10 @@ test('Unavailable optional data is labeled and denied core reads remove stale se
 });
 
 test('Connected views fit all six themes at 320px and compact mode persists without work data',async({page})=>{
- await setup(page);await page.setViewportSize({width:320,height:840});await page.locator('#operations-density').click();
+ await setup(page);await page.setViewportSize({width:320,height:840});await toggleDensity(page);
  expect(await page.evaluate(()=>localStorage.getItem('oaktown-density-v1'))).toBe('compact');
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
-  await page.locator('#ops-theme-select').selectOption(theme);await page.evaluate(()=>window.OpsOperations.openProfile('property','p1'));await expect(page.locator('#operations-profile-title')).toHaveText('100 Example Court');
+  await chooseTheme(page,theme);await page.evaluate(()=>window.OpsOperations.openProfile('property','p1'));await expect(page.locator('#operations-profile-title')).toHaveText('100 Example Court');
   const overflow=await page.locator('#operations-profile-dialog').evaluate(e=>e.scrollWidth>e.clientWidth+2);expect(overflow,theme+' profile overflow').toBe(false);await page.keyboard.press('Escape');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2),theme+' page overflow').toBe(false);
  }

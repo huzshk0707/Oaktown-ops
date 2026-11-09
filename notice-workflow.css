@@ -1,0 +1,17 @@
+@media screen {
+ .ops-workspace .notice-step-navigation {margin:0 0 20px;padding:16px 18px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-surface);color:var(--ui-text)}
+ .ops-workspace .notice-step-intro {display:flex;gap:6px 14px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+ .ops-workspace .notice-step-intro strong {font-size:16px}
+ .ops-workspace .notice-step-intro>span {font-size:13px;color:var(--ui-muted)}
+ .ops-workspace .notice-step-buttons {display:flex;gap:10px;flex-wrap:wrap}
+ .ops-workspace .notice-step-button {display:flex;align-items:center;gap:10px;flex:1;min-height:48px;text-align:left;justify-content:flex-start}
+ .ops-workspace .notice-step-number {width:25px;height:25px;display:inline-grid;place-items:center;flex:none;border:1px solid var(--ui-control);border-radius:50%;font-size:12px}
+ .ops-workspace .notice-step-button[aria-current="step"] {border-color:var(--mode-accent);background:var(--ui-soft);color:var(--ui-text);box-shadow:inset 0 -2px var(--mode-accent)}
+ .ops-workspace .notice-step-context {margin:12px 0 0;color:var(--ui-muted);font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+ .ops-workspace :is(#notice-picker,#notice-editor-overview) {scroll-margin-top:24px}
+ @media(max-width:580px) {
+  .ops-workspace .notice-step-navigation {padding:14px}
+  .ops-workspace .notice-step-buttons {gap:8px}
+  .ops-workspace .notice-step-button {min-width:100%;flex:none;font-size:14px}
+ }
+}

@@ -1,4 +1,5 @@
 'use strict';
+const {navigate}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 test.use({browserName:'chromium'});test.setTimeout(60000);
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co';
@@ -50,13 +51,13 @@ async function setup(page){
   return reply({message:'Unexpected mocked request: '+p},500);
  });
  page.on('dialog',d=>d.accept());
- await page.goto(ORIGIN+'/');await page.locator('[data-workspace="notices"]').click();await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
+ await page.goto(ORIGIN+'/');await navigate(page,'notices');await expect(page.locator('#staff-access')).toBeVisible();await page.locator('#staff-access-signin').click();await expect(page.locator('#account-dialog')).toBeVisible();
  s.email='tester@example.invalid';await page.locator('#pilot-email').fill(s.email);
  await page.locator('#pilot-password').fill('fictional-password-only');await page.locator('#pilot-login').click();
  await expect(page.locator('#account-dialog')).not.toBeVisible();await expect(page.locator('#account-button')).toContainText('Signed in');return s;
 }
 async function importProperty(page){
- await page.locator('[data-workspace="notices"]').click();
+ await navigate(page,'notices');
  await expect(page.locator('#notice-picker-list .notice-picker-row')).toHaveCount(1);
  await page.locator('#notice-picker-list input[type="checkbox"]').check();
  await page.locator('#notice-picker-make').click();
@@ -65,14 +66,14 @@ async function importProperty(page){
 test('shared sign-in survives nested workflow navigation, reload and refresh',async({page})=>{
  const s=await setup(page);
  await expect(page.locator('.sidebar [data-workspace="message"],.sidebar [data-workspace="court"]')).toHaveCount(0);
- await page.locator('[data-workspace="properties"]').click();await expect(page.locator('#ops-portfolio-panel')).toBeVisible();
- await page.locator('[data-workspace="notices"]').click();await page.locator('[data-notice-tab="message"]').click();await expect(page.locator('#tenant-message-text')).toBeVisible();
+ await navigate(page,'properties');await expect(page.locator('#ops-portfolio-panel')).toBeVisible();
+ await navigate(page,'notices');await page.locator('[data-notice-tab="message"]').click();await expect(page.locator('#tenant-message-text')).toBeVisible();
  await expect(page.locator('[data-notice-tab="court"],#court-form')).toHaveCount(0);
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.logins).toBe(1);
  await page.evaluate(()=>{const key='oaktown-session-v04',v=JSON.parse(localStorage.getItem(key));v.expires_at=1;localStorage.setItem(key,JSON.stringify(v))});
  await page.reload();await expect(page.locator('#account-button')).toContainText('Signed in');expect(s.refreshes).toBe(1);expect(s.logins).toBe(1);
- await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#today-signin')).toBeVisible();
- await page.reload();await expect(page.locator('#today-signin')).toBeVisible();expect(s.logins).toBe(1);
+ await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#staff-access')).toBeVisible();await expect(page.locator('#account-button')).toContainText('Sign in');
+ await page.reload();await expect(page.locator('#staff-access')).toBeVisible();await expect(page).toHaveURL(/#\/notices\/message$/);expect(s.logins).toBe(1);
 });
 test('historical court details survive local JSON import and reload without cloud saving',async({page})=>{
  const state=await setup(page);await importProperty(page);
@@ -130,7 +131,7 @@ test('Notices remain local without cloud actions and retain edits after reload',
 });
 
 test('property writes validate fields and retain edits on network failure',async({page})=>{
- const s=await setup(page);await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
+ const s=await setup(page);await navigate(page,'properties');await page.locator('#legacy-address-manager > summary').click();await page.locator('#property-new').click();await page.locator('#property-save').click();expect(s.propertyWrites).toHaveLength(0);
  for(const[k,v]of Object.entries({street_address:'200 Fictional Court',unit:'Unit B',city:'Example City',state:'KY',postal_code:'40202',landlord_entity:'Example Property Company',tenant:'Fictional Household & All Occupants'}))await page.locator('#prop-'+k).fill(v);
  await page.locator('#property-save').click();await expect(page.locator('#property-status')).toContainText('Saved to shared property records.');expect(s.propertyWrites).toHaveLength(1);
  await expect(page.locator('#pilot-property option')).toHaveCount(3);await page.locator('#pilot-property').selectOption('1');await page.locator('#property-edit').click();
@@ -138,12 +139,12 @@ test('property writes validate fields and retain edits on network failure',async
  await expect(page.locator('#prop-unit')).toHaveValue('Unit C');expect(s.properties.find(p=>p.id===CREATED).unit).toBe('Unit B');
 });
 test('revoked membership blocks a restored session',async({page})=>{
- const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#today-signin')).toBeVisible();
+ const s=await setup(page);s.approved=false;await page.reload();await expect(page.locator('#staff-access')).toBeVisible();
  await expect(page.locator('#pilot-auth-status')).toContainText('not approved');await expect(page.locator('#pilot-properties')).not.toBeVisible();
 });
 test('pending property saves lock actions that could switch their targets',async({page})=>{
  const s=await setup(page);
- await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();
+ await navigate(page,'properties');await page.locator('#legacy-address-manager > summary').click();
  await page.locator('#pilot-property').selectOption('0');await page.locator('#property-edit').click();
  await page.locator('#prop-unit').fill('Test unit');
  let release;s.holdProperty=new Promise(resolve=>release=resolve);
@@ -160,14 +161,14 @@ test('a delayed account verification cannot restore a signed-out session',async(
  const s=await setup(page);let release;s.holdMembership=new Promise(resolve=>release=resolve);
  await page.reload();await expect.poll(()=>s.membershipWaiting).toBe(true);
  await page.evaluate(()=>window.OpsCloud.signOut());release();
- await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#today-signin')).toBeVisible();
- await page.reload();await expect(page.locator('#today-signin')).toBeVisible();expect(s.logins).toBe(1);
+ await expect(page.locator('#account-label')).toHaveText('Sign in');await expect(page.locator('#staff-access')).toBeVisible();
+ await page.reload();await expect(page.locator('#staff-access')).toBeVisible();expect(s.logins).toBe(1);
 });
 test('workflow navigation fits a narrow screen',async({page})=>{
  await page.setViewportSize({width:390,height:844});await setup(page);
  await page.locator('[data-notice-tab="message"]').click();await expect(page.locator('#tenant-email-value')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
- await page.locator('[data-workspace="properties"]').click();await page.locator('#legacy-address-manager > summary').click();await expect(page.locator('#property-form')).toBeVisible();
+ await navigate(page,'properties');await page.locator('#legacy-address-manager > summary').click();await expect(page.locator('#property-form')).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
 test('Make Notices supports multiple units at one address with missing recipients',async({page})=>{
@@ -212,7 +213,7 @@ test('Make Notices supports multiple units at one address with missing recipient
 
 test('signed-out staff first sees a useful access panel while local drafts stay available',async({page})=>{
  await page.goto(ORIGIN+'/');
- await page.locator('[data-workspace="notices"]').click();
+ await navigate(page,'notices');
  await expect(page.locator('#staff-access')).toBeVisible();
  await expect(page.locator('#staff-access')).toContainText('Notice drafts remain on this browser');
  await expect(page.locator('#notice-picker')).toBeHidden();
@@ -351,13 +352,13 @@ for(const width of [320,768,1440]){
   expect(createBox.height).toBeGreaterThanOrEqual(44);
   await uiSnapshot(page,'notices-'+width);
   for(const workspace of ['properties','leases','listings','maintenance','notices']){
-   await page.locator('[data-workspace="'+workspace+'"]').click();
+   await navigate(page,workspace);
    await expect(page.locator('#workspace-title')).toBeFocused();
    await expect.poll(overflow).toBe(true);
    if(width===1440&&workspace==='leases')await uiSnapshot(page,'renewals-desktop');
   }
   if(width===1440){
-   await page.locator('[data-workspace="properties"]').click();
+   await navigate(page,'properties');
    await expect(page.locator('#ops-portfolio-list .property-record')).toHaveCount(1);
    await uiSnapshot(page,'properties-desktop');
   }

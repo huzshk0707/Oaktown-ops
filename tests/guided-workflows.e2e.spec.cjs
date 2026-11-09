@@ -1,11 +1,12 @@
 'use strict';
+const {chooseTheme,navigate}=require('./ui-helpers.cjs');
 const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765';
 async function setup(page,workspace,theme='ember'){
  const calls=[];
  await page.route('**/*',route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();calls.push(route.request().url());return route.abort()});
- await page.goto(ORIGIN+'/');await page.getByLabel('Workspace theme').selectOption(theme);
- await page.locator('[data-workspace="'+workspace+'"]').click();
+ await page.goto(ORIGIN+'/');await chooseTheme(page,theme);
+ await navigate(page,workspace);
  return {root:page.locator('#'+workspace+'-workflow'),calls};
 }
 for(const [workspace,key,count,field,theme] of [['listings','listing',5,'listing-address','ember'],['leads','lead',5,'lead-thread','nilo'],['applications','application',7,'application-property','verdant']]){
@@ -23,9 +24,9 @@ for(const [workspace,key,count,field,theme] of [['listings','listing',5,'listing
   await expect(root.locator('.guide-step-card:visible')).toHaveCount(count);
   await root.getByRole('button',{name:'One step',exact:true}).click();
   await expect(root.locator('.guide-step-card:visible')).toHaveCount(1);
-  await page.locator('[data-workspace="today"]').click();await page.locator('[data-workspace="'+workspace+'"]').click();
+  await navigate(page,'today');await navigate(page,workspace);
   await expect(root.locator('.guide-progress-row')).toContainText('1 of '+count);
-  await page.reload();await page.locator('[data-workspace="'+workspace+'"]').click();
+  await page.reload();await navigate(page,workspace);
   await expect(root.locator('.guide-progress-row')).toContainText('0 of '+count);
   expect(calls).toEqual([]);
  });
@@ -83,7 +84,7 @@ test('Enter in a prompt field does not submit the page or discard working inputs
 test('all six themes fit phone, landscape and desktop without hiding source guidance',async({page})=>{
  const {root}=await setup(page,'applications');
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
-  await page.getByLabel('Workspace theme').selectOption(theme);
+  await chooseTheme(page,theme);
   for(const size of [{width:320,height:850},{width:844,height:390},{width:1440,height:950}]){
    await page.setViewportSize(size);await root.locator('.guide-step-button').nth(1).click();
    await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);

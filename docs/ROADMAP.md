@@ -118,3 +118,19 @@ Autonomous messaging, signing, legal service and a replacement accounting ledger
 remain outside this phase. Preserve existing workflows and improve module boundaries
 gradually. The native `AGENTS.md` contains project-specific development instructions;
 no third-party Claude hooks or automatic learning tools are installed.
+
+
+## UI/UX refinement — November 9, 2026
+
+PRs #50 and #51 are merged. The Morning Plan saved-task selector and its Add
+button are enabled correctly after verified sign-in; the fixed SOD branch passed
+all CI jobs before merge. Completed work and archived history remain distinct.
+
+A subsequent UI refinement implements a compact workspace header, an accessible
+mobile menu, an Appearance dialog, active-task search/filters/pagination, stable
+workflow and connected-record URLs, visible guide/draft limitations, and notice
+step navigation. Setup/import tools live under Settings & connections.
+See [UI/UX refinement](UI-UX-REFINEMENT.md) for references, behavior and evidence.
+This increment changes source/UI only; no database migration or business records
+are changed. Source merge, Pages publication, and live authenticated staff checks
+remain distinct verification steps.
