@@ -5,7 +5,7 @@
 ## Source provenance
 - **Current staff walkthrough, November 2, 2026:** Fillout application notification → View Submission → send same applicant application for Dropbox e-signature → review pay-stub income / 3× arithmetic → find correct state/county records → signed page-3 water request → landlord reference → application findings summary → Leslie decision → non-refundable-deposit form and move-in vendor sheet → separate lease/move-in/LG&E handoffs.
 - **Historical Leslie O'Keefe email, January 28, 2026:** Explicit income, sheriff civil-process search, water authorization page 3, landlord references and ownership checks. Original, privately archived [Application Processing.eml](https://drive.google.com/file/d/1iNy8v7OKCVk_NkdSvVQH8_E1BAnWb_5d/view).
-- **Still needed:** The user will provide actual landlord-reference email and blank form, non-refundable-deposit agreement PDF, move-in vendor sheet, redacted Fillout/Dropbox examples, LG&E voice notes, and later full lease-preparation SOP. **Do not invent forms, signatures or terms.**
+- **Still needed:** The user will provide actual landlord-reference email and blank form, redacted Fillout/Dropbox examples, LG&E voice notes, and later full lease-preparation SOP. **Do not invent forms, signatures or terms.**
 
 ## Actual process (confirmed from user's description)
 
@@ -17,7 +17,7 @@
 6. **Current landlord reference.** Staff can obtain the landlord/property manager's email and prepare a reference request while waiting for Dropbox signature. With necessary authorization, staff sends the landlord-reference form and accompanying message, examples **pending upload**, and tracks reply. Where identity seems uncertain, independently check relevant county ownership sources such as [Jefferson PVA](https://jeffersonpva.ky.gov/property-search/) and applicable tax records. A mismatch means staff must verify, not assume misrepresentation.
 7. **Application findings summary.** Clearly separate income arithmetic from verified pay-stub evidence; document official search date/jurisdiction and source limitations; water verification result; whether landlord reference was requested, received or still pending; signed authorizations; exceptions; next follow-up; and any unknown/contradictory facts. Do not mark approval automatically.
 8. **Authorized decision.** Leslie or an authorized reviewer decides an application under current approved lawful policy; record evidence, actual decision, reviewer and date. AI and the numeric 3× indicator do not approve or reject applicants.
-9. **After approval.** Prepare/send the *non-refundable deposit form* and the *move-in vendor sheet* once the exact blank templates and terms are supplied, checked and authorized. Record draft/sent/signed/received distinctly. The phrase 'non-refundable deposit' reflects staff terminology here, NOT a legal finding about permissible terms or an automatic payment requirement.
+9. **After approval.** Prepare/send the *non-refundable deposit form* and the *move-in vendor sheet* using the supplied holding form and fixed vendor sheet in the deposit packet tool, with confirmed amounts and signer details. Record draft/sent/signed/received distinctly. The phrase 'non-refundable deposit' reflects staff terminology here, NOT a legal finding about permissible terms or an automatic payment requirement.
 10. **Handoff** to separately documented lease preparation/signing, move-in, and LG&E utility start/stop workflows. Do not mark these as completed merely because application approval occurred.
 
 ## Links and reference boundaries

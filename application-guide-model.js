@@ -55,8 +55,8 @@
   '5. Once authorized, send signed application page 3 utility verification to the water company; track sent/pending/replied and confirm destination.',
   '6. Obtain current landlord/property manager email, send staff-approved landlord-reference email and form (user examples pending), follow up, verify ownership in appropriate official sources if necessary.',
   '7. Summarize income comparison/source, searched jurisdictions and verified records, utility result and landlord reference status, authorization and pending items; Leslie makes the decision.',
-  '8. AFTER recorded Leslie approval, prepare the non-refundable-deposit-form and move-in vendor sheet using approved, legally reviewed templates (original PDFs pending); staff sends these, then follows separate lease, move-in and LG&E utility transfer workflows.',
-  'Original landlord-reference form/message, deposit form, vendor sheet and LG&E notes have NOT yet been provided. Do not invent their wording or fee/refundability terms.',
+  '8. AFTER recorded Leslie approval, prepare the non-refundable-deposit-form and move-in vendor sheet using the supplied source templates and the deposit packet tool; confirm the base security deposit, $150 per pet, separately confirmed first-month rent and move-in date; staff sends these, then follows separate lease, move-in and LG&E utility transfer workflows.',
+  'The deposit forms and fixed vendor sheet were supplied by the owner. Original landlord-reference form/message and LG&E notes remain pending. Do not invent missing wording, monthly pet-rent rates or refundability terms.',
   'HISTORICAL LESLIE EMAIL — January 28, 2026: contained a 3× rent income example, Jefferson County Sheriff searches, Louisville Water page 3 (then directed to collections@louisvillewater.com), landlord reference, PVA/property tax verification, and older eviction-age rules. Historical eviction-age rules/deposit amounts do NOT establish current lawful policy.'
  ].join('\n');
  const rules=[

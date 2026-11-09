@@ -27,6 +27,17 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Approved-application deposit preparation
+
+Applications now offers a reviewed holding-deposit DOCX and email packet, followed
+by the existing lease-preparation handoff. Holding amount is the confirmed base
+security deposit plus $150 per pet. Full first-month rent and its move-in due date
+are entered separately; no monthly pet-rent rate or proration amount is inferred.
+The security-deposit credit appears in every form, while only pet cases include
+the non-refundable pet portion. Every packet includes the same vendor PDF; an
+optional staff-supplied payment image can accompany the email. Inputs are held
+in memory behind the shared staff session. See [deposit preparation](DEPOSIT-PREPARATION.md).
+
 ## SOD email format — November 9 refinement
 
 The SOD uses the owner's supplied opening, one priority per bullet, the request
