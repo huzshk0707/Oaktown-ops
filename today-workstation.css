@@ -53,3 +53,5 @@
 #today-completed .today-task:last-child{border-bottom:0}
 .today-history{margin-top:14px}
 .today-history>summary{display:list-item}
+
+.today-completed-work [hidden]{display:none!important}
