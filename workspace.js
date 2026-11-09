@@ -1,7 +1,7 @@
 
 (()=>{'use strict';
 const $=id=>document.getElementById(id),cloud=window.OpsCloud,frame=$('studio-frame');
-let workflow='today',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null;
+let workflow='today',tab='notices',records=[],editing=null,currentUser=null,propertyLoad=0,selectedMessage=null,noticeContactDirectory=null,singleTenantEmail='';
 const pending=new Map();
 const scrollBehavior=()=>document.documentElement.dataset.opsMotion==='off'||matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth';
 let leaseTab='track';
@@ -145,11 +145,18 @@ function editSelectedNotice(){
  $('notice-editor-overview').scrollIntoView({behavior:scrollBehavior(),block:'start'});
 }
 $('message-edit-notice').onclick=editSelectedNotice;
+// This is a manual copy action. The app never sends email or uploads documents.
+$('copy-tenant-email').onclick=async()=>{
+ if(!singleTenantEmail||!cloud.user)return;
+ try{await navigator.clipboard.writeText(singleTenantEmail);say('message-copy-status','Tenant email copied. Verify the recipient before sending.');}
+ catch{const item=$('tenant-email-value').querySelector('.tenant-email-address');if(item){const selection=window.getSelection(),range=document.createRange();range.selectNodeContents(item);selection?.removeAllRanges();selection?.addRange(range)}say('message-copy-status','Email selected. Use your device’s Copy command.');}
+};
 $('notice-back-to-selection').onclick=()=>{
  $('notice-picker-search').focus({preventScroll:true});
  $('notice-picker').scrollIntoView({behavior:scrollBehavior(),block:'start'});
 };
 function resetTenantEmail(text){
+ singleTenantEmail='';$('copy-tenant-email').disabled=true;
  $('tenant-email-value').replaceChildren();
  say('tenant-email-value',text);
  say('tenant-email-note','');
@@ -161,6 +168,8 @@ function updateTenantEmail(){
  const result=window.OpsNoticeContact?.lookup(noticeContactDirectory||window.OpsPortfolio?.getData(),selectedMessage.sourceUnitId,selectedMessage.recipient);
  if(!result){resetTenantEmail('Tenant contact lookup unavailable.');return;}
  if(!result.emails.length){resetTenantEmail(result.message);return;}
+ singleTenantEmail=result.emails.length===1?result.emails[0]:'';
+ $('copy-tenant-email').disabled=!singleTenantEmail;
  result.emails.forEach((email,i)=>{
   if(i)e.append(document.createTextNode(' · '));
   const item=document.createElement('span');item.className='tenant-email-address';item.textContent=email;e.append(item);
@@ -321,6 +330,12 @@ window.addEventListener('message',event=>{
  const message=event.data;
  if(message.requestId&&pending.has(message.requestId)){const p=pending.get(message.requestId);clearTimeout(p.timer);pending.delete(message.requestId);message.type.endsWith('-error')?p.reject(Error(message.message)):p.resolve(message);}
  if(message.type==='oaktown-studio-size'){const h=Number(message.height);if(Number.isFinite(h)&&h>=700&&h<=30000)frame.style.height=Math.ceil(h+15)+'px';}
+  if(message.type==='oaktown-go-tenant-message'&&workflow==='notices'&&typeof message.noticeId==='string'&&message.noticeId){
+    navigateWorkspace('notices','message');
+    $('message-title').focus({preventScroll:true});
+    $('message-area').scrollIntoView({behavior:scrollBehavior(),block:'start'});
+    return;
+  }
   if(message.type==='oaktown-tenant-message'&&tab==='message'){
   selectedMessage={noticeId:String(message.noticeId||''),sourceUnitId:String(message.sourceUnitId||''),recipient:String(message.recipient||'')};
   say('message-recipient','Selected notice: '+(message.recipient||'Recipient not entered yet'));
