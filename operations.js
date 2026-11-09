@@ -86,6 +86,12 @@ async function refresh(force=false){
  }).finally(()=>{if(ticket===generation)pending=null});
  pending=job;return job;
 }
+function tracking(){
+ const R=window.OpsRenewalTrackingRules,result={};if(!R||!records||records.unavailable.includes('events'))return result;
+ for(const r of records.renewals){const snapshot=R.snapshot(R.latest(records.events,r.id));if(snapshot)result[r.id]=snapshot}
+ return result;
+}
+function sourceButton(kind,id,label){return button(label,()=>openSource(kind,id),'button operations-source')}
 function renderStoreStatus(){
  $('operations-refresh').disabled=!cloud.user;
  if(!cloud.user){text('operations-status','Sign in to search saved records.');return}
