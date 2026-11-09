@@ -30,6 +30,7 @@ async function mockSupabase(page){
   else if(pathname==='/rest/v1/property_addressees')data=addressees;
   else if(pathname==='/rest/v1/units')data=units;
   else if(pathname==='/rest/v1/property_aliases'||pathname==='/rest/v1/unit_aliases')data=[];
+  else if(pathname==='/rest/v1/rpc/ops_bill_reminders')data={rules:[],occurrences:[],can_edit:true};
   else if(['/rest/v1/leases','/rest/v1/bookings','/rest/v1/people','/rest/v1/tenancy_people','/rest/v1/tenancies','/rest/v1/renewal_cases','/rest/v1/ops_tasks','/rest/v1/ops_events','/rest/v1/rent_schedules','/rest/v1/lease_reference_documents'].includes(pathname))data=[];
   else if(pathname==='/auth/v1/logout')data={};
   else throw Error('Unmocked Supabase request: '+req.url());
