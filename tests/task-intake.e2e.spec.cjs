@@ -133,7 +133,7 @@ test('intake reviews final state, saves once and does not replay a repeated expo
  await expect(page.locator('#task-save')).toBeDisabled();
  await approve(page);await expect(page.locator('#task-save')).toBeEnabled();
  await page.locator('#task-save').click();await expect(page.locator('#task-status')).toContainText('Saved to Ops');
- await expect(page.locator('#operations-queue')).toContainText('Prepare Unit 8 renewal lease');
+ await expect(page.locator('#today-queue')).toContainText('Prepare Unit 8 renewal lease');
  expect(s.intake.tasks).toHaveLength(1);
  expect(s.intake.items.filter(x=>x.kind==='activity')).toHaveLength(1);
  expect(s.intake.items.find(x=>x.kind==='activity').payload.minutes).toBe(10);
@@ -219,13 +219,13 @@ test('saved task cleanup separates session records and supports archive and rest
  await expect(first).toContainText('Prepare Unit 8 renewal lease');
  await first.getByRole('button',{name:/Archive task/}).click();
  await expect(page.locator('#task-status')).toContainText('Task archived');
- await expect(page.locator('#operations-queue')).not.toContainText('Prepare Unit 8 renewal lease');
+ await expect(page.locator('#today-queue')).not.toContainText('Prepare Unit 8 renewal lease');
  await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (0)');
  await expect(page.locator('#task-history')).toContainText('Show archived tasks (1)');
  await page.getByRole('button',{name:'Show archived tasks (1)'}).click();
  await page.locator('.task-archived-list').getByRole('button',{name:/Restore task/}).click();
  await expect(page.locator('#task-status')).toContainText('Task restored');
- await expect(page.locator('#operations-queue')).toContainText('Prepare Unit 8 renewal lease');
+ await expect(page.locator('#today-queue')).toContainText('Prepare Unit 8 renewal lease');
  await expect(page.locator('#task-history')).toContainText('Tasks imported in this session (1)');
  expect(mock.archiveCalls.map(x=>x.p_archived)).toEqual([true,false]);
 });
