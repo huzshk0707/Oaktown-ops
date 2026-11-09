@@ -337,8 +337,8 @@ window.addEventListener('message',event=>{
     return;
   }
   if(message.type==='oaktown-tenant-message'&&tab==='message'){
-  selectedMessage={noticeId:String(message.noticeId||''),sourceUnitId:String(message.sourceUnitId||''),recipient:String(message.recipient||'')};
-  say('message-recipient','Selected notice: '+(message.recipient||'Recipient not entered yet'));
+  selectedMessage={noticeId:String(message.noticeId||''),sourceUnitId:String(message.sourceUnitId||''),recipient:String(message.recipient||''),street:String(message.street||'')};
+  say('message-recipient','Selected notice: '+(message.recipient||'Recipient not entered yet')+(selectedMessage.street?' · '+selectedMessage.street:''));
   const issues=Array.isArray(message.issues)?message.issues:[];
   $('tenant-message-text').value=String(message.content||'');
   $('copy-message').disabled=!!issues.length||!message.content;
