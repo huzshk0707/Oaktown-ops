@@ -37,7 +37,7 @@
     {title:'Authorized verification',summary:'Confirm required permission before external requests. Water and landlord responses can arrive separately.',items:[4,5],parallel:['Water verification','Landlord reference'],shorts:['Use signed page 3 and confirm the recipient. Track sent, pending and received separately.','Use the approved form and message once required permission is in place. Track the request and reply.']},
     {title:'Prepare the findings',promptStage:'summary',summary:'Bring the evidence, missing items and discrepancies together for Leslie.',items:[6],cta:true},
     {title:'Get Leslie’s decision',summary:'Only Leslie or an authorized reviewer makes the decision under current policy. AI and income ratios do not approve a case.',items:[7]},
-    {title:'Prepare approved documents',summary:'After documented approval, use reviewed deposit and vendor templates. Missing templates and terms need confirmation.',items:[8]},
+    {title:'Prepare approved documents',depositHandoff:true,summary:'After recorded approval, prepare the deposit form, email and fixed vendor sheet. Confirm the pet count and amounts before exporting.',items:[8]},
     {title:'Hand off the next work',leaseHandoff:true,summary:'Move to lease preparation, move-in and utility workflows. Keep missing templates or instructions visible.',items:[9]}
    ],
    groups:[
@@ -120,6 +120,7 @@
     }
     changeView('prompt');
    },'button primary guide-prompt-link'));
+   if(step.depositHandoff)panel.append(button('Prepare deposit packet',()=>window.dispatchEvent(new Event('ops-open-deposit')),'button primary guide-prompt-link'));
    if(step.leaseHandoff)panel.append(button('Open new lease preparation',()=>window.dispatchEvent(new Event('ops-open-new-lease')),'button primary guide-prompt-link'));
    return panel;
   });

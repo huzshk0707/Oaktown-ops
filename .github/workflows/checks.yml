@@ -38,6 +38,9 @@ jobs:
           node --check connections-model.js
           node --check sod-model.js
           node --check sod.js
+          node --check deposit-model.js
+          node --check deposit-export.js
+          node --check deposit-preparation.js
           node --check today.js
           node --check today-editor.js
           node --check today-workstation-model.js
