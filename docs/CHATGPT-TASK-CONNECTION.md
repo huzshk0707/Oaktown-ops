@@ -47,7 +47,7 @@ approval of individual changes.
   client or revoking the OAuth grant blocks later calls. Private configuration,
   proposals and receipts have RLS and no client table access. Public functions
   are invoker wrappers around narrowly checked private implementations.
-- Administrators manage client access in Today → ChatGPT task connection.
+- Administrators manage client access in Tasks → Settings & connections → ChatGPT task connection.
   This configures a client; it does not prove a successful ChatGPT connection.
 
 ## One-time activation
@@ -120,7 +120,7 @@ Do not use the administrative SQL connector to impersonate a staff session.
    direct table/legacy RPC access is denied under the scoped token.
 2. Preview a fictional create. Confirm no task was created before approval.
 3. Approve, save and read back the exact receipt. Retry the same proposal and
-   confirm one task/event. Then inspect Today → recent ChatGPT saves.
+   confirm one task/event. Then inspect Tasks → Settings & connections → recent ChatGPT saves.
 4. Test a stale update, read-only client and revoked grant/client. Confirm denial,
    no overwritten record, and clear feedback when read-back fails.
 5. Confirm normal staff sign-in, editing, notices, renewals and existing exports.

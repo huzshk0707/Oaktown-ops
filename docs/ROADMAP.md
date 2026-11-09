@@ -27,6 +27,23 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Daily workspace and task library — November 9 follow-up
+
+Today now keeps the morning plan/SOD, themed summary cards, urgent and due work,
+selected focus and EOD report. The existing Task Intake destination becomes Tasks,
+with All work (searchable active tasks, work levels, breakdown and renewal watch),
+History (completed and archived tasks), and Add / import (reviewed intake).
+Today shortcuts open the correct Tasks view. Task settings/connections live under
+Tasks, and existing task editing uses the shared dialog from either workspace.
+Routes and browser history retain the selected task view; no new data model is added.
+See [daily workspace scope](DAILY-WORKSPACE.md) for verification and release evidence.
+
+Future direction requested by the owner: an Iron Man-inspired daily command view
+with contextual reminders, motion and swipe interactions. Left-swipe snooze and
+right-swipe completion are ideas for a later increment, with explicit snooze timing,
+reviewed completion and keyboard/button alternatives. They are not implemented in
+this layout change. Today’s final name and EOD refinements remain open decisions.
+
 ## Today dashboard layout refinement
 
 The dashboard summary cards use a normal arrow cursor while their text remains

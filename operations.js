@@ -99,7 +99,7 @@ function renderStoreStatus(){
  text('operations-status','Connected records ready for search'+(records.unavailable.includes('events')?' · Journal unavailable':'')+'.');
 }
 const quick=[
- ['Completed tasks','completed'],['Task intake','tasks',null,'task-json'],['Draft a notice','notices'],['Prepare a renewal','leases','prepare'],['Prepare a new lease','leases','new'],['Browse properties','properties'],['Open reference library','library']
+ ['Completed tasks','completed'],['All tasks','tasks','work'],['Task intake','tasks','intake','task-json'],['Draft a notice','notices'],['Prepare a renewal','leases','prepare'],['Prepare a new lease','leases','new'],['Browse properties','properties'],['Open reference library','library']
 ];
 async function openPalette(){
  if(document.querySelector('dialog[open]'))return;
@@ -107,7 +107,7 @@ async function openPalette(){
 }
 function renderSearch(){
  const host=$('operations-results'),query=$('operations-query').value.trim();host.replaceChildren();paletteRows=[];active=-1;$('operations-query').removeAttribute('aria-activedescendant');
- const commands=quick.filter(q=>!query||q[0].toLowerCase().includes(query.toLowerCase())).map(q=>({title:q[0],detail:'Quick action',run:()=>{if(q[1]==='library')openProfile('library','library');else if(q[1]==='completed'){navigate('today');$('today-completed-panel')?.scrollIntoView({block:'start'});$('today-history-search')?.focus({preventScroll:true})}else{navigate(q[1],q[2]);if(q[3])$(q[3])?.focus()}}}));
+ const commands=quick.filter(q=>!query||q[0].toLowerCase().includes(query.toLowerCase())).map(q=>({title:q[0],detail:'Quick action',run:()=>{if(q[1]==='library')openProfile('library','library');else if(q[1]==='completed'){window.OpsWorkspace.openTasks('history')}else{navigate(q[1],q[2]);if(q[3])$(q[3])?.focus()}}}));
  const found=records?M.search(entries,query):[];
  const rows=[...commands,...found.map(r=>({...r,detail:r.kind+' · '+r.detail,run:()=>openSource(r.kind,r.id)}))];
  text('operations-search-status',!cloud.user?'Sign in to search private records. Quick actions open the existing workflows.':error||(!records?'Loading saved records…':query?(found.length===30?'Showing the first 30 matching records. Refine your search.':found.length+' matching records.'):'Search your saved records, or choose a quick action.'));
@@ -134,7 +134,7 @@ async function openSource(kind,id){
  if(kind==='task'){
   const t=records?.tasks.find(t=>t.id===id);if(!t)return;if(t.archived_at){openProfile('task',id);return}
   if(canEdit){
-   const userId=cloud.user.id;if(profile.open)profile.close();navigate('today');await window.OpsToday?.refresh();
+   const userId=cloud.user.id;if(profile.open)profile.close();if(!['today','tasks'].includes(window.OpsWorkspace?.getRoute().workflow))navigate('tasks','work');await window.OpsToday?.refresh();
    if(cloud.user?.id!==userId)return;
    const data=window.OpsToday?.getData(),current=data?.tasks.find(t=>t.id===id&&!t.archived_at);
    if(data?.canEdit&&current)window.dispatchEvent(new CustomEvent('ops-today-edit',{detail:{task:current}}));else openProfile('task',id);
