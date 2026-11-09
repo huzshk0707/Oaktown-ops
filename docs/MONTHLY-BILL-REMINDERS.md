@@ -45,7 +45,10 @@ late responses cannot restore private state.
 
 ## Deployment and recovery
 
-Migration: `20261109213957_monthly_bill_reminders.sql`, created by Supabase CLI.
+Migration: `20261109221343_monthly_bill_reminders.sql`. Supabase CLI created the
+review draft as `20261109213957`; the Management API assigned live version
+`20261109221343`. The repository filename now matches that live history entry;
+the reviewed SQL contents are unchanged.
 It is additive: one private schema, three tables and four narrow functions. It
 does not rewrite tasks, portfolio data, leases, existing policies or auth setup.
 No production schedule or current confirmation is in the migration or fixtures.
@@ -81,5 +84,12 @@ Local verification passed 176 Node tests, 53 relevant integration browser tests,
 the final six reminder browser scenarios, role/attribution/validation SQL, the
 concurrent first-write check and the actual guarded/empty rollback. Visual review
 uses fictional schedules at desktop/phone widths across six themes. Production
-migration, private setup and Pages publication remain pending until recorded
-in the implementation PR. No current payment is seeded as confirmed.
+migration and private setup are applied and independently read back: six rules,
+matching stored function fingerprints, denied anonymous/task-agent execution and
+private table access, with existing record counts unchanged. Initial occurrence
+and audit counts were zero; setup did not fabricate payment/sent confirmations.
+The two preexisting advisor warnings are unchanged; the three new private tables
+add expected information-level RLS/no-policy findings. See [PR #58](https://github.com/huzshk0707/Oaktown-ops/pull/58)
+for database evidence and [PR #59](https://github.com/huzshk0707/Oaktown-ops/pull/59)
+for combined source/publication evidence. Actual staff use remains separate from
+fictional tests and deployment records.
