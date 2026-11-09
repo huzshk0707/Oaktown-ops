@@ -175,7 +175,7 @@ jobs:
       - name: Verify private monthly reminders and guarded rollback
         run: |
           psql -v ON_ERROR_STOP=1 \
-            -f supabase/migrations/20261109213957_monthly_bill_reminders.sql \
+            -f supabase/migrations/20261109221343_monthly_bill_reminders.sql \
             -f tests/bill-reminders-check.sql
           node tests/bill-reminders-concurrency.cjs
           psql -v ON_ERROR_STOP=1 -f tests/bill-reminders-rollback-check.sql
