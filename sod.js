@@ -137,6 +137,14 @@
  window.addEventListener('ops-today-data',event=>receive(event.detail));
  window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user||event.detail.user.id!==account)reset()});
  window.addEventListener('ops-today-show',()=>{if(cloud.user&&data){$('sod-workdate').textContent=T.today()+' · Louisville/Eastern'}});
+ window.OpsSod={addPriority(line){
+  if(!cloud.user||!data||account!==cloud.user.id||typeof line!=='string'||!line.trim()||line.length>1500||/[\r\n]/.test(line))return false;
+  const lines=$('sod-extras').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.includes(line.trim()))lines.push(line.trim());
+  try{M.parseExtras(lines.join('\n'))}catch{return false}
+  $('sod-extras').value=lines.join('\n');dirty=true;invalidate();$('sod-morning').open=true;$('sod-extras').focus();
+  status('Reminder added to the plan. Review the priorities and generate the SOD. Nothing has been sent.');return true;
+ }};
  reset();
  if(cloud.user&&window.OpsToday?.getData())receive(window.OpsToday.getData());
 })();
