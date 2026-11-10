@@ -292,7 +292,7 @@ test('sign-out during archiving clears private review and stops further archive 
 
 test('completed work is visible independently of intake sessions and clears on sign-out and refresh failure',async({page})=>{
  const s=await setup(page);s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),workflow_key:'general',intake_details:{completion_summary:'Prepared fictional notices for two addresses.'}},{id:'cancelled',task_title:'Cancelled record',status:'cancelled'},{id:'archived-done',task_title:'Archived completed record',status:'completed',archived_at:new Date().toISOString()});
- await signInToday(page);await expect(page.locator('#today-completed-count')).toHaveText('1');await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).toContainText('Prepared fictional notices');await expect(page.locator('#today-completed')).toContainText('no property or lease linked');await expect(page.locator('#today-queue')).not.toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).not.toContainText('Cancelled record');await expect(page.locator('#today-completed')).not.toContainText('Archived completed record');
+ await signInToday(page);await page.locator('#today-completed-filter').selectOption('all');await expect(page.locator('#today-completed-count')).toHaveText('1');await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).toContainText('Prepared fictional notices');await expect(page.locator('#today-completed')).toContainText('no property or lease linked');await expect(page.locator('#today-queue')).not.toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).not.toContainText('Cancelled record');await expect(page.locator('#today-completed')).not.toContainText('Archived completed record');
  s.fail=true;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();await expect(page.locator('#today-status')).toContainText('Could not load');await expect(page.locator('#today-completed')).toBeEmpty();s.fail=false;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#today-completed')).toBeEmpty();
 });
 test('Completed shortcut opens searchable task history, separate from the daily plan and intake',async({page})=>{
@@ -301,9 +301,11 @@ test('Completed shortcut opens searchable task history, separate from the daily 
  await signInToday(page);
  await expect(page.locator('#today-completed-panel')).toBeHidden();
  await page.locator('#today-open-completed').click();
+ await expect(page.locator('#today-history-search')).toBeFocused();
+
+ await page.locator('#today-completed-filter').selectOption('all');
  await expect(page.locator('#today-completed-panel')).toContainText('M13 · Fictional SOD filing complete');
  await expect(page.locator('#today-history')).not.toHaveAttribute('open','');
- await expect(page.locator('#today-history-search')).toBeFocused();
  await page.locator('#today-history-search').fill('M13');
  await expect(page.locator('#today-completed .today-task:visible')).toHaveCount(1);
  await page.locator('#today-history-search').fill('unrelated');
@@ -388,16 +390,33 @@ test('Morning Plan drops selected task when that source closes and never treats 
  await expect(page.locator('#sod-status')).toContainText('selected task changed or closed');
  expect(s.edits).toHaveLength(0);
 });
+
+test('History shows two personal actions without Leslie’s completed inspection',async({page})=>{
+ const s=await setup(page),day=M.today();
+ s.tasks.push(
+  {id:'staff-inspection',task_title:'Fictional inspection',status:'completed',completed_at:new Date().toISOString(),intake_details:{eod:{completed_by:'Leslie',work_date:day}}},
+  {id:'my-message',task_title:'Sent fictional tenant message',status:'completed',completed_at:new Date().toISOString(),intake_details:{eod:{completed_by:'Huzy',work_date:day,label:'Sample Road – Tenant Communication',summary:'Sent fictional tenant message.'}}},
+  {id:'my-filing',task_title:'Filed fictional report',status:'completed',completed_at:new Date().toISOString(),intake_details:{eod:{completed_by:'Huzy',work_date:day,label:'Sample Road – Documents',summary:'Filed fictional report.'}}}
+ );
+ await signInToday(page);await openTasks(page,'history');
+ await expect(page.locator('#today-completed-count')).toHaveText('2');
+ await expect(page.locator('#today-completed')).toContainText('Sent fictional tenant message');
+ await expect(page.locator('#today-completed')).toContainText('Filed fictional report');
+ await expect(page.locator('#today-completed')).not.toContainText('Fictional inspection');
+ await page.locator('#today-completed-filter').selectOption('all');
+ await expect(page.locator('#today-completed-count')).toHaveText('3');
+ await expect(page.locator('#today-completed')).toContainText('Fictional inspection');
+});
 test('EOD uses saved work dates, exports estimated time once, and never writes',async({page})=>{
- const s=await setup(page),day=M.today();s.events=[{id:'e1',event_type:'task_work_recorded',event_metadata:{activity:{work_date:day,summary:'Fictional multi-property batch',minutes:90,duration_basis:'user_estimate'}}}];s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),intake_details:{completion_summary:'Fictional properties included.'}});
+ const s=await setup(page),day=M.today();s.events=[{id:'e1',event_type:'task_work_recorded',event_metadata:{activity:{work_date:day,completed_by:'Huzy',summary:'Fictional multi-property batch',minutes:90,duration_basis:'user_estimate'}}}];s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),intake_details:{eod:{completed_by:'Huzy',work_date:day,label:'Sample Road – Filing',summary:'Fictional properties included.'}}});
  await expect(page.locator('#eod-generate')).toBeDisabled();await signInToday(page);await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('Fictional multi-property batch');await expect(page.locator('#eod-report')).not.toContainText('minutes');if(process.env.OAKTOWN_UI_SCREENSHOTS==='1'){for(const width of [390,1440]){await page.setViewportSize({width,height:950});await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);await page.locator('section[aria-labelledby=\"eod-heading\"]').screenshot({path:test.info().outputPath('eod-'+width+'.png')});}}await page.locator('#eod-include-time').check();await expect(page.locator('#eod-report')).toBeHidden();await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('Known recorded time: 90 minutes');await expect(page.locator('#eod-report')).toContainText('90 minutes (estimated by you)');await expect(page.locator('#eod-report')).toContainText('Fictional properties included.');expect(s.reportRequests).toEqual([{method:'GET',date:'eq.'+day},{method:'GET',date:'eq.'+day}]);expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
  const download=page.waitForEvent('download');await page.locator('#eod-download').click();const exported=await download;expect(exported.suggestedFilename()).toBe('oaktown-eod-'+day+'.txt');expect(await require('fs').promises.readFile(await exported.path(),'utf8')).toBe(await page.locator('#eod-report').textContent());await page.context().grantPermissions(['clipboard-read','clipboard-write']);await page.locator('#eod-copy').click();await expect(page.locator('#eod-status')).toContainText('Report copied');expect(await page.evaluate(()=>navigator.clipboard.readText())).toBe(await page.locator('#eod-report').textContent());
- await page.locator('#eod-date').fill(offset(day,-1));await expect(page.locator('#eod-report')).toBeHidden();await expect(page.locator('#eod-copy')).toBeDisabled();s.events=[];await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('No saved work entries');await expect(page.locator('#eod-report')).toContainText('Known recorded time: 0 minutes');
+ await page.locator('#eod-date').fill(offset(day,-1));await expect(page.locator('#eod-report')).toBeHidden();await expect(page.locator('#eod-copy')).toBeDisabled();s.events=[];await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toContainText('No personal completed work recorded');await expect(page.locator('#eod-report')).toContainText('Known recorded time: 0 minutes');
 });
 test('EOD denies partial results and clears stale exports after failure and late sign-out',async({page})=>{
  const s=await setup(page);await signInToday(page);s.events=Array(1000).fill({id:'limit',event_type:'task_work_recorded',event_metadata:{activity:{work_date:M.today(),summary:'Fictional work',minutes:1,duration_basis:'reported'}}});await page.locator('#eod-generate').click();await expect(page.locator('#eod-status')).toContainText('No partial report');await expect(page.locator('#eod-copy')).toBeDisabled();
  s.events=[];await page.locator('#eod-generate').click();await expect(page.locator('#eod-report')).toBeVisible();s.failReport=true;await page.locator('#eod-generate').click();await expect(page.locator('#eod-status')).toContainText('Report unavailable');await expect(page.locator('#eod-report')).toBeHidden();
- s.failReport=false;let release;s.holdReport=new Promise(resolve=>release=resolve);await page.locator('#eod-generate').click();await expect(page.locator('#eod-status')).toContainText('Loading saved');await page.evaluate(()=>window.OpsCloud.signOut());release();await expect(page.locator('#eod-report')).toBeHidden();await expect(page.locator('#eod-generate')).toBeDisabled();await expect(page.locator('#eod-status')).toContainText('Sign in');
+ s.failReport=false;let release;s.holdReport=new Promise(resolve=>release=resolve);await page.locator('#eod-generate').click();await expect(page.locator('#eod-status')).toContainText('Loading work attributed');await page.evaluate(()=>window.OpsCloud.signOut());release();await expect(page.locator('#eod-report')).toBeHidden();await expect(page.locator('#eod-generate')).toBeDisabled();await expect(page.locator('#eod-status')).toContainText('Sign in');
 });
 
 for(const mode of ['veyra','oryn','nilo','ember','verdant','pearl'])test('appearance '+mode+' preserves records, persists and fits phone and desktop',async({page})=>{

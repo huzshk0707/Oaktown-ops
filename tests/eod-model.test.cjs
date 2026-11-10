@@ -1,8 +1,8 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),M=require('../eod-model.js');
 const date='2026-11-01';
-const work=(id,minutes,basis='user_estimate',day=date)=>({id,event_type:'task_work_recorded',event_metadata:{activity:{work_date:day,summary:'Fictional batch work',minutes,duration_basis:basis}}});
-const task=(id,at='2026-11-01T19:00:00Z')=>({id,status:'completed',task_title:'Fictional completed task',completed_at:at,intake_details:{completion_summary:'Fictional details'}});
+const work=(id,minutes,basis='user_estimate',day=date)=>({id,event_type:'task_work_recorded',event_metadata:{activity:{work_date:day,completed_by:'Huzy',summary:'Fictional batch work',minutes,duration_basis:basis}}});
+const task=(id,at='2026-11-01T19:00:00Z')=>({id,status:'completed',task_title:'Fictional completed task',completed_at:at,intake_details:{completion_summary:'Fictional details',eod:{completed_by:'Huzy',work_date:date,label:'Fictional completed task',summary:'Fictional details'}}});
 test('EOD counts a batch duration once and keeps estimates separate from reported time',()=>{
  const r=M.build([work('a',90),work('b',10,'reported'),work('c',null,'not_provided')],Array.from({length:9},(_,i)=>task(String(i))),date,{includeTime:true});
  assert.equal(r.estimated,90);assert.equal(r.reported,10);assert.equal(r.unknown,1);assert.equal(r.workCount,3);assert.equal(r.completedCount,9);assert.match(r.text,/Known recorded time: 100 minutes/);assert.match(r.text,/90 minutes \(estimated by you\)/);
@@ -18,7 +18,7 @@ test('completed work is listed once without repeating the linked activity durati
 });
 test('work date and Eastern completion date are independent, including DST transitions',()=>{
  const tasks=[task('before','2026-11-01T03:59:00Z'),task('first','2026-11-01T05:30:00Z'),task('second','2026-11-01T06:30:00Z'),task('next','2026-11-02T05:00:00Z')];
- const r=M.build([work('a',90),work('other',20,'reported','2026-11-02')],tasks,date);assert.equal(r.workCount,1);assert.equal(r.completedCount,2);assert.equal(r.estimated,90);
+ const adjusted=tasks.map(t=>({...t,intake_details:{...t.intake_details,eod:{...t.intake_details.eod,work_date:M.localDate(t.completed_at)}}}));const r=M.build([work('a',90),work('other',20,'reported','2026-11-02')],adjusted,date);assert.equal(r.workCount,1);assert.equal(r.completedCount,2);assert.equal(r.estimated,90);
 });
 test('invalid dates, malformed durations, duplicate identities and capped results fail closed',()=>{
  assert.throws(()=>M.build([],[],'2026-02-30'),/valid work date/);
@@ -26,4 +26,18 @@ test('invalid dates, malformed durations, duplicate identities and capped result
  assert.throws(()=>M.build([work('a',90),work('a',90)],[],date),/identity/);
  assert.throws(()=>M.build(Array(1000).fill(work('a',1)),[],date),/No partial report/);
  assert.throws(()=>M.build([],Array(1000).fill(task('a')),date),/No partial report/);
+});
+
+test('Leslie inspections and unattributed completions are excluded from Huzy EOD',()=>{
+ const other=task('leslie');other.intake_details.eod.completed_by='Leslie';
+ const unknown={id:'unknown',status:'completed',task_title:'Unattributed task',completed_at:'2026-11-01T19:00:00Z'};
+ const r=M.build([], [task('me'),other,unknown],date);
+ assert.equal(r.completedCount,1);
+ assert.equal(r.subject,'Daily Task Status / Update – Nov 1, 2026');
+ assert.match(r.text,/Hey Leslie,/);
+ assert.match(r.text,/Today’s Focus & Completed Work/);
+ assert.match(r.text,/Next Day Priorities/);
+ assert.match(r.text,/Pending - N\/A/);
+ assert.match(r.text,/Updates - N\/A/);
+ assert.doesNotMatch(r.text,/Unattributed task/);
 });
