@@ -12,18 +12,16 @@
   if(busy||!cloud.user)return;
   clear();const date=$('eod-date').value,ticket=epoch;
   if(!M.validDate(date)){status('Choose a valid work date.');return;}
-  busy=true;controls();status('Loading saved work and completed tasks…');
+  busy=true;controls();status('Loading work attributed to Huzy…');
   try{
    const eventsQuery=new URLSearchParams({select:'id,entity_id,event_type,event_metadata,occurred_at',event_type:'eq.task_work_recorded','event_metadata->activity->>work_date':'eq.'+date,order:'occurred_at.asc,id.asc',limit:'1001'});
-   // Widen the UTC window, then classify completion dates in Eastern time.
-   // This includes both daylight-saving transitions without invented local times.
-   const end=new Date(date+'T12:00:00Z');end.setUTCDate(end.getUTCDate()+1);
-   const tasksQuery=new URLSearchParams({select:'id,task_title,status,intake_details,completed_at',status:'eq.completed',order:'completed_at.asc,id.asc',limit:'1001'});
-   tasksQuery.append('completed_at','gte.'+date+'T00:00:00Z');tasksQuery.append('completed_at','lt.'+end.toISOString());
+   // Work date is the explicitly recorded Eastern work day, not the day an
+   // imported completion was entered. Filter verified performer in the model.
+   const tasksQuery=new URLSearchParams({select:'id,task_title,status,intake_details,completed_at,archived_at',status:'eq.completed',order:'completed_at.desc,id.desc',limit:'1001'});
    const [events,tasks]=await Promise.all([cloud.api('/rest/v1/ops_events?'+eventsQuery),cloud.api('/rest/v1/ops_tasks?'+tasksQuery)]);
    if(ticket!==epoch||!cloud.user)return;
    const result=M.build(events,tasks,date,{includeTime:$('eod-include-time').checked});report=result.text;$('eod-report').textContent=report;$('eod-report').hidden=false;
-   status(result.workCount+' saved work '+(result.workCount===1?'entry':'entries')+' · '+result.completedCount+' task'+(result.completedCount===1?'':'s')+' marked complete. Report ready.');
+   status(result.actionCount+' personal completed '+(result.actionCount===1?'action':'actions')+' · '+result.completedCount+' attributed completed tasks. Review before sending.');
   }catch(error){if(ticket===epoch)status('Could not generate the report: '+error.message);}
   finally{if(ticket===epoch){busy=false;controls();}}
  });
