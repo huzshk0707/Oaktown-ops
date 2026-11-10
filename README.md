@@ -2,7 +2,7 @@
 
 [Open the workspace](https://huzshk0707.github.io/Oaktown-ops/)
 
-[Current roadmap](docs/ROADMAP.md) · [Technical audit and staged fixes](docs/TECHNICAL-AUDIT-2026-11-04.md) · [Live validation](docs/LIVE-VALIDATION.md)
+[Shared ChatGPT operating rules](docs/CHATGPT-PROJECT-OPERATING-PROTOCOL.md) · [Current roadmap](docs/ROADMAP.md) · [Technical audit and staged fixes](docs/TECHNICAL-AUDIT-2026-11-04.md) · [Live validation](docs/LIVE-VALIDATION.md)
 
 Oaktown Ops brings property records and operational workflows together. Main includes the Today/tasks workspace, notices, protected portfolio, renewals, guided workflows, six themes, new-lease preparation and the connected workspace from PR #42. GitHub Pages is enabled at the workspace address above. Application data uses staff sign-in and database access controls; confidential reference PDFs remain in restricted Drive.
 

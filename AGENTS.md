@@ -7,6 +7,15 @@ Historical discovery/release notes preserve past decisions; their module status,
 record counts and deployment claims may be superseded. The repository is private.
 Repository visibility, website hosting and database access are separate controls.
 
+## Cross-chat Oaktown operating rules
+
+For operations requested through ChatGPT, follow
+`docs/CHATGPT-PROJECT-OPERATING-PROTOCOL.md`. A ChatGPT Project's shared
+instructions do not grant OAuth or database permissions. Routine operational
+task writes must use the scoped authenticated task API, not the elevated SQL
+management connection. Attribute completed work to its actual performer,
+and do not conflate Leslie's inspection with Huzy's personal EOD actions.
+
 ## Architecture and working behavior
 
 - Buildless HTML/CSS/JavaScript. `index.html` is the workspace; `generator.html`
