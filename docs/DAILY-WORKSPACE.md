@@ -36,3 +36,35 @@ and a successful Pages deployment do not certify a live staff data operation.
 Future work: contextual animated reminders and swipe interactions, a final name
 for Today, and separately scoped EOD improvements. This increment does not add
 snoozing or gesture-based task completion.
+
+
+## Personal EOD attribution — November 10
+
+The EOD is Huzy's personal accomplishment report, not a generic list of every
+completed task in the portfolio. The report accepts only completed tasks whose
+`intake_details.eod` contains both `completed_by: "Huzy"` and a verified
+`work_date: "YYYY-MM-DD"`. A dated, explicitly attributed
+`task_work_recorded` journal activity can also supply a personal action.
+Older imported completions or a task merely *assigned* to Huzy do not prove who
+performed the work. Only work confirmed as Huzy's is included.
+
+The report uses the owner's example layout, subject
+`Daily Task Status / Update – Mon DD, YYYY`, salutation `Hey Leslie,`,
+the sections `Today’s Focus & Completed Work`, `Next Day Priorities`,
+`Pending`, `Updates`, clarification offer and warm sign-off. Sections without
+reviewed input remain N/A; the report must be reviewed before it is copied or
+sent. No email is sent automatically. Optional tracked time remains opt-in.
+
+Tasks → History defaults to `My completed work today`, with an
+`All completed tasks` option for prior, Leslie-performed and unattributed
+completions. The date is interpreted in America/New_York. Work dates are
+reported dates, not necessarily when a later data entry was saved.
+
+The initial November 10 correction records two personal Mockernut actions
+(a tenant HVAC-filter message and filing the inspection report) separately
+and associates the completed physical inspection with Leslie. Repair work
+remains an independent pending task. Those live records were corrected through
+the management connection; no tenant data or records are included in source
+fixtures. No schema migration is part of this UI patch. Future ChatGPT task
+updates should save `intake_details.eod` explicitly rather than assuming the
+person assigned was the person who performed the task.
