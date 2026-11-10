@@ -27,6 +27,14 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Apps on this PC
+
+The toolbar offers a device-local Windows app list with PDFCraft as the initial
+shortcut. An explicit per-user setup registers an app-ID-only native handler;
+paths stay in the browser/local configuration and prepared download. Opening
+reports a request to Windows, not verified execution or completion. The user must
+run setup once on the intended PC. See [Windows shortcuts](WINDOWS-APP-SHORTCUTS.md).
+
 ## Monthly reminder follow-up
 
 Today adds private recurring bill/reminder windows, separate per-month sent and
