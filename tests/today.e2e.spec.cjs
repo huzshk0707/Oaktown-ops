@@ -292,7 +292,7 @@ test('sign-out during archiving clears private review and stops further archive 
 
 test('completed work is visible independently of intake sessions and clears on sign-out and refresh failure',async({page})=>{
  const s=await setup(page);s.tasks.push({id:'done',task_title:'Fictional completed batch',status:'completed',completed_at:new Date().toISOString(),workflow_key:'general',intake_details:{completion_summary:'Prepared fictional notices for two addresses.'}},{id:'cancelled',task_title:'Cancelled record',status:'cancelled'},{id:'archived-done',task_title:'Archived completed record',status:'completed',archived_at:new Date().toISOString()});
- await signInToday(page);await page.locator('#today-completed-filter').selectOption('all');await expect(page.locator('#today-completed-count')).toHaveText('1');await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).toContainText('Prepared fictional notices');await expect(page.locator('#today-completed')).toContainText('no property or lease linked');await expect(page.locator('#today-queue')).not.toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).not.toContainText('Cancelled record');await expect(page.locator('#today-completed')).not.toContainText('Archived completed record');
+ await signInToday(page);await openTasks(page,'history');await page.locator('#today-completed-filter').selectOption('all');await expect(page.locator('#today-completed-count')).toHaveText('1');await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).toContainText('Prepared fictional notices');await expect(page.locator('#today-completed')).toContainText('no property or lease linked');await expect(page.locator('#today-queue')).not.toContainText('Fictional completed batch');await expect(page.locator('#today-completed')).not.toContainText('Cancelled record');await expect(page.locator('#today-completed')).not.toContainText('Archived completed record');
  s.fail=true;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();await expect(page.locator('#today-status')).toContainText('Could not load');await expect(page.locator('#today-completed')).toBeEmpty();s.fail=false;await page.locator('#tasks-workflow:visible #tasks-refresh, #today-workflow:visible #today-refresh').click();await expect(page.locator('#today-completed')).toContainText('Fictional completed batch');await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#today-completed')).toBeEmpty();
 });
 test('Completed shortcut opens searchable task history, separate from the daily plan and intake',async({page})=>{
@@ -500,7 +500,7 @@ test('Today archive supports verified restore and clears private history after s
 });
 test('history search filters completed and archived titles, including after refresh',async({page})=>{
  const s=await setup(page);s.tasks.push({id:'completed-search',task_title:'Completed fictional filing',status:'completed',completed_at:'2026-11-01T12:00:00Z'});
- await signInToday(page);await openTasks(page,'history');await page.locator('#today-history>summary').click();
+ await signInToday(page);await openTasks(page,'history');await page.locator('#today-completed-filter').selectOption('all');await page.locator('#today-history>summary').click();
  const completed=page.locator('#today-completed .today-task:visible'),archived=page.locator('#today-archived .today-archive-row:visible');
  await page.locator('#today-history-search').fill('fictional filing');await expect(completed).toHaveCount(1);await expect(archived).toHaveCount(0);
  await page.locator('#today-history-search').fill('Private archived');await expect(completed).toHaveCount(0);await expect(archived).toHaveCount(1);
@@ -510,7 +510,7 @@ test('history search filters completed and archived titles, including after refr
 });
 test('restoring completed history preserves its completed status and never reopens it',async({page})=>{
  const s=await setup(page);Object.assign(s.tasks[3],{status:'completed',completed_at:'2026-11-01T12:00:00Z',updated_at:'2026-10-29T10:00:00Z'});
- await signInToday(page);await openTasks(page,'history');await page.locator('#today-history>summary').click();
+ await signInToday(page);await openTasks(page,'history');await page.locator('#today-completed-filter').selectOption('all');await page.locator('#today-history>summary').click();
  let confirmation='';page.once('dialog',async dialog=>{confirmation=dialog.message();await dialog.accept()});
  await page.locator('#today-archived').getByRole('button',{name:'Restore'}).click();await expect(page.locator('#today-history-status')).toContainText('Restored from archive and verified');
  expect(confirmation).toContain('saved status');expect(s.tasks[3].status).toBe('completed');expect(s.archives).toHaveLength(1);
