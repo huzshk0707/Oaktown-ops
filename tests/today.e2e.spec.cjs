@@ -301,6 +301,8 @@ test('Completed shortcut opens searchable task history, separate from the daily 
  await signInToday(page);
  await expect(page.locator('#today-completed-panel')).toBeHidden();
  await page.locator('#today-open-completed').click();
+ await expect(page.locator('#today-history-search')).toBeFocused();
+
  await page.locator('#today-completed-filter').selectOption('all');
  await expect(page.locator('#today-completed-panel')).toContainText('M13 · Fictional SOD filing complete');
  await expect(page.locator('#today-history')).not.toHaveAttribute('open','');
