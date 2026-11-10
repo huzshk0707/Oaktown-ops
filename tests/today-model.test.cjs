@@ -40,3 +40,13 @@ test('renewal import end dates are treated as review-only and filtered by window
  ];
  assert.deepEqual(M.expiring(rows,'2026-11-01',45).map(x=>x.id),['1','2']);
 });
+
+test('personal completion requires explicit work attribution and the same Eastern date',()=>{
+ const date='2026-11-10',entry={status:'completed',intake_details:{eod:{completed_by:'Huzy',work_date:date}}};
+ assert.equal(M.personalCompletion(entry,date),true);
+ assert.equal(M.personalCompletion({...entry,intake_details:{eod:{completed_by:'Leslie',work_date:date}}},date),false);
+ assert.equal(M.personalCompletion({...entry,intake_details:{}},date),false);
+ assert.equal(M.personalCompletion({...entry,status:'pending'},date),false);
+ assert.equal(M.personalCompletion({...entry,archived_at:'2026-11-11T00:00:00Z'},date),false);
+ assert.equal(M.personalCompletion(entry,'2026-11-11'),false);
+});
