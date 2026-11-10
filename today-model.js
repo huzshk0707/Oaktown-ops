@@ -63,5 +63,9 @@
    .filter(r=>r&&r.is_applicable!==false&&validDate(r.recorded_end)&&r.recorded_end>=start&&r.recorded_end<=end)
    .sort((a,b)=>a.recorded_end.localeCompare(b.recorded_end)||String(a.oak_record_id||'').localeCompare(String(b.oak_record_id||'')));
  }
- return Object.freeze({ZONE,today,validDate,scheduled,classify,expiring});
+ function personalCompletion(task,date=today(),performer='Huzy'){
+  const e=task?.intake_details?.eod;
+  return !!(task&&task.status==='completed'&&!task.archived_at&&validDate(date)&&e&&e.completed_by===performer&&e.work_date===date);
+ }
+ return Object.freeze({ZONE,today,validDate,scheduled,classify,expiring,personalCompletion});
 });
