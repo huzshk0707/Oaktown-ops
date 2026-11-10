@@ -42,7 +42,7 @@ function taskRow(t){const card=el('article',null,'today-task');card.dataset.task
  fields.textContent=parts.join(' · ');card.append(fields);
  const next=t.intake_details?.next_action;if(typeof next==='string'&&next.trim())card.append(el('p',next,'today-next'));
  if(t.status==='completed'){
-  const summary=t.intake_details?.completion_summary;if(typeof summary==='string'&&summary.trim())card.append(el('p',summary,'today-next'));
+  const summary=t.intake_details?.eod?.summary||t.intake_details?.completion_summary;if(typeof summary==='string'&&summary.trim())card.append(el('p',summary,'today-next'));
   if(!t.property_id&&!t.unit_id)card.append(el('span','General operations · no property or lease linked','today-task-meta'));
  }
  if(viewData?.canEdit){
