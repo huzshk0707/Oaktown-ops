@@ -78,7 +78,7 @@
 
 
 
-<section class="today-card today-recorded-work" aria-labelledby="eod-heading"><div class="today-section-head"><h3 id="eod-heading">EOD work report</h3></div><p class="today-explainer">What you worked on and completed for an Eastern work date. Include recorded time only when you want it.</p><div class="eod-controls"><label for="eod-date">Work date · Eastern<input id="eod-date" type="date"></label><label class="eod-time-option"><input id="eod-include-time" type="checkbox">Include recorded time</label><button class="button primary" id="eod-generate" type="button" disabled>Generate EOD report</button><button class="button" id="eod-copy" type="button" disabled>Copy report</button><button class="button" id="eod-download" type="button" disabled>Download .txt</button></div><p id="eod-status" class="status" role="status">Sign in to generate your work report.</p><pre id="eod-report" tabindex="0" aria-label="Generated EOD work report" hidden></pre></section>
+<section class="today-card today-recorded-work" aria-labelledby="eod-heading"><div class="today-section-head"><h3 id="eod-heading">EOD work report</h3></div><p class="today-explainer">Personal work explicitly attributed to Huzy for an Eastern work date. Leslie’s completions and unattributed tasks are excluded. Review Next Day Priorities, Pending and Updates before sending.</p><div class="eod-controls"><label for="eod-date">Work date · Eastern<input id="eod-date" type="date"></label><label class="eod-time-option"><input id="eod-include-time" type="checkbox">Include recorded time</label><button class="button primary" id="eod-generate" type="button" disabled>Generate EOD report</button><button class="button" id="eod-copy" type="button" disabled>Copy report</button><button class="button" id="eod-download" type="button" disabled>Download .txt</button></div><p id="eod-status" class="status" role="status">Sign in to generate your work report.</p><pre id="eod-report" tabindex="0" aria-label="Generated EOD work report" hidden></pre></section>
 
 
 
@@ -145,7 +145,8 @@
   </div></section>
  <section id="tasks-history-panel" role="tabpanel" aria-labelledby="task-tab-history" hidden><section class="today-card today-recorded-work today-completed-work" id="today-completed-panel" aria-labelledby="today-completed-heading">
   <div class="today-section-head"><div><h3 id="today-completed-heading">Completed tasks <span id="today-completed-count"></span></h3><p class="today-muted">Completed work from saved task records. Unknown completion dates remain unknown.</p></div></div>
-  <label class="today-history-search" for="today-history-search">Search completed and archived tasks<input id="today-history-search" type="search" placeholder="Search a task title or code"></label>
+  <label class="today-history-search" for="today-completed-filter">Show completed work<select id="today-completed-filter"><option value="mine">My completed work today</option><option value="all">All completed tasks</option></select></label>
+   <label class="today-history-search" for="today-history-search">Search completed and archived tasks<input id="today-history-search" type="search" placeholder="Search a task title or code"></label>
   <div id="today-completed" aria-label="Saved completed tasks"></div>
 </section>
 <details class="today-card today-recorded-work today-history" id="today-history">
