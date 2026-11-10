@@ -47,7 +47,7 @@
   if(busy)return;let approved;
   try{approved=M.validate(config,true)}catch(error){status(error.message);const missing=config.apps.find(a=>!a.executable);if(missing)edit(missing);return}
   const ticket=++generation;busy=true;controls();status('Preparing your Windows setup ZIP…');
-  try{const settled=await Promise.allSettled(M.FILES.map(async name=>{const r=await fetch('assets/windows-launcher/'+name);if(!r.ok)throw Error('Setup file unavailable');return [name,await r.text()]}));
+  try{const settled=await Promise.allSettled(M.FILES.map(async name=>{const r=await fetch('assets/windows-launcher/'+name,{cache:'no-store'});if(!r.ok)throw Error('Setup file unavailable');return [name,await r.text()]}));
    if(settled.some(r=>r.status!=='fulfilled'))throw Error('Setup assets unavailable');const sources=Object.fromEntries(settled.map(r=>r.value)),bytes=await M.bundle(window.JSZip,sources,approved);
    if(ticket!==generation)return;download(bytes);status('ZIP ready. Extract the whole ZIP on your Windows PC, then double-click Install.cmd. Afterwards choose Open in PC apps.');
   }catch{if(ticket===generation)status('Could not prepare Windows setup. Refresh and try again; your saved shortcuts are unchanged.');}

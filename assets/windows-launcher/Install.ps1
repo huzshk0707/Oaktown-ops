@@ -1,11 +1,14 @@
 # Run by Install.cmd in Windows PowerShell 5.1. Installs for the current user only.
 [CmdletBinding()]
 param(
-    [string]$PackageDirectory = $PSScriptRoot,
-    [string]$InstallDirectory = (Join-Path $env:LOCALAPPDATA 'OaktownOpsLauncher'),
+    [string]$PackageDirectory,
+    [string]$InstallDirectory,
     [string]$RegistryRoot = 'HKCU:\Software\Classes\oaktown-ops'
 )
 $ErrorActionPreference = 'Stop'
+trap { Write-Host $_.Exception.Message; Write-Host $_.ScriptStackTrace; exit 1 }
+if ([string]::IsNullOrWhiteSpace($PackageDirectory)) { $PackageDirectory = [IO.Path]::GetDirectoryName($MyInvocation.MyCommand.Path) }
+if ([string]::IsNullOrWhiteSpace($InstallDirectory)) { $InstallDirectory = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OaktownOpsLauncher' }
 $owner = 'Oaktown.Ops.DesktopLauncher.v1'
 if ($RegistryRoot -notmatch '\AHKCU:\\Software\\[A-Za-z0-9._\\-]+\z') { throw 'Only a current-user Software registry location is supported.' }
 if ($InstallDirectory -notmatch '\A[A-Za-z]:\\' -or [IO.Path]::GetFullPath($InstallDirectory).TrimEnd('\') -eq [IO.Path]::GetPathRoot($InstallDirectory).TrimEnd('\')) { throw 'Choose a local, dedicated install folder.' }

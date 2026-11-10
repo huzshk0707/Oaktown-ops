@@ -1,9 +1,11 @@
 [CmdletBinding()]
 param(
-    [string]$InstallDirectory = (Join-Path $env:LOCALAPPDATA 'OaktownOpsLauncher'),
+    [string]$InstallDirectory,
     [string]$RegistryRoot = 'HKCU:\Software\Classes\oaktown-ops'
 )
 $ErrorActionPreference = 'Stop'
+trap { Write-Host $_.Exception.Message; Write-Host $_.ScriptStackTrace; exit 1 }
+if ([string]::IsNullOrWhiteSpace($InstallDirectory)) { $InstallDirectory = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'OaktownOpsLauncher' }
 $owner = 'Oaktown.Ops.DesktopLauncher.v1'
 if ($RegistryRoot -notmatch '\AHKCU:\\Software\\[A-Za-z0-9._\\-]+\z') { throw 'Only a current-user Software registry location is supported.' }
 $marker = Join-Path $InstallDirectory 'owner.txt'
