@@ -2,7 +2,7 @@
 (()=>{'use strict';
 const cloud=window.OpsCloud,M=window.OpsTodayModel,$=id=>document.getElementById(id);
 if(!cloud||!M||!$('today-workflow'))return;
-let generation=0,busy=false,viewData=null,queueFilter='all',queueQuery='',queueLimits=new Map();
+let generation=0,busy=false,viewData=null,queueFilter='all',queueQuery='',queueLimits=new Map(),completedView='mine';
 const el=(tag,value,klass)=>{const x=document.createElement(tag);if(value!=null)x.textContent=String(value);if(klass)x.className=klass;return x};
 const text=(id,value)=>{$(id).textContent=value;if(id==='today-status')$('tasks-status').textContent=value};
 const visible=()=>!$('today-workflow').hidden||!$('tasks-workflow').hidden;
@@ -100,6 +100,20 @@ function renderQueue(){
 }
 searchInput.addEventListener('input',()=>{queueQuery=searchInput.value;queueLimits.clear();renderQueue()});
 filterSelect.addEventListener('change',()=>{queueFilter=filterSelect.value;queueLimits.clear();renderQueue()});
+function renderCompleted(all){
+ const allDone=all.filter(t=>String(t.status).toLowerCase()==='completed'&&!t.archived_at)
+  .sort((a,b)=>String(b.completed_at||'').localeCompare(String(a.completed_at||''))||String(a.task_title||'').localeCompare(String(b.task_title||'')));
+ const completed=completedView==='mine'?allDone.filter(t=>M.personalCompletion(t,M.today())):allDone;
+ $('today-completed-count').textContent=String(completed.length);
+ const done=$('today-completed');done.replaceChildren();
+ if(!completed.length)done.append(el('p',completedView==='mine'?'No personal completions attributed to Huzy for today. Choose All completed tasks to review other records.':'No completed tasks recorded.','today-muted'));
+ for(const task of completed)done.append(taskRow(task));
+ window.dispatchEvent(new Event('ops-today-rendered'));
+}
+$('today-completed-filter').addEventListener('change',event=>{
+ completedView=event.target.value==='all'?'all':'mine';
+ if(viewData)renderCompleted(M.classify(viewData.tasks).completed);
+});
 function render(data){
  viewData=data;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:data}));
  const tasks=M.classify(data.tasks),leases=M.expiring(data.renewals),work=window.OpsWorkstationModel.project(data.tasks),watch=window.OpsWorkstationModel.watch(data.renewals);
@@ -112,11 +126,7 @@ function render(data){
  numbers.forEach(([label,number],i)=>{const panel=el('div',null,'today-kpi'),icon=el('span',null,'metric-symbol');panel.dataset.metric=metrics[i];icon.setAttribute('aria-hidden','true');icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+symbols[i]+'</svg>';panel.append(el('strong',number),el('span',label),icon);kpis.append(panel)});
  renderSchedule(tasks);
  renderQueue();
- const completed=tasks.completed.filter(t=>String(t.status).toLowerCase()==='completed').sort((a,b)=>String(b.completed_at||'').localeCompare(String(a.completed_at||''))||String(a.task_title||'').localeCompare(String(b.task_title||'')));
- $('today-completed-count').textContent=String(completed.length);
- const done=$('today-completed');done.replaceChildren();
- if(!completed.length)done.append(el('p','No completed tasks recorded.','today-muted'));
- for(const task of completed)done.append(taskRow(task));
+ renderCompleted(tasks.completed);
  const renew=$('today-renewals');renew.replaceChildren();$('today-renewal-watch').textContent=watch.pendingCount+' imported cases marked Pending · '+leases.length+' recorded lease ends within 45 days. Review source terms; neither is an automatic deadline.';
  if(!leases.length)renew.append(el('p','No applicable recorded lease-end dates within the next 45 days.','today-muted'));
  for(const r of leases.slice(0,5)){
