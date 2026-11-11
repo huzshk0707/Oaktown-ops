@@ -56,7 +56,10 @@
    reject(Error('The request timed out; check the saved record before retrying.'));
    controller.abort();
   },milliseconds)});
-  return Promise.race([Promise.resolve().then(()=>run(controller.signal)),deadline]).finally(()=>clearTimeout(timer));
+  // Start immediately so OpsCloud captures this action's current session epoch.
+  let result;
+  try{result=Promise.resolve(run(controller.signal))}catch(error){result=Promise.reject(error)}
+  return Promise.race([result,deadline]).finally(()=>clearTimeout(timer));
  }
  return Object.freeze({transitions,create,sameVersion,withTimeout});
 });

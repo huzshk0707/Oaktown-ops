@@ -34,6 +34,7 @@ test('a stalled request has a bounded wait, aborts the client fetch and never tu
  context.mock.timers.enable({apis:['setTimeout']});let release,signal;
  const pending=new Promise(resolve=>{release=resolve});
  const request=W.withTimeout(value=>{signal=value;return pending});
+ assert.ok(signal,'Start the request before another action can replace its account context');
  const rejected=assert.rejects(request,/timed out/);await Promise.resolve();
  context.mock.timers.tick(20000);await rejected;assert.equal(signal.aborted,true);
  release('late saved receipt');await Promise.resolve();
