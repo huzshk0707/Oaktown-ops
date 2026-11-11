@@ -1,8 +1,26 @@
 /* Reviewed task edits for Oaktown Today: no lease mutations or automatic reminders. */
 (()=>{'use strict';
-const cloud=window.OpsCloud,M=window.OpsTodayModel,$=id=>document.getElementById(id);
-if(!cloud||!M||!$('today-edit-dialog'))return;
-let data=null,selected=null,saving=false,nonce=0;
+const cloud=window.OpsCloud,M=window.OpsTodayModel,W=window.OpsReviewedWrite,V=window.OpsTaskEditModel,$=id=>document.getElementById(id);
+if(!cloud||!M||!W||!V||!$('today-edit-dialog'))return;
+const flow=W.create(),dialog=$('today-edit-dialog'),form=$('today-edit-form');
+const request=(path,options={})=>W.withTimeout(signal=>cloud.api(path,{...options,signal}));
+let data=null,selected=null,owner=cloud.user?.id||null;
+const reload=document.createElement('button');reload.type='button';reload.id='today-edit-reload';reload.className='button';reload.textContent='Reload saved version';reload.hidden=true;$('today-edit-save').after(reload);
+function controls(){
+ dialog.dataset.workflowState=flow.phase;
+ form.setAttribute('aria-busy',String(flow.busy));
+ for(const field of form.querySelectorAll('input,select,textarea'))field.disabled=flow.busy;
+ $('today-edit-save').disabled=!flow.can('submit')||!selected||!data?.canEdit||!cloud.user;
+ $('today-edit-cancel').disabled=flow.busy;$('today-edit-close').disabled=flow.busy;
+ reload.hidden=!['needs_review','refreshing'].includes(flow.phase);reload.disabled=!flow.can('reload')||!cloud.user;
+}
+function reset(){
+ flow.reset();selected=null;form.reset();
+ for(const id of ['today-edit-property','today-edit-unit','today-edit-lease','today-edit-renewal'])$(id).replaceChildren();
+ feedback('');clearRelated();controls();
+}
+const current=(ticket,account)=>flow.current(ticket)&&cloud.user?.id===account;
+
 const input=id=>$(id).value;
 const set=(id,value)=>{$(id).value=value??''};
 const feedback=text=>{$('today-edit-feedback').textContent=text};
@@ -31,7 +49,7 @@ function renderRelated(task){
    const detail=document.createElement('span');detail.className='today-related-detail';detail.textContent=node.detail;button.append(detail);
   }
   button.addEventListener('click',()=>{
-   if(saving||!cloud.user||!data?.canEdit)return;
+   if(flow.busy||!cloud.user||!data?.canEdit)return;
    const api=window.OpsOperations;
    if(!api?.openSource&&!api?.openProfile){feedback('Connected record view is unavailable.');return}
    close();
@@ -78,10 +96,11 @@ function associations({resetUnit=false,resetLease=false,resetRenewal=false}={}){
   'General operations is allowed without a property link.';
 }
 function open(task,suggestedStatus){
+ if(flow.busy)return;
  if(!data?.canEdit||!cloud.user){feedback('Editor access is required.');return}
  const current=byId(data.tasks,task.id);
  if(!current||current.archived_at){feedback('This task is unavailable. Refresh first.');return}
- selected=current;nonce++;
+ flow.reset();flow.open();selected=current;
  const dialog=$('today-edit-dialog');
  set('today-edit-title',current.task_title);
  set('today-edit-status',['completed','waiting','in_progress'].includes(suggestedStatus)?suggestedStatus:(current.status||'pending'));
@@ -102,31 +121,61 @@ function open(task,suggestedStatus){
  associations();
  renderRelated(current);
  feedback(suggestedStatus?'Suggested status: '+suggestedStatus+'. Review details and click Save to confirm; no change has been made yet.':'');
+ controls();
  if(!dialog.open)dialog.showModal();
  $('today-edit-title').focus();
 }
 function close(){
- if(saving)return;
- const d=$('today-edit-dialog');if(d.open)d.close();
- selected=null;feedback('');clearRelated();
+ if(flow.busy)return;
+ if(dialog.open)dialog.close();reset();
 }
 $('today-edit-property-search').addEventListener('input',properties);
 $('today-edit-property').addEventListener('change',()=>associations({resetUnit:true,resetLease:true,resetRenewal:true}));
 $('today-edit-unit').addEventListener('change',()=>associations({resetLease:true,resetRenewal:true}));
 $('today-edit-close').addEventListener('click',close);
 $('today-edit-cancel').addEventListener('click',close);
-$('today-edit-dialog').addEventListener('cancel',event=>{if(saving)event.preventDefault();else{selected=null;clearRelated()}});
+dialog.addEventListener('cancel',event=>{if(flow.busy)event.preventDefault()});
+dialog.addEventListener('close',()=>{if(!dialog.open)reset()});
 window.addEventListener('ops-today-edit',event=>open(event.detail?.task||{},event.detail?.suggestedStatus));
 window.addEventListener('ops-today-data',event=>{
  data=event.detail||null;
- if(!data||!data.canEdit||!cloud.user){const d=$('today-edit-dialog');if(d.open)d.close();selected=null;clearRelated();nonce++;}
+ if(!data||!data.canEdit||!cloud.user){if(dialog.open)dialog.close();reset()}
 });
-window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user){const d=$('today-edit-dialog');if(d.open)d.close();selected=null;data=null;clearRelated();nonce++;}});
+window.addEventListener('ops-auth-change',event=>{
+ const next=event.detail?.user?.id||null;
+ if(next!==owner||!next){if(dialog.open)dialog.close();data=null;reset()}
+ owner=next;
+});
+reload.addEventListener('click',async()=>{
+ if(!selected||!cloud.user)return;
+ const id=selected.id,account=cloud.user.id,ticket=flow.start('reload');if(!ticket)return;
+ controls();feedback('Loading the saved version. Your draft will be replaced after it is verified.');
+ try{
+  const [rows,memberships]=await Promise.all([
+   request('/rest/v1/ops_tasks?id=eq.'+encodeURIComponent(id)+'&select=id,updated_at,task_title,status,priority,assigned_label,property_id,unit_id,lease_id,renewal_case_id,notes,intake_details,due_at,archived_at&limit=1'),
+   request('/rest/v1/staff_memberships?select=user_id,role,is_active&user_id=eq.'+encodeURIComponent(account)+'&limit=1')
+  ]);
+  if(!current(ticket,account))return;
+  const allowed=Array.isArray(memberships)&&memberships.length===1&&memberships[0].user_id===account&&memberships[0].is_active&&['admin','editor'].includes(memberships[0].role);
+  const task=Array.isArray(rows)&&rows.length===1&&rows[0]?.id===id?rows[0]:null;
+  if(!allowed||!task||task.archived_at)throw Object.assign(Error('Saved task or editor access is unavailable'),{status:403});
+  if(!W.sameVersion(task.updated_at,task.updated_at))throw Error('Task version was incomplete.');
+  data={...data,canEdit:true,tasks:data.tasks.map(row=>row.id===id?{...row,...task}:row)};
+  flow.advance(ticket,'loaded');open(task);
+  feedback('Saved version loaded. Review your changes before saving again.');
+ }catch(error){
+  if(!current(ticket,account))return;
+  if([401,403].includes(error.status)){
+   dialog.close();data=null;reset();window.dispatchEvent(new Event('ops-today-refresh'));return;
+  }
+  flow.advance(ticket,'failed');controls();feedback('Saved version unavailable. Your draft is kept; reload the saved version before retrying.');
+ }
+});
 $('today-edit-form').addEventListener('submit',async event=>{
  event.preventDefault();
- if(saving||!selected||!data?.canEdit||!cloud.user)return;
+ if(!flow.can('submit')||!selected||!data?.canEdit||!cloud.user)return;
  if(!input('today-edit-title').trim()){feedback('Task title is required.');return}
- const task=selected,version=task.updated_at,ticket=nonce;
+ const task=selected,version=task.updated_at,account=cloud.user.id;
  if(!version){feedback('Task version missing. Refresh the dashboard first.');return}
  const changes={
   task_title:input('today-edit-title').trim(),
@@ -151,22 +200,29 @@ $('today-edit-form').addEventListener('submit',async event=>{
     (renewal.lease_id&&changes.lease_id&&renewal.lease_id!==changes.lease_id))){
   feedback('Your property, unit, lease and renewal must match. Review the links.');return;
  }
- saving=true;$('today-edit-save').disabled=true;feedback('Saving reviewed task…');
+ const ticket=flow.start('submit');if(!ticket)return;
+ flow.advance(ticket,'approved');controls();feedback('Saving reviewed task…');
  try{
-  const result=await cloud.api('/rest/v1/rpc/ops_task_update_v1',{
+  const result=await request('/rest/v1/rpc/ops_task_update_v1',{
    method:'POST',body:JSON.stringify({p_task:task.id,p_expected_updated_at:version,p_changes:changes})
   });
-  if(ticket!==nonce||!cloud.user)return;
-  if(!result||result.task_id!==task.id||!result.updated_at)throw Error('Server did not confirm an updated task. Refresh before trying again.');
-  feedback('Saved successfully. Refreshing task list…');
-  const d=$('today-edit-dialog');if(d.open)d.close();
-  selected=null;clearRelated();
+  if(!current(ticket,account))return;
+  if(result?.task_id!==task.id||!result.updated_at)throw Error('Server receipt was incomplete.');
+  flow.advance(ticket,'received');controls();feedback('Checking the saved task…');
+  const rows=await request('/rest/v1/ops_tasks?id=eq.'+encodeURIComponent(task.id)+'&select=id,updated_at,task_title,status,priority,assigned_label,property_id,unit_id,lease_id,renewal_case_id,notes,intake_details,archived_at&limit=1');
+  if(!current(ticket,account))return;
+  if(!V.verified(task.id,result,rows,changes))throw Error('The saved version did not match your reviewed change.');
+  flow.advance(ticket,'verified');controls();
+  dialog.close();reset();
   window.dispatchEvent(new Event('ops-today-refresh'));
  }catch(error){
-  if(ticket===nonce){
-   feedback('Not saved: '+(error.message||'Request failed')+'. Refresh to load the latest saved version.');
-  }
- }finally{saving=false;$('today-edit-save').disabled=false;}
+  if(!current(ticket,account))return;
+  flow.advance(ticket,'failed');controls();
+  feedback('Save not verified: '+(error.message||'Request failed')+'. The change may already have saved. Copy any unsaved text, then reload the saved version before trying again.');
+  reload.focus();
+ }
 });
+
 if(cloud.user)data=window.OpsToday?.getData()||null;
+controls();
 })();

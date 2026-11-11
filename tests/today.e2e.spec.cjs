@@ -45,6 +45,8 @@ async function setup(page){
    if(selected.startsWith('id,task_title,status,priority')||selected.startsWith('id,task_code,parent_task_id,task_title')){
     s.reads++;if(s.fail)return reply({message:'RLS request failed'},403);
    }
+   const idFilter=url.searchParams.get('id');
+   if(idFilter?.startsWith('eq.'))return reply(s.tasks.filter(t=>t.id===idFilter.slice(3)));
    const codeFilter=url.searchParams.get('task_code');
    if(codeFilter?.startsWith('in.(')){
     const codes=codeFilter.slice(4,-1).split(',');
@@ -173,7 +175,7 @@ test('Editor rejects stale changes without claiming save and only editors can op
  state.rejectEdit=true;
  await page.locator('#today-edit-save').click();
  await expect(page.locator('#today-edit-dialog')).toBeVisible();
- await expect(page.locator('#today-edit-feedback')).toContainText('Not saved');
+ await expect(page.locator('#today-edit-feedback')).toContainText('Save not verified');
  expect(state.edits).toHaveLength(1);
  await page.locator('#today-edit-cancel').click();
  state.viewer=true;

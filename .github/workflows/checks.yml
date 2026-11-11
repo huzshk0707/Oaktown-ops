@@ -44,6 +44,8 @@ jobs:
           node --check deposit-export.js
           node --check deposit-preparation.js
           node --check today.js
+          node --check reviewed-write-model.js
+          node --check task-edit-model.js
           node --check today-editor.js
           node --check today-workstation-model.js
           node --check today-workstation.js
@@ -61,6 +63,8 @@ jobs:
           node --check task-connection.js
           node --check supabase/functions/oaktown-task-api/server.mjs
           node --check supabase/functions/oaktown-task-api/auth.mjs
+      - name: Check workflow state inventory
+        run: node scripts/workflow-states.cjs --check
       - name: Test calculations and workflow validation
         run: node --test tests/*.test.cjs
       - name: Audit task connector dependencies

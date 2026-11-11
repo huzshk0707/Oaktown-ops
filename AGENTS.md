@@ -22,6 +22,10 @@ and do not conflate Leslie's inspection with Huzy's personal EOD actions.
   contains the existing notice/document studio. Keep the current UI and PDFs working.
 - Keep pure rules/models separate from DOM code. Reuse existing currency/date rules.
 - Respect the script order and existing `window.Ops*` interfaces when changing modules.
+- Consult `docs/WORKFLOW-STATES.md` and the source inventory for workflow changes.
+  Keep the shared reviewed-write lifecycle for task/renewal writes separate from
+  business statuses and navigation. Run `node scripts/workflow-states.cjs --check`
+  when adding a first-party entrypoint script; map its state owner and tests.
 - `cloud.js` owns the shared verified staff session; `portfolio.js` provides the
   protected property/unit/lease view. Do not create a second authentication path.
 - Improve modules in small reviewed changes. A framework rewrite is not the current priority.
