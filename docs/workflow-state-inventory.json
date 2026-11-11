@@ -1,0 +1,693 @@
+{
+  "schema_version": "oaktown.workflow-state-inventory.v1",
+  "reviewed_base": "5a0cba51174e34496cd763c68fcc4e8faa4e14d6",
+  "reviewed_on": "2026-11-11",
+  "scope": "Active index.html and generator.html first-party scripts, plus the task connector and its server contracts. State names are conceptual except the two explicit reviewed-write controllers.",
+  "entrypoints": [
+    "index.html",
+    "generator.html"
+  ],
+  "excluded": [
+    "vendor/* (pinned third-party implementations)",
+    "legacy.html, app.js, model.js and preview-* (historical prototypes)",
+    "external applications, browser/OS internals and unbuilt modules"
+  ],
+  "machines": [
+    {
+      "id": "session",
+      "scope": "Shared staff session",
+      "sources": [
+        "cloud.js"
+      ],
+      "states": [
+        "signed_out",
+        "restoring",
+        "verifying",
+        "signed_in",
+        "refreshing",
+        "recovery",
+        "signing_out",
+        "denied"
+      ],
+      "guards": [
+        "Session epoch invalidates old API responses; membership is checked by server and staff verification.",
+        "UI reset does not revoke an already issued access token."
+      ],
+      "tests": [
+        "tests/workspace.e2e.spec.cjs",
+        "tests/task-connection.e2e.spec.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "navigation",
+      "scope": "Workspace routes, dialogs and iframe bridge",
+      "sources": [
+        "index.html",
+        "workspace.js",
+        "workspace-experience.js"
+      ],
+      "states": [
+        "workflow_and_subtab",
+        "record_route",
+        "menu_open",
+        "dialog_open",
+        "frame_loading",
+        "import_pending"
+      ],
+      "guards": [
+        "Workflow, subtab and record are independent route axes.",
+        "Origin/source checks and request IDs protect iframe messages; navigation is not workflow completion."
+      ],
+      "tests": [
+        "tests/workspace-routing.e2e.spec.cjs",
+        "tests/workspace-experience.e2e.spec.cjs",
+        "tests/workspace.e2e.spec.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "appearance",
+      "scope": "Theme, motion and display preferences",
+      "sources": [
+        "workspace-theme.js",
+        "workspace-clocks.js"
+      ],
+      "states": [
+        "theme_choice",
+        "motion_preference",
+        "system_motion",
+        "derived_clock"
+      ],
+      "guards": [
+        "Device preferences do not modify saved operational records.",
+        "Eastern work date is independent of UTC clock display."
+      ],
+      "tests": [
+        "tests/workspace-appearance.e2e.spec.cjs",
+        "tests/workspace-clocks.test.cjs"
+      ],
+      "representation": "derived"
+    },
+    {
+      "id": "portfolio",
+      "scope": "Protected portfolio loading and selection",
+      "sources": [
+        "portfolio.js"
+      ],
+      "states": [
+        "locked",
+        "loading",
+        "ready",
+        "failed",
+        "unit_selected",
+        "renewal_selected",
+        "mobile_detail"
+      ],
+      "guards": [
+        "Generation prevents stale private results after sign-out; unit/property scope stays explicit."
+      ],
+      "tests": [
+        "tests/portfolio.e2e.spec.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "record_navigation",
+      "scope": "Search, command palette and record profiles",
+      "sources": [
+        "operations.js",
+        "operations-model.js",
+        "connections-model.js"
+      ],
+      "states": [
+        "loading",
+        "partial",
+        "ready",
+        "failed",
+        "palette_open",
+        "result_selected",
+        "profile_open",
+        "missing_record"
+      ],
+      "guards": [
+        "Cache and selections are account scoped.",
+        "Saved relationships, not title guesses, determine related records."
+      ],
+      "tests": [
+        "tests/operations.e2e.spec.cjs",
+        "tests/connections-model.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "notice_contacts",
+      "scope": "Notice recipient resolution",
+      "sources": [
+        "notice-contact.js",
+        "notice-recipient.js"
+      ],
+      "states": [
+        "not_recorded",
+        "exact_unit_match",
+        "ambiguous",
+        "unverified_contact"
+      ],
+      "guards": [
+        "Historical people/leases do not automatically establish a current notice recipient."
+      ],
+      "tests": [
+        "tests/notice-contact.test.cjs",
+        "tests/notice-recipient.test.cjs"
+      ],
+      "representation": "derived"
+    },
+    {
+      "id": "notice_selection",
+      "scope": "Ordered property/unit selection and import",
+      "sources": [
+        "notice-picker.js",
+        "notice-bulk-model.js"
+      ],
+      "states": [
+        "locked",
+        "loading",
+        "selecting",
+        "resolving_bulk",
+        "reviewing",
+        "importing",
+        "confirmed",
+        "unverified"
+      ],
+      "guards": [
+        "Explicit unit choice resolves ambiguity; mutation controls lock during import.",
+        "Generation and iframe confirmation protect the selected draft."
+      ],
+      "tests": [
+        "tests/property-search.e2e.spec.cjs",
+        "tests/notice-workflow.e2e.spec.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "notice_studio",
+      "scope": "Local notice drafts, statements, PDF/ZIP and printing",
+      "sources": [
+        "generator.html",
+        "notice-statement.js"
+      ],
+      "states": [
+        "editing",
+        "statement_review_pending",
+        "validated_draft",
+        "exporting",
+        "download_ready",
+        "printing",
+        "failed"
+      ],
+      "guards": [
+        "Statement preview and application are separate; local JSON is a draft backup.",
+        "Readiness, downloaded files, print events and legal service are distinct evidence."
+      ],
+      "tests": [
+        "tests/notice-readiness.e2e.spec.cjs",
+        "tests/downloads.e2e.spec.cjs",
+        "tests/notice-statement.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "notice_steps",
+      "scope": "Notice preparation navigation",
+      "sources": [
+        "notice-workflow.js"
+      ],
+      "states": [
+        "select_units",
+        "edit_details",
+        "review_export",
+        "tenant_message"
+      ],
+      "guards": [
+        "Step selection only navigates; it does not complete or send a notice."
+      ],
+      "tests": [
+        "tests/notice-workflow.e2e.spec.cjs"
+      ],
+      "representation": "derived"
+    },
+    {
+      "id": "today",
+      "scope": "Today/task browsing, task status and focus",
+      "sources": [
+        "today.js",
+        "today-model.js",
+        "today-workstation.js",
+        "today-workstation-model.js"
+      ],
+      "states": [
+        "locked",
+        "loading",
+        "ready",
+        "failed",
+        "focus_selected",
+        "pending",
+        "in_progress",
+        "waiting",
+        "blocked",
+        "completed",
+        "cancelled"
+      ],
+      "guards": [
+        "Task status, schedule, archive state and device focus are independent axes.",
+        "Personal completion requires explicit performer and work date; read failures clear private views."
+      ],
+      "tests": [
+        "tests/today.e2e.spec.cjs",
+        "tests/today-queue.e2e.spec.cjs",
+        "tests/today-model.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "task_edit",
+      "scope": "Reviewed task update",
+      "sources": [
+        "today-editor.js",
+        "task-edit-model.js",
+        "reviewed-write-model.js"
+      ],
+      "states": [
+        "idle",
+        "reviewing",
+        "checking",
+        "saving",
+        "verifying",
+        "saved",
+        "needs_review",
+        "refreshing"
+      ],
+      "guards": [
+        "Only a matching identity, version and every reviewed field in independent readback count as verified.",
+        "An uncertain write cannot be resubmitted before reload/review.",
+        "Reset invalidates UI tickets; late responses cannot unlock another session."
+      ],
+      "tests": [
+        "tests/reviewed-write-model.test.cjs",
+        "tests/reviewed-writes.e2e.spec.cjs",
+        "tests/today.e2e.spec.cjs"
+      ],
+      "representation": "explicit"
+    },
+    {
+      "id": "archive",
+      "scope": "Archive review, partial batch progress and restore",
+      "sources": [
+        "today-reset.js",
+        "today-history.js"
+      ],
+      "states": [
+        "reviewing",
+        "archiving",
+        "partially_confirmed",
+        "unverified",
+        "restoring",
+        "verified"
+      ],
+      "guards": [
+        "Archive is separate from task status; no evidence is erased by archive/restore.",
+        "Version checks, explicit confirmation and stop-on-failure preserve partial outcomes."
+      ],
+      "tests": [
+        "tests/today.e2e.spec.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "task_intake",
+      "scope": "Intake sessions, review, activity and archive deletion",
+      "sources": [
+        "task-intake.js",
+        "task-intake-model.js"
+      ],
+      "states": [
+        "session_selection",
+        "loading",
+        "draft",
+        "reviewing",
+        "saving",
+        "receipt_available",
+        "outcome_unknown",
+        "delete_review"
+      ],
+      "guards": [
+        "Source references and versions support repeat protection; identical pending requests are retained on uncertain retries.",
+        "Destructive archive deletion has a separate reviewed snapshot."
+      ],
+      "tests": [
+        "tests/task-intake.e2e.spec.cjs",
+        "tests/task-intake.test.cjs",
+        "tests/task-intake-check.sql"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "backlog_import",
+      "scope": "Controlled Master Backlog import",
+      "sources": [
+        "backlog-import.js",
+        "backlog-import-model.js"
+      ],
+      "states": [
+        "invalid",
+        "locally_valid",
+        "previewing",
+        "reviewing",
+        "saving",
+        "verifying",
+        "verified",
+        "unverified"
+      ],
+      "guards": [
+        "Server preview token and exact IMPORT confirmation gate writes.",
+        "Independent identity/field readback is required; failure revokes approval and requires a new preview."
+      ],
+      "tests": [
+        "tests/today.e2e.spec.cjs",
+        "tests/master-backlog-import-check.sql",
+        "tests/master-backlog-security.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "sod",
+      "scope": "Morning plan and SOD draft",
+      "sources": [
+        "sod.js",
+        "sod-model.js"
+      ],
+      "states": [
+        "locked",
+        "selecting_priorities",
+        "stale_priority",
+        "draft_generated",
+        "draft_edited",
+        "copied"
+      ],
+      "guards": [
+        "Saved tasks and editable local priorities stay distinct; a copied email is not sent."
+      ],
+      "tests": [
+        "tests/today.e2e.spec.cjs",
+        "tests/sod-model.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "eod",
+      "scope": "Personal work report",
+      "sources": [
+        "eod.js",
+        "eod-model.js"
+      ],
+      "states": [
+        "locked",
+        "date_selected",
+        "loading",
+        "report_ready",
+        "failed",
+        "copied",
+        "downloaded"
+      ],
+      "guards": [
+        "Work date, actual performer, event evidence and task completion remain distinct.",
+        "Partial results and late reads cannot produce a verified report for another date/session."
+      ],
+      "tests": [
+        "tests/today.e2e.spec.cjs",
+        "tests/eod-model.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "monthly_reminders",
+      "scope": "Monthly reminder and confirmation records",
+      "sources": [
+        "bill-reminders.js",
+        "bill-reminders-model.js"
+      ],
+      "states": [
+        "locked",
+        "loading",
+        "ready",
+        "reviewing",
+        "saving",
+        "verifying",
+        "needs_refresh",
+        "reminded",
+        "verified",
+        "reopened"
+      ],
+      "guards": [
+        "Calendar window, reminder sent and payment confirmation are independent.",
+        "Revision checks and independent snapshot matching gate success; no send/payment operation exists."
+      ],
+      "tests": [
+        "tests/bill-reminders.e2e.spec.cjs",
+        "tests/bill-reminders-check.sql",
+        "tests/bill-reminders-concurrency.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "renewal_pdf",
+      "scope": "Renewal preparation and unsigned PDF",
+      "sources": [
+        "renewal-generator.js",
+        "renewal-rules.js",
+        "renewal-pdf.js"
+      ],
+      "states": [
+        "locked",
+        "selecting_unit_lease",
+        "editing",
+        "reviewed",
+        "invalidated",
+        "exporting",
+        "download_ready",
+        "failed"
+      ],
+      "guards": [
+        "Review binds to current inputs and staff account; edits invalidate the export snapshot.",
+        "An unsigned five-page draft is not signed/executed or evidence of delivery."
+      ],
+      "tests": [
+        "tests/portfolio.e2e.spec.cjs",
+        "tests/renewal-highlights.e2e.spec.cjs",
+        "tests/renewal-pdf.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "renewal_tracking",
+      "scope": "Reviewed renewal journal update",
+      "sources": [
+        "renewal-tracking.js",
+        "renewal-tracking-rules.js"
+      ],
+      "states": [
+        "idle",
+        "reviewing",
+        "checking",
+        "saving",
+        "verifying",
+        "saved",
+        "needs_review",
+        "refreshing"
+      ],
+      "guards": [
+        "Saved event identity, case, actor and reviewed metadata must match independent readback.",
+        "Late replies cannot clear a different case draft; background reload preserves unsaved input.",
+        "Latest-event preflight is not an atomic server compare-and-append or an idempotency key."
+      ],
+      "tests": [
+        "tests/reviewed-writes.e2e.spec.cjs",
+        "tests/portfolio.e2e.spec.cjs",
+        "tests/renewal-tracking.test.cjs"
+      ],
+      "representation": "explicit"
+    },
+    {
+      "id": "new_lease",
+      "scope": "New-lease steps, terms and full condition sheet",
+      "sources": [
+        "lease-preparation.js",
+        "lease-preparation-model.js",
+        "lease-condition-pdf.js"
+      ],
+      "states": [
+        "locked",
+        "editing_step",
+        "all_fields_view",
+        "reviewed",
+        "invalidated",
+        "condition_export_ready"
+      ],
+      "guards": [
+        "Absent areas use N/A only when confirmed; unknown conditions are not invented.",
+        "Condition-sheet export is available; complete ten-page PDF/export lifecycle remains unfinished."
+      ],
+      "tests": [
+        "tests/lease-preparation.e2e.spec.cjs",
+        "tests/lease-preparation-model.test.cjs",
+        "tests/lease-condition-pdf.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "guided_work",
+      "scope": "Listings, lead handling and applications guides",
+      "sources": [
+        "guided-workflows.js",
+        "listing-guide.js",
+        "listing-guide-model.js",
+        "lead-guide.js",
+        "lead-guide-model.js",
+        "application-guide.js",
+        "application-guide-model.js"
+      ],
+      "states": [
+        "workflow_view",
+        "prompt_view",
+        "one_step_view",
+        "all_steps_view",
+        "draft",
+        "copied"
+      ],
+      "guards": [
+        "Guide position and prompt readiness do not establish a completed business operation.",
+        "Parallel activities are not forced into a single completion sequence."
+      ],
+      "tests": [
+        "tests/guided-workflows.e2e.spec.cjs",
+        "tests/application-guide.e2e.spec.cjs",
+        "tests/listing-guide.e2e.spec.cjs",
+        "tests/lead-guide.e2e.spec.cjs"
+      ],
+      "representation": "derived"
+    },
+    {
+      "id": "holding_packet",
+      "scope": "Deposit form/email/vendor packet preparation",
+      "sources": [
+        "deposit-preparation.js",
+        "deposit-model.js",
+        "deposit-export.js"
+      ],
+      "states": [
+        "locked",
+        "editing",
+        "reviewed",
+        "invalidated",
+        "exporting",
+        "download_ready",
+        "failed"
+      ],
+      "guards": [
+        "Snapshot/generation/account guards protect reviewed private inputs and late downloads.",
+        "Prepared documents are not sent/signed/paid; pet arithmetic and rent stay separate."
+      ],
+      "tests": [
+        "tests/deposit-preparation.e2e.spec.cjs",
+        "tests/deposit-model.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "task_connection",
+      "scope": "Connector setup, consent and revocation UI",
+      "sources": [
+        "task-connection.js",
+        "task-connection-model.js"
+      ],
+      "states": [
+        "loading",
+        "ready",
+        "consent_validating",
+        "reviewing_consent",
+        "approving",
+        "redirecting",
+        "denied",
+        "revoking",
+        "unverified"
+      ],
+      "guards": [
+        "Consent, OAuth account scope, setup permissions and task-write approval are separate.",
+        "Epoch/account checks and readback protect receipts; Project instructions do not grant access."
+      ],
+      "tests": [
+        "tests/task-connection.e2e.spec.cjs",
+        "tests/task-connection-model.test.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "task_agent",
+      "scope": "Stateless MCP request and reviewed proposal API",
+      "sources": [
+        "supabase/functions/oaktown-task-api/server.mjs",
+        "supabase/functions/oaktown-task-api/auth.mjs",
+        "supabase/functions/oaktown-task-api/index.ts"
+      ],
+      "states": [
+        "unauthorized",
+        "authorized",
+        "proposal_prepared",
+        "approval_required",
+        "applying",
+        "verified",
+        "outcome_unknown"
+      ],
+      "guards": [
+        "Per-request token/client/session authorization stays on the server.",
+        "Identical proposals can be retried; independent receipt/readback is required, never a second proposal for the same uncertain save."
+      ],
+      "tests": [
+        "tests/task-agent-api.test.cjs",
+        "tests/task-agent-check.sql",
+        "tests/task-agent-concurrency.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "database_contracts",
+      "scope": "Server-side transition and integrity guards",
+      "sources": [
+        "supabase/schema/today_task_editor_v1.sql",
+        "supabase/migrations/20261108071838_authenticated_task_connection.sql",
+        "supabase/migrations/20261108050604_master_backlog_controlled_import.sql",
+        "supabase/migrations/20261109221343_monthly_bill_reminders.sql"
+      ],
+      "states": [
+        "reviewed_version",
+        "transactional_write",
+        "receipt",
+        "replay",
+        "stale_rejected",
+        "revoked",
+        "expired"
+      ],
+      "guards": [
+        "Browser state is advisory; membership, RLS, version checks, attribution and transaction rules remain authoritative.",
+        "This source audit does not apply migrations or establish current production configuration."
+      ],
+      "tests": [
+        "tests/today-task-editor-check.sql",
+        "tests/task-agent-check.sql",
+        "tests/master-backlog-import-check.sql",
+        "tests/bill-reminders-check.sql"
+      ],
+      "representation": "guarded"
+    }
+  ]
+}

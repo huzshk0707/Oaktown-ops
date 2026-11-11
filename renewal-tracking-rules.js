@@ -62,5 +62,12 @@
   return {entity_type:'renewal_case',entity_id:caseId,event_type:'renewal_progress_updated',actor_id:actorId,
    summary:msg||('Manual update: '+label(values.status)),event_metadata:{version:1,status:values.status,next_action:next,note:note||null,message:msg||null,previous_event_id:priorId||null}};
  }
- return Object.freeze({statuses,label,valid,infer,eventsFor,latest,snapshot,eventPayload});
+ function verified(payload,receipt,rows){
+  if(!receipt?.id||!Array.isArray(rows)||rows.length!==1)return false;
+  const row=rows[0];
+  if(row?.id!==receipt.id||!row.occurred_at||!Number.isFinite(Date.parse(row.occurred_at)))return false;
+  for(const key of ['entity_type','entity_id','event_type','actor_id','summary'])if(row[key]!==payload[key])return false;
+  return Object.entries(payload.event_metadata).every(([key,value])=>(row.event_metadata?.[key]??null)===value);
+ }
+ return Object.freeze({statuses,label,valid,infer,eventsFor,latest,snapshot,eventPayload,verified});
 });

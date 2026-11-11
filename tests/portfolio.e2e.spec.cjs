@@ -31,7 +31,8 @@ async function login(page){
     activity.unshift(row);body=[row];
    }else{
     const filter=u.searchParams.get('entity_id')?.replace(/^eq\./,'');
-    body=activity.filter(row=>!filter||row.entity_id===filter);
+    const id=u.searchParams.get('id')?.replace(/^eq\./,'');
+    body=activity.filter(row=>(!filter||row.entity_id===filter)&&(!id||row.id===id));
    }
   }
   else if(path.startsWith('/rest/v1/'))body=fixtures[path.split('/').pop()]||[];

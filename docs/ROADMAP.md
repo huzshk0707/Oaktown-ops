@@ -27,6 +27,21 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
+## Workflow-state review — November 11, 2026
+
+The active workspace/studio and task connector now have a source/test inventory
+covering 25 workflow families. Task editing and renewal journal writes share an
+explicit checking/saving/verifying/review-required lifecycle. Uncertain outcomes
+retain the draft, block blind retry and require reloading the saved version.
+Late callbacks are scoped to the selected record and account; background renewal
+reloads preserve unsaved text. See [workflow states](WORKFLOW-STATES.md) for the
+transition contract, source inventory, inspection commands and tests.
+
+The next bounded reliability task is transactional renewal-journal append with
+an expected prior event and stable retry identity; the current client preflight
+does not provide that server guarantee. No database or authentication change is
+part of this UI lifecycle increment. CI/merge/publication evidence belongs in its PR.
+
 ## PC apps removed — November 11, 2026
 
 The owner reported that the PC apps/PDFCraft shortcut did not work on the intended
