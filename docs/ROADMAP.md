@@ -27,13 +27,13 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Appearance | Six themes, existing tab/depth treatment, responsive connected views and compact density | Targeted usability refinements; no framework rewrite |
 | Maintenance/approvals/financial modules | Saved maintenance tasks are visible; full modules are not tracked | Define workflow, permissions, storage and business rules before expansion |
 
-## Apps on this PC
+## PC apps removed — November 11, 2026
 
-The toolbar offers a device-local Windows app list with PDFCraft as the initial
-shortcut. An explicit per-user setup registers an app-ID-only native handler;
-paths stay in the browser/local configuration and prepared download. Opening
-reports a request to Windows, not verified execution or completion. The user must
-run setup once on the intended PC. See [Windows shortcuts](WINDOWS-APP-SHORTCUTS.md).
+The owner reported that the PC apps/PDFCraft shortcut did not work on the intended
+PC and asked to remove it. The toolbar entry, dialog, setup generator, native
+launcher sources and feature-specific tests/CI job are removed. No replacement
+desktop launcher is planned. If the Windows helper was previously installed,
+its removal is a separate action on that PC; see [cleanup instructions](WINDOWS-APP-SHORTCUTS.md).
 
 ## Monthly reminder follow-up
 

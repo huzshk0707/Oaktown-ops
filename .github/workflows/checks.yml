@@ -38,8 +38,6 @@ jobs:
           node --check connections-model.js
           node --check sod-model.js
           node --check sod.js
-          node --check desktop-apps-model.js
-          node --check desktop-apps.js
           node --check bill-reminders-model.js
           node --check bill-reminders.js
           node --check deposit-model.js
@@ -181,12 +179,3 @@ jobs:
             -f tests/bill-reminders-check.sql
           node tests/bill-reminders-concurrency.cjs
           psql -v ON_ERROR_STOP=1 -f tests/bill-reminders-rollback-check.sql
-
-  windows-launcher:
-    runs-on: windows-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Compile and verify the per-user Windows launcher
-        shell: powershell
-        run: ./tests/windows-launcher.test.ps1
