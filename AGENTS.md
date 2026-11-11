@@ -62,3 +62,19 @@ and do not conflate Leslie's inspection with Huzy's personal EOD actions.
   remaining gaps and the next bounded task in the canonical roadmap/audit notes.
 - Follow the user's current authorization. These instructions do not add a new
   approval requirement or override their preferences.
+
+## Release tags and branch cleanup
+
+- Follow `docs/RELEASE-PROCESS.md`. Release tagging starts at `v0.5.0`, the exact
+  requested baseline `b829f73422ba87f0a7fc3a0ec60d21e45c7441c0`.
+- After a release is merged, verify CI and Pages for that exact main commit,
+  create the next unused annotated SemVer tag, push it and independently verify
+  its remote peeled commit. Default to a patch increment within the current line.
+  Record the release scope, checks and remaining limits in the annotation.
+- Existing release tags are immutable: never move, overwrite or delete one.
+- Delete a feature branch only when its current tip is merged, it has no open PR,
+  and the deletion is guarded by that exact expected SHA. Preserve unmerged,
+  protected/default and historical release branches. Keep `design/*` references
+  while tracked documentation still cites them; check URL-encoded citations too.
+- A source tag does not apply database migrations or establish actual tenant,
+  payment, signature, sending or live staff verification state.
