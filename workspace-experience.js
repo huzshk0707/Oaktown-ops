@@ -25,6 +25,23 @@
  const guide=make('span','workspace-mode');guide.id='workspace-mode';document.querySelector('.workspace-intro>div')?.append(guide);
  function context(){const active=nav.querySelector('[aria-current="page"]')?.dataset.workspace;const guides=['listings','leads','applications'];guide.textContent=guides.includes(active)?'Guide & prompt builder · No case records are saved here':active==='tasks'?'Active work, history and reviewed imports':active==='today'?'Your daily work, in one place':active==='notices'?'Local drafts · Review before export':active==='maintenance'?'Planned workflow':'Portfolio workspace';guide.dataset.kind=guides.includes(active)?'guide':'workspace'}
  window.addEventListener('ops-workspace-change',context);context();
+ // Daily work comes before summaries and preparation tools, in DOM and keyboard order.
+ const workstation=document.querySelector('#today-workflow .today-workstation');
+ if(workstation){
+  $('today-status').after(workstation);
+  const planning=make('section','today-planning');planning.setAttribute('aria-labelledby','today-planning-title');
+  const heading=make('h3','','Needs planning');heading.id='today-planning-title';
+  const note=make('p','','Sign in to review tasks needing an owner or date.');note.id='today-planning-count';
+  const review=button('Review planning queue',()=>{window.OpsWorkspace.openTasks('work');window.dispatchEvent(new Event('ops-open-planning'))});review.id='today-open-planning';review.disabled=true;
+  planning.append(heading,note,review);workstation.after(planning);
+  window.addEventListener('ops-today-data',event=>{
+   const data=event.detail;review.disabled=!data;
+   if(!data){note.textContent='Sign in to review tasks needing an owner or date.';return}
+   const active=window.OpsTodayModel.classify(data.tasks).all;
+   const count=active.filter(window.OpsTodayModel.needsPlanning).length;
+   note.textContent=count+' active '+(count===1?'task needs':'tasks need')+' an owner or a recorded date. Review before assigning a schedule; undated does not mean overdue.';
+  });
+ }
  // Advanced setup stays accessible without competing with daily work.
  const advanced=make('details','workspace-advanced');advanced.id='workspace-advanced';const summary=make('summary','','Settings & connections');advanced.append(summary);
  const advancedNodes=[$('task-connection'),document.querySelector('.today-reset-settings'),$('backlog-import-settings')].filter(Boolean);

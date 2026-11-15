@@ -59,7 +59,7 @@ const queueControls=el('div',null,'today-queue-controls');
 const searchLabel=el('label','Find a task'),searchInput=el('input');
 searchInput.id='today-task-search';searchInput.type='search';searchInput.placeholder='Search task title or code';searchInput.autocomplete='off';searchInput.maxLength=300;searchLabel.htmlFor=searchInput.id;searchLabel.append(searchInput);
 const filterLabel=el('label','Show'),filterSelect=el('select');filterSelect.id='today-task-filter';filterLabel.htmlFor=filterSelect.id;
-for(const [value,label] of [['all','All active tasks'],['overdue','Overdue'],['today','Due today'],['waiting','Waiting / blocked'],['undated','Without a date']])filterSelect.add(new Option(label,value));
+for(const [value,label] of [['all','All active tasks'],['overdue','Overdue'],['today','Due today'],['waiting','Waiting / blocked'],['undated','Without a date'],['planning','Needs planning']])filterSelect.add(new Option(label,value));
 filterLabel.append(filterSelect);queueControls.append(searchLabel,filterLabel);
 const queueCount=el('p','Sign in to view active tasks.','today-queue-count');queueCount.id='today-queue-count';queueCount.setAttribute('role','status');queueCount.setAttribute('aria-live','polite');
 $('today-queue').before(queueControls,queueCount);
@@ -92,13 +92,14 @@ function renderQueue(){
   const groups=[['Overdue',tasks.overdue,'No recorded overdue tasks'],['Due today',tasks.today,'No recorded deadlines today'],['Next 7 days',tasks.upcoming.filter(t=>t.schedule.date<=week),'No deadlines recorded in the next 7 days'],['Later scheduled work',tasks.upcoming.filter(t=>t.schedule.date>week),'No later dates recorded'],['Undated active tasks',tasks.undated,'All open tasks have dates recorded']];
   for(const [label,rows,empty] of groups){const filtered=rows.filter(matches);total+=filtered.length;if(query&&!filtered.length)continue;if(label==='Later scheduled work'&&!filtered.length)continue;shown+=group(queue,label,filtered,empty)}
  }else{
-  const labels={overdue:'Overdue',today:'Due today',waiting:'Waiting / blocked',undated:'Undated active tasks'},rows=tasks[queueFilter].filter(matches);total=rows.length;
+  const labels={overdue:'Overdue',today:'Due today',waiting:'Waiting / blocked',undated:'Undated active tasks',planning:'Needs planning'},rows=(queueFilter==='planning'?tasks.all.filter(M.needsPlanning):tasks[queueFilter]).filter(matches);total=rows.length;
   if(rows.length)shown=group(queue,labels[queueFilter],rows,'');
  }
  if(!total)queue.append(el('p',tasks.all.length?'No active tasks match this search and filter. Try another title, code or view.':'No active tasks are recorded. Use Task Intake to import reviewed work.','today-muted'));
  queueCount.textContent=total+' matching active task'+(total===1?'':'s')+' · '+shown+' shown'+(total>shown?' · Use Show more to see the rest.':'.');
 }
 searchInput.addEventListener('input',()=>{queueQuery=searchInput.value;queueLimits.clear();renderQueue()});
+window.addEventListener('ops-open-planning',()=>{if(!viewData)return;queueFilter='planning';queueQuery='';searchInput.value='';filterSelect.value='planning';queueLimits.clear();renderQueue();filterSelect.focus();});
 filterSelect.addEventListener('change',()=>{queueFilter=filterSelect.value;queueLimits.clear();renderQueue()});
 function renderCompleted(all){
  const allDone=all.filter(t=>String(t.status).toLowerCase()==='completed'&&!t.archived_at)

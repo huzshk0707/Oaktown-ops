@@ -1,6 +1,6 @@
 'use strict';
 const {test,expect}=require('@playwright/test');
-const {openTasks}=require('./ui-helpers.cjs');
+const {openTasks,navigate,chooseTheme}=require('./ui-helpers.cjs');
 const M=require('../today-model.js');
 const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co',USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 function shifted(days){const d=new Date(M.today()+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10)}
@@ -41,4 +41,32 @@ test('Read-only task permissions allow viewing a profile, and sign-out clears se
  const writes=await open(page,true);await expect(page.locator('#today-queue .today-edit-trigger')).toHaveCount(0);
  await page.locator('#today-task-search').fill('OAK-901');await page.locator('#today-queue').getByRole('button',{name:'View task'}).click();await expect(page.locator('#operations-profile-dialog')).toBeVisible();await expect(page.locator('#operations-profile-dialog')).toContainText('Fictional overdue inspection');await page.locator('#operations-profile-dialog [data-close]').click();
  await page.locator('#account-button').click();await page.locator('#pilot-logout').click();await expect(page.locator('#today-task-search')).toHaveValue('');await expect(page.locator('#today-task-filter')).toBeDisabled();await expect(page.locator('#today-queue')).toBeEmpty();expect(writes()).toBe(0);
+});
+
+test('planning queue includes missing owners and dates without changing saved work',async({page})=>{
+ const writes=await open(page);
+ await page.locator('#today-task-filter').selectOption('planning');
+ await expect(page.locator('#today-queue-count')).toContainText('13 matching active tasks');
+ await expect(page.locator('#today-queue')).not.toContainText('Fictional completed item');
+ await navigate(page,'today');
+ await expect(page.locator('#today-planning-count')).toContainText('13 active tasks');
+ await page.locator('#today-open-planning').click();
+ await expect(page.locator('#today-task-filter')).toHaveValue('planning');
+ expect(writes()).toBe(0);
+});
+
+test('mobile daily actions precede summaries and remain reachable across themes',async({page})=>{
+ await open(page);await navigate(page,'today');
+ for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
+  await chooseTheme(page,theme);
+  for(const width of [320,390,768,1440]){
+   await page.setViewportSize({width,height:844});await page.evaluate(()=>scrollTo(0,0));
+   const positions=await page.evaluate(()=>({urgent:document.querySelector('.today-attention-card').getBoundingClientRect().top,summary:document.querySelector('#today-kpis').getBoundingClientRect().top,bills:document.querySelector('#bill-reminders').getBoundingClientRect().top,fits:document.documentElement.scrollWidth<=innerWidth}));
+   expect(positions.fits).toBe(true);expect(positions.urgent).toBeLessThan(positions.summary);expect(positions.urgent).toBeLessThan(positions.bills);
+   if(width===390)expect(positions.urgent).toBeLessThan(650);
+  }
+ }
+ await page.evaluate(()=>window.OpsCloud.signOut());
+ await expect(page.locator('#today-open-planning')).toBeDisabled();
+ await expect(page.locator('#today-planning-count')).toContainText('Sign in');
 });

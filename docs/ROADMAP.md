@@ -1,11 +1,13 @@
 # Current Oaktown Ops status and next work
 
-Updated November 8, 2026. Main includes merged PRs #40–#45; PR #23 is closed
-as superseded. The first database hardening migration is now applied live.
-The connected-workspace increment from PR #42 is merged into main. A follow-up
-review simplifies the dashboard: its animated Connections panel is removed in
-favor of compact source-linked records inside task review. Source changes do not
-establish a verified website deployment.
+Updated November 15, 2026. Main includes merged PRs through #68. The current
+baseline passed CI and Pages publication. The audit follow-up brings daily actions
+above summaries, adds a read-only Needs planning queue and guards temporary
+deposit/SOD drafts against accidental reload. Release evidence belongs in its PR.
+See [the current audit](CURRENT-AUDIT-2026-11-15.md) for findings and next releases.
+Personal EOD attribution through the editor/connector, resumable drafts, atomic
+renewal journal writes and the full ten-page lease exporter remain follow-up work.
+
 Archived task profiles also retain their saved property, unit, lease and renewal
 links for read-only history. Archived tasks remain excluded from active work;
 missing references stay labeled, and viewing history never restores a task.
@@ -145,10 +147,10 @@ records and resolving OAK-002 with Leslie; it must not mistake all workbook rows
 for independent pending tasks. A separate Stage B will implement audited and
 verified ChatGPT-to-Supabase task updates. See [Today A1 design](TODAY-WORKSTATION-A1.md).
 
-## Controlled Master Backlog import — PR #45 (staged source, not deployed)
+## Controlled Master Backlog import — PR #45 (historical staging record)
 
 PR #44 is merged into main and provides the focus-first Today workstation.
-PR #45 adds an additive task-code/parent schema and review-only importer with
+Historical review: PR #45 adds an additive task-code/parent schema and review-only importer with
 private receipts, optimistic preview confirmation, duplicate protection and
 fictional disposable database tests. Review hardening adds strict NULL/type
 validation, a private guarded implementation, receipt-ledger RLS, concurrency-safe
@@ -157,7 +159,7 @@ parent checks and identity-checked browser read-back. The staged migration is
 database migration; no live Supabase import or production schema change has
 been authorized in this PR.
 
-After PR review, request separate approval to apply the single migration,
+Historical rollout plan (superseded by the live-history observation below): request separate approval to apply the single migration,
 then generate and approve the private 37-row manifest, preview exact creates,
 read back the imported records, and verify Today. Preserve OAK-002 and the
 existing completed eight-property notice task. The daily Task Dashboard AI
@@ -226,3 +228,13 @@ See [UI/UX refinement](UI-UX-REFINEMENT.md) for references, behavior and evidenc
 This increment changes source/UI only; no database migration or business records
 are changed. Source merge, Pages publication, and live authenticated staff checks
 remain distinct verification steps.
+
+## November 15 database-status clarification
+
+Read-only audit found the controlled-backlog migration registered live as
+`20261108084954`, while the historical source draft is `20261108050604`.
+The receipt ledger contained no import receipts. Applied schema does not prove
+an import occurred. Do not rerun either migration from filename comparison alone;
+reconcile registered SQL and recovery evidence in a dedicated database review.
+The reminder and authenticated-connector migrations are also registered live.
+Connector activation and actual reminder confirmations require their own evidence.

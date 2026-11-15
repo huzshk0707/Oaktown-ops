@@ -728,3 +728,12 @@ test('SOD closing follows the Eastern workday when UTC is already the next day',
  await expect(page.locator('#sod-output')).toHaveValue(/Thank you, and wishing you a wonderful Monday!$/);
  expect(s.edits).toHaveLength(0);expect(s.archives).toHaveLength(0);
 });
+
+test('edited morning plan warns before reload and clears that guard on sign-out',async({page})=>{
+ await setup(page);await page.locator('#today-signin').click();
+ await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();
+ await expect(page.locator('#today-status')).toContainText('Updated');await page.locator('#today-open-plan').click();await page.locator('#sod-extras').fill('Fictional morning priority');
+ const dialog=page.waitForEvent('dialog');const reload=page.reload({timeout:2000}).catch(()=>{});const warning=await dialog;expect(warning.type()).toBe('beforeunload');await warning.dismiss();await reload.catch(()=>{});
+ await expect(page.locator('#sod-extras')).toHaveValue('Fictional morning priority');
+ await page.evaluate(()=>window.OpsCloud.signOut());let prompted=false;page.once('dialog',async d=>{prompted=true;await d.accept()});await page.reload();expect(prompted).toBe(false);
+});
