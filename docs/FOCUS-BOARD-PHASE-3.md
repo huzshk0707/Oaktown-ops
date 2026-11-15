@@ -66,8 +66,9 @@ deterministic earliest-date/urgency order is unchanged.
 Ordinary card drags/swipes remain navigation. The separate labeled action
 handle prepares Complete on a right swipe or Defer on a left swipe. Mouse and
 keyboard users have equivalent visible buttons; activating the handle opens a
-choice. Native touch dispatch settles before modal preparation, preventing a
-consumed first tap. The distance test exists only inside this isolated handle;
+choice. Native touch dispatch finishes before modal preparation. Confirmation buttons
+activate on a deliberate touch release and consume duplicate compatibility clicks;
+movement, cancellation or release outside the control cannot confirm an action. The distance test exists only inside this isolated handle;
 it cannot turn a longer navigation swipe into a mutation.
 
 The native action dialog is modal over either the board or Center Focus Mode.
@@ -79,6 +80,8 @@ drafts, receipts and recent-action data immediately. An already sent request
 cannot be undone by signing out; late replies never show success to a new session.
 
 Before save, shared refresh rechecks access and the exact reviewed version.
+An accessible task's intervening edit keeps unsaved input but blocks confirmation
+until an explicit reload/review; loss of task access clears private draft content.
 The RPC then independently authorizes and compares the version while holding
 the row lock. After a receipt, another shared refresh must match receipt identity,
 microsecond-precise version, changed fields and protected fields before success.

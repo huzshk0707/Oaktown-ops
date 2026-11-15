@@ -29,6 +29,7 @@
   const hidden=!recent||!account()||store.getState()==='error'||store.getState()==='ready'&&!store.getData()?.canEdit;
   for(const id of ['focus-recent','focus-detail-recent'])$(id).hidden=hidden;
   if(hidden){for(const id of ['focus-recent-message','focus-detail-recent-message','focus-undo-note','focus-detail-undo-note'])$(id).textContent='';return}
+  for(const id of ['focus-recent','focus-detail-recent'])$(id).dataset.action=recent.kind;
   const row=task(recent.id),changed=store.getState()==='ready'&&(!row||row.archived_at||!W.sameVersion(row.updated_at,recent.version));
   const expired=Date.now()>=recent.expiresAt;if(expired)recent.reverse=null;
   const disabled=busy()||!!pending||!allowed()||!recent.reverse||changed;
@@ -108,7 +109,7 @@
    recent=plan.kind==='undo'?null:M.recent(plan,saved,reference);
    const text=plan.kind==='complete'?'Task completed.':plan.kind==='defer'?'Follow-up moved to '+plan.changes.follow_up.date+'.':'Undo saved. The previous task fields were restored.';
    recentText=text;
-   close();message(text,'success');
+   close();message(text,plan.kind==='defer'?'defer':'success');
    window.dispatchEvent(new CustomEvent('ops-focus-action-saved',{detail:{id:plan.id,kind:plan.kind,nextId}}));
    // Connected search/profile owns its own existing cache; invalidate it through its established refresh event.
    window.dispatchEvent(new Event('ops-today-refresh'));controls();
@@ -142,6 +143,30 @@
  for(const prefix of ['board','detail'])for(const action of ['complete','defer'])$('focus-'+prefix+'-'+action).onclick=()=>open(action);
  for(const action of ['complete','defer'])$('focus-choose-'+action).onclick=()=>{kind=action;setContent();preview();(action==='complete'?$('focus-completion-summary'):$('focus-followup-date')).focus()};
  dialog.addEventListener('cancel',event=>{event.preventDefault();close()});
+ // A modal opened by a native swipe can suppress Chromium's compatibility click.
+ // Activate a touch button on a deliberate release, and consume any later native
+ // click. Movement/cancel/release outside never activates a confirmation.
+ let touchButton=null,consumedTouch=null;
+ dialog.addEventListener('pointerdown',event=>{
+  consumedTouch=null;touchButton=null;
+  const button=event.target.closest('button');
+  if(event.pointerType==='touch'&&event.isPrimary&&button&&!button.disabled)touchButton={button,id:event.pointerId,x:event.clientX,y:event.clientY,moved:false};
+ });
+ dialog.addEventListener('pointermove',event=>{if(touchButton?.id===event.pointerId&&Math.hypot(event.clientX-touchButton.x,event.clientY-touchButton.y)>10)touchButton.moved=true});
+ dialog.addEventListener('pointercancel',()=>{if(touchButton)consumedTouch=touchButton.button;touchButton=null});
+ dialog.addEventListener('pointerup',event=>{
+  if(touchButton?.id!==event.pointerId)return;
+  const touch=touchButton;touchButton=null;consumedTouch=touch.button;event.preventDefault();
+  const r=touch.button.getBoundingClientRect();
+  if(!touch.moved&&!touch.button.disabled&&event.clientX>=r.left&&event.clientX<=r.right&&event.clientY>=r.top&&event.clientY<=r.bottom)touch.button.click();
+ });
+ document.addEventListener('pointerdown',()=>{consumedTouch=null},true);
+ document.addEventListener('click',event=>{
+  // Closing a modal can retarget the residual native touch click to the deck.
+  if(consumedTouch&&event.isTrusted&&event.detail>0&&(event.pointerType==='touch'||event.sourceCapabilities?.firesTouchEvents)){
+   event.preventDefault();event.stopImmediatePropagation();consumedTouch=null;
+  }
+ },true);
  dialog.addEventListener('keydown',event=>{
   if(event.key!=='Tab')return;const list=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled)')].filter(n=>n.getClientRects().length),first=list[0],last=list.at(-1);
   if(!list.length){event.preventDefault();return}
@@ -157,16 +182,20 @@
   if(handle.hasPointerCapture(event.pointerId))handle.releasePointerCapture(event.pointerId);
   if(Math.abs(dx)>=40&&Math.abs(dx)>Math.abs(dy)*1.4){
    suppressClick=true;const action=dx>0?'complete':'defer',id=selected(),ticket=epoch;
-   // Let native touch dispatch settle before modal inertness disables its target.
-   // Otherwise Chromium can consume the first tap inside the new modal. This is not an action threshold.
-   setTimeout(()=>{if(ticket===epoch)open(action,id,handle)},event.pointerType==='touch'?100:0);
+   // Finish gesture dispatch before applying modal inertness; no gesture can save.
+   setTimeout(()=>{if(ticket===epoch)open(action,id,handle)},0);
   }
  });
  handle.addEventListener('pointercancel',()=>{gesture=null;delete handle.dataset.direction});
  window.addEventListener('ops-auth-change',()=>{epoch++;preparing=false;flow.reset();base=null;planned=null;pending=null;recent=null;recentText='';kind=null;stale=false;gesture=null;clearPrivate();if(dialog.open)dialog.close();message('');$('focus-recent-message').textContent='';controls()});
  window.addEventListener('ops-today-state',()=>{
   if(dialog.open&&!busy()&&base&&!pending&&(store.getState()==='error'||store.getState()==='ready'&&(!allowed()||!task(base.id)||!W.sameVersion(task(base.id).updated_at,base.updated_at)))){
-   stale=true;planned=null;flow.stale();clearPrivate();setContent();$('focus-action-error').textContent='The task or access changed. Close and review the saved version before confirming.';
+   stale=true;planned=null;flow.stale();diff(null);
+   if(allowed()&&task(base.id)){
+    $('focus-action-error').textContent='The task changed. Your unsaved input is kept. Reload for new review to replace it with the saved version before confirming.';
+   }else{
+    clearPrivate();setContent();$('focus-action-error').textContent='The task or access changed. Close and review the saved version before confirming.';
+   }
   }
   controls();
  });

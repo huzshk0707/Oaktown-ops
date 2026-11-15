@@ -253,5 +253,8 @@ html[data-ops-motion="off"] .focus-action-handle {transition:none}
  #focus-detail-action-feedback[data-tone="success"] {color:#bcebd3}
  .focus-detail-action-notices .focus-recent {margin:10px 0;padding:12px 14px}
  .focus-detail-action-notices .focus-recent p {font-size:11px}
+ .focus-recent[data-action="defer"] {background:#30291d;border-color:#8f7548;color:#ffe0a9}
+ .focus-recent[data-action="defer"] p {color:#e1cda7}
+ #focus-action-feedback[data-tone="defer"],#focus-detail-action-feedback[data-tone="defer"] {color:#f5dbab}
  @media(max-width:740px){.focus-detail-action-notices {padding:0 16px}}
 }
