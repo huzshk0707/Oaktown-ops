@@ -123,6 +123,7 @@
  $('focus-detail-back').onclick=()=>closeDetail();$('focus-detail-workspace').onclick=leave;
  $('focus-detail-prev').onclick=()=>choose(-1,true);$('focus-detail-next').onclick=()=>choose(1,true);$('focus-detail-review').onclick=reviewTask;
  $('focus-detail-refresh').onclick=()=>{interaction++;reviewBusy=false;$('focus-detail-feedback').textContent='';store.refresh()};
+ body.addEventListener('scroll',()=>{if(dialog.open&&store.getState()==='ready'&&dialog.dataset.taskId===detailId)detailScroll=body.scrollTop});
  dialog.addEventListener('cancel',event=>{event.preventDefault();closeDetail()});
  dialog.addEventListener('close',()=>{if(!dialog.open)clearDetail()});
  dialog.addEventListener('click',event=>{const r=dialog.getBoundingClientRect();if(event.target===dialog&&(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom))closeDetail()});
