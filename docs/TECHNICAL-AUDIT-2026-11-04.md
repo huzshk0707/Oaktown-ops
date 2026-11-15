@@ -196,3 +196,17 @@ its exact final head passed unit/syntax, schema and browser CI. The follow-up
 interface work is recorded in [UI/UX refinement](UI-UX-REFINEMENT.md). It retains
 the shared staff session and read/write boundaries and adds no production data
 operation. Mocked browser checks are not a live staff permission certification.
+
+## November 15 current audit and first implementation
+
+The [current audit](CURRENT-AUDIT-2026-11-15.md) supersedes historical status
+snapshots above. Its baseline was main through PR #68, with passing CI/Pages.
+Read-only live inspection found zero violations in all 13 relationship checks.
+The repository is public, the backlog migration is registered live (different
+historical version than the source draft), and connector/reminder configuration
+is distinct from actual usage evidence. See the current roadmap clarification.
+
+The daily-usability increment moves actionable work before dashboard summaries,
+adds a read-only Needs planning queue, and warns before reloading edited deposit
+or SOD inputs. It makes no database, task-record or authentication changes.
+Fictional tests and publication evidence do not certify real staff operations.

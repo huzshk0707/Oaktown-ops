@@ -67,5 +67,6 @@
   const e=task?.intake_details?.eod;
   return !!(task&&task.status==='completed'&&!task.archived_at&&validDate(date)&&e&&e.completed_by===performer&&e.work_date===date);
  }
- return Object.freeze({ZONE,today,validDate,scheduled,classify,expiring,personalCompletion});
+ function needsPlanning(task){return !scheduled(task)||!String(task?.assigned_label||'').trim();}
+ return Object.freeze({needsPlanning,ZONE,today,validDate,scheduled,classify,expiring,personalCompletion});
 });

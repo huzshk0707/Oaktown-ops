@@ -50,3 +50,11 @@ test('personal completion requires explicit work attribution and the same Easter
  assert.equal(M.personalCompletion({...entry,archived_at:'2026-11-11T00:00:00Z'},date),false);
  assert.equal(M.personalCompletion(entry,'2026-11-11'),false);
 });
+
+test('planning respects recorded schedules and owners without inventing dates',()=>{
+ const dated={assigned_label:'Example staff',intake_details:{due:{date:'2026-11-15'}}};
+ assert.equal(M.needsPlanning(dated),false);
+ assert.equal(M.needsPlanning({...dated,assigned_label:'  '}),true);
+ assert.equal(M.needsPlanning({assigned_label:'Example staff',due_at:'2026-11-15T15:00:00Z'}),false);
+ assert.equal(M.needsPlanning({assigned_label:'Example staff',intake_details:{}}),true);
+});

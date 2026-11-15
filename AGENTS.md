@@ -4,7 +4,7 @@
 
 Start with `docs/ROADMAP.md` and `docs/TECHNICAL-AUDIT-2026-11-04.md`.
 Historical discovery/release notes preserve past decisions; their module status,
-record counts and deployment claims may be superseded. The repository is private.
+record counts and deployment claims may be superseded. GitHub reported the repository public at the November 15 audit.
 Repository visibility, website hosting and database access are separate controls.
 
 ## Cross-chat Oaktown operating rules

@@ -120,7 +120,7 @@
   }catch(error){invalidate();status('Cannot generate SOD: '+error.message)}
  });
  $('sod-output').addEventListener('input',()=>{
-  if(!$('sod-output').hidden){draft=$('sod-output').value;$('sod-copy').disabled=!draft;status('Email text manually edited. Review before copying; nothing has been sent.');}
+  if(!$('sod-output').hidden){dirty=true;draft=$('sod-output').value;$('sod-copy').disabled=!draft;status('Email text manually edited. Review before copying; nothing has been sent.');}
  });
  $('sod-copy').addEventListener('click',async()=>{
   if(!cloud.user||!data||!draft)return;
@@ -134,6 +134,7 @@
    $('sod-output').focus();$('sod-output').select();status('Clipboard access unavailable. The email is selected; copy it manually.');
   }
  });
+ window.addEventListener('beforeunload',event=>{if(cloud.user&&dirty){event.preventDefault();event.returnValue=''}});
  window.addEventListener('ops-today-data',event=>receive(event.detail));
  window.addEventListener('ops-auth-change',event=>{if(!event.detail?.user||event.detail.user.id!==account)reset()});
  window.addEventListener('ops-today-show',()=>{if(cloud.user&&data){$('sod-workdate').textContent=T.today()+' · Louisville/Eastern'}});

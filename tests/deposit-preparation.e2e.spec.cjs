@@ -59,3 +59,13 @@ test('signing preview aligns identity, yellow blank areas and labels in two colu
  await setup(page);await fill(page);await page.locator('#deposit-add-signer').click();await page.locator('[data-signer="name"]').nth(1).fill('Second Fictional Applicant With A Longer Name');await page.locator('[data-signer="email"]').nth(1).fill('longer.fictional.email.address@example.invalid');await page.locator('#deposit-review').click();
  for(const width of [390,1440]){await page.setViewportSize({width,height:950});const geometry=await page.locator('.deposit-signature-grid').evaluateAll(blocks=>blocks.map(block=>{const c=[...block.children],b=c.map(e=>e.getBoundingClientRect());return {aligned:Math.abs(b[0].left-b[2].left)<1&&Math.abs(b[1].left-b[3].left)<1&&Math.abs(b[2].top-b[3].top)<1&&Math.abs(b[4].top-b[5].top)<1,colors:[getComputedStyle(c[2]).backgroundColor,getComputedStyle(c[3]).backgroundColor],blank:c[2].textContent===''&&c[3].textContent===''};}));expect(geometry).toHaveLength(2);for(const g of geometry){expect(g.aligned).toBe(true);expect(g.colors).toEqual(['rgb(255, 255, 0)','rgb(255, 255, 0)']);expect(g.blank).toBe(true);}}
 });
+
+test('edited deposit draft warns on reload; clearing removes the warning',async({page})=>{
+ await setup(page);await page.locator('#deposit-security').fill('1234');
+ const dialog=page.waitForEvent('dialog');const reload=page.reload({timeout:2000}).catch(()=>{});
+ const warning=await dialog;expect(warning.type()).toBe('beforeunload');await warning.dismiss();await reload.catch(()=>{});
+ await expect(page.locator('#deposit-security')).toHaveValue('1234');
+ page.once('dialog',d=>d.accept());await page.locator('#deposit-clear').click();
+ await expect(page.locator('#deposit-security')).toHaveValue('');
+ let prompted=false;page.once('dialog',async d=>{prompted=true;await d.accept()});await page.reload();expect(prompted).toBe(false);
+});

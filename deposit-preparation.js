@@ -5,7 +5,7 @@
  $('applications-workflow').append($('deposit-template').content.cloneNode(true));
  const launch=document.createElement('button');launch.type='button';launch.className='button primary';launch.id='application-deposit-open';launch.textContent='Prepare deposit & move-in packet';launch.addEventListener('click',open);$('applications-workflow').prepend(launch);
  const form=$('deposit-form'),status=t=>{$('deposit-status').textContent=t},buttons=['deposit-docx','deposit-vendors','deposit-packet','deposit-copy'];
- let reviewed=null,busy=false,generation=0,signerId=0,imageFile=null,imageURL=null;
+ let reviewed=null,busy=false,generation=0,signerId=0,imageFile=null,imageURL=null,dirty=false;
  const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n};
  function signer(name='',email=''){
   const row=node('fieldset',null,'deposit-signer'),legend=node('legend','Tenant signer');row.append(legend);
@@ -17,8 +17,8 @@
  function input(){return {address:$('deposit-address').value,greeting:$('deposit-greeting').value,sender:$('deposit-sender').value,security:$('deposit-security').value,rent:$('deposit-rent').value,pets:$('deposit-pets').value,moveIn:$('deposit-move-in').value,approved:$('deposit-approved').checked,signers:[...$('deposit-signers').children].map(row=>Object.fromEntries([...row.querySelectorAll('[data-signer]')].map(i=>[i.dataset.signer,i.value])))};}
  function clearImage(){if(imageURL)URL.revokeObjectURL(imageURL);imageURL=null;imageFile=null;$('deposit-image').value='';$('deposit-image-preview').removeAttribute('src');$('deposit-image-preview').hidden=true;}
  function controls(){$('deposit-email').disabled=busy||!reviewed||!cloud.user;for(const id of buttons)$(id).disabled=busy||!cloud.user||!reviewed;$('deposit-review').disabled=busy||!cloud.user;$('deposit-add-signer').disabled=busy||!cloud.user||$('deposit-signers').children.length>=6;}
- function invalidate(){generation++;reviewed=null;$('deposit-preview').replaceChildren();$('deposit-email').value='';controls();if(cloud.user)status('Review the updated details to prepare a new packet.');}
- function reset(){generation++;busy=false;reviewed=null;form.reset();clearImage();$('deposit-signers').replaceChildren();signer();$('deposit-preview').replaceChildren();$('deposit-email').value='';$('deposit-fields').disabled=!cloud.user;$('deposit-locked').hidden=!!cloud.user;controls();status(cloud.user?'Enter the approved terms and signer details.':'Sign in to prepare a deposit packet.');}
+ function invalidate(){dirty=true;generation++;reviewed=null;$('deposit-preview').replaceChildren();$('deposit-email').value='';controls();if(cloud.user)status('Review the updated details to prepare a new packet.');}
+ function reset(){dirty=false;generation++;busy=false;reviewed=null;form.reset();clearImage();$('deposit-signers').replaceChildren();signer();$('deposit-preview').replaceChildren();$('deposit-email').value='';$('deposit-fields').disabled=!cloud.user;$('deposit-locked').hidden=!!cloud.user;controls();status(cloud.user?'Enter the approved terms and signer details.':'Sign in to prepare a deposit packet.');}
  function preview(r){
   const host=$('deposit-preview');host.replaceChildren();
   const amounts=node('dl',null,'deposit-summary');for(const [label,value] of [['Base security deposit','$'+M.dollars(r.securityCents)],['Pet deposit',r.pets+' × $150 = $'+M.dollars(r.petCents)],['Holding deposit due now','$'+M.dollars(r.holdingCents)],['First-month rent due at move-in','$'+M.dollars(r.rentCents)+' · '+r.moveInLabel]]){amounts.append(node('dt',label),node('dd',value))}host.append(amounts);
@@ -44,7 +44,7 @@
   if(!['image/png','image/jpeg'].includes(file.type)||file.size>8000000){status('Choose a PNG or JPEG payment image up to 8 MB.');return}
   imageFile=file;imageURL=URL.createObjectURL(file);$('deposit-image-preview').src=imageURL;$('deposit-image-preview').hidden=false;
  });
- $('deposit-clear').onclick=()=>{if((input().address||$('deposit-signers input')?.value)&&!confirm('Clear the deposit draft and its email?'))return;reset()};
+ $('deposit-clear').onclick=()=>{if(dirty&&!confirm('Clear the deposit draft and its email?'))return;reset()};
  $('deposit-signin').onclick=()=>$('account-button').click();
  async function asset(path){const response=await fetch(path);if(!response.ok)throw Error('A packet template could not load. Retry before using the draft.');return response.arrayBuffer()}
  const download=(data,type,name)=>{const url=URL.createObjectURL(new Blob([data],{type})),a=node('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)};
@@ -75,5 +75,7 @@
   catch{if(ticket===generation&&cloud.user?.id===account){$('deposit-email').focus();$('deposit-email').select();status('Email selected for manual copying.');}}
  };
  function open(){const panel=$('deposit-preparation');panel.open=true;panel.scrollIntoView({block:'start',behavior:'instant'});if(cloud.user)$('deposit-address').focus();else $('deposit-signin').focus();}
+ $('deposit-email').addEventListener('input',()=>{dirty=true});
+ window.addEventListener('beforeunload',event=>{if(cloud.user&&dirty){event.preventDefault();event.returnValue=''}});
  window.addEventListener('ops-open-deposit',open);window.addEventListener('ops-auth-change',reset);reset();
 })();
