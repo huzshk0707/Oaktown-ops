@@ -51,6 +51,7 @@ test('board is dark, responsive, visually centered and motion-aware across appea
   await page.locator('#workspace-appearance-open').click();await page.getByLabel('Workspace theme').selectOption(theme);await page.locator('#workspace-appearance-dialog').getByRole('button',{name:'Close',exact:true}).click();
   for(const width of [320,390,768,1440]){
    await page.setViewportSize({width,height:900});
+   await page.waitForFunction(()=>!document.querySelector('#focus-track').getAnimations({subtree:true}).some(a=>a.playState==='running'));
    const layout=await page.evaluate(()=>{const center=document.querySelector('.focus-card[data-offset="0"]'),neighbor=document.querySelector('.focus-card[data-offset="1"]'),a=center.getBoundingClientRect(),b=neighbor.getBoundingClientRect();return {fits:document.documentElement.scrollWidth<=innerWidth,center:a.x+a.width/2,width:a.width,neighborWidth:b.width,opacity:Number(getComputedStyle(neighbor).opacity),scheme:getComputedStyle(document.body).colorScheme}});
    expect(layout.fits).toBe(true);expect(Math.abs(layout.center-width/2)).toBeLessThan(2);expect(layout.width).toBeGreaterThan(layout.neighborWidth);expect(layout.opacity).toBeLessThan(.6);expect(layout.scheme).toBe('dark');
   }

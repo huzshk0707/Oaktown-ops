@@ -63,3 +63,10 @@ test('denied refresh removes open private details and blocks Review until access
  const s=await open(page);await focus(page);s.fail=true;s.failStatus=403;await page.locator('#focus-detail-refresh').click();await expect(page.locator('#focus-detail-title')).toHaveText('Task details unavailable');await expect(page.locator('#focus-detail-content')).not.toContainText(s.tasks[0].notes);await expect(page.locator('#focus-detail-review')).toBeDisabled();
  await page.locator('#focus-detail-back').click();await expect(current(page)).toHaveCount(0);expect(s.writes).toEqual([]);
 });
+
+test('resizing during navigation keeps the selected card centered in the new viewport',async({page})=>{
+ await open(page);await page.setViewportSize({width:1440,height:900});await page.locator('#focus-deck').focus();await page.keyboard.press('ArrowRight');await page.setViewportSize({width:320,height:900});
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ expect(await current(page).evaluate(n=>Math.abs(n.getBoundingClientRect().x+n.getBoundingClientRect().width/2-innerWidth/2))).toBeLessThan(2);
+ await expect(current(page)).toContainText('DEMO-102');
+});

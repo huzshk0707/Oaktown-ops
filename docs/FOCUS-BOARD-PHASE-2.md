@@ -68,7 +68,8 @@ No guessed occupant, approval, payment, completion, contact or deadline is added
 
 - `focus-board.js`, `focus-board.css`, `focus-board-model.js`, `index.html`:
   HUD, activation, modal, review handoff, lifecycle and presentation.
-- `tests/focus-mode.e2e.spec.cjs`, `tests/focus-board-model.test.cjs`:
+- `tests/focus-mode.e2e.spec.cjs`, `tests/focus-board.e2e.spec.cjs`,
+  `tests/focus-board-model.test.cjs`:
   interaction/security/ordering projection coverage.
 - `tests/focus-accessibility.e2e.spec.cjs`, `.github/workflows/checks.yml`:
   repeatable scoped accessibility checks; pinned axe tooling in browser CI only.

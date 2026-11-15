@@ -59,7 +59,7 @@
   selectedId=all[next].id;if(inside){detailId=selectedId;detailScroll=0;body.scrollTop=0;interaction++}
   render();
   if(inside){$('focus-detail-title').focus({preventScroll:true});animate(body,[{opacity:.5,transform:'translateX('+(next>at?10:-10)+'px)'},{opacity:1,transform:'translateX(0)'}],{duration:180})}
-  else for(const item of track.children){const base=getComputedStyle(item).transform;animate(item,[{transform:base+' translateX('+(next>at?38:-38)+'px) scale(.98)',opacity:.3},{transform:base+' translateX('+(next>at?-3:3)+'px)',offset:.8},{transform:base,opacity:item.dataset.offset==='0'?1:innerWidth<741?.5:.35}],{duration:330,easing:'cubic-bezier(.2,.75,.25,1)'})}
+  else for(const item of track.children)animate(item,[{translate:(next>at?38:-38)+'px 0',scale:'.98',opacity:.3},{translate:(next>at?-3:3)+'px 0',scale:'1',offset:.8},{translate:'0px 0',scale:'1',opacity:item.dataset.offset==='0'?1:innerWidth<741?.5:.35}],{duration:330,easing:'cubic-bezier(.2,.75,.25,1)'});
  }
  function clearDetail(){
   detailId=null;reviewBusy=false;delete dialog.dataset.taskId;delete dialog.dataset.tone;content.replaceChildren();$('focus-detail-title').textContent='Task focus';$('focus-detail-code').textContent='';$('focus-detail-feedback').textContent='';$('focus-detail-position').textContent='';document.body.classList.remove('focus-detail-open');
