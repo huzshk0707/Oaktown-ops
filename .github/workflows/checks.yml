@@ -73,7 +73,8 @@ jobs:
         run: npx --yes deno@2.5.6 check --frozen --config supabase/functions/oaktown-task-api/deno.json --node-modules-dir=auto supabase/functions/oaktown-task-api/index.ts
 
   browser-downloads:
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 supports Ubuntu 24.04; avoid an unsupported latest runner.
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4

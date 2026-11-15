@@ -157,7 +157,7 @@
  .today-planning h3 {font-size:15px;margin:0}
  .today-planning p {flex:1;min-width:180px;font-size:13px;color:var(--ui-muted);margin:0}
  html[data-ops-theme] .ops-workspace #today-kpis {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:16px}
- html[data-ops-theme] .ops-workspace #today-kpis .today-kpi {min-height:74px;padding:10px 12px;box-shadow:none}
+ html[data-ops-theme] .ops-workspace #today-kpis .today-kpi {grid-column:auto;min-height:74px;padding:10px 12px;box-shadow:none}
  html[data-ops-theme] .ops-workspace #today-kpis .today-kpi strong {font-size:24px}
  html[data-ops-theme] .ops-workspace #today-kpis .metric-symbol {display:none}
  @media(max-width:740px){
