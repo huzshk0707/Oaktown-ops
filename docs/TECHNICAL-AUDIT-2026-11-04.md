@@ -220,3 +220,13 @@ paginated reader; its permissions, staff session and business classification sta
 with the existing modules. Tests cover multi-page records, all navigation inputs,
 late replies, denied access and zero task writes. No database migration or actual
 staff operation is part of this feature branch. It must remain unmerged for review.
+
+## Center Focus Mode — Phase 2 review scope
+
+The Phase 2 feature branch adds a native, read-only task-detail dialog and a scoped
+HUD refinement on top of Phase 1. It consumes the same snapshot; Review calls the
+unchanged existing source workflow, including its editor/read-only permission
+path. Refresh removes stale content; sign-out clears immediately; canceled
+preparation is invalidated before handoff. No database/auth change, task write
+endpoint or production publication is included. See [Phase 2](FOCUS-BOARD-PHASE-2.md)
+for tested behaviors, captures and remaining boundaries.

@@ -82,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install browser test tooling
-        run: npm install --no-save --no-fund --no-audit @playwright/test@1.56.1
+        run: npm install --no-save --no-fund --no-audit @playwright/test@1.56.1 @axe-core/playwright@4.10.2
       - name: Install Chromium for visual PDF download tests
         run: npx playwright install --with-deps chromium
       - name: Serve app locally

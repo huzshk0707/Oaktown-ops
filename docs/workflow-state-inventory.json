@@ -691,7 +691,7 @@
     },
     {
       "id": "focus_board",
-      "scope": "Opt-in Phase 1 task carousel, selection only",
+      "scope": "Focus Board carousel and native Center Focus detail dialog",
       "sources": [
         "focus-board.js",
         "focus-board-model.js",
@@ -703,18 +703,25 @@
         "ready",
         "empty",
         "error",
-        "selected_task"
+        "selected_task",
+        "detail_open",
+        "detail_refreshing",
+        "detail_unavailable",
+        "review_handoff"
       ],
       "guards": [
         "Consumes the existing OpsToday snapshot; shared reader pages tasks with deterministic ID ordering and rejects duplicate pages.",
         "Navigation changes only the selected ID; no write API, new auth path or task status transition.",
         "Shared data lifecycle clears private cards on account change, sign-out or failed refresh.",
-        "Keyboard controls defer to forms and open dialogs; horizontal swipes only navigate; motion follows existing preference and OS."
+        "Keyboard controls defer to forms and open dialogs; horizontal swipes only navigate; motion follows existing preference and OS.",
+        "Native modal isolates background interaction; close restores the selected task control. Sign-out clears modal content synchronously.",
+        "Review hands off to OpsOperations.openSource and the existing editor/permission checks. Canceled or stale preparation cannot open a review."
       ],
       "tests": [
         "tests/focus-board-model.test.cjs",
         "tests/ops-task-reader.test.cjs",
-        "tests/focus-board.e2e.spec.cjs"
+        "tests/focus-board.e2e.spec.cjs",
+        "tests/focus-mode.e2e.spec.cjs"
       ],
       "representation": "guarded"
     }

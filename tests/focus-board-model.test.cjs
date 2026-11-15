@@ -17,3 +17,18 @@ test('Eastern timestamps and follow-ups use shared semantics without inventing d
  for(const status of ['completed','cancelled','canceled','closed','done','declined'])assert.equal(M.order([{id:status,status}],day).length,0);
  assert.equal(M.order([{id:'unknown',status:'custom'}],day).length,1);
 });
+
+test('HUD tones preserve urgency labels and stored priority/status values',()=>{
+ assert.deepEqual(M.appearance(row('late','urgent','2026-11-14'),day),{lane:'overdue',tone:'overdue',label:'Overdue'});
+ assert.equal(M.appearance(row('today','low',day),day).tone,'today');
+ assert.equal(M.appearance(row('urgent','urgent',null),day).tone,'urgent');
+ assert.equal(M.appearance(row('low','low',null),day).tone,'low');
+ assert.equal(M.appearance(row('normal','normal',null),day).tone,'normal');
+});
+test('Focus details project only stored text and exact related records without interpreting markup',()=>{
+ const task={id:'task-1',property_id:'p-1',unit_id:'u-1',lease_id:'l-missing',workflow_key:'maintenance',notes:'<img onerror="bad()">\nReviewed note',intake_details:{description:'Recorded description',next_action:'Verify the document',waiting_on:'Example staff',secret_unknown_key:'Must not display'}};
+ const before=JSON.stringify(task),result=M.detail(task,{properties:[{id:'p-1',street_address:'100 Fictional Lane'}],units:[{id:'u-1',unit_label:'Unit A'}]});
+ assert.deepEqual(result.references,[['Property','100 Fictional Lane · p-1'],['Unit','Unit A · u-1'],['Lease','l-missing']]);
+ assert.ok(result.sections.some(([key,value])=>key==='Notes'&&value.includes('<img')));assert.ok(!JSON.stringify(result).includes('Must not display'));
+ assert.equal(JSON.stringify(task),before);assert.deepEqual(M.detail({id:'empty'}).sections,[]);
+});

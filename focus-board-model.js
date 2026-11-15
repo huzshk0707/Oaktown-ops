@@ -14,5 +14,19 @@
    compare(String(a.task_title||'').toLowerCase(),String(b.task_title||'').toLowerCase())||compare(String(a.id),String(b.id)));
  }
  function due(task){return T.scheduled({...task,intake_details:{due:task.intake_details?.due}})?.date||null}
- return Object.freeze({order,lane,due});
+ function appearance(task,day=T.today()){
+  const kind=lane(task,day),follow=T.scheduled(task)?.type==='Follow-up';
+  return {lane:kind,tone:kind==='overdue'?'overdue':kind==='today'?'today':String(task.priority).toLowerCase()==='urgent'?'urgent':String(task.priority).toLowerCase()==='low'?'low':'normal',
+   label:kind==='overdue'?(follow?'Follow-up overdue':'Overdue'):kind==='today'?(follow?'Follow-up today':'Due today'):kind==='urgent'?'Urgent':'Active work'};
+ }
+ function detail(task,data={}){
+  const text=v=>typeof v==='string'&&v.trim()?v:null,info=task.intake_details||{};
+  const sections=[['Description',text(info.description)],['Next action',text(info.next_action)],['Waiting on',text(info.waiting_on)],['Blocked reason',text(info.blocked_reason)],['Notes',text(task.notes)],['Completion summary',text(info.completion_summary)]].filter(([,value])=>value);
+  const find=(key,id)=>(data[key]||[]).find(row=>row.id===id);
+  const property=find('properties',task.property_id),unit=find('units',task.unit_id),lease=find('leases',task.lease_id),renewal=find('renewals',task.renewal_case_id);
+  const references=[['Property',task.property_id,property?.street_address],['Unit',task.unit_id,unit?.unit_label],['Lease',task.lease_id,lease?.lease_label],['Renewal',task.renewal_case_id,renewal?.oak_record_id]].filter(([,id])=>id).map(([kind,id,label])=>[kind,label?label+' · '+id:id]);
+  const metadata=[['Record ID',task.id],['Parent task ID',task.parent_task_id],['Workflow',text(task.workflow_key)],['Last updated',text(task.updated_at)]].filter(([,value])=>value);
+  return {sections,references,metadata};
+ }
+ return Object.freeze({order,lane,due,appearance,detail});
 });

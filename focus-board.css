@@ -90,3 +90,99 @@
  @media(prefers-reduced-motion:reduce){.focus-board-mode *, .focus-board-mode *::before {transition:none!important;animation:none!important;scroll-behavior:auto!important}}
  html[data-ops-motion="off"] .focus-board-mode *,html[data-ops-motion="off"] .focus-board-mode *::before {transition:none!important;animation:none!important;scroll-behavior:auto!important}
 }
+
+/* Phase 2: task accents, readable HUD depth, and a native Center Focus surface. */
+@media screen {
+ .focus-board {background:radial-gradient(ellipse at 50% 46%,#1533446b,transparent 56%),linear-gradient(180deg,#0b121d,#070c13 75%)}
+ .focus-board::before {opacity:.25;background-size:80px 80px;mask-image:radial-gradient(ellipse at 50% 50%,#000,transparent 78%)}
+ .focus-board-heading {padding-top:2px}
+ .focus-board h1 {font-weight:550;font-size:clamp(27px,3vw,42px)}
+ .focus-board-tools>span {padding:8px 12px;border:1px solid #2c455b;border-radius:5px;background:#111e2b;color:#c2d5e3}
+ .focus-deck {height:clamp(500px,61dvh,680px);margin-top:12px}
+ .focus-card,.focus-detail-dialog {--task-accent:#88dce8;--task-surface:#142936;--task-label:#c0f1f5}
+ :is(.focus-card,.focus-detail-dialog)[data-tone="overdue"] {--task-accent:#efa4a6;--task-surface:#30232c;--task-label:#ffd2d2}
+ :is(.focus-card,.focus-detail-dialog)[data-tone="today"] {--task-accent:#e8c27c;--task-surface:#30291d;--task-label:#f7dfb0}
+ :is(.focus-card,.focus-detail-dialog)[data-tone="urgent"] {--task-accent:#ffd08a;--task-surface:#392c18;--task-label:#ffe3b4}
+ :is(.focus-card,.focus-detail-dialog)[data-tone="low"] {--task-accent:#9fb1c4;--task-surface:#202b38;--task-label:#d3dde7}
+ .focus-card {min-height:444px;padding:32px 34px 22px;border:1px solid color-mix(in srgb,var(--task-accent) 48%,#233547);border-top:2px solid var(--task-accent);border-radius:14px;background:radial-gradient(ellipse at 100% 0%,#24415355,transparent 65%),linear-gradient(145deg,#152637,#0e1926 72%);box-shadow:0 30px 90px #0008,0 0 50px color-mix(in srgb,var(--task-accent) 6%,transparent);transition:box-shadow .22s ease,border-color .22s ease}
+ .focus-card::before {content:'';position:absolute;left:14px;top:14px;width:13px;height:13px;border-left:1px solid var(--task-accent);border-top:1px solid var(--task-accent);opacity:.55;pointer-events:none}
+ .focus-card:not([data-offset="0"]) {opacity:.35;filter:saturate(.6);background:#101c29;border-color:#33485c}
+ .focus-card[data-offset="0"] {cursor:pointer}
+ .focus-card[data-offset="0"]:hover {border-color:var(--task-accent);box-shadow:0 30px 90px #0008,0 0 35px color-mix(in srgb,var(--task-accent) 10%,transparent)}
+ .focus-card .focus-task-code {color:#c1d7e7;letter-spacing:.09em}
+ .focus-card .focus-lane,.focus-detail-dialog .focus-lane {display:inline-block;background:var(--task-surface);border:1px solid color-mix(in srgb,var(--task-accent) 45%,#203548);color:var(--task-label);font:11px/1.5 ui-monospace,monospace;letter-spacing:.02em;border-radius:4px;padding:5px 9px}
+ .focus-card h2 {font-weight:550;margin:24px 0 20px;font-size:clamp(25px,2.45vw,35px)}
+ .focus-card-tags {gap:10px;margin-bottom:22px}
+ .focus-card-tags .focus-priority {color:var(--task-label);border:1px solid color-mix(in srgb,var(--task-accent) 28%,#263d50);background:var(--task-surface);border-radius:4px;padding:5px 8px}
+ .focus-card-tags .focus-task-status {padding:6px 0;border:0;color:#b4c6d6}
+ .focus-card .focus-facts {font-size:13px;gap:9px 14px}
+ .focus-card-bottom {font-size:9px;margin-top:23px;padding-top:13px;color:#a3b8ca}
+ .focus-open-task {display:block;width:100%;margin-top:20px;min-height:44px;border:1px solid #4a697c;border-radius:6px;background:#172b3b;color:#d9f3f7;font:600 12px/1.5 system-ui,sans-serif;text-align:left;padding:11px 14px;cursor:pointer}
+ .focus-open-task:hover {background:#20394b;border-color:var(--task-accent)}
+ .focus-progress {height:3px;border-radius:3px}.focus-progress span {transition:width .26s ease;background:linear-gradient(90deg,#598c9e,var(--focus-accent))}
+ .focus-navigation {margin-top:12px;margin-bottom:24px}
+ body.focus-detail-open {overflow:hidden}
+ html[data-ops-theme] .focus-board-mode .focus-detail-dialog {position:fixed;inset:0;width:min(1040px,calc(100vw - 64px));max-width:none;max-height:calc(100dvh - 64px);padding:0;margin:auto;border:1px solid color-mix(in srgb,var(--task-accent) 50%,#273c50);border-top:2px solid var(--task-accent);border-radius:16px;background:#0e1926;color:#e6f0f7;box-shadow:0 32px 120px #000b;overflow:hidden;color-scheme:dark}
+ .focus-detail-dialog::backdrop {background:#02060de3;backdrop-filter:blur(6px)}
+ .focus-detail-shell {display:flex;flex-direction:column;max-height:calc(100dvh - 68px);min-height:min(620px,80dvh)}
+ .focus-detail-header {display:flex;flex:none;align-items:center;justify-content:space-between;gap:20px;padding:24px 30px 20px;border-bottom:1px solid #2a4053;background:#111f2e}
+ .focus-detail-header .focus-eyebrow {margin:0 0 7px;color:var(--task-accent);letter-spacing:.12em}
+ .focus-detail-header .focus-eyebrow span {margin:0;color:inherit}
+ .focus-detail-header #focus-detail-purpose {font:12px/1.5 system-ui,sans-serif;color:#a9bdce;margin:0}
+ html[data-ops-theme] .focus-board-mode .focus-detail-dialog .button {min-height:44px;background:#142536;border:1px solid #476276;border-radius:6px;color:#d6e7f3;padding:10px 14px;font:600 12px/1.5 system-ui,sans-serif;box-shadow:none}
+ html[data-ops-theme] .focus-board-mode .focus-detail-dialog .button.primary {background:#c3e9ee;color:#0b1b27;border-color:#c3e9ee}
+ html[data-ops-theme] .focus-board-mode .focus-detail-dialog button:disabled {opacity:.45;cursor:default}
+ .focus-detail-body {min-height:0;overflow:auto;overscroll-behavior:contain;flex:1;padding:28px 34px;scrollbar-color:#45667c #0e1926}
+ .focus-detail-dialog #focus-detail-title {font:550 clamp(26px,3vw,38px)/1.2 system-ui,sans-serif;letter-spacing:-.03em;overflow-wrap:anywhere;margin:0 0 18px;color:#f0f6fa}
+ .focus-detail-dialog .focus-card-tags {margin:16px 0 24px}
+ .focus-detail-dialog .focus-facts {grid-template-columns:120px minmax(0,1fr);gap:10px 20px;font-size:13px;line-height:1.65}
+ .focus-detail-dialog .focus-facts dd {overflow-wrap:anywhere}
+ .focus-detail-section {margin-top:26px;padding-top:22px;border-top:1px solid #263e51}
+ .focus-detail-section h3 {font:600 11px/1.5 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.13em;color:#a7d7e2;margin:0 0 10px}
+ .focus-detail-section p {font:14px/1.8 system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;color:#d2e0eb;margin:0}
+ .focus-detail-empty {font:14px/1.7 system-ui,sans-serif;color:#afc2d2;margin:24px 0}
+ .focus-detail-actions {display:flex;flex:none;justify-content:space-between;align-items:center;gap:18px;padding:18px 28px 22px;border-top:1px solid #30495d;background:#101e2c}
+ .focus-detail-step,.focus-detail-primary {display:flex;align-items:center;gap:10px}
+ .focus-detail-step .button {min-width:44px}
+ #focus-detail-position {min-width:56px;text-align:center;color:#bdcedc;font:12px/1.5 ui-monospace,monospace}
+ .focus-detail-statusbar {display:flex;flex:none;align-items:center;gap:14px;padding:10px 28px;background:#0b1521}
+ html[data-ops-theme] .focus-board-mode .focus-detail-dialog .focus-detail-refresh {padding:6px 9px;min-height:34px;font-size:11px}
+ .focus-detail-dialog .focus-detail-feedback {min-height:18px;margin:0;color:#c4d8e7;font:12px/1.5 system-ui,sans-serif}
+ .focus-detail-dialog :focus-visible {outline:2px solid #b5eff5!important;outline-offset:3px}
+ @media(max-width:740px){
+  .focus-board {padding-top:24px}.focus-board h1 {font-size:30px}.focus-board-heading {gap:18px}
+  .focus-deck {height:560px;--card-width:82vw;--card-step:var(--card-width)}
+  .focus-card {min-height:476px;padding:27px 23px 20px;max-height:calc(100% - 24px)}
+  .focus-card:not([data-offset="0"]) {opacity:.5}
+  .focus-card h2 {font-size:27px;margin-top:23px}
+  .focus-card .focus-card-tags {font-size:10px;gap:6px}
+  .focus-card .focus-facts {font-size:12px;grid-template-columns:76px minmax(0,1fr);gap:10px}
+  .focus-open-task {margin-top:16px}
+  html[data-ops-theme] .focus-board-mode .focus-detail-dialog {width:calc(100vw - 24px);max-height:calc(100dvh - 24px);border-radius:12px}
+  .focus-detail-shell {max-height:calc(100dvh - 28px);min-height:0}
+  .focus-detail-header {padding:18px 18px 16px;gap:12px;align-items:flex-start}
+  .focus-detail-header .focus-eyebrow {font-size:9px;line-height:1.7;overflow-wrap:anywhere}
+  .focus-detail-header #focus-detail-purpose {font-size:11px;max-width:180px}
+  .focus-detail-header .button {flex:none;max-width:100px;padding:8px!important}
+  .focus-detail-body {padding:22px 20px}
+  .focus-detail-dialog #focus-detail-title {font-size:28px}
+  .focus-detail-dialog .focus-facts {grid-template-columns:78px minmax(0,1fr);gap:9px 12px;font-size:12px}
+  .focus-detail-section p {font-size:13px;line-height:1.8}
+  .focus-detail-actions {padding:14px 16px 16px;flex-wrap:wrap;gap:14px}
+  .focus-detail-step {width:100%;justify-content:space-between}
+  .focus-detail-primary {width:100%}.focus-detail-primary .button {flex:1}
+  .focus-detail-statusbar {padding:10px 16px;align-items:flex-start;gap:10px}
+  .focus-detail-statusbar .button {white-space:nowrap;flex:none}
+  .focus-detail-feedback {font-size:11px}
+ }
+}
+
+@media screen {
+ .focus-card-tags .focus-priority[data-priority="normal"] {background:#17313b;color:#c0edf1;border-color:#376172}
+ .focus-card-tags .focus-priority:is([data-priority="urgent"],[data-priority="high"]) {background:#352b1c;color:#ffe0a9;border-color:#78613a}
+ .focus-card-tags .focus-priority[data-priority="low"] {background:#24303c;color:#c9d6e2;border-color:#4e6275}
+ .focus-detail-dialog {transition:border-color .2s ease}
+}
+@media screen and (min-width:741px){
+ html[data-ops-theme] .focus-board-mode .topbar .operations-search::after {content:'Ctrl K';display:inline-block;margin-left:12px;padding:1px 5px;border:1px solid #3c5268;border-radius:3px;color:#aabfce;font-size:10px}
+}

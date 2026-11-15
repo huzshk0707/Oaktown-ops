@@ -249,3 +249,12 @@ appearance controls. A shared paginated reader removes the task request's first
 and Today rules are preserved. Full workspace routes remain available.
 This is a review preview, not a merged/deployed feature. Do not merge automatically.
 Later phases, completion/defer gestures, confirmation and Undo remain unimplemented.
+
+## Center Focus Mode and HUD — Phase 2 review branch
+
+`feature/focus-board-phase-2` builds on the current PR #70 head and targets its
+Phase 1 branch for independent review. The [Phase 2 guide](FOCUS-BOARD-PHASE-2.md)
+records the native task-detail modal, existing Review handoff, session/refresh
+protections and priority/motion treatment. Shared data/auth, task records and the
+production landing route are preserved. Both increments remain unmerged and
+unpublished; completion/defer/Undo and later morning-flow changes remain future work.
