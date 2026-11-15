@@ -42,17 +42,17 @@
   $('focus-count').textContent=ready?all.length+' active '+(all.length===1?'task':'tasks'):'Active work';
   const state=!window.OpsCloud.user?'Sign in with your Oaktown staff account to open your active work.':phase==='error'?'Tasks could not be loaded. Refresh tasks to retry.':!ready?'Loading your active tasks…':!all.length?'No active tasks. Your completed and archived work is available in the full workspace.':'';
   $('focus-state').textContent=state;$('focus-state').hidden=!state;
-  if(!ready||!all.length){$('focus-position').textContent='';if(!window.OpsCloud.user||phase==='error'||ready)selectedId=null;renderDetail(all,phase);return}
+  if(!ready||!all.length){$('focus-position').textContent='';if(!window.OpsCloud.user||phase==='error'||ready)selectedId=null;renderDetail(all,phase);window.dispatchEvent(new Event('ops-focus-selection'));return}
   if(dialog.open&&all.some(t=>t.id===detailId))selectedId=detailId;
   let at=all.findIndex(t=>t.id===selectedId);if(at<0)at=0;selectedId=all[at].id;
   for(let i=Math.max(0,at-2);i<=Math.min(all.length-1,at+2);i++)track.append(card(all[i],i,all.length,i-at));
   $('focus-prev').disabled=at===0;$('focus-next').disabled=at===all.length-1;
   $('focus-position').textContent=(at+1)+' / '+all.length+' · '+(all[at].task_code||'Task')+' · '+(all[at].task_title||'Untitled task');
   $('focus-progress-fill').style.width=((at+1)/all.length*100)+'%';
-  renderDetail(all,phase);if(restoreCard&&!dialog.open)selectedButton()?.focus({preventScroll:true});
+  renderDetail(all,phase);window.dispatchEvent(new Event('ops-focus-selection'));if(restoreCard&&!dialog.open)selectedButton()?.focus({preventScroll:true});
  }
  function choose(where,inside=false){
-  if(!active||store.getState()!=='ready'||document.querySelector('dialog[open]')&&!inside||reviewBusy)return;
+  if(!active||store.getState()!=='ready'||document.querySelector('dialog[open]')&&!inside||reviewBusy||window.OpsFocusActions?.busy)return;
   const all=rows();if(!all.length)return;
   const at=Math.max(0,all.findIndex(t=>t.id===(inside?detailId:selectedId)));
   const next=where==='first'?0:where==='last'?all.length-1:Math.max(0,Math.min(all.length-1,at+where));if(at===next)return;
@@ -99,7 +99,7 @@
   $('focus-detail-position').textContent=(at+1)+' / '+all.length;body.scrollTop=detailScroll;
  }
  async function reviewTask(){
-  if(reviewBusy||!dialog.open||store.getState()!=='ready'||!rows().some(t=>t.id===detailId))return;
+  if(window.OpsFocusActions?.busy||reviewBusy||!dialog.open||store.getState()!=='ready'||!rows().some(t=>t.id===detailId))return;
   const api=window.OpsOperations,account=window.OpsCloud.user?.id,id=detailId,ticket=++interaction;
   if(!api?.refresh||!api?.openSource){$('focus-detail-feedback').textContent='Task Review is unavailable. Refresh the workspace and retry.';return}
   reviewBusy=true;renderDetail(rows(),store.getState());$('focus-detail-feedback').textContent='Checking the saved task before opening Review…';
@@ -111,7 +111,7 @@
   }catch{if(ticket===interaction&&dialog.open)$('focus-detail-feedback').textContent='Task Review could not be opened. Refresh tasks and retry.';}
   finally{if(ticket===interaction){reviewBusy=false;renderDetail(rows(),store.getState())}}
  }
- function leave(){reviewReturn=null;closeDetail(false,true);window.OpsWorkspace.navigate(previousRoute.workflow,previousRoute.tab)}
+ function leave(){if(window.OpsFocusActions?.busy)return;reviewReturn=null;closeDetail(false,true);window.OpsWorkspace.navigate(previousRoute.workflow,previousRoute.tab)}
  function route(){
   const next=window.OpsWorkspace.getRoute(),on=next.workflow==='focus';
   if(!on){previousRoute={workflow:next.workflow,tab:next.tab};if(active){closeDetail(false,true);searchHome.after(search);search.textContent=searchText;exit.hidden=true;document.body.classList.remove('focus-board-mode');active=false;pointer=null;$('workspace-title').focus({preventScroll:true});}return}
@@ -151,5 +151,12 @@
  new MutationObserver(stopMotion).observe(document.documentElement,{attributes:true,attributeFilter:['data-ops-motion']});matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',stopMotion);
  setInterval(()=>{if(active&&!document.hidden&&reference!==T.today()){reference=T.today();render()}},60000);
  document.addEventListener('visibilitychange',()=>{if(active&&!document.hidden){reference=T.today();render()}});
+ window.OpsFocusBoard=Object.freeze({getSelected:()=>detailId||selectedId,getNext:id=>{const all=rows(),at=all.findIndex(t=>t.id===id);return all[at+1]?.id||all[at-1]?.id||null},restoreFocus:()=>selectedButton()?.focus({preventScroll:true})});
+ window.addEventListener('ops-focus-action-saved',event=>{
+  const all=rows(),{id,kind,nextId}=event.detail,chosen=kind==='complete'?(all.find(t=>t.id===nextId)||all[0]):all.find(t=>t.id===id);
+  selectedId=chosen?.id||null;
+  if(dialog.open){if(chosen){detailId=chosen.id;detailScroll=0}else closeDetail(false,true)}
+  render();if(dialog.open)$('focus-detail-title').focus({preventScroll:true});else (selectedButton()||$('focus-heading')).focus({preventScroll:true});
+ });
  route();
 })();

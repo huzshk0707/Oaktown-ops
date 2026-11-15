@@ -113,3 +113,11 @@ database checks. It does not exercise real staff accounts or actual sending,
 signing, payments or Windows programs. The Supabase changelog HTTP request was
 blocked by the runtime proxy; current session documentation was retrieved through
 the documentation connector. No Supabase interface or session policy is changed.
+
+## Focus Board reviewed actions
+
+Phase 3 adds a third controller using the shared reviewed-write lifecycle, for
+confirmed task completion, follow-up scheduling and guarded persisted reversal.
+The [Phase 3 guide](FOCUS-BOARD-PHASE-3.md) records its existing intake RPC contract,
+immutable retry payloads, exact-version Undo and private UI invalidation. The
+source inventory maps the action model/controller and unit/browser/SQL evidence.

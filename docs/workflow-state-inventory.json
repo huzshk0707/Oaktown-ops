@@ -724,6 +724,36 @@
         "tests/focus-mode.e2e.spec.cjs"
       ],
       "representation": "guarded"
+    },
+    {
+      "id": "focus_actions",
+      "scope": "Confirmed Focus Board completion, follow-up and persisted reversal",
+      "sources": [
+        "focus-actions-model.js",
+        "focus-actions.js"
+      ],
+      "states": [
+        "idle",
+        "reviewing",
+        "checking",
+        "saving",
+        "verifying",
+        "saved",
+        "needs_review",
+        "refreshing"
+      ],
+      "guards": [
+        "OpsToday owns the only shared snapshot; every action requires explicit confirmation and current staff access.",
+        "Existing intake RPC locks task versions and records idempotent receipts; an uncertain request is retried unchanged.",
+        "Undo is a new authorized audited narrow proposal bound to the exact post-action version; newer edits and unrepresentable previous values prevent reversal.",
+        "Ordinary card gestures never mutate; isolated action handle only opens a preview; account changes clear private UI and invalidate tickets."
+      ],
+      "tests": [
+        "tests/focus-actions-model.test.cjs",
+        "tests/focus-actions.e2e.spec.cjs",
+        "tests/focus-actions-database.cjs"
+      ],
+      "representation": "explicit"
     }
   ]
 }

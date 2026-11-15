@@ -230,3 +230,15 @@ path. Refresh removes stale content; sign-out clears immediately; canceled
 preparation is invalidated before handoff. No database/auth change, task write
 endpoint or production publication is included. See [Phase 2](FOCUS-BOARD-PHASE-2.md)
 for tested behaviors, captures and remaining boundaries.
+
+## Focus Board Phase 3 — safe-action source review
+
+[The Phase 3 guide](FOCUS-BOARD-PHASE-3.md) records the inspected browser editor,
+intake RPC, OAuth-only connector, row locks, version checks and audit contracts.
+The new action adapter reuses the approved narrow intake update contract; no
+backend schema/auth/write endpoint changes are needed. Each mutation is reviewed,
+server-confirmed and independently read back through OpsToday. A short in-memory
+Undo reverses persisted fields only when the post-save version still matches.
+Unknown outcomes retry the identical idempotent request; newer edits are retained.
+Fictional browser captures and real disposable SQL/concurrency checks are separate
+from live staff verification. PRs #70/#71 remain unchanged, unmerged/unpublished.

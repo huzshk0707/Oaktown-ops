@@ -258,3 +258,12 @@ records the native task-detail modal, existing Review handoff, session/refresh
 protections and priority/motion treatment. Shared data/auth, task records and the
 production landing route are preserved. Both increments remain unmerged and
 unpublished; completion/defer/Undo and later morning-flow changes remain future work.
+
+## Focus Board — Phase 3 safe-action review branch
+
+`feature/focus-board-phase-3` builds on the unchanged Phase 2 head.
+[Phase 3 architecture and safety](FOCUS-BOARD-PHASE-3.md) documents confirmed
+Complete, follow-up-only Defer and a version-guarded persisted Undo using the
+existing intake RPC. Navigation gestures remain read-only; shared snapshot/auth,
+Review and other workspace routes remain intact. This is unmerged source for a
+draft PR targeting the Phase 2 branch, without deployment or real task writes.

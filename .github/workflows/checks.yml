@@ -45,6 +45,8 @@ jobs:
           node --check deposit-preparation.js
           node --check ops-task-reader.js
           node --check focus-board-model.js
+          node --check focus-actions-model.js
+          node --check focus-actions.js
           node --check focus-board.js
           node --check today.js
           node --check reviewed-write-model.js
@@ -94,6 +96,8 @@ jobs:
         env:
           OAKTOWN_UI_SCREENSHOTS: '1'
         run: npx playwright test tests/*.e2e.spec.cjs --reporter=line --workers=1
+      - name: Capture fictional Focus Board action states
+        run: node scripts/capture-focus-actions.cjs
       - name: Upload fictional UI review screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -165,6 +169,8 @@ jobs:
             -f tests/task-delete-archived-check.sql \
             -f supabase/migrations/20261108050604_master_backlog_controlled_import.sql \
             -f tests/master-backlog-import-check.sql
+      - name: Verify Focus Board actions through existing authorized task RPC
+        run: node tests/focus-actions-database.cjs
       - name: Reject concurrent task cycles and destructive import rollback
         run: node tests/master-backlog-security.cjs
       - name: Verify empty import schema rollback

@@ -12,11 +12,11 @@ async function mock(page,count=9){
   const req=route.request(),u=new URL(req.url());if(u.origin===ORIGIN)return route.continue();if(u.hostname!==HOST)return route.abort();
   const headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'},reply=(data,status=200)=>route.fulfill({status,headers,body:JSON.stringify(data)});
   if(req.method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
-  if(u.pathname==='/auth/v1/token')return reply({access_token:'fictional-access',refresh_token:'fictional-refresh',expires_in:3600,user:{id:USER,email:'focus@example.invalid'}});
+  if(u.pathname==='/auth/v1/token'){if(state.expireSession&&u.searchParams.get('grant_type')==='refresh_token')return reply({message:'Fictional session expired'},401);return reply({access_token:'fictional-access',refresh_token:'fictional-refresh',expires_in:3600,user:{id:USER,email:'focus@example.invalid'}})}
   if(u.pathname==='/auth/v1/user')return reply({id:USER,email:'focus@example.invalid'});
   if(u.pathname==='/auth/v1/logout')return reply({});
   if(u.pathname==='/rest/v1/staff_memberships')return reply([{user_id:USER,is_active:true,role:u.searchParams.has('user_id')?state.role:state.readRole}]);
-  if(req.method()!=='GET'){state.writes.push({path:u.pathname,body:req.postData()});return reply({message:'No writes permitted in fixture'},403)}
+  if(req.method()!=='GET'){state.writes.push({path:u.pathname,body:req.postData()});if(state.actionHandler)return state.actionHandler(req,reply);return reply({message:'No writes permitted in fixture'},403)}
   if(u.pathname==='/rest/v1/ops_tasks'){
    state.reads.push(u.search);if(state.hold)await state.hold;
    if(state.fail)return reply({message:'Fictional read failure'},state.failStatus);
