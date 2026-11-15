@@ -43,6 +43,9 @@ jobs:
           node --check deposit-model.js
           node --check deposit-export.js
           node --check deposit-preparation.js
+          node --check ops-task-reader.js
+          node --check focus-board-model.js
+          node --check focus-board.js
           node --check today.js
           node --check reviewed-write-model.js
           node --check task-edit-model.js
@@ -101,6 +104,7 @@ jobs:
             test-results/**/eod-*.png
             test-results/**/*-workspace.png
             test-results/**/*-task-queue.png
+            test-results/**/focus-*.png
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload browser test diagnostics on failure

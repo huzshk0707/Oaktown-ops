@@ -210,3 +210,13 @@ The daily-usability increment moves actionable work before dashboard summaries,
 adds a read-only Needs planning queue, and warns before reloading edited deposit
 or SOD inputs. It makes no database, task-record or authentication changes.
 Fictional tests and publication evidence do not certify real staff operations.
+
+## Focus Board Phase 1 — review-only source increment
+
+See [Focus Board Phase 1](FOCUS-BOARD-PHASE-1.md) for inspected file responsibilities,
+shared read lifecycle and deterministic order. The board has no write path or
+independent task state. The existing Today fetch is extracted into a stateless
+paginated reader; its permissions, staff session and business classification stay
+with the existing modules. Tests cover multi-page records, all navigation inputs,
+late replies, denied access and zero task writes. No database migration or actual
+staff operation is part of this feature branch. It must remain unmerged for review.

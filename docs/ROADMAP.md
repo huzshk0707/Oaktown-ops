@@ -238,3 +238,14 @@ an import occurred. Do not rerun either migration from filename comparison alone
 reconcile registered SQL and recovery evidence in a dedicated database review.
 The reminder and authenticated-connector migrations are also registered live.
 Connector activation and actual reminder confirmations require their own evidence.
+
+## Focus Board — Phase 1 review branch
+
+The separate `feature/focus-board-phase-1` branch adds an opt-in `#/focus` task
+carousel, documented in [the Phase 1 architecture and order](FOCUS-BOARD-PHASE-1.md).
+It reuses the shared staff session, task snapshot/refresh, clocks, search and
+appearance controls. A shared paginated reader removes the task request's first
+1,000-row limit. Board interactions change selection only; task business statuses
+and Today rules are preserved. Full workspace routes remain available.
+This is a review preview, not a merged/deployed feature. Do not merge automatically.
+Later phases, completion/defer gestures, confirmation and Undo remain unimplemented.
