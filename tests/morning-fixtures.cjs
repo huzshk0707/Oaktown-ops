@@ -9,8 +9,9 @@ async function morningMock(page,count=9){
   const req=route.request(),u=new URL(req.url()),headers={'content-type':'application/json','access-control-allow-origin':'*','access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,OPTIONS'},reply=(data,status=200)=>route.fulfill({status,headers,body:JSON.stringify(data)});
   if(req.method()==='OPTIONS')return route.fulfill({status:204,headers,body:''});
   if(req.method()==='GET'){
+   if(s.historyHold)await s.historyHold;
    if(s.historyFail)return reply({message:'Fictional journal unavailable'},503);
-   const id=u.searchParams.get('id')?.replace(/^eq\./,'');return reply(s.events.filter(e=>!id||e.id===id));
+   const id=u.searchParams.get('id')?.replace(/^eq\./,''),date=u.searchParams.get('event_metadata->>work_date')?.replace(/^eq\./,''),offset=Number(u.searchParams.get('offset')||0),limit=Number(u.searchParams.get('limit')||1000);return reply(s.events.filter(e=>(!id||e.id===id)&&(!date||e.event_metadata?.work_date===date)).sort((a,b)=>b.occurred_at.localeCompare(a.occurred_at)||b.id.localeCompare(a.id)).slice(offset,offset+limit));
   }
   const body=req.postDataJSON();s.writes.push({path:u.pathname,body:req.postData()});s.approvalPosts.push(body);
   if(s.approvalHold)await s.approvalHold;
@@ -22,7 +23,7 @@ async function morningMock(page,count=9){
  });
  return s;
 }
-async function open(page,count){const s=await morningMock(page,count);await page.goto(ORIGIN+'/#/morning');await signIn(page);await page.locator('#morning-grid').waitFor({state:'visible'});return s}
+async function open(page,count){const s=await morningMock(page,count);await page.goto(ORIGIN+'/#/morning');await signIn(page);await page.locator('#morning-secondary').evaluate(n=>n.open=true);await page.locator('#morning-grid').waitFor({state:'visible'});return s}
 async function addMessage(page,{kind='email',subject='Fictional deposit update',body='Deposit submitted: $1,500.00. Please confirm receipt.',ref='fictional-message-001'}={}){
  await page.locator('#morning-intake').evaluate(n=>n.open=true);await page.locator('#morning-source-kind').selectOption(kind);await page.locator('#morning-source-sender').fill('Example Staff');await page.locator('#morning-source-subject').fill(subject);await page.locator('#morning-source-ref').fill(ref);await page.locator('#morning-source-body').fill(body);await page.locator('#morning-intake-form').getByRole('button',{name:'Add for review',exact:true}).click();
 }

@@ -1,0 +1,22 @@
+/* Desktop command dashboard, sharing the existing Morning HUD palette. */
+.daily-controls {display:flex;align-items:center;gap:24px;margin:12px 0 22px;padding:18px 22px;border:1px solid #3e6077;border-radius:10px;background:linear-gradient(110deg,#142c3c,#0f1c2a)}
+.daily-controls>div {flex:1}.daily-controls p {margin:0;color:#d4e5ef;font-size:13px}
+.daily-controls label {white-space:nowrap;display:flex;align-items:center;gap:12px;font-size:12px;color:#c5d9e7}
+.daily-controls input {background:#102333;color:#e4f3fb;border:1px solid #527189;border-radius:5px;padding:10px;color-scheme:dark}
+.daily-grid {display:grid;grid-template-columns:minmax(300px,1.2fr) minmax(360px,1.4fr) minmax(270px,1fr);gap:18px;align-items:start}
+.daily-panel {min-width:0;border:1px solid #304e64;border-top:2px solid #5e98a7;background:#101e2c;border-radius:10px;padding:22px;box-shadow:0 15px 40px #0003;color:#d9e7f0;font-size:13px;line-height:1.6;max-height:620px;overflow:auto;scrollbar-color:#50738c #101e2c}
+.daily-panel header {margin-bottom:18px}.daily-panel h2 {font:550 21px/1.3 system-ui,sans-serif;letter-spacing:-.025em;color:#f0f7fc;margin:4px 0 8px}.daily-panel header p {margin:0;font-size:12px;color:#a9c2d4}
+.daily-plan-panel {grid-column:2;grid-row:1 / span 2;max-height:1000px;border-top-color:#b0e4ed;background:linear-gradient(160deg,#142737,#101e2c)}
+.daily-blockers-panel {grid-column:3;grid-row:2}.daily-task-list {padding:0;margin:0;list-style:none}
+.daily-task {display:flex;gap:10px;justify-content:space-between;padding:13px 0;border-bottom:1px solid #2e4558}.daily-task:last-child {border:0}.daily-task>div {min-width:0}.daily-task p {margin:5px 0;color:#c4d9e7;font-size:12px}
+html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box-shadow:none;border-radius:2px;padding:0;text-align:left;white-space:normal;color:#eef7fb;font:600 13px/1.5 system-ui,sans-serif;cursor:pointer;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#588094}
+.daily-task-meta {display:block;font:11px/1.7 ui-monospace,monospace;color:#aec6d7;overflow-wrap:anywhere}
+.daily-tag {display:inline-block;align-self:start;border:1px solid #547e91;background:#1c3645;border-radius:4px;padding:3px 7px;color:#c6edf2;font:10px/1.6 ui-monospace,monospace;white-space:nowrap}
+.daily-plan-text {white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.85 system-ui,sans-serif;background:#0c1824;border-left:2px solid #7db9c6;padding:20px;color:#e3eff8;margin:18px 0}
+.daily-owner {border-bottom:1px solid #304e64;padding:6px 0}.daily-owner summary {font-weight:600;cursor:pointer;color:#dcecf7}
+.daily-disconnected {display:block;color:#f0d4a0;font:500 24px/1.5 system-ui,sans-serif;margin:16px 0}
+.daily-empty {color:#b8cede;padding:12px 0}.daily-notice {border-left:2px solid #e6c185;padding:8px 12px;background:#302e23;color:#f3deb2}
+.morning-secondary {margin-top:24px;border:1px solid #304e64;border-radius:9px;padding:16px;color:#b9ccda}.morning-secondary>summary {cursor:pointer;font:600 13px/1.5 system-ui,sans-serif;color:#d5e6f1}.morning-secondary>summary span {font:11px ui-monospace,monospace;color:#9db8ca;margin-left:16px}.morning-secondary>p {font-size:12px}.morning-secondary .morning-grid {margin-top:20px}
+.daily-last-refresh {font:10px/1.5 ui-monospace,monospace;color:#b1cbdc;max-width:150px;flex-shrink:1}.daily-last-refresh[hidden] {display:none}
+.morning-mode .topbar {gap:8px!important;padding:12px 16px!important}.morning-mode .workspace-clocks {gap:12px}.morning-mode .topbar #morning-command-refresh {font-size:11px!important}
+.morning-mode #daily-state {color:#c0d5e4;font:12px/1.6 system-ui,sans-serif}.morning-mode #morning-state:empty {display:none}

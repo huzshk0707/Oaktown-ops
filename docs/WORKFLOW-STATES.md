@@ -135,3 +135,12 @@ and require review. Session boundaries clear private values and task labels.
 See [Morning architecture and safety](MORNING-COMMAND-CENTER.md). The inventory now
 covers 28 workflow families and 61 active scripts. Mail ingestion, verified funds
 and a server-atomic multi-user plan lifecycle are not inferred from this UI.
+
+### Phase 5 daily dashboard reads
+
+`daily-center.js` owns the selected Eastern plan date, request ticket and
+idle/loading/ready/denied/error journal presentation. `daily-model.js` validates
+approved envelopes and projects the shared OpsToday snapshot. Reads never restore
+draft inputs or write operational records. Failed reads label retained approvals
+stale; denied/session-expired reads clear private plan context; account/date
+tickets invalidate late responses. See the Phase 5 design and inventory entry.

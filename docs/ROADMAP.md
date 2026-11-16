@@ -285,3 +285,15 @@ source, and SOD/source retention/audience. Resumable unapproved drafts and a
 transactional multi-user SOD policy remain future work. Desktop widths are
 1280/1440/1920; no mobile feature work is added. This branch remains unmerged and
 unpublished; Today remains the production entry route and all workflows remain.
+
+## Desktop Command Center — Phase 5 draft
+
+The Phase 5 branch builds on the unmerged Phase 4 Morning Command Center. Its
+primary view reads shared saved tasks and authorized approved SOD journal events;
+manual intake/planning is retained as an optional secondary workflow. Deposit
+integration remains Not connected. Focus sorting/actions are reused. No production
+migration, merge or deployment is part of this draft. See
+[architecture, contracts, security and limitations](DESKTOP-COMMAND-CENTER-PHASE-5.md)
+and [fictional desktop review](phase-5-desktop/README.md). The next bounded
+integration task is a scoped, reviewed ChatGPT approved-plan write contract;
+the existing task MCP does not provide that capability.

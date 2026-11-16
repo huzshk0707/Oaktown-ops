@@ -36,6 +36,8 @@ jobs:
           node --check eod.js
           node --check workspace-theme.js
           node --check connections-model.js
+          node --check daily-model.js
+          node --check daily-center.js
           node --check morning-model.js
           node --check morning-center.js
           node --check sod-model.js
@@ -98,12 +100,15 @@ jobs:
         run: npx playwright test tests/*.e2e.spec.cjs --reporter=line --workers=1
       - name: Capture fictional desktop Morning Command Center states
         run: node scripts/capture-morning-center.cjs
+      - name: Capture Phase 5 fictional desktop dashboard
+        run: node scripts/capture-daily-center.cjs
       - name: Upload fictional UI review screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: oaktown-ui-review
           path: |
+            docs/phase-5-desktop/
             test-results/ui-review/
             test-results/**/eod-*.png
             test-results/**/*-workspace.png

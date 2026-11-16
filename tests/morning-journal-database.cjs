@@ -22,6 +22,10 @@ try{
  for(const user of ['00000000-0000-4000-8000-000000000003','00000000-0000-4000-8000-000000000004','00000000-0000-4000-8000-000000000005']){
   const denied=sql(db,auth(user)+insert({...expected,id:'90000000-0000-4000-8000-000000000043'}),true);assert.notEqual(denied.status,0);assert.match(denied.stderr,/row-level security|permission denied/);
  }
+ // Another active staff member can read the approval; inactive/nonstaff cannot.
+ for(const user of ['00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000003'])assert.equal(sql(db,auth(user)+`select count(*) from public.ops_events where id=${quote(event)};`).stdout.trim().split('\n').at(-1),'1');
+ for(const user of ['00000000-0000-4000-8000-000000000004','00000000-0000-4000-8000-000000000005'])assert.equal(sql(db,auth(user)+`select count(*) from public.ops_events where id=${quote(event)};`).stdout.trim().split('\n').at(-1),'0');
+ const anonymousRead=sql(db,'set role anon;select count(*) from public.ops_events;',true);assert.notEqual(anonymousRead.status,0);
  const anon=sql(db,'set role anon;'+insert({...expected,id:'90000000-0000-4000-8000-000000000044'}),true);assert.notEqual(anon.status,0);assert.match(anon.stderr,/permission denied/);
  const update=sql(db,auth(actor)+`update public.ops_events set summary='Must not overwrite approval' where id=${quote(event)};`,true);assert.notEqual(update.status,0);assert.match(update.stderr,/permission denied/);
  const removed=sql(db,auth(actor)+`delete from public.ops_events where id=${quote(event)};`,true);assert.notEqual(removed.status,0);

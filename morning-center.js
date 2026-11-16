@@ -160,17 +160,18 @@
   renderSources();renderTasks();renderReadiness();
  }
  function renderFocusPlan(){
+  if(window.OpsDaily)return window.OpsDaily.renderFocusPlan();
   const on=window.OpsWorkspace.getRoute().workflow==='focus',record=approved(),p=record?.event_metadata?.plan,ok=on&&ready()&&p&&p.workDate===T.today()&&(executionId===record.id||!M.conflicts(p,data().tasks).length);
   $('focus-morning-plan').hidden=!ok;if(!ok)return;
   const real=p.rows.filter(r=>r.type==='task').length,manual=M.planningOnly(p);
   $('focus-morning-summary').textContent='Approved morning SOD · '+real+' saved tasks · '+manual+' planning-only items. Task order is unchanged.';
  }
- async function refresh(){if(!cloud.user||flow.busy)return;await store.refresh();if(active&&ready()){S.beginMorning();render();await historyRefresh()}}
+ async function refresh(){if(!cloud.user||flow.busy)return;await store.refresh();if(active&&cloud.user&&store.getState()==='ready'){if(ready())S.beginMorning();render();await historyRefresh()}}
  async function historyRefresh(){
-  if(!ready())return;const user=cloud.user.id,ticket=++historyTicket,at=epoch;
+  if(!cloud.user||store.getState()!=='ready')return;const user=cloud.user.id,ticket=++historyTicket,at=epoch;
   $('morning-history-status').textContent='Reading saved approvals…';
   try{
-   const rows=await request('/rest/v1/ops_events?select=id,entity_type,entity_id,event_type,actor_id,occurred_at,summary,event_metadata&event_type=eq.morning_plan_approved_v1&actor_id=eq.'+encodeURIComponent(user)+'&event_metadata->>work_date=eq.'+T.today()+'&order=occurred_at.desc&limit=10');
+   const rows=await window.OpsDaily.refreshPlan();
    if(!current(at,user)||ticket!==historyTicket)return;
    if(!Array.isArray(rows))throw Error('Unexpected journal response');
    const list=$('morning-history');list.replaceChildren();let count=0;knownSources=[];
@@ -275,7 +276,7 @@
  });
  window.addEventListener('ops-task-intake-saved',event=>{for(const p of event.detail?.proposals||[]){const item=items.find(i=>i.handoffRef===p.proposal_ref);if(item){item.createdTaskId=p.task_id;item.taskId=p.task_id}}render()});
  $('focus-morning-review').onclick=()=>window.OpsWorkspace.navigate('morning');
- window.OpsMorning=Object.freeze({approvedTaskIds(){const p=approved()?.event_metadata?.plan;return ready()&&p&&p.workDate===T.today()&&(executionId===approved().id||!M.conflicts(p,data().tasks).length)?p.rows.filter(r=>r.type==='task'&&data().tasks.some(t=>t.id===r.id&&window.OpsSodModel.eligible(t))).map(r=>r.id):[]}});
+ window.OpsMorning=Object.freeze({approvedTaskIds(){if(window.OpsDaily)return window.OpsDaily.approvedTaskIds();const p=approved()?.event_metadata?.plan;return ready()&&p&&p.workDate===T.today()&&(executionId===approved().id||!M.conflicts(p,data().tasks).length)?p.rows.filter(r=>r.type==='task'&&data().tasks.some(t=>t.id===r.id&&window.OpsSodModel.eligible(t))).map(r=>r.id):[]}});
  window.addEventListener('beforeunload',event=>{if(cloud.user&&(items.length||pending||intakeDirty)){event.preventDefault();event.returnValue=''}});
  setInterval(()=>{if(active&&!document.hidden)render()},60000);
  route();

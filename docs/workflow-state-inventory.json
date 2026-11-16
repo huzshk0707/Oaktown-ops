@@ -790,6 +790,30 @@
         "tests/morning-journal-database.cjs"
       ],
       "representation": "guarded"
+    },
+    {
+      "id": "daily-command-center",
+      "representation": "derived",
+      "sources": [
+        "daily-model.js",
+        "daily-center.js"
+      ],
+      "states": [
+        "signed_out",
+        "loading",
+        "ready",
+        "denied",
+        "error"
+      ],
+      "guards": [
+        "Shared OpsToday snapshot only; staff journal uses OpsCloud and RLS",
+        "Epoch, account and Eastern date checks reject late reads",
+        "No task, plan or deposit writes; approved records never replace drafts"
+      ],
+      "tests": [
+        "tests/daily-model.test.cjs",
+        "tests/daily-center.e2e.spec.cjs"
+      ]
     }
   ]
 }
