@@ -2,6 +2,7 @@ import {McpServer} from '@modelcontextprotocol/sdk/server/mcp.js';
 import {WebStandardStreamableHTTPServerTransport} from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import {z} from 'zod';
 import {createVerifier,RESOURCE} from './auth.mjs';
+import {registerPlanTools} from './plan-tools.mjs';
 
 const nullableFields=['assigned_label','next_action','waiting_on','blocked_reason','completion_summary','due','follow_up'];
 const date=z.object({date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),time:z.null(),timezone:z.literal('America/New_York'),original_text:z.string().min(1).max(2000)}).strict();
@@ -29,7 +30,7 @@ export function createHandler({supabaseUrl,publishableKey,resource=RESOURCE,fetc
   if(req.method==='OPTIONS')return finish(new Response(null,{status:204}));
   if(url.pathname.endsWith('/.well-known/oauth-protected-resource')&&req.method==='GET')
    return finish(response({resource,authorization_servers:[supabaseUrl+'/auth/v1'],scopes_supported:['openid'],bearer_methods_supported:['header'],resource_name:'Oaktown Ops task connection'}));
-  if(url.pathname.endsWith('/health')&&req.method==='GET')return finish(response({status:'ok',version:'1.0.0',authentication:'scoped-oauth-required',resource}));
+  if(url.pathname.endsWith('/health')&&req.method==='GET')return finish(response({status:'ok',version:'1.1.0',authentication:'scoped-oauth-required',resource}));
   if(!url.pathname.endsWith('/oaktown-task-api/mcp'))return finish(response({error:'Not found'},404));
   if(req.method!=='POST')return finish(response({error:'Use stateless Streamable HTTP POST'},405,{'Allow':'POST,OPTIONS'}));
   let token=null,identity;
@@ -40,9 +41,9 @@ export function createHandler({supabaseUrl,publishableKey,resource=RESOURCE,fetc
    try{identity=await verify(match[1]);token=match[1];return identity;}
    catch{throw Object.assign(Error('Reconnect with a valid scoped Oaktown staff session'),{auth:true});}
   }
-  async function rpc(action,payload){
+  async function rpc(action,payload,rpcName='ops_task_agent'){
    await authorize();
-   const r=await fetchImpl(supabaseUrl+'/rest/v1/rpc/ops_task_agent',{method:'POST',redirect:'error',signal:AbortSignal.timeout(12000),
+   const r=await fetchImpl(supabaseUrl+'/rest/v1/rpc/'+rpcName,{method:'POST',redirect:'error',signal:AbortSignal.timeout(12000),
     headers:{apikey:publishableKey,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({action,payload})});
    const data=await r.json();
    if(!r.ok){
@@ -57,7 +58,7 @@ export function createHandler({supabaseUrl,publishableKey,resource=RESOURCE,fetc
      ...(e.auth?{_meta:{'mcp/www_authenticate':[challenge]}}:{})};
    }
   }
-  const server=new McpServer({name:'oaktown-ops-tasks',version:'1.0.0'});
+  const server=new McpServer({name:'oaktown-ops-tasks',version:'1.1.0'});
   const security={securitySchemes:[{type:'oauth2',scopes:['openid']}]};
   const read={readOnlyHint:true,destructiveHint:false,idempotentHint:true,openWorldHint:false};
   function register(name,title,description,inputSchema,annotations,fn){
@@ -95,6 +96,7 @@ export function createHandler({supabaseUrl,publishableKey,resource=RESOURCE,fetc
      return {outcome:'saved_unverified',verified:false,receipt,message:'The server returned a save receipt, but current record read-back did not match. Retrieve the task and check its history before any new change.'};
     }
    });
+  registerPlanTools({register,rpc:(action,payload)=>rpc(action,payload,'ops_morning_plan')});
   const transport=new WebStandardStreamableHTTPServerTransport({sessionIdGenerator:undefined,enableJsonResponse:true,maxRequestBodySize:32000});
   try{
    await server.connect(transport);

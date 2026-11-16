@@ -5,6 +5,8 @@ if(!cloud||!M||!$('today-workflow'))return;
 let generation=0,busy=false,viewData=null,queueFilter='all',queueQuery='',queueLimits=new Map(),completedView='mine';
 const el=(tag,value,klass)=>{const x=document.createElement(tag);if(value!=null)x.textContent=String(value);if(klass)x.className=klass;return x};
 const text=(id,value)=>{$(id).textContent=value;if(id==='today-status')$('tasks-status').textContent=value};
+let loadState='signed_out';
+const notifyState=phase=>{loadState=phase;window.dispatchEvent(new CustomEvent('ops-today-state',{detail:{phase}}))};
 const visible=()=>!$('today-workflow').hidden||!$('tasks-workflow').hidden;
 function accessControls(){for(const id of ['today-signin','tasks-signin'])$(id).hidden=!!cloud.user;for(const id of ['today-refresh','tasks-refresh'])$(id).disabled=busy||!cloud.user}
 const dateLabel=value=>{if(!M.validDate(value))return 'Date not recorded';return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(value+'T12:00:00Z'))};
@@ -24,7 +26,7 @@ function renderSchedule(tasks){
  layout.append(ring,legend);host.replaceChildren(layout);
  if(!tasks.all.length)host.append(el('p','No active tasks recorded.','today-muted'));
 }
-function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';accessControls();queueControlState(true);resetSchedule('Sign in to view the task breakdown.');}
+function clear(){generation++;busy=false;viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-signin').hidden=!!cloud.user;text('today-status','Sign in to view private task and renewal information.');$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';accessControls();queueControlState(true);resetSchedule('Sign in to view the task breakdown.');notifyState('signed_out');}
 function taskRow(t){const card=el('article',null,'today-task');card.dataset.taskTitle=((t.task_code||'')+' '+(t.task_title||'Untitled task')).toLowerCase();card.append(el('strong',(t.task_code?t.task_code+' · ':'')+(t.task_title||'Untitled task')));
  if(viewData){
   const units=new Map(viewData.units.map(x=>[x.id,x])),properties=new Map(viewData.properties.map(x=>[x.id,x]));
@@ -146,14 +148,11 @@ async function refresh(){
  if(!cloud.user){clear();return}
  $('today-signin').hidden=true;
  const ticket=++generation;busy=true;accessControls();
- text('today-status','Loading tasks…');
+ notifyState('loading');text('today-status','Loading tasks…');
  resetSchedule('Loading the task breakdown…');
  try{
   const [tasks,renewals,properties,units,leases,memberships]=await Promise.all([
-   cloud.api('/rest/v1/ops_tasks?select=id,task_code,parent_task_id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000').catch(error=>{
-    if(![400,404].includes(error.status))throw error;
-    return cloud.api('/rest/v1/ops_tasks?select=id,task_title,status,priority,due_at,intake_details,assigned_label,assigned_user_id,property_id,unit_id,lease_id,renewal_case_id,notes,workflow_key,updated_at,completed_at,archived_at&limit=1000');
-   }),
+   window.OpsTaskReader.read(cloud.api,()=>ticket===generation&&!!cloud.user),
    cloud.api('/rest/v1/renewal_cases?select=id,property_id,unit_id,lease_id,oak_record_id,recorded_end,is_applicable,action_status&limit=1000'),
    cloud.api('/rest/v1/properties?select=id,street_address&limit=1000'),
    cloud.api('/rest/v1/units?select=id,property_id,unit_label&limit=1000'),
@@ -163,12 +162,12 @@ async function refresh(){
   if(ticket!==generation||!cloud.user)return;
   if(![tasks,renewals,properties,units,leases,memberships].every(Array.isArray))throw Error('Unexpected dashboard data format');
   const canEdit=memberships.some(m=>m.is_active&&['admin','editor'].includes(m.role)&&m.user_id===cloud.user.id);
-  render({tasks,renewals,properties,units,leases,canEdit});
+  render({tasks,renewals,properties,units,leases,canEdit});notifyState('ready');
  }catch(error){
   if(ticket!==generation)return;
   viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';
   text('today-status','Could not load the dashboard: '+error.message+'. No tasks were changed.');
-  queueControlState();resetSchedule('Task breakdown unavailable.');
+  queueControlState();resetSchedule('Task breakdown unavailable.');notifyState('error');
  }finally{if(ticket===generation){busy=false;accessControls()}}
 }
 document.querySelectorAll('[data-today-go]').forEach(button=>button.addEventListener('click',()=>{const target=button.dataset.todayGo;document.querySelector('[data-workspace="'+target+'"]')?.click();if(target==='leases')document.getElementById('lease-tab-prepare')?.click()}));
@@ -184,7 +183,7 @@ window.addEventListener('ops-theme-change',()=>{if(viewData)renderSchedule(M.cla
 window.addEventListener('ops-today-show',()=>{if(!busy)refresh()});
 window.addEventListener('ops-today-refresh',()=>{if(!busy)refresh()});
 window.addEventListener('ops-auth-change',()=>{clear();if(cloud.user&&visible())refresh()});
-window.OpsToday={refresh,getData:()=>viewData};
+window.OpsToday={refresh,getData:()=>viewData,getState:()=>loadState};
 clear();
 // A verified saved session can restore while earlier deferred scripts load.
 // Consume that state as well as future auth events; never infer a user locally.

@@ -2,7 +2,7 @@
   "schema_version": "oaktown.workflow-state-inventory.v1",
   "reviewed_base": "5a0cba51174e34496cd763c68fcc4e8faa4e14d6",
   "reviewed_on": "2026-11-11",
-  "scope": "Active index.html and generator.html first-party scripts, plus the task connector and its server contracts. State names are conceptual except the two explicit reviewed-write controllers.",
+  "scope": "Active index.html and generator.html first-party scripts, plus the task connector and its server contracts. State names are conceptual except explicit shared reviewed-write controllers.",
   "entrypoints": [
     "index.html",
     "generator.html"
@@ -686,6 +686,166 @@
         "tests/task-agent-check.sql",
         "tests/master-backlog-import-check.sql",
         "tests/bill-reminders-check.sql"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "focus_board",
+      "scope": "Focus Board carousel and native Center Focus detail dialog",
+      "sources": [
+        "focus-board.js",
+        "focus-board-model.js",
+        "ops-task-reader.js"
+      ],
+      "states": [
+        "signed_out",
+        "loading",
+        "ready",
+        "empty",
+        "error",
+        "selected_task",
+        "detail_open",
+        "detail_refreshing",
+        "detail_unavailable",
+        "review_handoff"
+      ],
+      "guards": [
+        "Consumes the existing OpsToday snapshot; shared reader pages tasks with deterministic ID ordering and rejects duplicate pages.",
+        "Navigation changes only the selected ID; no write API, new auth path or task status transition.",
+        "Shared data lifecycle clears private cards on account change, sign-out or failed refresh.",
+        "Keyboard controls defer to forms and open dialogs; horizontal swipes only navigate; motion follows existing preference and OS.",
+        "Native modal isolates background interaction; close restores the selected task control. Sign-out clears modal content synchronously.",
+        "Review hands off to OpsOperations.openSource and the existing editor/permission checks. Canceled or stale preparation cannot open a review."
+      ],
+      "tests": [
+        "tests/focus-board-model.test.cjs",
+        "tests/ops-task-reader.test.cjs",
+        "tests/focus-board.e2e.spec.cjs",
+        "tests/focus-mode.e2e.spec.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "focus_actions",
+      "scope": "Confirmed Focus Board completion, follow-up and persisted reversal",
+      "sources": [
+        "focus-actions-model.js",
+        "focus-actions.js"
+      ],
+      "states": [
+        "idle",
+        "reviewing",
+        "checking",
+        "saving",
+        "verifying",
+        "saved",
+        "needs_review",
+        "refreshing"
+      ],
+      "guards": [
+        "OpsToday owns the only shared snapshot; every action requires explicit confirmation and current staff access.",
+        "Existing intake RPC locks task versions and records idempotent receipts; an uncertain request is retried unchanged.",
+        "Undo is a new authorized audited narrow proposal bound to the exact post-action version; newer edits and unrepresentable previous values prevent reversal.",
+        "Ordinary card gestures never mutate; isolated action handle only opens a preview; account changes clear private UI and invalidate tickets."
+      ],
+      "tests": [
+        "tests/focus-actions-model.test.cjs",
+        "tests/focus-actions.e2e.spec.cjs",
+        "tests/focus-actions-database.cjs"
+      ],
+      "representation": "explicit"
+    },
+    {
+      "id": "morning_command_center",
+      "scope": "Desktop manual source review, shared SOD preparation, immutable approval and confirmed execution handoff",
+      "sources": [
+        "morning-model.js",
+        "morning-center.js"
+      ],
+      "states": [
+        "signed_out",
+        "loading",
+        "ready",
+        "source_unreviewed",
+        "source_reviewed",
+        "source_dismissed",
+        "draft",
+        "source_conflict",
+        "approved",
+        "approval_unverified",
+        "execution_confirmation",
+        "execution"
+      ],
+      "guards": [
+        "OpsToday owns the only authenticated task snapshot; OpsSod owns the existing single editor and grouped Morning draft.",
+        "Manual email/message content is untrusted evidence. Rule suggestions and deposit reports never verify funds or trigger operational actions.",
+        "Task proposals require reviewed Task Intake; collection, classification, draft generation and Focus Board transition do not mutate tasks or deposits.",
+        "Approval appends to existing staff RLS journal with stable event ID, server-stamped actor/time and exact independent readback. Lost responses block new approvals pending verification.",
+        "Refresh preserves drafts and immutable approvals; task source versions are rechecked before approval and execution. Phase 6 additionally locks expected daily approval and task versions server-side.",
+        "Session changes clear sources, task labels, dialogs and approval state; desktop dialogs trap and restore focus."
+      ],
+      "tests": [
+        "tests/morning-model.test.cjs",
+        "tests/morning-center.e2e.spec.cjs",
+        "tests/morning-journal-database.cjs"
+      ],
+      "representation": "guarded"
+    },
+    {
+      "id": "daily-command-center",
+      "representation": "derived",
+      "sources": [
+        "daily-model.js",
+        "daily-center.js"
+      ],
+      "states": [
+        "signed_out",
+        "loading",
+        "ready",
+        "denied",
+        "error"
+      ],
+      "guards": [
+        "Shared OpsToday snapshot only; staff journal uses OpsCloud and RLS",
+        "Epoch, account and Eastern date checks reject late reads",
+        "No task, plan or deposit writes; approved records never replace drafts"
+      ],
+      "tests": [
+        "tests/daily-model.test.cjs",
+        "tests/daily-center.e2e.spec.cjs"
+      ]
+    },
+    {
+      "id": "scoped_daily_plan_review",
+      "scope": "Default-off client capabilities, separate native consent, proposal-only OAuth and server-attested SOD approval",
+      "sources": [
+        "plan-review-api.js",
+        "plan-connection.js",
+        "supabase/functions/oaktown-task-api/plan-tools.mjs",
+        "supabase/migrations/20261116012926_morning_plan_review_authorization.sql"
+      ],
+      "states": [
+        "disabled",
+        "consent_required",
+        "pending_staff_review",
+        "native_review",
+        "approved",
+        "expired",
+        "conflict",
+        "unverified"
+      ],
+      "guards": [
+        "OpsCloud session and existing OpsToday snapshot only; no task writes or second SOD store.",
+        "Agent cannot configure, consent, review or approve. Explicit native confirmation is session/content-bound.",
+        "Live staff/session/client/OAuth and per-user plan consent are checked server-side; default off and revocation fail closed.",
+        "Current task versions and expected daily approval are locked at commit; duplicate retries return the original receipt.",
+        "Attested RPC reads join journal to private receipts. Direct scoped RPC reads redact original source bodies.",
+        "Missing backend, forged generic journal JSON and uncertain outcomes never imply approval."
+      ],
+      "tests": [
+        "tests/plan-agent-api.test.cjs",
+        "tests/plan-review-database.cjs",
+        "tests/plan-review.e2e.spec.cjs"
       ],
       "representation": "guarded"
     }

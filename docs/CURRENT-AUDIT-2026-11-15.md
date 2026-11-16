@@ -130,3 +130,20 @@ The tests cover recorded timestamp schedules, completed/archive exclusion,
 read-only navigation, session clearing, six themes and draft discard behavior.
 CI, merge, publication and the immutable release tag are recorded in the PR.
 The remaining audit recommendations retain the order above.
+
+## Phase 4 development follow-up — unmerged desktop branch
+
+The Morning Command Center builds on the current Phase 3 head without changing
+the production entry route. It reuses the shared task snapshot and existing SOD
+editor, adds manual source classification and safe task-proposal handoff, and
+records only explicitly approved SOD versions in the existing staff journal.
+Read-only planning does not change task or deposit records. A confirmed execution
+handoff preserves the approved plan and existing Focus Board ordering/actions.
+
+Inspection found no application mailbox backend, financial reconciliation ledger
+or existing SOD save API. The chat Gmail connection is not an in-app connector.
+Manual intake and a visibly disconnected verified-deposit lane reflect those
+limits. The [Phase 4 guide](MORNING-COMMAND-CENTER.md) records source evidence,
+permissions, desktop validation/screenshots and missing capabilities. Unapproved
+draft persistence, retention/audience policy and multi-user transactional planning
+remain bounded follow-ups. This is source review only, not merged or deployed.

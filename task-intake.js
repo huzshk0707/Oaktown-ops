@@ -1,7 +1,7 @@
 /* Tasks intake: explicit review, no AI calls, no sensitive browser persistence. */
 (()=>{'use strict';
 const R=window.OpsTaskIntake,cloud=window.OpsCloud,$=id=>document.getElementById(id);
-let session=null,state={tasks:[],items:[],receipts:[]},draft=null,decisions={},receipt=null,epoch=0,busy=false,active=false,pendingRequest=null,showArchived=false,deleteSnapshot=[];
+let session=null,state={tasks:[],items:[],receipts:[]},draft=null,decisions={},receipt=null,epoch=0,busy=false,active=false,pendingRequest=null,morningPrepared=false,showArchived=false,deleteSnapshot=[];
 const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(cls)n.className=cls;return n};
 const fieldLabel=k=>({waiting_on:'Waiting on',follow_up:'Follow-up',due:'Due date',blocked_reason:'Blocker',completion_summary:'Completion summary'}[k]||k.replaceAll('_',' '));
 const msg=text=>{$('task-status').textContent=text};
@@ -23,7 +23,7 @@ $('task-delete-archived-confirm').disabled=busy||!cloud.user||!deleteSnapshot.le
 $('task-delete-archived-cancel').disabled=busy;
 updateSave();}
 function updateSave(){let okay=false;try{okay=!!draft&&!!session&&R.preview(draft,state,decisions).pending.length>0&&!R.preview(draft,state,decisions).warnings.length&&$('task-confirm').checked}catch{}$('task-save').disabled=busy||!cloud.user||!okay}
-function reset(){epoch++;busy=false;msg(cloud.user?'Choose an intake session to continue.':'Sign in to review and save task imports.');session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;showArchived=false;deleteSnapshot=[];if($('task-delete-archived-dialog').open)$('task-delete-archived-dialog').close();$('task-delete-archived-list').replaceChildren();$('task-delete-archived-scope').textContent='';$('task-delete-archived-status').textContent='';$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
+function reset(){epoch++;busy=false;msg(cloud.user?'Choose an intake session to continue.':'Sign in to review and save task imports.');session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;morningPrepared=false;showArchived=false;deleteSnapshot=[];if($('task-delete-archived-dialog').open)$('task-delete-archived-dialog').close();$('task-delete-archived-list').replaceChildren();$('task-delete-archived-scope').textContent='';$('task-delete-archived-status').textContent='';$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
 function fail(e){msg(e.code==='PGRST202'||e.status===404?'Cloud task saving is not enabled yet. The reviewed database setup must be deployed first. You can still preview an export while signed in.':e.message)}
 async function action(fn){if(busy)return;busy=true;const ticket=epoch;controls();try{await fn(ticket)}catch(e){if(ticket===epoch)fail(e)}finally{if(ticket===epoch){busy=false;controls()}}}
 async function listSessions(){
@@ -165,15 +165,20 @@ $('task-preview').addEventListener('click',()=>{
  $('task-review').scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
  }catch(e){draft=null;$('task-review').replaceChildren();fail(e);updateSave()}
 });
-$('task-json').addEventListener('input',()=>{draft=null;pendingRequest=null;$('task-review').replaceChildren();$('task-confirm').checked=false;updateSave()});
+$('task-json').addEventListener('input',()=>{morningPrepared=false;draft=null;pendingRequest=null;$('task-review').replaceChildren();$('task-confirm').checked=false;updateSave()});
 $('task-confirm').addEventListener('change',updateSave);
+function retainMorningProposal(retained,prefix){draft=retained;decisions={resolutions:{},accept_clears:[],accept_suggestions:[]};$('task-json').value=JSON.stringify(retained,null,2);renderReview();msg(prefix+' The morning proposal is kept for review; confirm context and Save explicitly.')}
 $('task-new-session').addEventListener('click',()=>action(async ticket=>{
- if(session&&$('task-json').value&&!confirm('Start a separate intake session? Unsaved pasted text will be cleared.'))return;
+ if(session&&$('task-json').value&&!confirm(morningPrepared?'Start a separate intake session? The morning proposal will be kept for review.':'Start a separate intake session? Unsaved pasted text will be cleared.'))return;
+ const retained=morningPrepared?draft:null;
  const data=await rpc('new',{},null);if(ticket!==epoch)return;session=data.session_id;draft=null;decisions={};pendingRequest=null;$('task-json').value='';$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-confirm').checked=false;
- await listSessions();await refresh();msg('New intake session created. Copy the session brief for your AI chat.');
+ await listSessions();if(ticket!==epoch)return;await refresh();if(ticket!==epoch)return;
+ if(retained)retainMorningProposal(retained,'New intake session created.');else msg('New intake session created. Copy the session brief for your AI chat.');
 }));
-$('task-session').addEventListener('change',()=>action(async()=>{
- session=$('task-session').value||null;draft=null;decisions={};pendingRequest=null;$('task-json').value='';$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-confirm').checked=false;state={tasks:[],items:[],receipts:[]};await refresh();msg(session?'Session loaded. Paste the export from this AI conversation.':'Choose an intake session.');
+$('task-session').addEventListener('change',()=>action(async ticket=>{
+ const retained=morningPrepared?draft:null;
+ session=$('task-session').value||null;draft=null;decisions={};pendingRequest=null;$('task-json').value='';$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-confirm').checked=false;state={tasks:[],items:[],receipts:[]};await refresh();if(ticket!==epoch)return;
+ if(retained)retainMorningProposal(retained,session?'Session loaded.':'Choose an intake session.');else msg(session?'Session loaded. Paste the export from this AI conversation.':'Choose an intake session.');
 }));
 $('task-refresh').addEventListener('click',()=>action(async()=>{await listSessions();await refresh();msg('Saved records refreshed. Review again before saving.');$('task-confirm').checked=false}));
 $('task-snapshot').addEventListener('click',()=>action(async()=>{
@@ -189,8 +194,8 @@ $('task-save').addEventListener('click',()=>action(async ticket=>{
  const sid=session;
  pendingRequest=pendingRequest||{export:draft,...decisions,expected_versions:Object.fromEntries(state.tasks.map(t=>[t.id,t.updated_at])),reviewed:true};
  const saved=await rpc('save',pendingRequest,sid);if(ticket!==epoch)return;
- receipt=R.validReceipt(saved)?saved:null;
- if(receipt)window.dispatchEvent(new Event('ops-today-refresh'));
+ receipt=R.validReceipt(saved)?saved:null;morningPrepared=false;
+ if(receipt){window.dispatchEvent(new Event('ops-today-refresh'));window.dispatchEvent(new CustomEvent('ops-task-intake-saved',{detail:receipt}))}
  $('task-receipt').textContent=R.validReceipt(receipt)?JSON.stringify(receipt,null,2):'Save response missing a valid receipt. Refresh and verify the saved task before trying again.';pendingRequest=null;draft=null;$('task-json').value='';$('task-review').replaceChildren();$('task-confirm').checked=false;
  await refresh();if(R.validReceipt(receipt))$('task-saved-records').open=true;msg(R.validReceipt(receipt)?'Saved to Ops. Copy the receipt back to your AI chat. No messages or reminders were sent.':'Save returned without a valid receipt. The task may have been saved: refresh the session and verify before retrying.');
 }));
@@ -203,6 +208,13 @@ function syncWorkspace(){
 window.addEventListener('ops-workspace-change',syncWorkspace);
 window.addEventListener('ops-auth-change',e=>{reset();$('task-locked').hidden=!!e.detail.user;if(e.detail.user&&active)action(listSessions)});
 window.addEventListener('ops-portfolio-loaded',()=>{if(draft)renderReview()});
+window.OpsTaskIntakeUI=Object.freeze({prepare(input){
+ if(busy||!cloud.user||pendingRequest)return false;
+ let parsed;try{parsed=R.parse(JSON.stringify(input))}catch{return false}
+ if(($('task-json').value||draft)&&!confirm('Replace the current Task Intake draft with this reviewed morning proposal? No task is saved by this handoff.'))return false;
+ morningPrepared=true;draft=parsed;decisions={resolutions:{},accept_clears:[],accept_suggestions:[]};pendingRequest=null;$('task-confirm').checked=false;
+ window.OpsWorkspace.openTasks('intake');$('task-json').value=JSON.stringify(parsed,null,2);renderReview();msg('Morning proposal prepared for review only. Choose an intake session, resolve its context, then confirm and Save.');return true;
+}});
 $('task-locked').hidden=!!cloud.user;
 controls();syncWorkspace();
 })();

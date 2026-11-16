@@ -88,5 +88,30 @@
     specificCount:specific.length,recurringCount:recurring.length
   };
  }
- return Object.freeze({CONSTANTS,eligible,candidates,fromTask,parseExtras,compose});
+ function composeReviewed(input){
+  if(!T.validDate(input.workDate)||!['normal','weekend'].includes(input.greeting))throw Error('Choose a valid work date and greeting.');
+  const groups=new Map(),sources=input.sources||{},rows=input.rows||[];
+  if(rows.length>50)throw Error('Keep the reviewed plan to 50 selected items.');
+  const seen=new Set();
+  for(const row of rows){
+   if(!row.id||seen.has(row.id)||!['task','planning'].includes(row.type)||!Object.hasOwn(sources,row.sourceId))throw Error('Every reviewed item needs a distinct identity and source.');
+   seen.add(row.id);const subject=bound(row.subject,'Priority title',220),action=bound(row.action,'Priority action',820),section=bound(row.section,'Section',80);
+   if(!groups.has(section))groups.set(section,[]);
+   groups.get(section).push('- '+subject+': '+action+' ['+(row.type==='task'?'Saved task':'Manual source')+' · '+sources[row.sourceId].label+']');
+  }
+  for(const [i,row] of parseExtras(input.extras||'').entries()){
+   if(!groups.has('Additional work'))groups.set('Additional work',[]);
+   groups.get('Additional work').push('- '+row.subject+': '+row.action+' [Manual priority '+(i+1)+']');
+  }
+  const constants=input.constants||[];
+  // Reuse the established validation, greeting and closing rather than a second SOD template.
+  const scaffold=compose({workDate:input.workDate,greeting:input.greeting,selected:[],extras:'Morning review: Review the approved daily plan.',constants});
+  if(constants.length){if(!groups.has('Additional work'))groups.set('Additional work',[]);for(const row of constants)groups.get('Additional work').push('- '+row.text+' [Recurring planning responsibility]')}
+  if(!groups.size)throw Error('Add at least one reviewed priority.');
+  const order=['Immediate priorities','Deposits and payments','Property operations','Staff assignments','Pending and blocked','Additional work'];
+  const body=order.filter(s=>groups.has(s)).map(s=>s+'\n'+groups.get(s).join('\n')).join('\n\n');
+  const start=scaffold.text.indexOf('- Morning review:'),end=scaffold.text.indexOf('\n\nPlease let me know');
+  return {text:scaffold.text.slice(0,start)+body+scaffold.text.slice(end),specificCount:rows.length+parseExtras(input.extras||'').length,recurringCount:constants.length};
+ }
+ return Object.freeze({CONSTANTS,eligible,candidates,fromTask,parseExtras,compose,composeReviewed});
 });

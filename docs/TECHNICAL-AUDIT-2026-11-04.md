@@ -210,3 +210,35 @@ The daily-usability increment moves actionable work before dashboard summaries,
 adds a read-only Needs planning queue, and warns before reloading edited deposit
 or SOD inputs. It makes no database, task-record or authentication changes.
 Fictional tests and publication evidence do not certify real staff operations.
+
+## Focus Board Phase 1 — review-only source increment
+
+See [Focus Board Phase 1](FOCUS-BOARD-PHASE-1.md) for inspected file responsibilities,
+shared read lifecycle and deterministic order. The board has no write path or
+independent task state. The existing Today fetch is extracted into a stateless
+paginated reader; its permissions, staff session and business classification stay
+with the existing modules. Tests cover multi-page records, all navigation inputs,
+late replies, denied access and zero task writes. No database migration or actual
+staff operation is part of this feature branch. It must remain unmerged for review.
+
+## Center Focus Mode — Phase 2 review scope
+
+The Phase 2 feature branch adds a native, read-only task-detail dialog and a scoped
+HUD refinement on top of Phase 1. It consumes the same snapshot; Review calls the
+unchanged existing source workflow, including its editor/read-only permission
+path. Refresh removes stale content; sign-out clears immediately; canceled
+preparation is invalidated before handoff. No database/auth change, task write
+endpoint or production publication is included. See [Phase 2](FOCUS-BOARD-PHASE-2.md)
+for tested behaviors, captures and remaining boundaries.
+
+## Focus Board Phase 3 — safe-action source review
+
+[The Phase 3 guide](FOCUS-BOARD-PHASE-3.md) records the inspected browser editor,
+intake RPC, OAuth-only connector, row locks, version checks and audit contracts.
+The new action adapter reuses the approved narrow intake update contract; no
+backend schema/auth/write endpoint changes are needed. Each mutation is reviewed,
+server-confirmed and independently read back through OpsToday. A short in-memory
+Undo reverses persisted fields only when the post-save version still matches.
+Unknown outcomes retry the identical idempotent request; newer edits are retained.
+Fictional browser captures and real disposable SQL/concurrency checks are separate
+from live staff verification. PRs #70/#71 remain unchanged, unmerged/unpublished.

@@ -1,3 +1,14 @@
+# Handoff — authorized Focus merge and publication
+
+- Updated **2026-11-16 05:27 UTC**; owner **hp**, heartbeat 2026-11-16 05:27 UTC, claim expires **2026-11-16 05:57 UTC**. Branch `ravi/focus-release`, PR #84, base main `065a88c`. Ownership checkpoint **0bb0970ee63f5fa0feae1c181b6e630248380d22** normal-pushed and remote verified; current PR log records merge authorization.
+- Latest user explicitly says **“merge it then we wanted to merge it”**. This supersedes the prior hold and authorizes #84 merge/frontend publication. Do not request another merge confirmation. Backend is already operator-deployed; do not reapply SQL/Edge, enable OAuth/client permissions or write operational records.
+- Startup: latest main AGENTS/HANDOFF/TASKS/log -15, fresh refs, status/worktrees/open PRs/remote branches, current branch handoff and PR read. Clean latest remote head **3e637bcb6f2c2c1d53ae88e9e44a31bc38588881**, prior hp claim released, no leftovers.
+- Existing evidence: operator migration 20261116050626 / Edge v3 / DB grants/counts verified; independent **8/8 HTTP checks** passed, health 1.1.0/eight tools and denied anonymous task/plan access. Integrated app/test candidate ce749d1 passed **222 unit/API / 272 browser** plus SQL/Deno/audit; source heads retained. docs/releases/FOCUS-2026-11-16.md records exact evidence/migration mapping. Do not redo implementation or backend deployment.
+- **NEXT STEP:** mark #84 ready and merge the exact pushed release head using a guarded merge commit (no squash/rebase/deletion), then fetch resulting main SHA and verify its CI/Pages/live assets. Pre-merge 8/8 HTTP checks passed again; all app/schema/function/test files still match green ce749d1. The helper supports `--published` for postflight. Create and independently verify next unused annotated tag only after exact-main CI/Pages pass. Final handoff remains on this task branch and PR registry; the main copy is a pre-merge snapshot.
+- Unfinished files: none at claim. Claim lasts 30 minutes; checkpoint/normal-push after milestones and within 15–20 minutes. No force-push or source-branch deletion. Release claim and push exact publication/test/tag evidence when done.
+
+Previous repository landing snapshot follows for historical context; live release notes above govern this authorized task.
+
 # Handoff
 
 - Last updated: 2026-11-16 00:55 UTC by ravi

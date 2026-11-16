@@ -20,5 +20,9 @@
 #task-consent-dialog h2{font-size:21px;margin:0 0 12px}#task-consent-dialog p,#task-consent-dialog li{line-height:1.6;font-size:13px}
 #task-consent-details{overflow-wrap:anywhere}#task-consent-dialog .button-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 .task-connection [hidden],#task-consent-dialog [hidden]{display:none!important}
+.task-connection select{box-sizing:border-box;width:100%;min-height:42px;font:inherit;color:var(--ui-text);background:var(--ui-surface);border:1px solid var(--ui-control);border-radius:8px;padding:8px}
+#plan-consent-list form{padding:14px;border:1px solid var(--ui-border);border-radius:10px}
+#plan-consent-list form strong,#plan-consent-list form p{grid-column:1/-1}
+#plan-consent-list form .task-connection-check{align-items:start;line-height:1.5}
 @media(max-width:540px){.task-connection>summary{align-items:start;flex-direction:column;gap:6px}.task-connection form{grid-template-columns:1fr}.task-connection .task-connection-client{align-items:start;flex-direction:column}}
 @media(max-width:540px){.task-connection-steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.task-connection-steps li{line-height:1.5;overflow-wrap:anywhere}}
