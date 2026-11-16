@@ -9,7 +9,8 @@ const writes=s=>s.saveCalls.length;
 // Both instants are on the same UTC date but different Eastern workdays.
 const midnightBefore=new Date('2026-11-16T04:59:00Z'),midnightAfter=new Date('2026-11-16T05:01:00Z'),midnightDate='2026-11-16';
 async function midnightDefer(page){
- await page.clock.setFixedTime(midnightBefore);const s=await ready(page);
+ // One task keeps selection independent of the host date used by shared fixtures.
+ await page.clock.setFixedTime(midnightBefore);const s=await ready(page,1);
  await page.locator('#focus-board-defer').click();await expect(page.locator('#focus-followup-date')).toBeEditable();
  await page.locator('#focus-followup-date').fill(midnightDate);await expect(page.locator('#focus-action-confirm')).toBeEnabled();return s;
 }

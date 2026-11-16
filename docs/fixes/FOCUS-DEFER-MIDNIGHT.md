@@ -26,7 +26,8 @@ shared task readback still establish success; there is no new task cache.
 
 ## Regression evidence
 
-All new browser fixtures are fictional, using the default desktop viewport. The fixed clock
+All new browser fixtures are fictional, using the default desktop viewport and
+a single task so real-calendar task ordering cannot change the reviewed record. The fixed clock
 moves from `2026-11-16T04:59Z` to `05:01Z`: the UTC date stays the same while
 Eastern advances from November 15 to November 16. Tests cover:
 
