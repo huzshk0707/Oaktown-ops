@@ -24,7 +24,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
   part of this setup. Phase 4 head `676e896` has 211 unit / 254 browser checks
   and full CI green. Review evidence is already committed on its branch.
   Small review steps (claim separately; no feature rewrite or merge):
-  1. [ ] **OPS-FOCUS-REVIEW.1:** **Claimed by hp** on `hp/focus-review-1`; heartbeat 2026-11-16 01:16 UTC, expires 01:46 UTC. [Review PR #76](https://github.com/huzshk0707/Oaktown-ops/pull/76); findings/evidence complete, final disposition pending. Audit #70/#71 carousel, shared data, modal,
+  1. [x] **OPS-FOCUS-REVIEW.1:** Completed by hp on `hp/focus-review-1`; claim released 2026-11-16 01:19 UTC. [Review PR #76](https://github.com/huzshk0707/Oaktown-ops/pull/76), [findings and desktop evidence](docs/reviews/OPS-FOCUS-REVIEW-1.md). One confirmed P2 pagination finding; no feature rewrite/merge. Audit #70/#71 carousel, shared data, modal,
      keyboard/focus and existing Review integration; link exact heads/findings.
   2. [ ] **OPS-FOCUS-REVIEW.2:** Audit #72 confirmation, permissions, atomic task
      versions, Defer/Undo and failure recovery using existing fictional tests.
@@ -41,6 +41,14 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
   and the shared operating protocol; source completion is not personal EOD work.
 
 ## P2 — integrations and reliability, separate small tasks
+
+- [ ] **OPS-FOCUS-READER-CURSOR:** Unclaimed. Review #76 reproduced offset-page
+  omission when an earlier task is deleted between pages (>1,000 rows). Scope a
+  cursor/keyset fix with fictional deletion/insertion regressions and explicit
+  snapshot limits; preserve shared reader/session guards. See
+  [confirmed P2 and reproduction](docs/reviews/OPS-FOCUS-REVIEW-1.md). This review
+  has not changed the reader or claimed that cursor traversal is transactional.
+
 
 - [ ] **OPS-MAILBOX:** Design/authorize an in-app read-only mailbox integration,
   provider/source-ID contract and secure retention. Phase 4 has manual intake;
