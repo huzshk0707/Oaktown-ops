@@ -6,7 +6,7 @@
  function validApproval(row,day){
   try{
    const m=row?.event_metadata,p=m?.plan;
-   return uuid(row.id)&&uuid(row.actor_id)&&Number.isFinite(Date.parse(row.occurred_at))&&row.entity_type==='morning_plan'&&row.event_type==='morning_plan_approved_v1'&&
+   return M.attested(row)&&uuid(row.id)&&uuid(row.actor_id)&&Number.isFinite(Date.parse(row.occurred_at))&&row.entity_type==='morning_plan'&&row.event_type==='morning_plan_approved_v1'&&
     m.schema_version==='oaktown.morning-plan.v1'&&p?.schema_version==='oaktown.sod-draft.v1'&&uuid(p.planId)&&row.entity_id===p.planId&&m.plan_id===p.planId&&
     T.validDate(day)&&m.work_date===day&&p.workDate===day&&Number.isInteger(p.revision)&&p.revision>=0&&m.revision===p.revision&&
     typeof p.text==='string'&&!!p.text.trim()&&p.text.length<=90000&&Array.isArray(p.rows)&&p.rows.length<=50&&object(p.sources)&&

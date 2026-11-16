@@ -53,7 +53,7 @@
    const sources=node('details');sources.append(node('summary','Source references · '+Object.keys(p.sources).length));
    for(const s of Object.values(p.sources)){if(!s||typeof s.label!=='string')continue;const detail=node('p',s.label+' · '+(s.verification||'Verification not recorded')+(s.version?' · version '+s.version:'')+(s.originRef?' · '+s.originRef:''));sources.append(detail)}
    planHost.append(sources,node('p',window.OpsMorningModel.planningOnly(p)+' planning-only items. Approval does not create saved tasks.','daily-task-meta'));
-  }else planHost.append(node('p',planState==='ready'?'No valid approved plan is saved for '+day+' Eastern.':planState==='denied'?'Staff journal access was denied. No saved plan is displayed.':planState==='loading'?'Reading approved SOD from the staff journal…':'Approved SOD unavailable. Refresh to retry.','daily-empty'));
+  }else planHost.append(node('p',planState==='ready'?'No valid approved plan is saved for '+day+' Eastern.':planState==='denied'?'Server-reviewed plan access was denied. No saved plan is displayed.':planState==='loading'?'Reading server-reviewed SOD…':'Approved SOD unavailable. Refresh to retry.','daily-empty'));
   renderFocusPlan();
  }
  async function refreshPlan(fullSnapshot=false){
@@ -61,9 +61,9 @@
   const id=++ticket,user=cloud.user.id,selected=day;phase='loading';issue='';render();const rows=[];
   const current=()=>ticket===id&&cloud.user?.id===user&&day===selected;
   try{
-   // Existing journal RLS decides which staff approvals this user may see.
+   // The server joins journal events to private review receipts; raw JSON is not approval proof.
    for(let offset=0;;offset+=100){
-    const page=await W.withTimeout(signal=>cloud.api('/rest/v1/ops_events?select=id,entity_type,entity_id,event_type,actor_id,occurred_at,summary,event_metadata&entity_type=eq.morning_plan&event_type=eq.morning_plan_approved_v1&event_metadata->>work_date=eq.'+selected+'&order=occurred_at.desc,id.desc&limit=100&offset='+offset,{signal}));
+    const page=await window.OpsPlanApi.call('list',{work_date:selected,offset});
     if(!current())return [];
     if(!Array.isArray(page))throw Error('Unexpected approval response');rows.push(...page);if(page.length<100)break;
     if(offset>=9900)throw Error('Approval history needs a narrower read');

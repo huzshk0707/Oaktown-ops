@@ -84,6 +84,7 @@
  function verified(expected,rows,reviewer){
   return Array.isArray(rows)&&rows.length===1&&rows[0]?.id===expected.id&&rows[0].actor_id===reviewer&&Number.isFinite(Date.parse(rows[0].occurred_at))&&['entity_type','entity_id','event_type','summary','event_metadata'].every(k=>canonical(rows[0][k])===canonical(expected[k]));
  }
+ function attested(row){const p=row?.review_proof,m=row?.event_metadata;return !!p&&p.schema_version==='oaktown.sod-review.v1'&&p.channel==='native_staff_review'&&p.event_id===row.id&&p.request_id===m?.review_request_id&&m.approval_contract==='oaktown.sod-review.v1'&&p.reviewer_id===row.actor_id&&typeof p.request_id==='string'&&/^[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12}$/i.test(p.request_id)&&/^[\da-f]{64}$/.test(p.content_hash)&&Number.isFinite(Date.parse(p.reviewed_at))}
  function conflicts(plan,tasks,day=T.today()){
   const out=[];if(plan.workDate!==day)out.push('The approved work date is not the current Eastern business date.');
   for(const row of plan.rows||[])if(row.type==='task'){
@@ -93,5 +94,5 @@
   return out;
  }
  function windowlessActive(t){return !['completed','cancelled','canceled','closed','done','declined'].includes(String(t.status).toLowerCase())}
- return Object.freeze({categories,stages,stageLabels,sections,intake,classify,fingerprint,duplicate,review,citation,planRow,taskSection,taskSource,planningOnly,taskMatches,deposits,taskExport,approval,verified,conflicts,canonical});
+ return Object.freeze({categories,stages,stageLabels,sections,intake,classify,fingerprint,duplicate,review,citation,planRow,taskSection,taskSource,planningOnly,taskMatches,deposits,taskExport,approval,verified,attested,conflicts,canonical});
 });

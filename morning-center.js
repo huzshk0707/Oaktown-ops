@@ -1,13 +1,13 @@
 /* Desktop planning surface. OpsToday owns tasks; OpsSod owns the single daily plan. */
 (()=>{'use strict';
- const $=id=>document.getElementById(id),cloud=window.OpsCloud,store=window.OpsToday,S=window.OpsSod,M=window.OpsMorningModel,T=window.OpsTodayModel,W=window.OpsReviewedWrite;
+ const $=id=>document.getElementById(id),cloud=window.OpsCloud,store=window.OpsToday,S=window.OpsSod,M=window.OpsMorningModel,T=window.OpsTodayModel,W=window.OpsReviewedWrite,A=window.OpsPlanApi;
  const host=$('morning-workflow');if(!host||!M||!S)return;
  const sod=$('sod-morning'),sodHome=document.createComment('Existing SOD editor home');sod.before(sodHome);
  const draftBoundary=$('sod-draft-boundary'),draftBoundaryHome=draftBoundary.textContent;
  const search=$('operations-search-open'),searchHome=document.createComment('Existing search home');document.querySelector('.operations-toolbar').prepend(searchHome);
  const topbar=document.querySelector('.topbar'),flow=W.create(),review=$('morning-review-dialog'),approve=$('morning-approve-dialog'),start=$('morning-start-dialog');
+ let preparing=false,prepared=null,approvalChannel='manual',approvalTicket=0,pendingTicket=0;
  let knownSources=[],intakeDirty=false,executionId=null,active=false,items=[],epoch=0,reviewId=null,lastFocus=null,duplicateCandidate=null,pending=null,preview=null,historyTicket=0,transition=0,starting=false;
- const request=(path,options={})=>W.withTimeout(signal=>cloud.api(path,{...options,signal}));
  const data=()=>store.getData(),ready=()=>!!cloud.user&&store.getState()==='ready'&&!!data()?.canEdit;
  const current=(ticket,user)=>epoch===ticket&&cloud.user?.id===user;
  const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=String(text);if(cls)n.className=cls;return n};
@@ -135,7 +135,7 @@
   for(const [label,value]of counts){const row=node('div',null,'morning-readiness-row');row.append(node('span',label),node('strong',value));list.append(row)}
   const ok=approvedCurrent();$('morning-plan-version').textContent=ok?'Approved · revision '+p.revision:'Draft · revision '+(p?.revision||0);
   list.append(node('p',ok?'Approved SOD is current and ready for the execution confirmation.':record?'An approved version is preserved. Review the changed draft or saved task sources before execution.':'No approved daily plan yet. Generate the SOD, review its sources, then approve explicitly.','morning-muted'));
-  $('morning-approve-open').disabled=flow.busy||!!pending||!ready()||!p?.text||!!p.stale.length||ok;
+  $('morning-approve-open').disabled=flow.busy||preparing||!!pending||!ready()||!p?.text||!!p.stale.length||ok;
   $('morning-start-open').disabled=flow.busy||!!pending||!ok||starting;
   $('morning-check-approval').hidden=!pending;$('morning-check-approval').disabled=flow.busy||!ready();
   $('morning-export-approved').disabled=!record;
@@ -153,7 +153,7 @@
   if(!active){renderFocusPlan();return}
   const phase=store.getState(),access=ready();businessDate.textContent='EASTERN · '+T.today();businessDate.dateTime=T.today();
   $('morning-grid').hidden=!access;$('morning-signin').hidden=!!cloud.user;
-  $('morning-command-refresh').disabled=!cloud.user||phase==='loading'||flow.busy;
+  $('morning-command-refresh').disabled=!cloud.user||phase==='loading'||flow.busy||preparing;
   $('morning-source-status').textContent=access?'Shared task snapshot ready':!cloud.user?'Staff sign-in required':phase==='loading'?'Refreshing shared records':'Access / data unavailable';
   $('morning-state').textContent=access?'':!cloud.user?'Sign in with your Oaktown staff account. No private planning information is shown.':phase==='loading'?'Refreshing shared tasks. Existing planning input is kept.':phase==='error'?'Planning data could not be loaded. Your draft has not been replaced. Refresh information to retry.':'Editor access is required. Restore staff permissions before planning or approving.';
   if(!access){if(phase==='error'){$('morning-approve-preview').textContent='';if(review.open)closeReview()}return}
@@ -166,7 +166,7 @@
   const real=p.rows.filter(r=>r.type==='task').length,manual=M.planningOnly(p);
   $('focus-morning-summary').textContent='Approved morning SOD · '+real+' saved tasks · '+manual+' planning-only items. Task order is unchanged.';
  }
- async function refresh(){if(!cloud.user||flow.busy)return;await store.refresh();if(active&&cloud.user&&store.getState()==='ready'){if(ready())S.beginMorning();render();await historyRefresh(true)}}
+ async function refresh(){if(!cloud.user||flow.busy)return;await store.refresh();if(active&&cloud.user&&store.getState()==='ready'){if(ready())S.beginMorning();render();await Promise.allSettled([historyRefresh(true),refreshPending()])}}
  async function historyRefresh(fullSnapshot=false){
   if(!cloud.user||store.getState()!=='ready')return;const user=cloud.user.id,ticket=++historyTicket,at=epoch;
   $('morning-history-status').textContent='Reading saved approvals…';
@@ -175,7 +175,7 @@
    if(!current(at,user)||ticket!==historyTicket)return;
    if(!Array.isArray(rows))throw Error('Unexpected journal response');
    const list=$('morning-history');list.replaceChildren();let count=0;knownSources=[];
-   for(const row of rows)if(row.actor_id===user&&row.event_metadata?.schema_version==='oaktown.morning-plan.v1'&&row.event_metadata.work_date===T.today()){
+   for(const row of rows)if(M.attested(row)&&row.actor_id===user&&row.event_metadata?.schema_version==='oaktown.morning-plan.v1'&&row.event_metadata.work_date===T.today()){
     for(const source of Object.values(row.event_metadata.plan?.sources||{})){const manual=source.manualReference?{...source,...source.manualReference}:source;if(manual.kind?.startsWith('manual_'))knownSources.push({...manual,kind:manual.kind.slice(7),saved:true})}
     count++;list.append(button('Load revision '+row.event_metadata.revision+' · '+row.occurred_at,()=>{try{if(S.restore(row))feedback('Saved approved plan loaded without changing tasks.')}catch{feedback('This saved plan format needs review before it can be restored.')}}));
    }
@@ -183,55 +183,80 @@
   }catch{if(current(at,user)&&ticket===historyTicket)$('morning-history-status').textContent='Saved plan history is unavailable. The current draft and approved version are kept.'}
  }
  $('morning-history-refresh').onclick=historyRefresh;
- const readApproval=id=>request('/rest/v1/ops_events?id=eq.'+encodeURIComponent(id)+'&select=id,entity_type,entity_id,event_type,actor_id,occurred_at,summary,event_metadata&limit=1');
- function showApprove(){
-  if(!ready()||flow.busy||pending||document.querySelector('dialog[open]'))return;
-  const p=plan();if(!p?.text||p.stale.length)return;
-  const conflicts=M.conflicts(p,data().tasks);if(conflicts.length){feedback(conflicts.join(' '));return}
-  preview=p;flow.reset();flow.open();lastFocus=document.activeElement;$('morning-approve-preview').textContent=p.text;$('morning-approve-confirm').checked=false;
-  $('morning-approve-scope').textContent='Revision '+p.revision+' · '+p.workDate+' Eastern · '+p.rows.filter(r=>r.type==='task').length+' saved tasks · '+M.planningOnly(p)+' planning-only items. '+items.filter(i=>i.status==='unreviewed').length+' unreviewed incoming items remain outside this approved plan.';
-  $('morning-approve-status').textContent='Review the exact text and source citations. Nothing is saved until confirmation.';approvalControls();approve.showModal();$('morning-approve-title').focus();
+ function approvalSources(p){
+  const host=$('morning-approve-source-list');host.replaceChildren();
+  for(const source of Object.values(p.sources||{})){const detail=node('details');detail.append(node('summary',source.label),node('p',source.verification||'Source facts are not independently verified','morning-source-meta'));if(source.taskId)detail.append(node('p','Saved task '+source.taskId+' · '+source.version,'morning-source-meta'));if(source.originRef)detail.append(node('p','Source reference '+source.originRef,'morning-source-meta'));if(source.body)detail.append(node('pre',source.body,'morning-original'));host.append(detail)}
+ }
+ async function refreshPending(){
+  const ticket=++pendingTicket,user=cloud.user?.id,list=$('plan-pending-list');
+  if(!ready()){list.replaceChildren();$('plan-pending-status').textContent='Native staff editor access is required.';return}
+  $('plan-pending-status').textContent='Reading your pending plan proposals…';
+  try{const rows=await A.call('pending');if(ticket!==pendingTicket||cloud.user?.id!==user)return;if(!Array.isArray(rows))throw Error('Unexpected pending review response');list.replaceChildren();const agent=rows.filter(r=>r.from_chatgpt===true);for(const item of agent){const row=node('article',null,'morning-source-card');row.append(node('strong','ChatGPT proposal · '+item.work_date),node('p',item.proposal_id,'morning-source-meta'),node('p',item.text.slice(0,180)+(item.text.length>180?'…':'')),button('Review plan',()=>showApprove(item.proposal_id)));list.append(row)}$('plan-pending-status').textContent=agent.length?agent.length+' proposals awaiting your native review. No SOD is approved yet.':'No ChatGPT plan proposals awaiting your review.';
+  }catch(error){if(ticket===pendingTicket&&cloud.user?.id===user){list.replaceChildren();$('plan-pending-status').textContent=error.message||'Plan requests unavailable.'}}
+ }
+ $('plan-pending-refresh').onclick=refreshPending;
+ async function showApprove(proposalId=null){
+  if(!ready()||flow.busy||preparing||pending||document.querySelector('dialog[open]'))return;
+  const local=proposalId?null:plan();if(!proposalId&&(!local?.text||local.stale.length))return;
+  if(local){const conflicts=M.conflicts(local,data().tasks,local.workDate);if(conflicts.length){feedback(conflicts.join(' '));return}}
+  const user=cloud.user.id,at=epoch,ticket=++approvalTicket;
+  approvalChannel=proposalId?'chatgpt':'manual';prepared=null;preview=local;preparing=true;flow.reset();flow.open();S.setLocked(true);lastFocus=document.activeElement;
+  $('morning-approve-preview').textContent=local?.text||'Reading the exact submitted plan…';$('morning-approve-source-list').replaceChildren();$('morning-approve-confirm').checked=false;
+  $('morning-approve-scope').textContent='A review request is not an approval. Preparing the server-bound preview.';$('morning-approve-status').textContent='Checking the server review contract…';approvalControls();approve.showModal();$('morning-approve-title').focus();
+  const valid=()=>current(at,user)&&ticket===approvalTicket&&approve.open;
+  try{
+   let id=proposalId;
+   if(!id){const head=await A.call('head',{work_date:local.workDate});if(!valid())return;if(head?.schema_version!=='oaktown.daily-plan-head.v1'||head.work_date!==local.workDate)throw Error('Current daily approval was not confirmed');if(head.approval_id!==null&&(!M.attested(head.event)||head.event.id!==head.approval_id))throw Error('Current daily review proof was not confirmed');const created=await A.call('prepare',{request_ref:'native-'+crypto.randomUUID(),expected_approval_id:head.approval_id,plan:A.cleanPlan(local)});if(!valid())return;id=created.proposal_id;}
+   const review=await A.call('review',{proposal_id:id});if(!valid())return;
+   if(review.approved){if(!M.attested(review.event)||review.event.actor_id!==user)throw Error('Saved review not confirmed');S.setApproved(review.event);feedback('This proposal is already approved. No duplicate approval was created.');closeApprove();return}
+   if(!A.validReview(review,local))throw Error('The server preview does not match the exact plan under review.');
+   prepared=review;preview=review.event.event_metadata.plan;approvalSources(preview);$('morning-approve-preview').textContent=preview.text;
+   $('morning-approve-scope').textContent='Revision '+preview.revision+' · '+preview.workDate+' Eastern · '+preview.rows.filter(r=>r.type==='task').length+' saved tasks · '+M.planningOnly(preview)+' planning-only items. '+(proposalId?'Submitted by ChatGPT; approval requires your native staff session.':'Existing draft edits are preserved.');
+   $('morning-approve-status').textContent='Review the exact server-bound text and source references, then confirm. No task or deposit fields will change.';
+  }catch(error){if(valid()){$('morning-approve-status').textContent=error.message||'Could not prepare native staff review.';prepared=null}}
+  finally{if(valid()){preparing=false;approvalControls();render()}}
  }
  function approvalControls(){
-  const busy=flow.busy;$('morning-approve-save').disabled=busy||!ready()||!$('morning-approve-confirm').checked;
-  $('morning-approve-cancel').disabled=busy;$('morning-approve-confirm').disabled=busy;approve.setAttribute('aria-busy',String(busy));
+  const busy=flow.busy||preparing;$('morning-approve-save').disabled=busy||!prepared||!ready()||!$('morning-approve-confirm').checked;
+  $('morning-approve-cancel').disabled=flow.busy;$('morning-approve-confirm').disabled=busy||!prepared;approve.setAttribute('aria-busy',String(busy));
  }
- function closeApprove(){if(flow.busy)return;if(approve.open)approve.close();preview=null;flow.reset();if(lastFocus?.isConnected)lastFocus.focus({preventScroll:true});render()}
- $('morning-approve-open').onclick=showApprove;$('morning-approve-cancel').onclick=closeApprove;$('morning-approve-confirm').onchange=approvalControls;
+ function closeApprove(){if(flow.busy)return;approvalTicket++;preparing=false;prepared=null;if(approve.open)approve.close();preview=null;flow.reset();S.setLocked(false);$('morning-approve-source-list').replaceChildren();if(lastFocus?.isConnected)lastFocus.focus({preventScroll:true});render()}
+ $('morning-approve-open').onclick=()=>showApprove();$('morning-approve-cancel').onclick=closeApprove;$('morning-approve-confirm').onchange=approvalControls;
  approve.addEventListener('cancel',e=>{e.preventDefault();closeApprove()});
  $('morning-approve-form').onsubmit=async event=>{
-  event.preventDefault();if(flow.busy||!ready()||!preview||!$('morning-approve-confirm').checked)return;
+  event.preventDefault();if(flow.busy||preparing||!prepared||!ready()||!preview||!$('morning-approve-confirm').checked)return;
   if(flow.phase==='needs_review'){const reload=flow.start('reload');flow.advance(reload,'loaded')}
   const ticket=flow.start('submit');if(!ticket)return;
-  const user=cloud.user.id,at=++epoch,original=preview;S.setLocked(true);approvalControls();$('morning-approve-status').textContent='Checking the shared task versions and current editor access…';
+  const user=cloud.user.id,at=++epoch,original=preview,reviewed=prepared;S.setLocked(true);approvalControls();$('morning-approve-status').textContent='Checking current task versions and native staff access…';
   try{
    await W.withTimeout(()=>store.refresh());if(!current(at,user))return;
    if(!ready())throw Error('Editor access or shared records are unavailable.');
-   const conflicts=M.conflicts(original,data().tasks);if(conflicts.length)throw Error(conflicts.join(' '));
-   if(!pending&&(plan()?.revision!==original.revision||plan()?.text!==original.text))throw Error('The SOD changed since review. Generate and review it again.');
-   flow.advance(ticket,'approved');pending=pending||{row:M.approval(original,crypto.randomUUID(),original.planId,user),user};approvalControls();
-   $('morning-approve-status').textContent='Saving the confirmed plan to the staff journal…';
-   try{await request('/rest/v1/ops_events',{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(pending.row)})}catch(error){if(!(error.status===409&&error.code==='23505'))throw error}
-   if(!current(at,user))return;flow.advance(ticket,'received');approvalControls();
-   const rows=await readApproval(pending.row.id);if(!current(at,user))return;
-   if(!M.verified(pending.row,rows,user))throw Error('The saved approval could not be independently verified.');
-   flow.advance(ticket,'verified');pending=null;S.setApproved(rows[0]);preview=null;approve.close();S.setLocked(false);
-   feedback('Approved SOD saved and verified in the staff journal. No tasks or deposits changed.');render();historyRefresh();
+   const conflicts=M.conflicts(original,data().tasks,original.workDate);if(conflicts.length)throw Error(conflicts.join(' '));
+   if(!pending&&approvalChannel==='manual'&&(plan()?.revision!==original.revision||plan()?.text!==original.text))throw Error('The SOD changed since review. Generate and review it again.');
+   flow.advance(ticket,'approved');pending=pending||{review:reviewed,row:reviewed.event,user,channel:approvalChannel};approvalControls();
+   $('morning-approve-status').textContent='Recording your confirmed native staff review…';
+   const saved=await A.call('approve',A.approvalPayload(pending.review));if(!current(at,user))return;flow.advance(ticket,'received');approvalControls();
+   if(!A.receiptMatches(pending.review,saved,user))throw Error('Server review receipt not confirmed.');
+   const row=await A.call('get',{event_id:pending.row.id});if(!current(at,user))return;
+   if(!A.verified(pending.review,row,user)||M.canonical(saved.event)!==M.canonical(row))throw Error('Saved approval did not match independent readback.');
+   flow.advance(ticket,'verified');pending=null;prepared=null;preview=null;approve.close();S.setLocked(false);S.setApproved(row);
+   feedback('Approved SOD and server review receipt saved and verified. No tasks or deposits changed.');render();historyRefresh();refreshPending();$('morning-start-open').disabled||$('morning-start-open').focus({preventScroll:true});
   }catch(error){
    if(!current(at,user))return;flow.advance(ticket,flow.phase==='checking'?'rejected':'failed');
-   if([400,403,404].includes(error.status)&&error.code)pending=null;
-   $('morning-approve-status').textContent=pending?'Approval outcome is unverified. The journal may have saved it. Check the saved approval before another save.':error.message||'Approval not saved. Review the current records and retry.';
+   if(['22023','40001','42501','P0002'].includes(error.code)){pending=null;prepared=null;}
+   $('morning-approve-status').textContent=pending?'Approval outcome is unverified. Check the original submission before another save.':error.message||'Approval not saved. Review access and source versions.';
    feedback(pending?'Approval needs verification. Use Check saved approval; a new approval is blocked.':'Approval was not saved or verified. Review current access and source conflicts.');
   }finally{if(current(at,user)){S.setLocked(false);approvalControls();render()}}
  };
  $('morning-check-approval').onclick=async()=>{
-  if(!pending||!ready()||flow.busy)return;const user=cloud.user.id,at=epoch,expected=pending.row;
+  if(!pending||!ready()||flow.busy||preparing)return;const user=cloud.user.id,at=epoch,expected=pending.review;
   try{
-   const rows=await readApproval(expected.id);if(!current(at,user)||!pending)return;
-   if(M.verified(expected,rows,user)){S.setApproved(rows[0]);pending=null;feedback('Saved approval verified. The original request was not duplicated.');render();return}
-   if(rows.length)throw Error('The saved event differs from the reviewed plan. Review the journal before proceeding.');
-   preview=expected.event_metadata.plan;flow.reset();flow.open();$('morning-approve-preview').textContent=preview.text;$('morning-approve-confirm').checked=false;$('morning-approve-status').textContent='No event is visible yet. Review and confirm to retry the identical approval ID; duplicate inserts cannot overwrite a saved event.';
-   approvalControls();approve.showModal();$('morning-approve-title').focus();
+   const state=await A.call('status',{proposal_id:expected.proposal_id});if(!current(at,user)||!pending)return;
+   if(state.state==='approved'){const row=await A.call('get',{event_id:expected.event.id});if(!current(at,user)||!pending)return;if(!A.verified(expected,row,user)||M.canonical(state.event)!==M.canonical(row))throw Error('Saved approval differs from the reviewed request.');S.setApproved(row);pending=null;prepared=null;feedback('Saved approval verified. The original request was not duplicated.');render();historyRefresh();refreshPending();return}
+   if(state.state==='expired'){pending=null;prepared=null;feedback('The review request expired without an approval. Prepare a fresh review.');render();return}
+   if(state.state!=='pending_staff_review')throw Error('Unexpected review request state.');
+   prepared=expected;preview=expected.event.event_metadata.plan;approvalChannel=pending.channel;flow.reset();flow.open();lastFocus=document.activeElement;$('morning-approve-preview').textContent=preview.text;approvalSources(preview);$('morning-approve-confirm').checked=false;
+   $('morning-approve-status').textContent='No approval is recorded yet. Review and confirm to retry the identical server request.';approvalControls();approve.showModal();$('morning-approve-title').focus();
   }catch(error){if(current(at,user))feedback('Approval remains unverified: '+error.message)}
  };
  $('morning-start-open').onclick=()=>{
@@ -253,7 +278,7 @@
  };
  function route(){
   const next=window.OpsWorkspace.getRoute().workflow,on=next==='morning';
-  if(!on){if(active){transition++;starting=false;if(start.open)start.close();if(review.open)closeReview();if(approve.open)approve.close();active=false;document.body.classList.remove('morning-mode');draftBoundary.textContent=draftBoundaryHome;sodHome.after(sod);if(next!=='focus')searchHome.after(search);for(const id of ['morning-command-date','morning-command-refresh','morning-command-exit'])$(id).hidden=true}renderFocusPlan();return}
+  if(!on){if(active){transition++;starting=false;if(start.open)start.close();if(review.open)closeReview();if(approve.open)approve.close();approvalTicket++;preparing=false;prepared=null;S.setLocked(false);active=false;document.body.classList.remove('morning-mode');draftBoundary.textContent=draftBoundaryHome;sodHome.after(sod);if(next!=='focus')searchHome.after(search);for(const id of ['morning-command-date','morning-command-refresh','morning-command-exit'])$(id).hidden=true}renderFocusPlan();return}
   if(active){render();return}active=true;document.body.classList.add('morning-mode');$('morning-sod-host').append(sod);sod.open=true;topbar.insertBefore(search,$('workspace-appearance-open'));
   draftBoundary.textContent='Draft edits stay in this session. Review & approve SOD saves a reviewed version and its selected source evidence in the staff journal. Planning does not create tasks, change saved priorities, or send email.';
   for(const id of ['morning-command-date','morning-command-refresh','morning-command-exit'])$(id).hidden=false;
@@ -261,16 +286,16 @@
   if(ready())S.beginMorning();render();if(cloud.user)refresh();$('morning-heading').focus({preventScroll:true});
  }
  for(const dialog of [review,approve,start])dialog.addEventListener('keydown',event=>{
-  if(event.key!=='Tab')return;const list=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled)')].filter(n=>n.getClientRects().length),first=list[0],last=list.at(-1);
+  if(event.key!=='Tab')return;const list=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),summary,a[href]')].filter(n=>n.getClientRects().length),first=list[0],last=list.at(-1);
   if(!list.length){event.preventDefault();return}if(event.shiftKey&&(document.activeElement===first||document.activeElement.tabIndex===-1)){event.preventDefault();last.focus()}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
  });
  window.addEventListener('ops-sod-change',render);
  window.addEventListener('ops-today-state',()=>{if(active&&ready())S.beginMorning();render()});
  window.addEventListener('ops-workspace-change',route);
  window.addEventListener('ops-auth-change',()=>{
-  epoch++;historyTicket++;transition++;intakeDirty=false;executionId=null;knownSources=[];items=[];duplicateCandidate=null;pending=null;preview=null;flow.reset();reviewId=null;starting=false;
+  epoch++;historyTicket++;transition++;approvalTicket++;pendingTicket++;preparing=false;prepared=null;intakeDirty=false;executionId=null;knownSources=[];items=[];duplicateCandidate=null;pending=null;preview=null;flow.reset();reviewId=null;starting=false;
   for(const dialog of [review,approve,start])if(dialog.open)dialog.close();
-  for(const id of ['morning-review-original','morning-review-source','morning-approve-preview','morning-approved-text','morning-approved-sources','morning-approved-meta','morning-incoming','morning-proposals','morning-history','morning-priority-work','morning-assignments','morning-readiness','morning-deposits','morning-approve-scope','morning-start-summary'])$(id).replaceChildren();
+  for(const id of ['morning-review-original','morning-review-source','morning-approve-preview','morning-approved-text','morning-approved-sources','morning-approved-meta','morning-incoming','morning-proposals','morning-history','morning-priority-work','morning-assignments','morning-readiness','morning-deposits','morning-approve-scope','morning-start-summary','morning-approve-source-list','plan-pending-list'])$(id).replaceChildren();
   for(const id of ['morning-review-property','morning-review-task'])$(id).replaceChildren();
   $('morning-intake-form').reset();$('morning-review-form').reset();$('morning-source-date').value=T.today();$('morning-duplicate').hidden=true;$('morning-intake-feedback').textContent='';feedback('');render();if(active&&cloud.user)refresh();
  });
