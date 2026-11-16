@@ -69,7 +69,7 @@ async function main(){const created=[];try{
  const p1=call('submit',intent('concurrent-one','2026-11-18'),'agent'),p2=call('submit',intent('concurrent-two','2026-11-18'),'agent'),r1=call('review',{proposal_id:p1.proposal_id}),r2=call('review',{proposal_id:p2.proposal_id});await competing(approve(r1),approve(r2),false);
  const p3=call('submit',intent('same-retry','2026-11-19'),'agent'),r3=call('review',{proposal_id:p3.proposal_id});await competing(approve(r3),approve(r3),true);
  await mcpRoundTrip(intent('mcp-native-roundtrip','2026-11-22'));
- const manual=JSON.parse(JSON.stringify(reviewed.event.event_metadata.plan));manual.planId=actor(100);manual.workDate='2026-11-23';manual.revision=2;manual.rows[0].code=task.task_code;manual.rows[0].updatedAt=task.updated_at;manual.sources[manual.rows[0].sourceId].version=task.updated_at;
+ const manual=JSON.parse(JSON.stringify(reviewed.event.event_metadata.plan));manual.planId=actor(100);manual.workDate='2026-11-23';manual.revision=2;manual.rows[0].code=task.task_code||'';manual.rows[0].updatedAt=task.updated_at;manual.sources[manual.rows[0].sourceId].version=task.updated_at;
  const prepared=call('prepare',{request_ref:'native-editor-contract',expected_approval_id:null,plan:manual}),nativeReview=call('review',{proposal_id:prepared.proposal_id});assert.deepEqual(nativeReview.event.event_metadata.plan,manual);assert.equal(call('approve',approve(nativeReview)).event.event_metadata.plan.planId,manual.planId);
 
  for(const n of [3,4,5])denied('prepare',{request_ref:'denied-'+n,expected_approval_id:null,plan:{}},/editor|staff access/,'native',n);
