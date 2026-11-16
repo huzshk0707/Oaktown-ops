@@ -9,7 +9,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 - [ ] **OPS-HANDOFF:** Install shared protocol, account prompts and PR template;
   validate links/checks, publish the documentation to main, verify remote refs,
-  release ravi's claim. Current branch `ravi/shared-handoff`.
+  release ravi's claim. Current branch `ravi/shared-handoff`; [setup PR #74](https://github.com/huzshk0707/Oaktown-ops/pull/74).
 
 ## P1 — finish review before starting again
 

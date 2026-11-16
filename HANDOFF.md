@@ -1,11 +1,12 @@
 # Handoff
 
-- Last updated: 2026-11-16 00:47 UTC by ravi
-- Current task / branch / PR: OPS-HANDOFF — shared AI continuation setup / `ravi/shared-handoff` / draft PR is the immediate next remote action after this first checkpoint.
-- Active owner: ravi; claim valid until 2026-11-16 01:17 UTC. Renew at each checkpoint; 30-minute cooperative lease.
+- Last updated: 2026-11-16 00:49 UTC by ravi
+- Current task / branch / PR: OPS-HANDOFF — shared AI continuation setup / `ravi/shared-handoff` / [PR #74](https://github.com/huzshk0707/Oaktown-ops/pull/74) (draft).
+- Active owner: ravi; claim valid until 2026-11-16 01:19 UTC. Renew at each checkpoint; 30-minute cooperative lease.
+- Last verified pushed checkpoint before this update: `2c36477ac02a646fb730e81ba036a93bae666b93`; live branch/PR identifies newer checkpoints.
 - Done so far: inspected latest main `d5b4dfb8237b0362dabe97227dacc86aa2cd8d0d`, `git log -15`, README/source, all open PRs/issues and remote branches; added permanent rules, repo-specific backlog, account starts and PR template. No existing feature branch changed.
 - In progress (files being edited): `AGENTS.md`, `HANDOFF.md`, `TASKS.md`, `docs/ai-accounts/hp.md`, `docs/ai-accounts/felix.md`, `.github/PULL_REQUEST_TEMPLATE.md`, README links. Tests and main publication are not finished.
-- NEXT STEP (exact and specific): normal-push this checkpoint; immediately open its draft PR targeting main; record its URL here and in TASKS; run `node scripts/workflow-states.cjs --check; node --test tests/*.test.cjs` and document results before marking this documentation task ready and promoting only these files to main.
+- NEXT STEP (exact and specific): run the existing check commands below and relative Markdown-link validation; record results, finish this documentation-only PR and verify the normal main push if unprotected.
 - Known bugs / blockers: no setup blocker. Never-pushed edits cannot be recovered by another account. Checkpoint every 15–20 minutes and after meaningful steps. This protocol does not supply missing GitHub/provider permissions.
 - How to run and test: see commands below. No product runtime change is part of this task; use local/disposable test data only.
 - Decisions made and why: use Git commits plus branch handoffs and live PR logs as portable shared memory; preserve existing project rules; keep account identity separate from actual staff attribution. Main landing notes index parallel PRs instead of pretending all accounts share one checkout.
