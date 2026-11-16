@@ -1,5 +1,7 @@
 # Oaktown Ops
 
+[AI handoff](HANDOFF.md) · [Task priorities](TASKS.md) · [Permanent AI rules](AGENTS.md) · [hp start](docs/ai-accounts/hp.md) · [felix start](docs/ai-accounts/felix.md)
+
 [Open the workspace](https://huzshk0707.github.io/Oaktown-ops/)
 
 [Shared ChatGPT operating rules](docs/CHATGPT-PROJECT-OPERATING-PROTOCOL.md) · [Current roadmap](docs/ROADMAP.md) · [Technical audit and staged fixes](docs/TECHNICAL-AUDIT-2026-11-04.md) · [Live validation](docs/LIVE-VALIDATION.md)
