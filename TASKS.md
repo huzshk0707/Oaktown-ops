@@ -8,6 +8,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 ## P0 — authorized release (2026-11-16)
 
 - [ ] **OPS-FOCUS-RELEASE** (hp post-deployment verification; `ravi/focus-release`, PR #84): **User now explicitly authorized merge/frontend publication (latest “merge it” instruction)**; **#84 merged** at e96beea6dbb7b3c18dd891bd5b164823b11e55cc; exact-SHA Pages is built, main CI and live postflight/tag verification remain in progress. Operator reports backend migration 20261116050626 / Edge v3 complete; independent health 1.1.0/eight-tool/anonymous-denial checks pass. Reviewed source CI: 222 unit/API / 272 browsers. Future approved merge must retain source ancestry and verify exact-main CI/Pages/tag; no activation or operational writes. Current evidence: docs/releases/FOCUS-2026-11-16.md.
+- [x] **OPS-FOCUS-RELEASE.MERGE-PAGES** — #84 merged to exact main e96beea; Pages run 43810463425 built that SHA. Published postflight 8/8 and asset-byte comparisons 12/12 passed. Main CI 43810464959 and release tag remain next; no backend or operational writes.
 - [x] **OPS-FOCUS-RELEASE.HTTP-REVIEW** — independent eight-check live HTTP run and targeted #84 review complete; no new blocking code finding. DB/RLS/grants/version/count verification remains attributed to the operator. Prior hold superseded by the user’s explicit merge instruction. Reproduce with `NODE_USE_ENV_PROXY=1 node docs/releases/verify-focus-http.cjs`.
 
 ## Completed staging / activation backlog
