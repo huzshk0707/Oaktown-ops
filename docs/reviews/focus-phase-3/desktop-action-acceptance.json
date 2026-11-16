@@ -1,0 +1,31 @@
+{
+  "sourceCommit": "536ebcade697e5c7aa59e76e7e65f3c89535cdb1",
+  "controllerSHA256": "c30f4dc7e0fb67024b89c07e9a3224e953106287c5117f1eea38323d8c4f0766",
+  "fictionalOnly": true,
+  "desktopOnly": true,
+  "layouts": [
+    {
+      "width": 1280,
+      "height": 1080,
+      "dialogFits": true,
+      "documentFits": true
+    },
+    {
+      "width": 1440,
+      "height": 1080,
+      "dialogFits": true,
+      "documentFits": true
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "dialogFits": true,
+      "documentFits": true
+    }
+  ],
+  "realOperationalWrites": 0,
+  "mockSavedActions": 3,
+  "simulatedSaveCalls": 4,
+  "identicalRetryNoDuplicate": true,
+  "pageErrors": []
+}

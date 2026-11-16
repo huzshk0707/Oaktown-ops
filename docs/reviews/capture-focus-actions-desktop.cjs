@@ -1,0 +1,20 @@
+'use strict';
+// Exact Phase 3 export, existing fictional API fixture, desktop-only captures.
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto'),{chromium}=require('@playwright/test');
+const [root,out]=process.argv.slice(2);if(!root||!out)throw Error('Supply exact source export and capture directory');
+const {open}=require(path.resolve(root,'tests/focus-actions-fixtures.cjs'));
+(async()=>{
+ fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({args:['--no-sandbox']}),context=await browser.newContext({viewport:{width:1440,height:1080},reducedMotion:'reduce'}),page=await context.newPage(),s=await open(page),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.locator('.focus-card[data-offset="0"]').waitFor();
+ const source=fs.readFileSync(path.join(root,'focus-actions.js')),served=await (await page.request.get('http://127.0.0.1:8765/focus-actions.js')).body();assert.equal(served.compare(source),0);
+ const evidence={sourceCommit:'536ebcade697e5c7aa59e76e7e65f3c89535cdb1',controllerSHA256:crypto.createHash('sha256').update(source).digest('hex'),fictionalOnly:true,desktopOnly:true,layouts:[],realOperationalWrites:0};
+ const capture=name=>page.screenshot({path:path.join(out,name+'.png'),animations:'disabled'}),hidden=()=>page.locator('#focus-action-dialog').waitFor({state:'hidden'});
+ const prepare=async()=>{await page.locator('#focus-board-complete').click();await page.locator('#focus-completion-summary').fill('Fictional inspection completed; review report filed.');await page.waitForFunction(()=>!document.querySelector('#focus-action-confirm').disabled)};
+ await prepare();
+ for(const width of [1280,1440,1920]){await page.setViewportSize({width,height:1080});const fit=await page.locator('#focus-action-dialog').evaluate(n=>{const r=n.getBoundingClientRect();return {dialogFits:r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight,documentFits:document.documentElement.scrollWidth<=innerWidth}});assert.ok(fit.dialogFits&&fit.documentFits);await capture('complete-confirm-'+width);evidence.layouts.push({width,height:1080,...fit})}
+ await page.locator('#focus-action-cancel').click();await hidden();assert.equal(s.saveCalls.length,0);await page.setViewportSize({width:1440,height:1080});
+ await page.locator('#focus-board-defer').click();await page.locator('#focus-followup-date').waitFor({state:'visible'});await capture('defer-confirm-1440');await page.locator('#focus-action-cancel').click();await hidden();assert.equal(s.saveCalls.length,0);
+ await prepare();await page.locator('#focus-action-confirm').click();await hidden();assert.equal(s.audit.length,1);await page.waitForFunction(()=>!document.querySelector('#focus-undo').disabled);await capture('completed-undo-1440');
+ await page.locator('#focus-undo').click();await page.waitForFunction(()=>!document.querySelector('#focus-action-confirm').disabled);await capture('undo-confirm-1440');await page.locator('#focus-action-confirm').click();await hidden();assert.equal(s.audit.length,2);assert.equal(s.tasks[0].status,'pending');
+ s.lostReply=true;await prepare();await page.locator('#focus-action-confirm').click();await page.waitForFunction(()=>document.querySelector('#focus-action-error').textContent.includes('Outcome not verified'));await capture('uncertain-recovery-1440');assert.equal(s.audit.length,3);await page.locator('#focus-action-retry').click();await hidden();assert.equal(s.audit.length,3);assert.equal(s.saveCalls.length,4);assert.deepEqual(s.saveCalls[2],s.saveCalls[3]);assert.deepEqual(errors,[]);
+ Object.assign(evidence,{mockSavedActions:s.audit.length,simulatedSaveCalls:s.saveCalls.length,identicalRetryNoDuplicate:true,pageErrors:errors});fs.writeFileSync(path.join(out,'desktop-action-acceptance.json'),JSON.stringify(evidence,null,2)+'\n');await browser.close();console.log('Desktop actions accepted at 1280/1440/1920: cancel made zero saves; Complete/Undo and identical uncertain retry verified using fictional fixtures only.');
+})().catch(e=>{console.error(e);process.exitCode=1});
