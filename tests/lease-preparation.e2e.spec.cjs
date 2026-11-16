@@ -38,7 +38,7 @@ test('late-fee overrides survive rent changes, reset explicitly, and match both 
 test('conditions are blank, editable, independent by room and retained only for the current draft',async({page})=>{
  await setup(page);await step(page,3);await expect(page.locator('#newlease-satisfactory')).toHaveValue('');await page.locator('#newlease-bedrooms').selectOption('5');await page.locator('#newlease-bathrooms').selectOption('2');
  await expect(page.locator('#newlease-condition-0')).toHaveValue('');await page.locator('#newlease-condition-0').fill('Good & Fresh Paint');await page.locator('#newlease-room').selectOption('bedroom-5');await expect(page.locator('#newlease-condition-0')).toHaveValue('');await page.locator('#newlease-condition-0').fill('Fictional bedroom five note');
- await page.locator('#newlease-bedrooms').selectOption('2');await expect(page.locator('#newlease-room option[value="bedroom-5"]')).toHaveCount(1);await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');await expect(page.locator('#newlease-condition-0')).toHaveAttribute('readonly','');await expect(page.locator('#newlease-room-applicability')).toContainText('not included');
+ await page.locator('#newlease-bedrooms').selectOption('2');await expect(page.locator('#newlease-room option[value="bedroom-5"]')).toHaveCount(1);await expect(page.locator('#newlease-condition-0')).toHaveValue('');await expect(page.locator('#newlease-condition-0')).toHaveAttribute('readonly','');await expect(page.locator('#newlease-room-applicability')).toContainText('not included');
  await page.locator('#newlease-bedrooms').selectOption('5');await page.locator('#newlease-room').selectOption('bedroom-5');await expect(page.locator('#newlease-condition-0')).toHaveValue('Fictional bedroom five note');await page.locator('#newlease-room').selectOption('kitchen');await expect(page.locator('#newlease-condition-0')).toHaveValue('Good & Fresh Paint');
  page.once('dialog',d=>d.accept());await page.getByRole('button',{name:'Clear draft',exact:true}).click();await step(page,3);await expect(page.locator('#newlease-condition-0')).toHaveValue('');await expect(page.locator('#newlease-bedrooms')).toHaveValue('');
 });
@@ -73,13 +73,13 @@ test('the complete condition form marks absent bedrooms, bathroom groups, den an
  for(const key of ['bedroom-3','bedroom-4','bedroom-5','bathroom-2','bathroom-3','additional','basement']){
   await page.locator('#newlease-room').selectOption(key);
   const values=await page.locator('.lease-condition-fields input').evaluateAll(nodes=>nodes.map(n=>({value:n.value,readOnly:n.readOnly})));
-  expect(values.length).toBeGreaterThan(0);expect(values.every(n=>n.value==='N/A'&&n.readOnly)).toBe(true);
+  expect(values.length).toBeGreaterThan(0);expect(values.every(n=>n.value===''&&n.readOnly)).toBe(true);
  }
  await page.locator('#newlease-basement').selectOption('included');await expect(page.locator('#newlease-condition-0')).toHaveValue('');await page.locator('#newlease-condition-0').fill('Fictional basement observation');
- await page.locator('#newlease-basement').selectOption('not-included');await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');await step(page,4);await page.locator('#newlease-review').click();await expect(page.locator('#newlease-output')).not.toContainText('Fictional basement observation');
+ await page.locator('#newlease-basement').selectOption('not-included');await expect(page.locator('#newlease-condition-0')).toHaveValue('');await step(page,4);await page.locator('#newlease-review').click();await expect(page.locator('#newlease-output')).not.toContainText('Fictional basement observation');
  await step(page,3);await page.locator('#newlease-basement').selectOption('included');await expect(page.locator('#newlease-condition-0')).toHaveValue('Fictional basement observation');
- await page.locator('#newlease-bedrooms').selectOption('1');await page.locator('#newlease-room').selectOption('bedroom-2');await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');await page.locator('#newlease-bedrooms').selectOption('2');await expect(page.locator('#newlease-condition-0')).toHaveValue('');
- await page.locator('#newlease-room').selectOption('additional');await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');await page.locator('#newlease-additionalRoom').check();await page.locator('#newlease-condition-0').fill('Fictional den observation');await page.locator('#newlease-additionalRoom').uncheck();await expect(page.locator('#newlease-condition-0')).toHaveValue('N/A');
+ await page.locator('#newlease-bedrooms').selectOption('1');await page.locator('#newlease-room').selectOption('bedroom-2');await expect(page.locator('#newlease-condition-0')).toHaveValue('');await page.locator('#newlease-bedrooms').selectOption('2');await expect(page.locator('#newlease-condition-0')).toHaveValue('');
+ await page.locator('#newlease-room').selectOption('additional');await expect(page.locator('#newlease-condition-0')).toHaveValue('');await page.locator('#newlease-additionalRoom').check();await page.locator('#newlease-condition-0').fill('Fictional den observation');await page.locator('#newlease-additionalRoom').uncheck();await expect(page.locator('#newlease-condition-0')).toHaveValue('');
  await expect(page.locator('#newlease-room option')).toHaveCount(15);expect(writes).toEqual([]);
 });
 

@@ -523,7 +523,8 @@
       "sources": [
         "lease-preparation.js",
         "lease-preparation-model.js",
-        "lease-condition-pdf.js"
+        "lease-condition-pdf.js",
+        "lease-page8-model.js"
       ],
       "states": [
         "locked",
@@ -535,12 +536,14 @@
       ],
       "guards": [
         "Absent areas use N/A only when confirmed; unknown conditions are not invented.",
-        "Condition-sheet export is available; complete ten-page PDF/export lifecycle remains unfinished."
+        "Condition-sheet export is available; complete ten-page PDF/export lifecycle remains unfinished.",
+        "Absent areas print N/A labels with blank dependent conditions; identities, locations and PDF slots are independent."
       ],
       "tests": [
         "tests/lease-preparation.e2e.spec.cjs",
         "tests/lease-preparation-model.test.cjs",
-        "tests/lease-condition-pdf.test.cjs"
+        "tests/lease-condition-pdf.test.cjs",
+        "tests/lease-page8-model.test.cjs"
       ],
       "representation": "guarded"
     },
