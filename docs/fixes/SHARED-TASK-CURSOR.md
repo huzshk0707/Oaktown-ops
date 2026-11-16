@@ -41,3 +41,8 @@ Morning/daily browser suites and the full CI browser/SQL/Deno/audit jobs. All
 browser inputs are fictional; no production task write, merge or deployment.
 Current results and any remaining failures are recorded in HANDOFF/PR, not
 inferred from a running job. No visual component or new mobile feature is added.
+
+Final runtime validation: [CI 43799362087](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43799362087)
+at `c45273e188664e194031d57ed0a3ee2ae04505bb` passed **218 unit / 262 browser**
+tests and SQL, Deno, audit, syntax/inventory checks. The final release checkpoint
+changes documentation only. Implementation is staged in draft #81, unmerged.
