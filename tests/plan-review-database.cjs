@@ -26,6 +26,8 @@ async function main(){const created=[];try{
  denied('list',{work_date:'2026-11-16'},/no approved plan capability/,'agent');
  denied('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true},/administrator/,'native',1);
  call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true},'native',2);
+ denied('list',{work_date:'2026-11-16'},/no approved plan capability/,'agent');
+ call('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true});
  assert.deepEqual(call('list',{work_date:'2026-11-16'},'agent'),[]);
  const input=intent('plan-example'),submitted=call('submit',input,'agent');assert.equal(submitted.state,'pending_staff_review');assert.equal(submitted.approval_required,true);assert.equal(submitted.review_token,undefined);assert.equal(submitted.receipt,null);
  assert.equal(call('submit',input,'agent').proposal_id,submitted.proposal_id);denied('submit',{...input,text:'Different intent'},/reused with different content/,'agent');
@@ -39,11 +41,13 @@ async function main(){const created=[];try{
  denied('approve',{...approve(reviewed),review_token:'ffffffff-ffff-4fff-8fff-ffffffffffff'},/Exact native staff/);
  denied('approve',approve(reviewed),/cannot review or approve/,'agent');
  const receipt=call('approve',approve(reviewed));assert.equal(receipt.replayed,false);assert.equal(receipt.event.actor_id,actor(1));assert.equal(receipt.event.review_proof.event_id,raw.id);assert.equal(receipt.event.review_proof.channel,'native_staff_review');assert.equal(receipt.event.review_proof.content_hash,receipt.receipt.content_hash);
- assert.equal(call('approve',approve(reviewed)).replayed,true);assert.equal(call('get',{event_id:raw.id},'agent').id,raw.id);assert.equal(call('status',{proposal_id:submitted.proposal_id},'agent').state,'approved');assert.equal(call('list',{work_date:input.work_date},'agent').length,1);
+ assert.equal(call('approve',approve(reviewed)).replayed,true);assert.equal(call('get',{event_id:raw.id},'agent').id,raw.id);assert.equal(call('status',{proposal_id:submitted.proposal_id},'agent').state,'approved');assert.equal(call('list',{work_date:input.work_date},'agent').length,1);assert.equal(call('head',{work_date:input.work_date},'agent').approval_id,raw.id);
  const current=raw.id;denied('submit',intent('stale-daily',input.work_date),/Daily approval changed/,'agent');
  const unapproved=call('submit',intent('revoked-plan',input.work_date,current),'agent'),rv=call('review',{proposal_id:unapproved.proposal_id});
- call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:false},'native',2);denied('approve',approve(rv),/capability revoked/);denied('status',{proposal_id:submitted.proposal_id},/no approved plan capability/,'agent');call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true},'native',2);
+ call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:false},'native',2);denied('approve',approve(rv),/capability revoked/);denied('status',{proposal_id:submitted.proposal_id},/no approved plan capability/,'agent');call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true},'native',2);denied('list',{work_date:input.work_date},/no approved plan capability/,'agent');call('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true});
  sql(db,"update auth.oauth_consents set revoked_at=clock_timestamp() where client_id='fictional-chatgpt';");denied('approve',approve(rv),/consent revoked/);denied('list',{work_date:input.work_date},/OAuth consent/,'agent');sql(db,"update auth.oauth_consents set revoked_at=null where client_id='fictional-chatgpt';");
+ denied('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true},/cannot review or approve/,'agent');
+ call('consent',{client_id:'fictional-chatgpt',can_read_plans:false,can_submit_plans:false,confirmed:true});denied('approve',approve(rv),/native plan consent revoked/);denied('list',{work_date:input.work_date},/no approved plan capability/,'agent');call('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true});
  const src=call('submit',intent('changed-task','2026-11-17'),'agent'),sr=call('review',{proposal_id:src.proposal_id});sql(db,`update public.ops_tasks set updated_at=updated_at+interval '0.000001 seconds' where id=${quote(task.id)};`);denied('approve',approve(sr),/saved task changed/);sql(db,`update public.ops_tasks set updated_at=${quote(task.updated_at)} where id=${quote(task.id)};`);task.updated_at=sql(db,`select updated_at from public.ops_tasks where id=${quote(task.id)};`).stdout.trim();
  sql(db,`update ops_agent_private.plan_requests set expires_at=clock_timestamp()-interval '1 second' where id=${quote(src.proposal_id)};`);denied('approve',approve(sr),/expired/);
  const p1=call('submit',intent('concurrent-one','2026-11-18'),'agent'),p2=call('submit',intent('concurrent-two','2026-11-18'),'agent'),r1=call('review',{proposal_id:p1.proposal_id}),r2=call('review',{proposal_id:p2.proposal_id});await competing(approve(r1),approve(r2),false);
@@ -55,6 +59,6 @@ async function main(){const created=[];try{
  assert.equal(sql(db,'select count(*) from ci.plan_task_writes;').stdout.trim(),'0','Plan operations changed task records');
  assert.equal(sql(db,"select count(*) from public.ops_events where event_type='morning_plan_approved_v1';").stdout.trim(),'3','Approval retries duplicated journal events');
  const refused=sql(db,rollback,true);assert.notEqual(refused.status,0);assert.match(refused.stderr,/preservation\/recovery plan/);
- console.log('Plan authorization: default-off capabilities, agent/native separation, forged journal denial, exact review/receipt, replay, source conflicts, revoked grants/sessions, concurrent approvals, safe rollback and zero task writes passed.');
+ console.log('Plan authorization: default-off capabilities and separate per-user consent, agent/native separation, forged journal denial, exact review/receipt, replay, source conflicts, revoked grants/sessions, concurrent approvals, safe rollback and zero task writes passed.');
  }finally{for(const s of sessions)if(!s.closed){s.child.stdin.end('rollback;\n');s.child.kill()}for(const name of created.reverse())sql('postgres',`drop database ${name} with (force);`)} }
 main().catch(e=>{console.error(e);process.exitCode=1});

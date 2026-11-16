@@ -39,6 +39,32 @@ create index ops_plan_requests_day_idx on ops_agent_private.plan_requests(work_d
 -- This also prevents a stale repeatable-read transaction from forking a day.
 create unique index ops_plan_requests_successor_idx on ops_agent_private.plan_requests(work_date,expected_event_id) nulls not distinct where receipt is not null;
 
+-- A new domain grant never inherits an old task-only OAuth consent.
+create table ops_agent_private.plan_consents(
+ actor_id uuid not null references auth.users(id),
+ client_id text not null references ops_agent_private.clients(client_id),
+ can_read_plans boolean not null default false,
+ can_submit_plans boolean not null default false,
+ recorded_at timestamptz not null default clock_timestamp(),
+ revoked_at timestamptz,
+ primary key(actor_id,client_id),
+ check(not can_submit_plans or can_read_plans)
+);
+alter table ops_agent_private.plan_consents enable row level security;
+revoke all on ops_agent_private.plan_consents from public,anon,authenticated,oaktown_task_agent;
+create index ops_plan_consents_client_idx on ops_agent_private.plan_consents(client_id);
+create function ops_agent_private.reset_plan_consents() returns trigger
+language plpgsql security definer set search_path='' as $$
+begin
+ update ops_agent_private.plan_consents set can_read_plans=false,can_submit_plans=false,
+ revoked_at=clock_timestamp(),recorded_at=clock_timestamp() where client_id=new.client_id;
+ return new;
+end$$;
+revoke all on function ops_agent_private.reset_plan_consents() from public,anon,authenticated,oaktown_task_agent;
+create trigger ops_reset_plan_consents after update of enabled,can_read_plans,can_submit_plans on ops_agent_private.clients
+for each row when(old.enabled is distinct from new.enabled or old.can_read_plans is distinct from new.can_read_plans or old.can_submit_plans is distinct from new.can_submit_plans)
+execute function ops_agent_private.reset_plan_consents();
+
 create function ops_agent_private.plan_hash(value jsonb) returns text
 language sql immutable security invoker set search_path='' as $$
  select pg_catalog.encode(pg_catalog.sha256(pg_catalog.convert_to(value::text,'UTF8')),'hex')
@@ -49,7 +75,7 @@ create function ops_agent_private.plan_context() returns jsonb
 language plpgsql security definer set search_path='' as $$
 declare c jsonb:=nullif(current_setting('request.jwt.claims',true),'')::jsonb;
  actor uuid:=auth.uid(); membership text; sid uuid; client ops_agent_private.clients%rowtype;
- session_record auth.sessions%rowtype;
+ session_record auth.sessions%rowtype; grant_record ops_agent_private.plan_consents%rowtype;
 begin
  if actor is null or c->>'sub' is distinct from actor::text or c->>'is_anonymous' is distinct from 'false'
   or coalesce(c->>'session_id','') !~* '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
@@ -66,6 +92,9 @@ begin
   if not found then raise exception 'OAuth consent expired or revoked' using errcode='42501';end if;
   select * into client from ops_agent_private.clients where client_id=c->>'client_id' for share;
   if not found or not client.enabled then raise exception 'Connection disabled' using errcode='42501';end if;
+  select * into grant_record from ops_agent_private.plan_consents where actor_id=actor and client_id=client.client_id and revoked_at is null for share;
+  client.can_read_plans:=client.can_read_plans and coalesce(grant_record.can_read_plans,false);
+  client.can_submit_plans:=client.can_submit_plans and coalesce(grant_record.can_submit_plans,false);
  elsif c->>'role' is distinct from 'authenticated' or nullif(c->>'client_id','') is not null
    or nullif(to_jsonb(session_record)->>'oauth_client_id','') is not null
  then raise exception 'Use a native staff session for review' using errcode='42501';
@@ -201,12 +230,38 @@ declare ctx jsonb:=ops_agent_private.plan_context(); actor uuid:=(ctx->>'actor')
 begin
  if action is null or jsonb_typeof(payload) is distinct from 'object' or octet_length(payload::text)>95000
  then raise exception 'Invalid plan request' using errcode='22023';end if;
- if not native and action not in ('list','get','submit','status') then raise exception 'OAuth clients cannot review or approve plans' using errcode='42501';end if;
- if not native and ((action in ('list','get') and not (ctx->>'can_read_plans')::boolean) or (action in ('submit','status') and not (ctx->>'can_submit_plans')::boolean))
- then raise exception 'This client has no approved plan capability' using errcode='42501';end if;
- if action in ('configure','prepare','review','approve','pending') and (not native or ctx->>'staff_role' not in ('admin','editor'))
+ if not native and action not in ('head','list','get','submit','status') then raise exception 'OAuth clients cannot review or approve plans' using errcode='42501';end if;
+ if not native and ((action in ('head','list','get') and not (ctx->>'can_read_plans')::boolean) or (action in ('submit','status') and not (ctx->>'can_submit_plans')::boolean))
+ then raise exception 'This client has no approved plan capability or native user consent' using errcode='42501';end if;
+ if action in ('configure','consent','prepare','review','approve','pending') and (not native or ctx->>'staff_role' not in ('admin','editor'))
  then raise exception 'Native staff editor review required' using errcode='42501';end if;
- if action in ('configure','capabilities') then
+ if action='my_connections' then
+  if payload<>'{}'::jsonb then raise exception 'Invalid connection lookup' using errcode='22023';end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('client_id',c.client_id,'label',c.label,'enabled',c.enabled,'can_read_plans',c.can_read_plans,'can_submit_plans',c.can_submit_plans,
+   'my_can_read_plans',coalesce(pc.can_read_plans and pc.revoked_at is null,false),'my_can_submit_plans',coalesce(pc.can_submit_plans and pc.revoked_at is null,false)) order by c.label)
+   from ops_agent_private.clients c join auth.oauth_consents ac on ac.client_id::text=c.client_id and ac.user_id=actor and ac.revoked_at is null
+   left join ops_agent_private.plan_consents pc on pc.client_id=c.client_id and pc.actor_id=actor),'[]');
+ elsif action='consent' then
+  if exists(select 1 from jsonb_object_keys(payload) x where x not in ('client_id','can_read_plans','can_submit_plans','confirmed'))
+   or jsonb_typeof(payload->'client_id') is distinct from 'string' or payload->'confirmed' is distinct from 'true'::jsonb
+   or jsonb_typeof(payload->'can_read_plans') is distinct from 'boolean' or jsonb_typeof(payload->'can_submit_plans') is distinct from 'boolean'
+   or payload->'can_submit_plans'='true'::jsonb and payload->'can_read_plans'<>'true'::jsonb
+  then raise exception 'Explicit native plan consent required' using errcode='22023';end if;
+  select * into c from ops_agent_private.clients where client_id=payload->>'client_id' for share;
+  if not found then raise exception 'Connection not registered' using errcode='P0002';end if;
+  if payload->'can_read_plans'='true'::jsonb or payload->'can_submit_plans'='true'::jsonb then
+   if not c.enabled or (payload->'can_read_plans'='true'::jsonb and not c.can_read_plans) or (payload->'can_submit_plans'='true'::jsonb and not c.can_submit_plans)
+   then raise exception 'Requested plan permission is not enabled for this client' using errcode='42501';end if;
+   perform 1 from auth.oauth_consents where user_id=actor and client_id::text=c.client_id and revoked_at is null for share;
+   if not found then raise exception 'Complete the OAuth connection first' using errcode='42501';end if;
+  end if;
+  insert into ops_agent_private.plan_consents(actor_id,client_id,can_read_plans,can_submit_plans,recorded_at,revoked_at)
+   values(actor,c.client_id,(payload->>'can_read_plans')::boolean,(payload->>'can_submit_plans')::boolean,clock_timestamp(),case when payload->'can_read_plans'='false'::jsonb then clock_timestamp() else null end)
+   on conflict(actor_id,client_id) do update set can_read_plans=excluded.can_read_plans,can_submit_plans=excluded.can_submit_plans,recorded_at=excluded.recorded_at,revoked_at=excluded.revoked_at;
+  insert into public.ops_events(entity_type,entity_id,event_type,actor_id,summary,event_metadata)
+   values('staff_connection',actor,'plan_connection_consent_recorded',actor,'Staff reviewed scoped plan access',jsonb_build_object('client_id',c.client_id,'can_read_plans',payload->'can_read_plans','can_submit_plans',payload->'can_submit_plans'));
+  return jsonb_build_object('client_id',c.client_id,'actor_id',actor,'can_read_plans',payload->'can_read_plans','can_submit_plans',payload->'can_submit_plans','saved',true);
+ elsif action in ('configure','capabilities') then
   if exists(select 1 from jsonb_object_keys(payload) x where x not in ('client_id','can_read_plans','can_submit_plans'))
    or jsonb_typeof(payload->'client_id') is distinct from 'string'
   then raise exception 'Choose an existing task client' using errcode='22023';end if;
@@ -221,8 +276,17 @@ begin
    update ops_agent_private.clients set can_read_plans=(payload->>'can_read_plans')::boolean,can_submit_plans=(payload->>'can_submit_plans')::boolean,
     updated_by=actor,updated_at=clock_timestamp() where client_id=c.client_id returning * into c;
   end if;
-  return jsonb_build_object('client_id',c.client_id,'enabled',c.enabled,'can_read_plans',c.can_read_plans,'can_submit_plans',c.can_submit_plans);
- elsif action in ('list','get') then
+  return jsonb_build_object('client_id',c.client_id,'enabled',c.enabled,'can_read_plans',c.can_read_plans,'can_submit_plans',c.can_submit_plans,
+   'my_can_read_plans',coalesce((select pc.can_read_plans and pc.revoked_at is null from ops_agent_private.plan_consents pc where pc.actor_id=actor and pc.client_id=c.client_id),false),
+   'my_can_submit_plans',coalesce((select pc.can_submit_plans and pc.revoked_at is null from ops_agent_private.plan_consents pc where pc.actor_id=actor and pc.client_id=c.client_id),false));
+ elsif action in ('head','list','get') then
+  if action='head' then
+   if exists(select 1 from jsonb_object_keys(payload) x where x<>'work_date') or coalesce(payload->>'work_date','') !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+   then raise exception 'Valid plan date required' using errcode='22023';end if;
+   day:=(payload->>'work_date')::date;prior:=ops_agent_private.plan_latest(day);
+   select * into p from ops_agent_private.plan_requests where event_id=prior and receipt is not null;
+   return jsonb_build_object('schema_version','oaktown.daily-plan-head.v1','work_date',day,'approval_id',prior,'event',case when prior is null then null else ops_agent_private.plan_event(p) end);
+  end if;
   if action='get' then
    if exists(select 1 from jsonb_object_keys(payload) x where x<>'event_id') then raise exception 'Invalid event lookup' using errcode='22023';end if;
    select * into p from ops_agent_private.plan_requests where event_id=(payload->>'event_id')::uuid and receipt is not null;
@@ -296,6 +360,8 @@ begin
   if p.client_id is not null then
    select * into c from ops_agent_private.clients where client_id=p.client_id and enabled and can_submit_plans and can_read_plans for share;
    if not found then raise exception 'Origin plan capability revoked' using errcode='42501';end if;
+   perform 1 from ops_agent_private.plan_consents where actor_id=actor and client_id=p.client_id and can_read_plans and can_submit_plans and revoked_at is null for share;
+   if not found then raise exception 'Origin native plan consent revoked' using errcode='42501';end if;
    perform 1 from auth.oauth_consents where user_id=actor and client_id::text=p.client_id and revoked_at is null for share;
    if not found then raise exception 'Origin OAuth consent revoked' using errcode='42501';end if;
    perform 1 from auth.sessions where id=p.origin_session_id and user_id=actor and (not_after is null or not_after>clock_timestamp()) for share;

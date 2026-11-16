@@ -22,7 +22,7 @@ test('MCP discovery has OAuth policies and explicit write confirmation annotatio
   const r=await h(new Request(URL,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,...(method==='initialize'?{params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'fictional-ci',version:'1'}}}:{})})}));
   assert.equal(r.status,200);const d=await r.json();
   if(method==='tools/list'){
-   assert.equal(d.result.tools.length,5);for(const t of d.result.tools)assert.equal(t._meta.securitySchemes[0].type,'oauth2');
+   assert.equal(d.result.tools.length,8);for(const t of d.result.tools)assert.equal(t._meta.securitySchemes[0].type,'oauth2');
    const apply=d.result.tools.find(t=>t.name==='apply_task_change');assert.equal(apply.annotations.readOnlyHint,false);assert.equal(apply.annotations.destructiveHint,true);assert.equal(apply.annotations.idempotentHint,true);
   }
  }
