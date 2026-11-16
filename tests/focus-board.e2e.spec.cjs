@@ -20,7 +20,7 @@ test('board shows real task fields and supports keyboard, mouse buttons and neig
 test('all active tasks beyond 1000 are reachable; refresh preserves selection and uses the same workspace data',async({page})=>{
  const s=await mock(page,1007);s.tasks[1006].task_title='ZZ Fictional final active task';s.tasks.push({...tasks(1)[0],id:'terminal',status:'completed'},{...tasks(1)[0],id:'archived',archived_at:'2026-11-01'});
  await page.goto(ORIGIN+'/#/focus');await signIn(page);await expect(page.locator('#focus-count')).toHaveText('1007 active tasks');
- await page.locator('#focus-deck').focus();await page.keyboard.press('End');await expect(current(page)).toHaveAttribute('data-task-id',s.tasks[1006].id);expect(s.reads.some(q=>q.includes('offset=1000'))).toBe(true);
+ await page.locator('#focus-deck').focus();await page.keyboard.press('End');await expect(current(page)).toHaveAttribute('data-task-id',s.tasks[1006].id);expect(s.reads.some(q=>new URLSearchParams(q).get('id')?.startsWith('gt.'))).toBe(true);
  s.tasks[1006].task_title='ZZ Fictional refreshed task title';await page.locator('#focus-refresh').click();await expect(current(page)).toContainText('Fictional refreshed task title');
  await page.locator('#focus-exit').click();await expect(page).toHaveURL(/#\/today$/);await expect(page.locator('.sidebar')).toBeVisible();
  await page.locator('.sidebar [data-workspace="tasks"]').click();await page.locator('#today-task-search').fill('Fictional refreshed task title');await expect(page.locator('#today-queue')).toContainText('Fictional refreshed task title');expect(s.writes).toEqual([]);
@@ -62,4 +62,12 @@ test('board is dark, responsive, visually centered and motion-aware across appea
  await page.locator('#focus-exit').click();await expect(page.locator('#today-workflow')).toBeVisible();await expect(page.locator('.sidebar')).toBeVisible();await expect(page.locator('.operations-toolbar #operations-search-open')).toBeVisible();
  await navigate(page,'leases');await page.locator('[data-lease-tab="new"]').click();await expect(page).toHaveURL(/#\/leases\/new$/);await page.goBack();await expect(page.locator('#ops-renewals-panel')).toBeVisible();
  expect(await page.locator('#focus-exit').isVisible()).toBe(false);
+});
+
+test('deletion during a paginated read keeps later current tasks reachable and refresh removes the earlier deleted record',async({page})=>{
+ const s=await mock(page,1002),later=s.tasks[1000].id;s.tasks[1000].task_title='ZZ Cursor boundary task';s.tasks[1001].task_title='ZZZ Final current task';let changed=false;
+ s.beforeTaskPage=(url,state)=>{if(!changed&&url.searchParams.get('id')?.startsWith('gt.')){changed=true;state.tasks=state.tasks.slice(1)}};
+ await page.goto(ORIGIN+'/#/focus');await signIn(page);await expect(page.locator('#focus-count')).toHaveText('1002 active tasks');
+ expect(await page.evaluate(id=>window.OpsToday.getData().tasks.some(t=>t.id===id),later)).toBe(true);await page.locator('#focus-deck').focus();await page.keyboard.press('End');await page.locator('#focus-prev').click();await expect(current(page)).toHaveAttribute('data-task-id',later);
+ await page.locator('#focus-refresh').click();await expect(page.locator('#focus-count')).toHaveText('1001 active tasks');expect(s.writes).toEqual([]);
 });

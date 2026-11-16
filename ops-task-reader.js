@@ -6,16 +6,15 @@
   let select=fields;
   for(;;){
    const rows=[],seen=new Set();let legacy=false;
-   for(let offset=0;;){
+   for(let after=null;;){
     if(!current())throw Error('Task read superseded');
     let page;
-    try{page=await api('/rest/v1/ops_tasks?select='+select+'&order=id.asc&limit=1000'+(offset?'&offset='+offset:''))}
+    try{page=await api('/rest/v1/ops_tasks?select='+select+'&order=id.asc&limit=1000'+(after?'&id=gt.'+encodeURIComponent(after):''))}
     catch(error){if(select===fields&&[400,404].includes(error.status)){select=fields.replace('id,task_code,parent_task_id,','id,');legacy=true;break}throw error}
     if(!current())throw Error('Task read superseded');
-    if(!Array.isArray(page)||page.some(row=>!row||!row.id))throw Error('Unexpected task records');
-    for(const row of page){if(seen.has(row.id))throw Error('Task pages changed while loading. Refresh to retry');seen.add(row.id);rows.push(row)}
+    if(!Array.isArray(page)||page.some(row=>!row||typeof row.id!=='string'||!row.id))throw Error('Unexpected task records');
+    for(const row of page){if(seen.has(row.id)||after!==null&&row.id<=after)throw Error('Task pages changed while loading. Refresh to retry');seen.add(row.id);rows.push(row);after=row.id}
     if(page.length<1000)return rows;
-    offset+=page.length;
    }
    if(!legacy)return rows;
   }

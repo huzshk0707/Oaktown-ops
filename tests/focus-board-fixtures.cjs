@@ -20,8 +20,10 @@ async function mock(page,count=9){
   if(u.pathname==='/rest/v1/ops_tasks'){
    state.reads.push(u.search);if(state.hold)await state.hold;
    if(state.fail)return reply({message:'Fictional read failure'},state.failStatus);
+   if(state.beforeTaskPage)state.beforeTaskPage(u,state);
    const from=Number(u.searchParams.get('offset')||0),limit=Number(u.searchParams.get('limit')||1000);
-   return reply([...state.tasks].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).slice(from,from+limit));
+   const cursor=u.searchParams.get('id'),after=cursor?.startsWith('gt.')?cursor.slice(3):null;
+   return reply([...state.tasks].filter(t=>!after||t.id>after).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0).slice(from,from+limit));
   }
   if(u.pathname==='/rest/v1/rpc/ops_bill_reminders')return reply({rules:[],occurrences:[],can_edit:false});
   return reply(state.records[u.pathname.split('/').pop()]||[]);

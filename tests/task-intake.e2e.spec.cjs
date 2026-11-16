@@ -82,7 +82,12 @@ async function setup(page){
   if(p==='/rest/v1/leases')return reply(s.leases);
   if(p==='/rest/v1/tenancy_people')return reply(s.parties);
   if(p==='/rest/v1/tenancies')return reply(s.tenancies);
-  if(p==='/rest/v1/ops_tasks')return reply(s.intake?.tasks||[]);
+  if(p==='/rest/v1/ops_tasks'){
+   let rows=s.intake?.tasks||[];
+   if(url.searchParams.get('order')==='id.asc')rows=[...rows].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+   const id=url.searchParams.get('id');if(id?.startsWith('gt.'))rows=rows.filter(t=>t.id>id.slice(3));
+   return reply(rows.slice(0,Number(url.searchParams.get('limit'))||rows.length));
+  }
   if(['/rest/v1/bookings','/rest/v1/renewal_cases','/rest/v1/ops_events','/rest/v1/rent_schedules','/rest/v1/lease_reference_documents'].includes(p))return reply([]);
   if(p==='/rest/v1/notice_batches'){if(!s.batch)return reply([]);if(url.searchParams.has('id'))return reply([s.batch]);const{id,title,version,updated_at}=s.batch;return reply([{id,title,version,updated_at}]);}
   if(p==='/rest/v1/rpc/save_notice_batch'){

@@ -52,7 +52,10 @@ async function setup(page){
     const codes=codeFilter.slice(4,-1).split(',');
     return reply(s.tasks.filter(t=>codes.includes(t.task_code)));
    }
-   return reply(s.tasks);
+   let rows=s.tasks;
+   if(url.searchParams.get('order')==='id.asc')rows=[...rows].sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+   if(idFilter?.startsWith('gt.'))rows=rows.filter(t=>t.id>idFilter.slice(3));
+   return reply(rows.slice(0,Number(url.searchParams.get('limit'))||rows.length));
   }
   if(p==='/rest/v1/rpc/ops_task_set_archived'){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);s.archives.push(b);
