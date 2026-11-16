@@ -8,9 +8,11 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 ## P0 — current user direction: Phase 6 integration / readiness
 
 - [x] **OPS-PHASE6.1** (ravi, `ravi/phase6-integration`): inspect #75 and task OAuth/API/approval authorization; aggregate-only metadata; document activation gates.
-- [x] **OPS-PHASE6.2** (same claim): stage narrow SOD proposals, independent native staff review, server-attested receipts and fail-closed permissions.
-- [ ] **OPS-PHASE6.3** (same claim): disposable end-to-end/security/concurrency tests and release prerequisite matrix for #70–#73/#75; no live task writes.
+- [x] **OPS-PHASE6.2** (ravi, complete; claim released): stage narrow SOD proposals, independent native staff review, server-attested receipts and fail-closed permissions.
+- [x] **OPS-PHASE6.3** (ravi, complete; claim released): disposable end-to-end/security/concurrency tests and release prerequisite matrix for #70–#73/#75; no live task writes.
 - [ ] **OPS-PHASE6.4:** operator-approved connection activation and fictional staff test write after source/security review. Blocked until explicitly approved; never merge/deploy as preparation.
+
+Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43802216681): 218 unit/API and 267 browser tests, complete SQL/security/concurrency/rollback checks and desktop captures. Implementation is staged in draft #77, not deployed. Ravi’s claim is released; independent review is the next bounded task.
 
 ## P0 — reliable shared continuation
 

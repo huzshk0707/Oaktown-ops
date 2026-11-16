@@ -158,32 +158,55 @@ elevated SQL connector to bypass the scoped contract.
   exact read must match before success is displayed. Revocation, expiry, changed
   task versions and daily-head conflicts fail closed. No automatic resubmission.
 
-## Validation checkpoint
+## Final validation — 2026-11-16 04:18 UTC
 
-- Disposable PostgreSQL16: migration/empty rollback; actor/session/client/OAuth/
-  separate native-consent enforcement; forged journal inserts; immutable retries;
-  exact review tokens/receipts; stale task/daily sources; competing and identical
-  concurrent approvals; history-preserving rollback refusal; zero task writes.
-- Composed real MCP handler → actual scoped SQL RPC → native SQL review/approval
-  → independently verified MCP readback passes with fictional records. This uses
-  an injected token verifier; signature/issuer/audience tests are separate signed
-  JWT checks. It does not establish a live ChatGPT OAuth installation.
-- 218 unit/API tests pass. 33 existing Morning/dashboard/task-connection browser
-  tests pass. Six new desktop plan-review/consent tests pass, including scoped
-  axe accessibility, 1280/1440/1920px layout, source escaping, exact confirmation,
-  conflicts, uncertain readback, draft preservation and sign-out clearing.
-- Workflow inventory (30 families/65 entry scripts), Deno frozen check and
-  dependency audit pass (zero reported vulnerabilities). The full disposable SQL workflow also passes, including the unchanged task,
-  journal, import and reminder suites. [Seven fictional desktop captures](phase-6-desktop/README.md)
-  are included and inspected. Full browser/hosted CI remain in progress. The hosted 9322c72 browser run passed
-  265/266: the original keyboard test did not await the asynchronous preview. It
-  now waits for review readiness; a separate loading/cancel/sign-out/late-reply
-  regression verifies safety before readiness. All 25 Morning + plan-review
-  browser cases pass locally. The first local full run passed 264/266; its two
-  failures passed a fresh unchanged-checkout rerun. Final exact-head hosted
-  evidence is still required. The first
-  hosted SQL run exposed missing MCP dependencies in that job; CI now installs the
-  pinned connector there before the composed SQL/MCP check.
+Exact runtime/test head: **31f103e53c67ddc1dcbd1b1502d455b4822d6913**.
+[Full hosted CI 43802216681](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43802216681)
+completed successfully. The final handoff checkpoint changes documentation only.
+
+| Check | Result |
+| --- | --- |
+| Unit / task and plan API tests | 218 passed |
+| Full pinned Chromium browser suite | 267 passed, including existing security/mobile regressions; all new work is desktop only |
+| Morning + new plan-review subset | 25 passed locally; six new plan-review scenarios |
+| Workflow inventory / syntax | 30 families / 65 active scripts covered; passed |
+| Deno frozen check / dependency audit | Passed; zero reported vulnerabilities |
+| Full historical + new SQL workflow | Passed on disposable PostgreSQL16, including task, journal, import, reminder, RLS, concurrency and guarded rollback checks |
+| Screenshot scripts | All three passed in CI; seven committed Phase 6 desktop PNGs inspected |
+| Production operations during implementation | None; no live task, SOD, grant, migration or deployment writes |
+
+The real disposable plan suite covers default-off rights; separate per-user
+consent; native/agent/session/actor separation; forged direct journal rejection;
+exact native review and server receipt; immutable retries; stale task/daily
+sources; competing and identical concurrent approvals; origin grant/session
+revocation; source redaction even on direct scoped RPC reads; rollback refusal
+with history; unchanged old task access after plan revocation; and zero task
+writes. A native manual plan contract also passes without the staged backlog
+schema or its optional task-code column.
+
+The composed real MCP handler → actual scoped SQL RPC → native SQL review/
+approval → independently verified MCP readback passes with fictional records.
+Its token verifier is injected; separate signed JWT tests verify signatures,
+issuer, audience and expiry. This is not a live ChatGPT OAuth installation test.
+
+Desktop browser checks cover exact center/native review, consent readback,
+source escaping, preview readiness, confirmation/cancellation, focus trapping/
+restoration, late loading replies, sign-out, permissions, conflicts, uncertain
+readback and draft preservation. Layout/axe checks include 1280/1440/1920px.
+The existing >1,000-task, reduced-motion and mobile regressions remain intact.
+
+Validation corrections are explicit: the first hosted SQL job lacked MCP
+packages (the job now installs pinned dependencies); an optional task-code
+fixture needed the native editor’s empty-code fallback; the old focus assertion
+needed to await the asynchronous server preview. A dedicated loading-state
+regression was added. The first local full run was 264/266 and both failed cases
+passed a fresh rerun. The final immutable hosted run passes all 267 browser cases
+and every job, including screenshot generation. No runtime permission or source
+validation guard was weakened to make a test pass.
+
+[Desktop captures and reproduction](phase-6-desktop/README.md). Only fictional
+records were used. CI artifacts also include the existing Morning and Phase 5
+capture suites. Screenshots establish appearance, not live connection authority.
 
 ## Limits and release decisions
 
@@ -204,8 +227,9 @@ elevated SQL connector to bypass the scoped contract.
    minutes. No automatic cleanup or scheduler was introduced.
 5. **Stack release blockers.** hp's independent consolidation #80 records two
    P2s: task offset-page omission and Defer validation across Eastern midnight.
-   Corrections #81 / hp/focus-reader-cursor and hp/focus-defer-midnight are owned
-   separately. Review and incorporate their approved exact heads before release;
+   Corrections #81 (`d154cfbd18f24b83541ce7b82914bf739d76eb5c`) and #82
+   (`8c859e7ea4c8b8638fcad0ddc0d88c2557bd5929`) are completed on hp’s
+   separate branches. Review and incorporate their approved exact heads before release;
    Phase 6 does not claim to fix or silently merge those branches.
 6. **Historical journal.** Source-only rollback before any new history is tested.
    Once plan requests/consents or receipts exist, rollback refuses deletion and
