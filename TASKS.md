@@ -5,11 +5,11 @@ Prioritized from current main code/README, roadmap/audit and live open PRs on
 planning backlog, not authorization for operational writes or feature merges.
 Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
-## P0 — authorized release (2026-11-16)
+## P0 — completed release (2026-11-16)
 
-- [ ] **OPS-FOCUS-RELEASE** (hp post-deployment verification; `ravi/focus-release`, PR #84): **User now explicitly authorized merge/frontend publication (latest “merge it” instruction)**; **#84 merged** at e96beea6dbb7b3c18dd891bd5b164823b11e55cc; exact-SHA Pages is built, main CI and live postflight/tag verification remain in progress. Operator reports backend migration 20261116050626 / Edge v3 complete; independent health 1.1.0/eight-tool/anonymous-denial checks pass. Reviewed source CI: 222 unit/API / 272 browsers. Future approved merge must retain source ancestry and verify exact-main CI/Pages/tag; no activation or operational writes. Current evidence: docs/releases/FOCUS-2026-11-16.md.
-- [x] **OPS-FOCUS-RELEASE.MERGE-PAGES** — #84 merged to exact main e96beea; Pages run 43810463425 built that SHA. Published postflight 8/8 and asset-byte comparisons 12/12 passed. Main CI 43810464959 and release tag remain next; no backend or operational writes.
-- [x] **OPS-FOCUS-RELEASE.HTTP-REVIEW** — independent eight-check live HTTP run and targeted #84 review complete; no new blocking code finding. DB/RLS/grants/version/count verification remains attributed to the operator. Prior hold superseded by the user’s explicit merge instruction. Reproduce with `NODE_USE_ENV_PROXY=1 node docs/releases/verify-focus-http.cjs`.
+- [x] **OPS-FOCUS-RELEASE** — hp completed, claim released; [#84](https://github.com/huzshk0707/Oaktown-ops/pull/84) merged and published at exact main **e96beea6dbb7b3c18dd891bd5b164823b11e55cc**, immutable annotated **v0.5.2**. All eight source heads retained. Main CI **43810464959** green (**222 unit/API / 272 browser**, SQL/Deno/audit); exact-SHA Pages **43810463425** green.
+- [x] **OPS-FOCUS-RELEASE.MERGE-PAGES** — published postflight **8/8**, exact asset SHA-256 comparisons **12/12**, remote annotated tag object and peeled release SHA verified. No source branch deletion, backend redeployment or operational write.
+- [x] **OPS-FOCUS-RELEASE.HTTP-REVIEW** — independent HTTP/PR review complete. Backend management version/DB/RLS/counts attributed to operator; public health 1.1.0/eight tools and anonymous denial independently checked. Reproduce `NODE_USE_ENV_PROXY=1 node docs/releases/verify-focus-http.cjs --published`. Evidence: docs/releases/FOCUS-2026-11-16.md.
 
 ## Completed staging / activation backlog
 
@@ -18,7 +18,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 - [x] **OPS-PHASE6.3** (ravi, complete; claim released): disposable end-to-end/security/concurrency tests and release prerequisite matrix for #70–#73/#75; no live task writes.
 - [ ] **OPS-PHASE6.4:** operator-approved connection activation and fictional staff test write after source/security review. Blocked until explicitly approved; never merge/deploy as preparation.
 
-Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43802216681): 218 unit/API and 267 browser tests, complete SQL/security/concurrency/rollback checks and desktop captures. Phase 6 backend is now operator-reported applied/deployed (registered migration 20261116050626, Edge v3); native UI remains in unmerged draft release #84. Independent HTTP/PR review is complete; user now authorizes the integrated frontend publication. OAuth installation/consent and staff write acceptance remain separate.
+Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43802216681): 218 unit/API and 267 browser tests, complete SQL/security/concurrency/rollback checks and desktop captures. Phase 6 backend is now operator-reported applied/deployed (registered migration 20261116050626, Edge v3); native UI is now published through merged #84 at e96beea / v0.5.2. Independent HTTP/PR review and release verification are complete. OAuth installation/consent and staff write acceptance remain separate.
 
 ## P0 — reliable shared continuation
 
@@ -29,25 +29,8 @@ Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oakt
 
 ## P1 — owner-confirmed top priority: Focus Board review
 
-- [x] **OPS-FOCUS-REVIEW:** Review the existing completed stack in dependency order:
-  [#70](https://github.com/huzshk0707/Oaktown-ops/pull/70) Phase 1 → main;
-  [#71](https://github.com/huzshk0707/Oaktown-ops/pull/71) Phase 2 → Phase 1;
-  [#72](https://github.com/huzshk0707/Oaktown-ops/pull/72) Phase 3 → Phase 2;
-  [#73](https://github.com/huzshk0707/Oaktown-ops/pull/73) Phase 4 → Phase 3.
-  hp’s independent reviews are complete in #76/#78/#79 and consolidated in #80. Two P2 correction tasks are separate (#81 reader cursor and hp/focus-defer-midnight); do not redo or merge them here. All feature PRs remain draft and unmerged by explicit user instruction. Prepare review
-  findings/desktop acceptance; do not reimplement, mark ready or merge them as
-  part of this setup. Phase 4 head `676e896` has 211 unit / 254 browser checks
-  and full CI green. Review evidence is already committed on its branch.
-  Small review steps (claim separately; no feature rewrite or merge):
-  1. [x] **OPS-FOCUS-REVIEW.1:** Audit #70/#71 carousel, shared data, modal,
-     keyboard/focus and existing Review integration; link exact heads/findings.
-  2. [x] **OPS-FOCUS-REVIEW.2:** Audit #72 confirmation, permissions, atomic task
-     versions, Defer/Undo and failure recovery using existing fictional tests.
-  3. [x] **OPS-FOCUS-REVIEW.3:** Audit #73 desktop morning/SOD flow, provenance,
-     approval journal, retention/audience boundaries and missing integrations.
-  4. [x] **OPS-FOCUS-REVIEW.4:** Consolidate findings and desktop review evidence;
-     propose bounded fixes and ask the owner for any product/merge decisions.
-- [ ] **OPS-RELEASE-REVIEW:** Independently review Phase 6 #77 after ravi releases its claim, then compose approved #81/#82 corrections with the stack in a disposable checkout and rerun checks. hp completed those bounded fixes; do not redo or merge them automatically. Source-retention/audience and actual OAuth activation remain separate decisions.
+- [x] **OPS-FOCUS-REVIEW.1–4** — independent Phases 1–4 reviews complete (#76/#78/#79), consolidated #80. Those review-only PRs remain references outside the feature release; do not redo completed review.
+- [x] **OPS-RELEASE-REVIEW** — Phase 6 native approval/attested-read contract and #81/#82 corrections reviewed/composed in #84; source ancestry, full main CI, public denial and Pages verified. Features/fixes are in main; source PRs with feature-branch bases may still show open, which is not missing implementation. Source retention/audience and live OAuth/staff activation remain separate decisions.
 - [ ] **OPS-PLANNING-DATA:** Review recorded owner/next-action/follow-up gaps using
   the current Needs planning view. Propose source-backed fixes; do not invent
   deadlines/owners or write real tasks without the established reviewed workflow.
@@ -90,8 +73,7 @@ Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oakt
 
 - [x] Main through PR #69: daily actions first, Needs planning and temporary
   deposit/SOD unload protection; existing Today/Tasks/notices/portfolio remain.
-- [x] Focus Board Phases 1–4 implemented and tested on the four linked review
-  branches. Product acceptance/merge permission is pending, not implementation.
+- [x] Focus Board Phases 1–6 and #81/#82 fixes are merged/published in #84 at e96beea / v0.5.2; no phase implementation or release merge remains.
 
 The owner confirmed Focus Board #70–#73 review first on 2026-11-16. Remaining priorities are provisional; product/launch decisions and
 missing sources stay explicit. Add owner/branch/PR beside a task only when claimed.
