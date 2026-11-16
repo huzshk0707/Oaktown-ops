@@ -50,3 +50,28 @@ Existing hosted workflow covers all browsers, SQL, Deno and dependency audit.
 The generic task API intentionally retains legitimate historical follow-up edits;
 this correction enforces the Focus quick-action rule at submission boundaries.
 No merge or deployment is included.
+
+## Combined compatibility check
+
+A temporary tracked-file archive of Defer `1b8544391008f3412910b7ccaa88758e67169c31`
+plus the cursor-only patch from Phase 5 `712ec3d` to reader `c45273e188664e194031d57ed0a3ee2ae04505bb`
+passed **218/218 units and 266/266 browsers** (two workers) on 2026-11-16.
+This composed the source locally for validation; neither feature branches nor
+production were merged. Defer `8049bd8` changes only the test fixture selection
+and documentation; its four clock cases also passed independently after that
+selection change. The runtime is identical to `1b85443`.
+
+To recreate, `git archive 1b85443` into a new temporary directory and apply
+`git diff 712ec3d c45273e --` for these cursor files only:
+`ops-task-reader.js`, `tests/ops-task-reader.test.cjs`,
+`tests/focus-board-fixtures.cjs`, `tests/focus-board.e2e.spec.cjs`,
+`tests/morning-center.e2e.spec.cjs`, `tests/daily-center.e2e.spec.cjs`,
+`tests/task-intake.e2e.spec.cjs`, `tests/today.e2e.spec.cjs`.
+Use locked connector dependencies and pinned Playwright 1.56.1 / axe 4.10.2.
+Serve that temporary directory on loopback port 8765, then run
+`node --test tests/*.test.cjs`, `node scripts/workflow-states.cjs --check` and
+`playwright test tests/*.e2e.spec.cjs --workers=2 --reporter=line`.
+Keep the branch-specific HANDOFF/TASKS separate; no branch merge is needed.
+The passing combined run is compatibility evidence, not feature merge or rollout
+approval. Source audience/retention, native approval integration and authoritative
+mailbox/deposit sources remain tracked in review #80 / independent draft #77.
