@@ -29,7 +29,8 @@ cursor, multi-page completeness, duplicate/regressing/malformed results, a late
 regression deletes an earlier row after page 1, reaches the formerly skipped task
 through actual carousel navigation, then verifies refresh removes the old row.
 Browser fixtures now honor the cursor while retaining offsets for unrelated
-existing Operations queries. >1,000-task checks assert the cursor query, not an
+existing Operations queries. Intake/Today test mocks also honor the explicitly
+requested ascending ID order, cursor and limit instead of insertion order. >1,000-task checks assert the cursor query, not an
 obsolete offset. A former dashboard test's ineffective offset=0 request-count
 check was replaced by actual rendered priority-order comparison; the old check
 never matched the reader's first-page URL and did not test snapshot consistency.
