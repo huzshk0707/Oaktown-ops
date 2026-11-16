@@ -28,6 +28,7 @@ async function morningMock(page,count=9){
   if(action==='configure'){if(s.role!=='admin')return reply({message:'Native administrator required',code:'42501'},403);const c=s.planClients.find(c=>c.client_id===payload.client_id);Object.assign(c,payload,{my_can_read_plans:false,my_can_submit_plans:false});return reply(c)}
   if(action==='consent'){if(payload.confirmed!==true||payload.can_submit_plans&&!payload.can_read_plans)return reply({message:'Explicit plan consent required',code:'22023'},400);const c=s.planClients.find(c=>c.client_id===payload.client_id);if(payload.can_read_plans&&!c.can_read_plans||payload.can_submit_plans&&!c.can_submit_plans)return reply({message:'Capability disabled',code:'42501'},403);Object.assign(c,{my_can_read_plans:payload.can_read_plans,my_can_submit_plans:payload.can_submit_plans});return reply({...payload,saved:true,actor_id:USER})}
   const p=s.requests.get(payload.proposal_id);if(!p)return reply({message:'Request not found',code:'P0002'},404);
+  if(action==='review'&&s.reviewHold)await s.reviewHold;
   if(action==='review')return p.state==='approved'?reply({approved:true,event:p.saved}):reply(p.review);
   if(action==='status')return reply({schema_version:'oaktown.plan-submission.v1',proposal_id:p.review.proposal_id,state:p.state,event:p.saved||null,receipt:p.receipt||null});
   if(action==='approve'){

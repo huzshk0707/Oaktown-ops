@@ -169,13 +169,19 @@ elevated SQL connector to bypass the scoped contract.
   an injected token verifier; signature/issuer/audience tests are separate signed
   JWT checks. It does not establish a live ChatGPT OAuth installation.
 - 218 unit/API tests pass. 33 existing Morning/dashboard/task-connection browser
-  tests pass. Five new desktop plan-review/consent tests pass, including scoped
+  tests pass. Six new desktop plan-review/consent tests pass, including scoped
   axe accessibility, 1280/1440/1920px layout, source escaping, exact confirmation,
   conflicts, uncertain readback, draft preservation and sign-out clearing.
 - Workflow inventory (30 families/65 entry scripts), Deno frozen check and
   dependency audit pass (zero reported vulnerabilities). The full disposable SQL workflow also passes, including the unchanged task,
   journal, import and reminder suites. [Seven fictional desktop captures](phase-6-desktop/README.md)
-  are included and inspected. Full browser/hosted CI remain in progress. The first
+  are included and inspected. Full browser/hosted CI remain in progress. The hosted 9322c72 browser run passed
+  265/266: the original keyboard test did not await the asynchronous preview. It
+  now waits for review readiness; a separate loading/cancel/sign-out/late-reply
+  regression verifies safety before readiness. All 25 Morning + plan-review
+  browser cases pass locally. The first local full run passed 264/266; its two
+  failures passed a fresh unchanged-checkout rerun. Final exact-head hosted
+  evidence is still required. The first
   hosted SQL run exposed missing MCP dependencies in that job; CI now installs the
   pinned connector there before the composed SQL/MCP check.
 
