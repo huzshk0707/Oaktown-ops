@@ -7,8 +7,8 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P0 — authorized release (2026-11-16)
 
-- [ ] **OPS-FOCUS-RELEASE** (hp post-deployment verification; `ravi/focus-release`, PR #84): **HOLD merge/frontend deployment pending further user instruction**. Operator reports backend migration 20261116050626 / Edge v3 complete; independent health 1.1.0/eight-tool/anonymous-denial checks pass. Reviewed source CI: 222 unit/API / 272 browsers. Future approved merge must retain source ancestry and verify exact-main CI/Pages/tag; no activation or operational writes. Current evidence: docs/releases/FOCUS-2026-11-16.md.
-- [x] **OPS-FOCUS-RELEASE.HTTP-REVIEW** — independent eight-check live HTTP run and targeted #84 review complete; no new blocking code finding. DB/RLS/grants/version/count verification remains attributed to the operator. Publication remains held. Reproduce with `NODE_USE_ENV_PROXY=1 node docs/releases/verify-focus-http.cjs`.
+- [ ] **OPS-FOCUS-RELEASE** (hp post-deployment verification; `ravi/focus-release`, PR #84): **User now explicitly authorized merge/frontend publication (latest “merge it” instruction)**; proceed with #84 after final head check, then verify exact-main CI/Pages/tag. Operator reports backend migration 20261116050626 / Edge v3 complete; independent health 1.1.0/eight-tool/anonymous-denial checks pass. Reviewed source CI: 222 unit/API / 272 browsers. Future approved merge must retain source ancestry and verify exact-main CI/Pages/tag; no activation or operational writes. Current evidence: docs/releases/FOCUS-2026-11-16.md.
+- [x] **OPS-FOCUS-RELEASE.HTTP-REVIEW** — independent eight-check live HTTP run and targeted #84 review complete; no new blocking code finding. DB/RLS/grants/version/count verification remains attributed to the operator. Prior hold superseded by the user’s explicit merge instruction. Reproduce with `NODE_USE_ENV_PROXY=1 node docs/releases/verify-focus-http.cjs`.
 
 ## Completed staging / activation backlog
 
@@ -17,7 +17,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 - [x] **OPS-PHASE6.3** (ravi, complete; claim released): disposable end-to-end/security/concurrency tests and release prerequisite matrix for #70–#73/#75; no live task writes.
 - [ ] **OPS-PHASE6.4:** operator-approved connection activation and fictional staff test write after source/security review. Blocked until explicitly approved; never merge/deploy as preparation.
 
-Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43802216681): 218 unit/API and 267 browser tests, complete SQL/security/concurrency/rollback checks and desktop captures. Phase 6 backend is now operator-reported applied/deployed (registered migration 20261116050626, Edge v3); native UI remains in unmerged draft release #84. Independent HTTP/PR review is complete; user holds frontend publication. OAuth installation/consent and staff write acceptance remain separate.
+Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43802216681): 218 unit/API and 267 browser tests, complete SQL/security/concurrency/rollback checks and desktop captures. Phase 6 backend is now operator-reported applied/deployed (registered migration 20261116050626, Edge v3); native UI remains in unmerged draft release #84. Independent HTTP/PR review is complete; user now authorizes the integrated frontend publication. OAuth installation/consent and staff write acceptance remain separate.
 
 ## P0 — reliable shared continuation
 

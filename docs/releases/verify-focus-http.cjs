@@ -2,7 +2,9 @@
 // Credential-free public metadata and denied read probes. Never submits a plan,
 // approves a request, changes a task, signs in, or configures client permissions.
 // Node 24 behind the Cloud proxy: NODE_USE_ENV_PROXY=1 node <this-file>
+// Add --published after the authorized frontend release.
 const assert=require('node:assert/strict');
+const published=process.argv.includes('--published');
 const {readFileSync}=require('node:fs');
 const {resolve}=require('node:path');
 const source=readFileSync(resolve(__dirname,'../../cloud.js'),'utf8');
@@ -36,7 +38,7 @@ const checks=[
  ['anonymous_plan_tool',async()=>denied(await mcp('tools/call',{name:'read_daily_plan',arguments:{work_date:day}}))],
  ['anonymous_task_rest',async()=>{const r=await get(base+'/rest/v1/ops_tasks?select=id&limit=1',{headers:{apikey:key}});assert.ok([401,403].includes(r.status),'Anonymous task read must be denied');assert.equal(r.body?.code,'42501');return {http:r.status,code:r.body.code};}],
  ['plan_rpc_route_and_anonymous_denial',async()=>{const params=new URLSearchParams({action:'head',payload:JSON.stringify({work_date:day})});const r=await get(base+'/rest/v1/rpc/ops_morning_plan?'+params,{headers:{apikey:key}});assert.ok([401,403].includes(r.status),'Expected existing RPC to deny anonymous execution');assert.equal(r.body?.code,'42501');return {http:r.status,code:r.body.code,missingRpc:false};}],
- ['published_frontend_hold',async()=>{const r=await get('https://huzshk0707.github.io/Oaktown-ops/');assert.equal(r.status,200);assert.ok(r.text.includes('Oaktown Ops'));assert.equal(r.text.includes('id="focus-deck"'),false,'Frontend release must remain unpublished during hold');return {http:r.status,focusDeckPublished:false};}]
+ ['published_frontend',async()=>{const r=await get('https://huzshk0707.github.io/Oaktown-ops/?release-check='+Date.now());assert.equal(r.status,200);assert.ok(r.text.includes('Oaktown Ops'));assert.equal(r.text.includes('id="focus-deck"'),published,'Frontend publication differs from the expected release phase');return {http:r.status,focusDeckPublished:published};}]
 ];
 (async()=>{
  const startedAt=new Date().toISOString();
