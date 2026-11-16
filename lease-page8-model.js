@@ -1,5 +1,5 @@
 /* Room identities are independent of positions on an approved original PDF. */
-(function(root,factory){'use strict';const api=factory(typeof module==='object'&&module.exports?require('./lease-preparation-model.js'):root.OpsLeasePreparation);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.OpsLeasePage8=api;})(typeof window!=='undefined'?window:null,function(M){
+(function(root,factory){'use strict';const api=factory(typeof module==='object'&&module.exports?require('./lease-preparation-model.js'):root.OpsLeasePreparation,typeof module==='object'&&module.exports?require('./renewal-rules.js'):root.OpsRenewalRules);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.OpsLeasePage8=api;})(typeof window!=='undefined'?window:null,function(M,R){
  'use strict';
  const sections=Object.freeze(['kitchen','bathroom','living','bedroom-1','bedroom-2','bedroom-3','bedroom-4','bedroom-5','basement','additional','exterior','systems','other']);
  const presets=Object.freeze([...new Set(['Good','New','Fair','Good & New Paint','Good & Fresh Paint','New Vinyl','Good Vinyl','Good Tile','Good Granite','Good LVT','New Carpet','Good & New Carpet','Refinished Hardwoods','N/A',...M.conditionOptions])]);
@@ -32,8 +32,8 @@
  function values(state){
   const result={};
   for(const name of terms){const value=name.startsWith('occupant-')?state.occupants?.[Number(name.split('-')[1])]:name==='five'||name==='ten'?M.calculateFees(state.rent,state.fiveOverride,state.tenOverride)[name].formatted:state[name];result['term/'+name]=String(value??'');}
-  for(const [i,name]of Object.keys(state.utilities||{}).entries())result['term/utility-'+i]=String(state.utilities[name]||'');
-  for(const [i,name]of Object.keys(state.appliances||{}).entries())result['term/appliance-'+i]=String(state.appliances[name]||'');
+  for(const [i,name]of R.utilities.entries())result['term/utility-'+i]=String(state.utilities?.[name]||'');
+  for(const [i,name]of R.appliances.entries())result['term/appliance-'+i]=String(state.appliances?.[name]||'');
   result['term/bedrooms']=String(state.bedrooms||'');result['term/satisfactory']=String(state.satisfactory||'');
   // Inactive labels retain the source position; an active den can deliberately
   // occupy the otherwise unused Bedroom 4 slot, without duplicate identity.
