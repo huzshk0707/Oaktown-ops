@@ -29,6 +29,7 @@
   else{item.setAttribute('role','group');item.setAttribute('aria-roledescription','slide');item.setAttribute('aria-label','Task '+(index+1)+' of '+total);}
   const top=node('div',null,'focus-card-top');top.append(node('span',task.task_code||task.id,'focus-task-code'),node('span',look.label,'focus-lane'));
   item.append(top,node('h2',task.task_title||'Untitled task'),tags(task),facts(task));
+  if(window.OpsMorning?.approvedTaskIds().includes(task.id))item.append(node('p','In the approved morning plan','focus-plan-marker'));
   const bottom=node('div',null,'focus-card-bottom');bottom.append(node('span','TASK RECORD'),node('span',task.id,'focus-record-id'));item.append(bottom);
   if(offset===0){const open=node('button','Open Focus Mode →','focus-open-task');open.type='button';open.setAttribute('aria-haspopup','dialog');open.setAttribute('aria-label','Open Focus Mode for '+(task.task_title||'this task'));item.append(open)}
   return item;

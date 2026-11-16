@@ -267,3 +267,21 @@ Complete, follow-up-only Defer and a version-guarded persisted Undo using the
 existing intake RPC. Navigation gestures remain read-only; shared snapshot/auth,
 Review and other workspace routes remain intact. This is unmerged source for a
 draft PR targeting the Phase 2 branch, without deployment or real task writes.
+
+## Morning Command Center — Phase 4 desktop review branch
+
+`feature/focus-board-phase-4` starts at the unchanged Phase 3 head `536ebca` and
+targets `feature/focus-board-phase-3`. The opt-in `#/morning` screen organizes
+manual source review, deposit reports, shared tasks and the existing SOD editor.
+Explicit approval records a versioned snapshot in the existing authenticated
+staff journal; a confirmed transition opens the existing Focus Board. Planning
+never changes operational tasks or deposits. See [the Phase 4 guide](MORNING-COMMAND-CENTER.md)
+for architecture, desktop screenshots, tests and exact persistence boundaries.
+
+The application has no mailbox ingestion service or verified deposit ledger;
+manual intake and a disconnected verification lane are explicit. Next bounded
+integration decisions are an authorized application mailbox connector, financial
+source, and SOD/source retention/audience. Resumable unapproved drafts and a
+transactional multi-user SOD policy remain future work. Desktop widths are
+1280/1440/1920; no mobile feature work is added. This branch remains unmerged and
+unpublished; Today remains the production entry route and all workflows remain.

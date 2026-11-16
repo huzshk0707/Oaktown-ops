@@ -36,6 +36,8 @@ jobs:
           node --check eod.js
           node --check workspace-theme.js
           node --check connections-model.js
+          node --check morning-model.js
+          node --check morning-center.js
           node --check sod-model.js
           node --check sod.js
           node --check bill-reminders-model.js
@@ -93,11 +95,9 @@ jobs:
           sleep 2
           curl --fail http://127.0.0.1:8765/generator.html >/dev/null
       - name: Test downloads, workflow navigation, cloud saves and sessions
-        env:
-          OAKTOWN_UI_SCREENSHOTS: '1'
         run: npx playwright test tests/*.e2e.spec.cjs --reporter=line --workers=1
-      - name: Capture fictional Focus Board action states
-        run: node scripts/capture-focus-actions.cjs
+      - name: Capture fictional desktop Morning Command Center states
+        run: node scripts/capture-morning-center.cjs
       - name: Upload fictional UI review screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -169,6 +169,8 @@ jobs:
             -f tests/task-delete-archived-check.sql \
             -f supabase/migrations/20261108050604_master_backlog_controlled_import.sql \
             -f tests/master-backlog-import-check.sql
+      - name: Verify Morning SOD approval in the existing staff journal
+        run: node tests/morning-journal-database.cjs
       - name: Verify Focus Board actions through existing authorized task RPC
         run: node tests/focus-actions-database.cjs
       - name: Reject concurrent task cycles and destructive import rollback

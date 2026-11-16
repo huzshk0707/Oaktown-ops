@@ -2,7 +2,7 @@
   "schema_version": "oaktown.workflow-state-inventory.v1",
   "reviewed_base": "5a0cba51174e34496cd763c68fcc4e8faa4e14d6",
   "reviewed_on": "2026-11-11",
-  "scope": "Active index.html and generator.html first-party scripts, plus the task connector and its server contracts. State names are conceptual except the two explicit reviewed-write controllers.",
+  "scope": "Active index.html and generator.html first-party scripts, plus the task connector and its server contracts. State names are conceptual except explicit shared reviewed-write controllers.",
   "entrypoints": [
     "index.html",
     "generator.html"
@@ -754,6 +754,42 @@
         "tests/focus-actions-database.cjs"
       ],
       "representation": "explicit"
+    },
+    {
+      "id": "morning_command_center",
+      "scope": "Desktop manual source review, shared SOD preparation, immutable approval and confirmed execution handoff",
+      "sources": [
+        "morning-model.js",
+        "morning-center.js"
+      ],
+      "states": [
+        "signed_out",
+        "loading",
+        "ready",
+        "source_unreviewed",
+        "source_reviewed",
+        "source_dismissed",
+        "draft",
+        "source_conflict",
+        "approved",
+        "approval_unverified",
+        "execution_confirmation",
+        "execution"
+      ],
+      "guards": [
+        "OpsToday owns the only authenticated task snapshot; OpsSod owns the existing single editor and grouped Morning draft.",
+        "Manual email/message content is untrusted evidence. Rule suggestions and deposit reports never verify funds or trigger operational actions.",
+        "Task proposals require reviewed Task Intake; collection, classification, draft generation and Focus Board transition do not mutate tasks or deposits.",
+        "Approval appends to existing staff RLS journal with stable event ID, server-stamped actor/time and exact independent readback. Lost responses block new approvals pending verification.",
+        "Refresh preserves drafts and immutable approvals; task source versions are rechecked before approval and execution. No server-atomic multi-user SOD lock is claimed.",
+        "Session changes clear sources, task labels, dialogs and approval state; desktop dialogs trap and restore focus."
+      ],
+      "tests": [
+        "tests/morning-model.test.cjs",
+        "tests/morning-center.e2e.spec.cjs",
+        "tests/morning-journal-database.cjs"
+      ],
+      "representation": "guarded"
     }
   ]
 }

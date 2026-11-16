@@ -1,0 +1,92 @@
+/* Desktop Morning Command Center. Existing responsive surfaces remain unchanged. */
+@media screen {
+ html[data-ops-theme] body.ops-workspace.morning-mode {--ui-canvas:#080e17;--ui-surface:#111e2d;--ui-soft:#162537;--ui-rail:#080e17;--ui-text:#edf4fa;--ui-muted:#a5bbcd;--ui-control:#527189;--ui-border:#30475c;--ui-focus:#a6e2ec;background:#080e17;color:#edf4fa;color-scheme:dark}
+ .morning-mode .sidebar {display:none}
+ html[data-ops-theme] body.ops-workspace.morning-mode .shell {margin:0;width:100%;max-width:none;background:#080e17;min-height:100dvh}
+ html[data-ops-theme] .morning-mode .topbar {padding:12px 24px;min-height:72px;border-bottom:1px solid #30475c;background:#0c1521;gap:12px;flex-wrap:nowrap}
+ .morning-mode .topbar-location,.morning-mode :is(.workspace-intro,.operations-toolbar,.operations-loading-status) {display:none!important}
+ .morning-mode .workspace-clocks {margin-left:auto;flex:none;gap:20px}
+ .morning-mode .workspace-clock {min-width:105px}
+ .morning-mode .workspace-clock time {font-size:13px}
+ .morning-mode .topbar .operations-search {min-width:0}
+ html[data-ops-theme] body.ops-workspace.morning-mode .topbar #account-label {color:#dfedf6}
+ html[data-ops-theme] body.ops-workspace.morning-mode .topbar #account-button {background:#152637;color:#dfedf6;border-color:#48687f}
+ html[data-ops-theme] .morning-mode .topbar :is(button,.operations-search) {min-height:42px;font:600 12px/1.4 system-ui,sans-serif;margin:0;background:#152637;color:#d8e9f4;border:1px solid #48687f;box-shadow:none;padding:10px 13px;white-space:nowrap}
+ #morning-command-date {font:11px/1.5 ui-monospace,monospace;color:#bee8ed;white-space:nowrap;padding:0 6px}
+ #morning-command-date[hidden],#morning-command-refresh[hidden],#morning-command-exit[hidden] {display:none!important}
+ html[data-ops-theme] body.ops-workspace.morning-mode .workspace-main {max-width:none;width:auto;padding:0;margin:0}
+ .morning-center {min-width:1180px;padding:28px 24px 36px;background:radial-gradient(ellipse at 50% 0%,#18334555,transparent 55%),#080e17}
+ .morning-heading {display:flex;align-items:center;justify-content:space-between;gap:24px;padding:0 4px 24px}
+ .morning-eyebrow {font:10px/1.5 ui-monospace,monospace;letter-spacing:.13em;color:#a6e2ec;margin:0 0 8px}
+ .morning-heading h1 {font:550 32px/1.2 system-ui,sans-serif;letter-spacing:-.03em;color:#f1f7fb;margin:0 0 10px}
+ .morning-heading>div>p:last-child {font:12px/1.6 system-ui,sans-serif;color:#adc2d3;margin:0}
+ .morning-grid {display:grid;grid-template-columns:minmax(280px,.95fr) minmax(500px,1.75fr) minmax(280px,.95fr);gap:16px;align-items:start;max-width:1900px;margin:auto}
+ .morning-column {min-width:0;max-height:calc(100dvh - 260px);overflow:auto;scrollbar-color:#49687e #0a1522;border:1px solid #30475c;border-top:2px solid #5d97a7;border-radius:10px;background:#101c2a;box-shadow:0 16px 36px #0003;padding:20px 18px}
+ .morning-plan-column {background:#111f2e;border-top-color:#a6e2ec}
+ .morning-panel-head {position:sticky;top:-20px;z-index:2;background:#101c2a;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;padding:8px 0 12px;border-bottom:1px solid #30475c}
+ .morning-panel-head h2 {font:550 20px/1.3 system-ui,sans-serif;color:#edf5fb;margin:0;letter-spacing:-.02em}
+ .morning-badge {display:inline-block;background:#192e40;border:1px solid #4a6b81;color:#d3e9f3;padding:5px 8px;border-radius:5px;font:10px/1.5 ui-monospace,monospace;white-space:nowrap}
+ .morning-center h3 {font:600 13px/1.5 system-ui,sans-serif;color:#d9e9f4;margin:0 0 12px}
+ :is(.morning-center,.morning-dialog) .morning-muted {font:11px/1.65 system-ui,sans-serif;color:#adc2d3;margin:8px 0 14px}
+ .morning-connection {font:11px/1.65 system-ui,sans-serif;border-left:2px solid #bba373;padding-left:10px;color:#d7c39e;margin:0 0 18px}
+ .morning-center summary {font:600 12px/1.5 system-ui,sans-serif;color:#c7e7ee;cursor:pointer;min-height:32px;align-content:center}
+ .morning-center details {padding:12px;border:1px solid #334e63;border-radius:6px;background:#0e1a28;margin:0 0 16px}
+ .morning-subpanel {border-top:1px solid #30475c;padding-top:20px;margin-top:20px}
+ details.morning-subpanel {padding:12px}
+ html[data-ops-theme] .morning-mode :is(.morning-center,.morning-dialog) .button {min-height:38px;padding:9px 12px;font:600 11px/1.5 system-ui,sans-serif;border:1px solid #4d6d84;border-radius:5px;box-shadow:none;background:#182d3f;color:#dfedf6}
+ html[data-ops-theme] .morning-mode :is(.morning-center,.morning-dialog) .button.primary {background:#bce5eb;border-color:#bce5eb;color:#0c202c}
+ html[data-ops-theme] .morning-mode .morning-start {background:#1b3b31;border-color:#5b9a80;color:#caf0dc}
+ .morning-center button:disabled,.morning-dialog button:disabled {opacity:.48;cursor:default}
+ .morning-center label,.morning-dialog label {display:block;font:600 11px/1.5 system-ui,sans-serif;color:#d4e5f1;margin:12px 0}
+ .morning-center label small {display:block;font-weight:400;color:#acc2d4;margin-top:6px}
+ html[data-ops-theme] .morning-mode :is(.morning-center,.morning-dialog) :is(input:not([type="checkbox"]),textarea,select) {box-sizing:border-box;width:100%;min-width:0;margin-top:6px;background:#0a1522;border:1px solid #516f86;color:#eaf3fb;border-radius:5px;min-height:38px;font:12px/1.55 system-ui,sans-serif;padding:9px 10px}
+ .morning-center textarea,.morning-dialog textarea {resize:vertical}
+ .morning-center [role="status"],.morning-dialog [role="status"] {font:12px/1.6 system-ui,sans-serif;color:#e9d6b1;overflow-wrap:anywhere}
+ .morning-source-card {border:1px solid #344f64;border-radius:6px;padding:13px 12px;margin:10px 0;background:#132333}
+ .morning-source-card h3 {font-size:13px;overflow-wrap:anywhere;margin:6px 0 10px}
+ .morning-source-meta {font:10px/1.6 ui-monospace,monospace;color:#abc4d7;overflow-wrap:anywhere;margin:8px 0}
+ .morning-source-card .morning-badge {font-size:9px;padding:3px 6px;white-space:normal}
+ .morning-source-card[data-status="unreviewed"] {border-left:2px solid #d4b577}
+ .morning-source-card[data-status="reviewed"] {border-left:2px solid #8fcbb2}
+ .morning-source-card[data-status="dismissed"] {opacity:.65}
+ .morning-incoming {max-height:440px;overflow:auto;scrollbar-color:#49687e #0a1522}
+ .morning-deposit-row,.morning-readiness-row {display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px solid #283e51;font:11px/1.5 system-ui,sans-serif;color:#c5d8e6}
+ .morning-deposit-row strong {font:500 12px/1.5 ui-monospace,monospace;color:#f1d6a2}
+ .morning-deposit-row[data-stage="verified_credited"] strong {color:#aabfcf}
+ .morning-deposit-row[data-stage="failed_disputed"] strong {color:#f3b7b6}
+ .morning-readiness-actions {display:grid;gap:10px;margin-top:18px}
+ .morning-readiness-row strong {color:#d5edf1}
+ .morning-warning {padding:12px;border:1px solid #9d7e48;background:#30291c;color:#f3dcae;border-radius:6px;font:12px/1.6 system-ui,sans-serif;margin:12px 0}
+ .morning-warning p {margin:0 0 8px}.morning-warning button+button {margin-top:8px}
+ .morning-priority-row {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;border-bottom:1px solid #2d4559;padding:10px 0}
+ .morning-priority-row strong {display:block;font:550 12px/1.6 system-ui,sans-serif;color:#dcecf6}
+ .morning-priority-row span {font:10px/1.5 ui-monospace,monospace;color:#b0c7d8;display:block;margin-top:4px}
+ .morning-center .sod-morning {border:0;padding:0;background:transparent;margin:0}
+ .morning-center .sod-morning>summary {font-size:17px;margin:6px 0}
+ .morning-center .sod-morning .today-muted {color:#adc2d3;font-size:11px;line-height:1.65}
+ .morning-center .sod-morning h4 {font:600 12px/1.5 system-ui,sans-serif;color:#cae7ee;margin:20px 0 10px}
+ .morning-center .sod-chosen {background:#152839;border-color:#45637a;padding:12px;margin:14px 0}
+ .morning-center .sod-chosen legend {color:#d5e9f4;font-size:11px;padding:0 4px}
+ .morning-center .sod-form-grid,.morning-center .sod-constants {display:block}
+ .morning-center .sod-constant {margin:10px 0;background:#0f1c2b;border-color:#304a60}
+ .morning-center #sod-output {min-height:420px;font:12px/1.8 ui-monospace,monospace}
+ .morning-approved-text {white-space:pre-wrap;overflow-wrap:anywhere;max-height:430px;overflow:auto;padding:14px;border:1px solid #3d596f;border-radius:6px;background:#0a1522;color:#dceaf5;font:12px/1.8 ui-monospace,monospace}
+ .morning-facts {display:grid;grid-template-columns:110px minmax(0,1fr);gap:9px 14px;font:12px/1.6 system-ui,sans-serif;margin:0 0 18px}
+ .morning-facts dt {color:#acc5d7}.morning-facts dd {margin:0;color:#dceaf5;overflow-wrap:anywhere}
+ html[data-ops-theme] .morning-mode .morning-dialog {width:min(1000px,calc(100vw - 96px));max-width:none;max-height:calc(100dvh - 60px);background:#101d2c;color:#e7f1f9;border:1px solid #6a9aaf;border-top:2px solid #a6e2ec;border-radius:12px;padding:26px 30px;box-shadow:0 32px 120px #000b;overflow:auto;color-scheme:dark}
+ .morning-dialog::backdrop {background:#02070de6;backdrop-filter:blur(4px)}
+ .morning-dialog h2 {font:550 27px/1.3 system-ui,sans-serif;color:#eef7fb;margin:0 0 20px;letter-spacing:-.02em}
+ .morning-dialog>p,.morning-dialog form>p {font:13px/1.7 system-ui,sans-serif;color:#bad0df}
+ .morning-dialog footer {display:flex;justify-content:flex-end;gap:12px;padding-top:20px;border-top:1px solid #3a5367;margin-top:20px}
+ .morning-review-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+ .morning-original {white-space:pre-wrap;overflow-wrap:anywhere;max-height:500px;overflow:auto;font:12px/1.8 ui-monospace,monospace;color:#d3e5f3;background:#0a1522;padding:16px;border:1px solid #354e63;border-radius:6px}
+ .morning-check {display:flex!important;gap:10px;align-items:flex-start;font-weight:500!important}
+ .morning-check input {width:18px;height:18px;flex:none;margin:2px 0}
+ html[data-ops-theme] .morning-mode .morning-approval-dialog {width:800px}
+ html[data-ops-theme] .morning-mode .morning-start-dialog {width:620px}
+ .morning-center :focus-visible,.morning-dialog :focus-visible {outline:2px solid #bcecf4!important;outline-offset:3px}
+ .morning-center [hidden],.morning-dialog [hidden] {display:none!important}
+ .focus-morning-plan {display:flex;align-items:center;justify-content:space-between;gap:16px;margin:20px 48px 0;padding:12px 16px;border:1px solid #4b796f;background:#142c29;border-radius:6px;font:12px/1.6 system-ui,sans-serif;color:#c3e8df}
+ .focus-morning-plan[hidden] {display:none!important}
+ .focus-plan-marker {font:10px/1.5 system-ui,sans-serif;color:#b8e5d5;margin:12px 0 0}
+}

@@ -121,3 +121,17 @@ confirmed task completion, follow-up scheduling and guarded persisted reversal.
 The [Phase 3 guide](FOCUS-BOARD-PHASE-3.md) records its existing intake RPC contract,
 immutable retry payloads, exact-version Undo and private UI invalidation. The
 source inventory maps the action model/controller and unit/browser/SQL evidence.
+
+## Morning planning and approval — Phase 4 review branch
+
+Morning adds a separately inventoried desktop source-review/projection flow while
+reusing OpsToday and the single OpsSod editor. Unreviewed/reviewed/dismissed source
+states are separate from task statuses. Accepted planning text is not a task.
+Explicit SOD approval uses the shared reviewed-write lifecycle for an immutable
+existing-journal append with stable event identity, server attribution and exact
+readback. Uncertain results block a new approval; source conflicts preserve drafts
+and require review. Session boundaries clear private values and task labels.
+
+See [Morning architecture and safety](MORNING-COMMAND-CENTER.md). The inventory now
+covers 28 workflow families and 61 active scripts. Mail ingestion, verified funds
+and a server-atomic multi-user plan lifecycle are not inferred from this UI.

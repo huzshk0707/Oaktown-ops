@@ -1,0 +1,15 @@
+{
+  "fictional": true,
+  "desktopOnly": true,
+  "widths": [
+    1280,
+    1440,
+    1920
+  ],
+  "productionRecordsUsed": 0,
+  "operationalWrites": 0,
+  "fictionalApprovalEvents": 1,
+  "writePaths": [
+    "/rest/v1/ops_events"
+  ]
+}
