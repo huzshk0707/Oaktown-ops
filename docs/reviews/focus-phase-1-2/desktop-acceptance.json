@@ -1,0 +1,49 @@
+{
+  "sourceCommit": "70f63c43232f8efe7ec58ac769b949dbc31498b9",
+  "controllerSHA256": "e637de2d99a2214eb41470dd75e7ef98eb9cef1778febb1ec9c93b80119cc4d9",
+  "fictional": true,
+  "desktopOnly": true,
+  "widths": [
+    {
+      "width": 1280,
+      "height": 1080,
+      "board": {
+        "centerError": 0,
+        "documentFits": true
+      },
+      "modal": {
+        "fits": true,
+        "bodyFits": true
+      },
+      "focusRestored": true
+    },
+    {
+      "width": 1440,
+      "height": 1080,
+      "board": {
+        "centerError": 0,
+        "documentFits": true
+      },
+      "modal": {
+        "fits": true,
+        "bodyFits": true
+      },
+      "focusRestored": true
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "board": {
+        "centerError": 0,
+        "documentFits": true
+      },
+      "modal": {
+        "fits": true,
+        "bodyFits": true
+      },
+      "focusRestored": true
+    }
+  ],
+  "writes": 0,
+  "pageErrors": []
+}

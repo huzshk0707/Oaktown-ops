@@ -1,0 +1,11 @@
+{
+  "outcome": "reproduced",
+  "reads": 2,
+  "returned": 1001,
+  "current": 1001,
+  "missingCurrentIDs": [
+    "001000"
+  ],
+  "returnedDeletedID": "000000",
+  "writes": 0
+}
