@@ -7,7 +7,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P0 — current user direction: Phase 6 integration / readiness
 
-- [ ] **OPS-PHASE6.1** (ravi, `ravi/phase6-integration`): inspect #75 and task OAuth/API/approval authorization; aggregate-only metadata; document activation gates.
+- [x] **OPS-PHASE6.1** (ravi, `ravi/phase6-integration`): inspect #75 and task OAuth/API/approval authorization; aggregate-only metadata; document activation gates.
 - [ ] **OPS-PHASE6.2** (same claim): stage narrow SOD proposals, independent native staff review, server-attested receipts and fail-closed permissions.
 - [ ] **OPS-PHASE6.3** (same claim): disposable end-to-end/security/concurrency tests and release prerequisite matrix for #70–#73/#75; no live task writes.
 - [ ] **OPS-PHASE6.4:** operator-approved connection activation and fictional staff test write after source/security review. Blocked until explicitly approved; never merge/deploy as preparation.
