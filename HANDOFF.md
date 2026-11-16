@@ -1,12 +1,12 @@
 # Handoff — authorized Ops release
 
 - Last updated: 2026-11-16 04:22 UTC by ravi.
-- Current task / branch / PR: OPS-FOCUS-RELEASE / `ravi/focus-release` / draft release PR opening after this checkpoint; base main 065a88c.
+- Current task / branch / PR: OPS-FOCUS-RELEASE / `ravi/focus-release` / draft release PR #84 (https://github.com/huzshk0707/Oaktown-ops/pull/84); base main 065a88c.
 - Active owner: ravi; claim expires 2026-11-16 04:52 UTC. All existing source branches preserved.
 - Authorization: the user now explicitly requested “merge them and update ops” to review the completed work. This supersedes the earlier draft/no-merge/no-deploy restriction for the Focus release. Scope: #70/#71/#72/#73/#75/#77 plus completed #81/#82 fixes; production frontend and the reviewed backend prerequisite. External OAuth grants/activation and operational test writes are separate and will remain off.
 - Done so far: read latest protocol/main handoff/backlog/log and live PR registry; all eight source heads unchanged; no active source-branch claim; Phase 6 source CI green. hp's review-only PRs remain separate references.
-- In progress (files being edited): no application edits; ownership checkpoint only.
-- NEXT STEP: compose the exact eight source heads on this release branch, resolve shared handoff/test fixture conflicts while preserving both corrections and Phase 6. Run full integrated checks before publishing main. Then apply only the reviewed missing plan prerequisite, deploy its existing Edge endpoint, merge with full ancestry, verify exact-main CI/Pages and staff-only denial, and tag the verified release. Keep task records unchanged.
+- In progress (files being edited): no application edits; combined Phase 6 + cursor + midnight fixes are committed with all source ancestry. Conflicts were limited to shared HANDOFF/TASKS; both accounts’ code/tests merge without discarded changes. Live preflight: PostgreSQL17.11, 46 tasks, 138 events, zero SOD approvals/enabled agents/OAuth consents; plan RPC absent. Existing task API ACTIVE v2. No production mutation yet.
+- NEXT STEP: run full combined CI on PR #84 and inspect exact file changes. Run full integrated checks before publishing main. Then apply only the reviewed missing plan prerequisite, deploy its existing Edge endpoint, merge with full ancestry, verify exact-main CI/Pages and staff-only denial, and tag the verified release. Keep task records unchanged.
 - Known blockers: combined integration not yet tested; live migration/API preflight required. Do not enable clients or send/create operational records. Public source/site and private data authorization remain distinct.
 - Run/test: Node24 and pinned dependencies/browser/SQL workflow in `.github/workflows/checks.yml`; only fictional records and disposable CI databases for mutations.
 - Decisions: one integrated release candidate prevents publishing incomplete intermediate phases. Preserve source PR commit ancestry so their merged status can be verified. No force-push, branch deletion or unrelated review merge.

@@ -5,7 +5,11 @@ Prioritized from current main code/README, roadmap/audit and live open PRs on
 planning backlog, not authorization for operational writes or feature merges.
 Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
-## P0 — current user direction: Phase 6 integration / readiness
+## P0 — authorized release (2026-11-16)
+
+- [ ] **OPS-FOCUS-RELEASE** (ravi, `ravi/focus-release`, PR #84): merge/release #70/#71/#72/#73/#75/#77/#81/#82 as one validated candidate; main CI/Pages and release tag. User explicitly requested merge/update Ops, superseding older staging-only notes below. Native task records and external OAuth grants stay unchanged.
+
+## Completed staging / activation backlog
 
 - [x] **OPS-PHASE6.1** (ravi, `ravi/phase6-integration`): inspect #75 and task OAuth/API/approval authorization; aggregate-only metadata; document activation gates.
 - [x] **OPS-PHASE6.2** (ravi, complete; claim released): stage narrow SOD proposals, independent native staff review, server-attested receipts and fail-closed permissions.
