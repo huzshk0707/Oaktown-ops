@@ -198,11 +198,21 @@ revoke all on function ops_agent_private.plan_latest(date) from public,anon,auth
 
 create function ops_agent_private.plan_event(p ops_agent_private.plan_requests) returns jsonb
 language sql stable security invoker set search_path='' as $$
- select to_jsonb(e)||jsonb_build_object('review_proof',jsonb_build_object('schema_version','oaktown.sod-review.v1','event_id',e.id,
+ -- Even direct scoped RPC calls receive references only, not original message bodies.
+ -- The receipt hash identifies the exact full server snapshot, not this projection.
+ select case when nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'role'='oaktown_task_agent'
+ then jsonb_set(v.body,'{event_metadata,plan,sources}',coalesce((
+  select jsonb_object_agg(src.key,jsonb_strip_nulls(jsonb_build_object(
+   'id',src.value->'id','label',src.value->'label','kind',src.value->'kind','originRef',src.value->'originRef',
+   'taskId',src.value->'taskId','version',src.value->'version','verification',src.value->'verification')))
+  from jsonb_each(v.body#>'{event_metadata,plan,sources}') src),'{}'::jsonb))||jsonb_build_object('source_projection','references_only')
+ else v.body end
+ from (select to_jsonb(e)||jsonb_build_object('review_proof',jsonb_build_object('schema_version','oaktown.sod-review.v1','event_id',e.id,
  'request_id',p.id,'reviewer_id',p.reviewer_id,'reviewed_at',p.reviewed_at,'content_hash',ops_agent_private.plan_hash(p.event_body),'channel','native_staff_review'))
+ as body
  from public.ops_events e where p.receipt is not null and e.id=p.event_id and e.actor_id=p.reviewer_id
  and e.entity_type=p.event_body->>'entity_type' and e.entity_id=(p.event_body->>'entity_id')::uuid
- and e.event_type=p.event_body->>'event_type' and e.summary=p.event_body->>'summary' and e.event_metadata=p.event_body->'event_metadata'
+ and e.event_type=p.event_body->>'event_type' and e.summary=p.event_body->>'summary' and e.event_metadata=p.event_body->'event_metadata') v
 $$;
 revoke all on function ops_agent_private.plan_event(ops_agent_private.plan_requests) from public,anon,authenticated,oaktown_task_agent;
 

@@ -40,6 +40,8 @@ jobs:
           node --check daily-center.js
           node --check morning-model.js
           node --check morning-center.js
+          node --check plan-review-api.js
+          node --check plan-connection.js
           node --check sod-model.js
           node --check sod.js
           node --check bill-reminders-model.js
@@ -71,6 +73,7 @@ jobs:
           node --check task-connection-model.js
           node --check task-connection.js
           node --check supabase/functions/oaktown-task-api/server.mjs
+          node --check supabase/functions/oaktown-task-api/plan-tools.mjs
           node --check supabase/functions/oaktown-task-api/auth.mjs
       - name: Check workflow state inventory
         run: node scripts/workflow-states.cjs --check
@@ -192,6 +195,8 @@ jobs:
             -f tests/task-agent-check.sql
       - name: Reject duplicate concurrent saves and stale competing proposals
         run: node tests/task-agent-concurrency.cjs
+      - name: Verify scoped plan consent, native review, concurrency and guarded rollback
+        run: node tests/plan-review-database.cjs
       - name: Verify empty task connection rollback
         run: psql -v ON_ERROR_STOP=1 -f tests/task-agent-rollback-check.sql
       - name: Verify private monthly reminders and guarded rollback

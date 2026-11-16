@@ -10,6 +10,9 @@ const authorization=M.authorizationId(authId);
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!=null)n.textContent=String(text);return n};
 const status=text=>{$('task-connection-status').textContent=text};
 const rpc=(action,payload={})=>cloud.api('/rest/v1/rpc/ops_task_agent',{method:'POST',body:JSON.stringify({action,payload})});
+const setup=()=>({userId:cloud.user?.id||null,canManage,clients:clients.map(c=>({...c}))});
+const changed=()=>window.dispatchEvent(new Event('ops-task-connection-change'));
+window.OpsTaskConnection=Object.freeze({setup});
 function controls(){
  $('task-connection-refresh').disabled=busy||!cloud.user;
  $('task-connection-admin').hidden=!canManage||!cloud.user;
@@ -23,7 +26,7 @@ function reset(){
  $('task-connection-clients').replaceChildren();$('task-connection-activity').replaceChildren();
  $('task-connection-form').reset();$('task-connection-state').textContent=cloud.user?'Not checked':'Sign in';
  $('task-consent-details').replaceChildren();$('task-consent-message').textContent='Sign in with your Oaktown staff account to review this connection.';
- status(cloud.user?'Open this panel to check your task connection.':'Sign in to connect ChatGPT and view saved changes.');controls();
+ status(cloud.user?'Open this panel to check your task connection.':'Sign in to connect ChatGPT and view saved changes.');controls();changed();
 }
 function renderClients(){
  const host=$('task-connection-clients');host.replaceChildren();
@@ -60,7 +63,7 @@ async function refresh(){
   status('OAuth sign-in is required in ChatGPT. A registered client alone does not confirm that ChatGPT is connected.');
  }catch(e){if(ticket===epoch){clients=[];canManage=false;$('task-connection-clients').replaceChildren();$('task-connection-activity').replaceChildren();
   $('task-connection-state').textContent='Setup required';status('Task connection unavailable: '+e.message+'. Existing task editing is still available.');}}
- finally{if(ticket===epoch){busy=false;controls();renderClients()}}
+ finally{if(ticket===epoch){busy=false;controls();renderClients();changed()}}
 }
 async function saveClient(c){
  if(busy||!canManage||!cloud.user)return;const ticket=epoch,account=cloud.user.id;busy=true;controls();
@@ -94,6 +97,7 @@ async function loadConsent(){
   host.append(el('h3',client.label),el('p',client.can_write?'Read tasks and history, prepare changes for review, and save approved task changes.':'Read tasks and task history. Task changes are disabled for this client.'),
    el('p','Each save records your staff identity. No notices, messages, payments or lease documents are sent or changed.'));
   host.append(el('p','Requested identity scopes: '+(details.scope||'None')));
+  host.append(el('p','Daily-plan access is separate and off by default. After connecting, review your plan permissions in Oaktown’s task connection panel. ChatGPT cannot approve a SOD.'));
   $('task-consent-message').textContent='Approve this connection only if you started it from ChatGPT.';
  }catch(e){if(ticket===epoch){consent=null;$('task-consent-details').replaceChildren();$('task-consent-message').textContent='Connection not approved: '+e.message;}}
  finally{if(ticket===epoch){busy=false;controls()}}

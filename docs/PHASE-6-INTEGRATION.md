@@ -121,6 +121,107 @@ elevated SQL connector to bypass the scoped contract.
   responses, replay, tampering and intervening task/plan changes. The connector
   must remain unable to approve its own plan or claim unverifiable success.
 
-## Current implementation status
+## Implemented data flow and exact changes
 
-Backend foundation is implemented and tested in disposable PostgreSQL16: native/agent separation, reserved journal guard, explicit review, immutable receipt/readback, current task versions, daily-plan conflict and duplicate-retry protection, permission/session revocation, guarded rollback and zero task writes. The initial stale-source test correctly required rereading the fixture task version; the corrected suite passes. Separate native per-user plan consent and three MCP tools are now implemented. Global permission changes revoke plan consents; old task-only OAuth consent never expands silently. All 11 API tests pass, including the unchanged task contract and 32KB ingress guard. Native UI/RPC wiring and final workflow/browser checks remain. This checkpoint is not ready for production. Exact final validation/evidence will be recorded here and in draft PR #77.
+- Existing five task tools / `ops_task_agent` retain their behavior. Three new
+  tools use `ops_morning_plan`: read_daily_plan, submit_daily_plan and
+  get_plan_submission. No agent approval tool exists. MCP ingress remains 32KB;
+  long drafts must be shortened, never split into automatic approvals.
+- The additive staged migration adds default-off `can_read_plans` and
+  `can_submit_plans` to the existing client registry. Private plan_requests and
+  plan_consents hold minimum review/authorization infrastructure, with RLS,
+  revoked direct grants, actor/session binding and journaled permission changes.
+  Accepted full snapshots and their sources are retained as review evidence.
+- Administrators explicitly configure the domain in the existing task connection
+  panel. A user completes ordinary OAuth, then separately reviews native plan
+  consent there. Opening OAuth or registering a client does not grant plan access.
+  Changing enabled/read/submit flags resets existing per-user plan grants.
+- Native/manual and ChatGPT proposals both reuse the current SOD approval dialog.
+  Preparing/reviewing stores temporary request/nonce infrastructure, not approval.
+  ChatGPT requests are visible only to their originating staff actor. Cancellation
+  preserves the existing editable draft. The exact server text and source details
+  must be explicitly confirmed; fields cannot change after nonce issuance.
+- Approval alone appends `morning_plan_approved_v1` to existing ops_events and
+  saves its receipt atomically. Server fields identify reviewer/time. Task IDs,
+  records, statuses, priorities, owner, business due date and follow-up are untouched.
+- The dashboard and history use authorized attested RPC list/get reads. Generic
+  journal JSON is never a fallback approval authority. Old historical generic
+  events remain unchanged and are not shown as Phase 6 attested approvals.
+- Direct scoped RPC reads also project source objects to references only (id,
+  label, kind, originRef, taskId, version, verification); original source bodies
+  and manual-reference objects are omitted. Native staff retain the reviewed
+  evidence. Receipt hashes attest the full server snapshot; comparison of
+  separate reads uses the same authorized projection, not a hash of redacted JSON.
+- Lost outcomes require checking the same submission. A receipt and an independent
+  exact read must match before success is displayed. Revocation, expiry, changed
+  task versions and daily-head conflicts fail closed. No automatic resubmission.
+
+## Validation checkpoint
+
+- Disposable PostgreSQL16: migration/empty rollback; actor/session/client/OAuth/
+  separate native-consent enforcement; forged journal inserts; immutable retries;
+  exact review tokens/receipts; stale task/daily sources; competing and identical
+  concurrent approvals; history-preserving rollback refusal; zero task writes.
+- Composed real MCP handler → actual scoped SQL RPC → native SQL review/approval
+  → independently verified MCP readback passes with fictional records. This uses
+  an injected token verifier; signature/issuer/audience tests are separate signed
+  JWT checks. It does not establish a live ChatGPT OAuth installation.
+- 218 unit/API tests pass. 33 existing Morning/dashboard/task-connection browser
+  tests pass. Five new desktop plan-review/consent tests pass, including scoped
+  axe accessibility, 1280/1440/1920px layout, source escaping, exact confirmation,
+  conflicts, uncertain readback, draft preservation and sign-out clearing.
+- Workflow inventory (30 families/65 entry scripts), Deno frozen check and
+  dependency audit pass (zero reported vulnerabilities). Full regression/hosted
+  CI and fictional desktop screenshots are the remaining review checks.
+
+## Limits and release decisions
+
+1. **Not activated.** No production migration, endpoint deployment, client grant,
+   native consent, ChatGPT setup or operational test write was performed. An
+   operator-approved end-to-end fictional staff test remains the activation gate.
+2. **Source audience/retention.** Existing staff-journal approval intentionally
+   retains selected source content readable by authorized staff. Private pending
+   requests expire after 30 minutes for approval, but expiration is not deletion.
+   Retention/purge policy and wider audience choices require a separate reviewed
+   decision; do not discard audit receipts merely to roll back. Prefer minimal
+   source references and reviewed excerpts in routine use.
+3. **Approval scope.** The server attests authorized native-session confirmation,
+   not biological-human proof or factual truth. A proposal's originating actor
+   must review it; a cross-staff approval queue/delegation is not implemented.
+4. **Pending requests.** At most 20 active requests per actor, each bounded to
+   50 rows / 90KB. Cancel closes review; its infrastructure expires after 30
+   minutes. No automatic cleanup or scheduler was introduced.
+5. **Stack release blockers.** hp's independent consolidation #80 records two
+   P2s: task offset-page omission and Defer validation across Eastern midnight.
+   Corrections #81 / hp/focus-reader-cursor and hp/focus-defer-midnight are owned
+   separately. Review and incorporate their approved exact heads before release;
+   Phase 6 does not claim to fix or silently merge those branches.
+6. **Historical journal.** Source-only rollback before any new history is tested.
+   Once plan requests/consents or receipts exist, rollback refuses deletion and
+   needs a preservation/recovery plan. Old generic approvals need explicit
+   re-review if they must become attested. Do not auto-certify them.
+7. **Integrations.** Bank/deposit authority, mailbox ingestion and external actions
+   remain unconnected. Planning and its approval never imply funds cleared or
+   any task/tenant/payment action was performed.
+
+## Files and release order
+
+Primary changes: CLI-generated migration + matching guarded rollback;
+`plan-tools.mjs` / existing MCP server; `plan-review-api.js`,
+`plan-connection.js`, existing Morning/Daily models/controllers; small native
+Task connection/HTML/CSS additions; fictional API/SQL/browser fixtures/tests;
+workflow inventory, CI, plugin contract and this handoff/release record.
+
+| Stage | Required evidence before the next stage |
+| --- | --- |
+| Source review | Exact #70 → #71 → #72 → #73 → #75 → #77 heads, companion P2 fixes and green checks; every feature remains draft until authorized |
+| Migration preflight | Recheck live catalog/aggregate counts, provider migration history and reserved event callers; old versions are history, not filenames to rerun |
+| Approved rollout | Explicit merge/apply/deploy authorization; private request/consent permissions and reserved insert guard present before frontend uses attested reads |
+| Capability setup | Operator verifies actual OAuth/hook/asymmetric keys/callback; enable only intended client domains, then native per-user consent |
+| Fictional live acceptance | Approved disposable staff identity/task cleanup plan; verify task writes and SOD proposal → native review → receipts → independent read → dashboard refresh |
+| Release | Exact-main CI/Pages verification, approved smoke test and versioned release per existing process; source staging alone is insufficient |
+
+No production command is executed by these instructions. See the existing
+[task connection setup](CHATGPT-TASK-CONNECTION.md) for OAuth prerequisites and
+[shared operating protocol](CHATGPT-PROJECT-OPERATING-PROTOCOL.md) for attribution
+and approved routine task writes.

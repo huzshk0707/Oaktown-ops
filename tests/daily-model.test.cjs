@@ -1,9 +1,10 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),D=require('../daily-model.js'),F=require('../focus-board-model.js'),T=require('../today-model.js');
+const {attest}=require('./plan-fixtures.cjs');
 const day='2026-11-16',id=n=>'90000000-0000-4000-8000-'+String(n).padStart(12,'0');
 function approval(n=1,revision=1,time='2026-11-16T13:00:00Z'){
  const plan={schema_version:'oaktown.sod-draft.v1',planId:id(n+100),revision,workDate:day,text:'Fictional approved daily plan',rows:[],sources:{},constants:[],greeting:'normal',extras:'',stale:[]};
- return {id:id(n),actor_id:id(99),entity_type:'morning_plan',entity_id:plan.planId,event_type:'morning_plan_approved_v1',occurred_at:time,event_metadata:{schema_version:'oaktown.morning-plan.v1',plan_id:plan.planId,revision,work_date:day,plan}};
+ return attest({id:id(n),actor_id:id(99),entity_type:'morning_plan',entity_id:plan.planId,event_type:'morning_plan_approved_v1',occurred_at:time,event_metadata:{schema_version:'oaktown.morning-plan.v1',plan_id:plan.planId,revision,work_date:day,plan}});
 }
 test('latest valid staff approval uses approval time across plan IDs and preserves metadata',()=>{
  const first=approval(1,20),next=approval(2,1,'2026-11-16T14:00:00Z'),bad=approval(3,100,'2026-11-16T15:00:00Z');bad.event_metadata.plan.workDate='2026-11-17';

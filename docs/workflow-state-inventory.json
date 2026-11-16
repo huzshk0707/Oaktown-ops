@@ -781,7 +781,7 @@
         "Manual email/message content is untrusted evidence. Rule suggestions and deposit reports never verify funds or trigger operational actions.",
         "Task proposals require reviewed Task Intake; collection, classification, draft generation and Focus Board transition do not mutate tasks or deposits.",
         "Approval appends to existing staff RLS journal with stable event ID, server-stamped actor/time and exact independent readback. Lost responses block new approvals pending verification.",
-        "Refresh preserves drafts and immutable approvals; task source versions are rechecked before approval and execution. No server-atomic multi-user SOD lock is claimed.",
+        "Refresh preserves drafts and immutable approvals; task source versions are rechecked before approval and execution. Phase 6 additionally locks expected daily approval and task versions server-side.",
         "Session changes clear sources, task labels, dialogs and approval state; desktop dialogs trap and restore focus."
       ],
       "tests": [
@@ -814,6 +814,40 @@
         "tests/daily-model.test.cjs",
         "tests/daily-center.e2e.spec.cjs"
       ]
+    },
+    {
+      "id": "scoped_daily_plan_review",
+      "scope": "Default-off client capabilities, separate native consent, proposal-only OAuth and server-attested SOD approval",
+      "sources": [
+        "plan-review-api.js",
+        "plan-connection.js",
+        "supabase/functions/oaktown-task-api/plan-tools.mjs",
+        "supabase/migrations/20261116012926_morning_plan_review_authorization.sql"
+      ],
+      "states": [
+        "disabled",
+        "consent_required",
+        "pending_staff_review",
+        "native_review",
+        "approved",
+        "expired",
+        "conflict",
+        "unverified"
+      ],
+      "guards": [
+        "OpsCloud session and existing OpsToday snapshot only; no task writes or second SOD store.",
+        "Agent cannot configure, consent, review or approve. Explicit native confirmation is session/content-bound.",
+        "Live staff/session/client/OAuth and per-user plan consent are checked server-side; default off and revocation fail closed.",
+        "Current task versions and expected daily approval are locked at commit; duplicate retries return the original receipt.",
+        "Attested RPC reads join journal to private receipts. Direct scoped RPC reads redact original source bodies.",
+        "Missing backend, forged generic journal JSON and uncertain outcomes never imply approval."
+      ],
+      "tests": [
+        "tests/plan-agent-api.test.cjs",
+        "tests/plan-review-database.cjs",
+        "tests/plan-review.e2e.spec.cjs"
+      ],
+      "representation": "guarded"
     }
   ]
 }

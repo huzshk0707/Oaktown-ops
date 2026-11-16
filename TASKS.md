@@ -8,7 +8,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 ## P0 — current user direction: Phase 6 integration / readiness
 
 - [x] **OPS-PHASE6.1** (ravi, `ravi/phase6-integration`): inspect #75 and task OAuth/API/approval authorization; aggregate-only metadata; document activation gates.
-- [ ] **OPS-PHASE6.2** (same claim): stage narrow SOD proposals, independent native staff review, server-attested receipts and fail-closed permissions.
+- [x] **OPS-PHASE6.2** (same claim): stage narrow SOD proposals, independent native staff review, server-attested receipts and fail-closed permissions.
 - [ ] **OPS-PHASE6.3** (same claim): disposable end-to-end/security/concurrency tests and release prerequisite matrix for #70–#73/#75; no live task writes.
 - [ ] **OPS-PHASE6.4:** operator-approved connection activation and fictional staff test write after source/security review. Blocked until explicitly approved; never merge/deploy as preparation.
 
@@ -26,7 +26,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
   [#71](https://github.com/huzshk0707/Oaktown-ops/pull/71) Phase 2 → Phase 1;
   [#72](https://github.com/huzshk0707/Oaktown-ops/pull/72) Phase 3 → Phase 2;
   [#73](https://github.com/huzshk0707/Oaktown-ops/pull/73) Phase 4 → Phase 3.
-  All remain draft and unmerged by explicit user instruction. Prepare review
+  hp’s independent reviews are complete in #76/#78/#79 and consolidated in #80. Two P2 correction tasks are separate (#81 reader cursor and hp/focus-defer-midnight); do not redo or merge them here. All feature PRs remain draft and unmerged by explicit user instruction. Prepare review
   findings/desktop acceptance; do not reimplement, mark ready or merge them as
   part of this setup. Phase 4 head `676e896` has 211 unit / 254 browser checks
   and full CI green. Review evidence is already committed on its branch.

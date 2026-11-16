@@ -156,7 +156,7 @@
   $('morning-command-refresh').disabled=!cloud.user||phase==='loading'||flow.busy||preparing;
   $('morning-source-status').textContent=access?'Shared task snapshot ready':!cloud.user?'Staff sign-in required':phase==='loading'?'Refreshing shared records':'Access / data unavailable';
   $('morning-state').textContent=access?'':!cloud.user?'Sign in with your Oaktown staff account. No private planning information is shown.':phase==='loading'?'Refreshing shared tasks. Existing planning input is kept.':phase==='error'?'Planning data could not be loaded. Your draft has not been replaced. Refresh information to retry.':'Editor access is required. Restore staff permissions before planning or approving.';
-  if(!access){if(phase==='error'){$('morning-approve-preview').textContent='';if(review.open)closeReview()}return}
+  if(!access){if(phase==='error'||phase==='denied'){$('morning-approve-preview').textContent='';$('morning-approve-source-list').replaceChildren();$('plan-pending-list').replaceChildren();pendingTicket++;if(review.open)closeReview();if(approve.open&&!flow.busy)closeApprove()}return}
   renderSources();renderTasks();renderReadiness();
  }
  function renderFocusPlan(){
