@@ -28,7 +28,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
      keyboard/focus and existing Review integration; link exact heads/findings.
   2. [x] **OPS-FOCUS-REVIEW.2:** Completed/released in [hp review #78](https://github.com/huzshk0707/Oaktown-ops/pull/78); one additional P2 midnight-Defer finding. Audit #72 confirmation, permissions, atomic task
      versions, Defer/Undo and failure recovery using existing fictional tests.
-  3. [ ] **OPS-FOCUS-REVIEW.3:** Claimed by hp on `hp/focus-review-3`; heartbeat 2026-11-16 02:49 UTC, expires 03:19 UTC; draft PR being opened. Audit #73 desktop morning/SOD flow, provenance,
+  3. [ ] **OPS-FOCUS-REVIEW.3:** Claimed by hp on `hp/focus-review-3`; heartbeat 2026-11-16 02:54 UTC, expires 03:24 UTC; [review #79](https://github.com/huzshk0707/Oaktown-ops/pull/79), source/SQL/browser assessment complete; desktop/final checks pending. Audit #73 desktop morning/SOD flow, provenance,
      approval journal, retention/audience boundaries and missing integrations.
   4. [ ] **OPS-FOCUS-REVIEW.4:** Consolidate findings and desktop review evidence;
      propose bounded fixes and ask the owner for any product/merge decisions.

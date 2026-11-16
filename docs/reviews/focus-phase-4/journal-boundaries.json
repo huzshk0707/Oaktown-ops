@@ -1,0 +1,12 @@
+{
+  "sourceContract": "Phase 4 existing generic ops_events; no schema change",
+  "fictionalOnly": true,
+  "disposableDatabase": "oaktown_hp_journal_review_ci",
+  "malformedApprovalEventAcceptedByEditor": true,
+  "serverActorAndTimeStamped": true,
+  "activeViewerCanReadSelectedSourceBody": true,
+  "inactiveReadCount": 0,
+  "anonymousDenied": true,
+  "taskRecordsUnchanged": true,
+  "productionWrites": 0
+}
