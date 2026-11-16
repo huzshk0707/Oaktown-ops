@@ -7,7 +7,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P0 — authorized release (2026-11-16)
 
-- [ ] **OPS-FOCUS-RELEASE** (hp authorized takeover; `ravi/focus-release`, PR #84): merge/release #70/#71/#72/#73/#75/#77/#81/#82 as one validated candidate; main CI/Pages and release tag. User explicitly requested merge/update Ops, superseding older staging-only notes below. Native task records and external OAuth grants stay unchanged. Integrated source CI verified (222 unit/API / 272 browsers); exact-source backend/merge procedure in docs/releases/FOCUS-2026-11-16.md. Blocked on Supabase management capability in this chat, not on permission to merge.
+- [ ] **OPS-FOCUS-RELEASE** (blocked on Supabase deployment access; hp claim released; `ravi/focus-release`, PR #84): merge/release #70/#71/#72/#73/#75/#77/#81/#82 as one validated candidate; main CI/Pages and release tag. User explicitly requested merge/update Ops, superseding older staging-only notes below. Native task records and external OAuth grants stay unchanged. Integrated source CI verified (222 unit/API / 272 browsers); exact-source backend/merge procedure in docs/releases/FOCUS-2026-11-16.md. Blocked on Supabase management capability in this chat, not on permission to merge.
 
 ## Completed staging / activation backlog
 
