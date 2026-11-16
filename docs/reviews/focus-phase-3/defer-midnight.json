@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "536ebcade697e5c7aa59e76e7e65f3c89535cdb1",
+  "outcome": "reproduced",
+  "fictionalOnly": true,
+  "reviewEasternDay": "2026-11-15",
+  "confirmEasternDay": "2026-11-16",
+  "savedFollowUp": "2026-11-16",
+  "simulatedSaveCalls": 1,
+  "realOperationalWrites": 0,
+  "successMessage": "Follow-up moved to 2026-11-16."
+}
