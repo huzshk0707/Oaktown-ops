@@ -87,8 +87,8 @@ test('the complete condition form marks absent bedrooms, bathroom groups, den an
 test('temporary new-lease inputs have visible limitations and require confirmation before destructive clearing or reload',async({page})=>{
  await setup(page);
  await expect(page.locator('.lease-draft-limitations')).toBeVisible();
- await expect(page.locator('.lease-draft-limitations')).toContainText('Full ten-page lease export is unavailable');
- await expect(page.locator('.lease-draft-limitations')).toContainText('not saved to a case');
+ await expect(page.locator('.lease-draft-limitations')).toContainText('Ten-page export requires the exact approved blank original');
+ await expect(page.locator('.lease-draft-limitations')).toContainText('until Save as Draft succeeds');
  await step(page,2);await page.locator('#newlease-tenantName').fill('Fictional temporary name');
  page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'Clear draft',exact:true}).click();
  await expect(page.locator('#newlease-tenantName')).toHaveValue('Fictional temporary name');

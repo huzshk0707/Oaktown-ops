@@ -156,6 +156,10 @@ begin
   return result||jsonb_build_object('approved_conditions',case when a.case_id is null then null else jsonb_build_object('case_id',a.case_id,'version',a.version,'approved_at',a.approved_at,
    'state',jsonb_build_object('bedrooms',a.data->'state'->'bedrooms','bathrooms',a.data->'state'->'bathrooms','basement',a.data->'state'->'basement','additionalRoom',a.data->'state'->'additionalRoom',
     'conditions',a.data->'state'->'conditions','roomLabels',a.data->'state'->'roomLabels','roomLocations',a.data->'state'->'roomLocations','roomPlacements',a.data->'state'->'roomPlacements')) end);
+ elsif action='templates' then
+  return jsonb_build_object('templates',coalesce((select jsonb_agg(x.template) from
+   (select distinct on(data->'template'->'map'->>'templateSha256') data->'template' template
+    from ops_lease_private.approvals order by data->'template'->'map'->>'templateSha256',approved_at desc limit 30)x),'[]'));
  elsif action='list' then
   uid:=nullif(payload->>'unit_id','')::uuid;
   return jsonb_build_object('cases',coalesce((select jsonb_agg(to_jsonb(x)) from (select id,unit_id,lease_id,version,status,updated_at from ops_lease_private.preparations where actor_id=actor and (uid is null or unit_id=uid) order by updated_at desc,id limit 50)x),'[]'),

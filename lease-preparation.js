@@ -132,7 +132,7 @@
  }
  function move(delta){step=Math.max(0,Math.min(steps.length-1,step+delta));render();steps[step].querySelector('h3').focus()}
  function reset(){
-  form.reset();conditions={};roomLabels={};roomLocations={};roomPlacements={};window.dispatchEvent(new Event('ops-lease-draft-reset'));manualFive=false;manualTen=false;dirty=false;lastUnit='';room='kitchen';step=0;
+  form.reset();conditions={};roomLabels={};roomLocations={};roomPlacements={};externalBusy=false;window.dispatchEvent(new Event('ops-lease-draft-reset'));manualFive=false;manualTen=false;dirty=false;lastUnit='';room='kitchen';step=0;
   $('leaseDate').value=R.leaseDate();renderRoom();updateFees();invalidate();status.textContent='Fresh new-lease draft. No records changed.';render();
  }
  function refreshUnits(){

@@ -66,8 +66,11 @@ jobs:
           node --check guided-workflows.js
           node --check application-guide.js
           node --check lease-preparation-model.js
+          node --check lease-page8-model.js
           node --check lease-preparation.js
           node --check lease-condition-pdf.js
+          node --check lease-template-pdf.js
+          node --check lease-template-editor.js
           node --check operations-model.js
           node --check operations.js
           node --check task-connection-model.js
@@ -205,6 +208,8 @@ jobs:
         run: node tests/task-agent-concurrency.cjs
       - name: Verify scoped plan consent, native review, concurrency and guarded rollback
         run: node tests/plan-review-database.cjs
+      - name: Verify private lease preparation, native approval, replay and guarded rollback
+        run: node tests/lease-preparation-database.cjs
       - name: Verify empty task connection rollback
         run: psql -v ON_ERROR_STOP=1 -f tests/task-agent-rollback-check.sql
       - name: Verify private monthly reminders and guarded rollback

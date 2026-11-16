@@ -1,0 +1,21 @@
+'use strict';
+const {test,expect}=require('@playwright/test'),{open,prepare,UNIT2}=require('./lease-template-browser-fixtures.cjs');
+const step=(page,i)=>page.locator('#new-lease-panel .guide-form-jump').nth(i).click();
+test('approved original renders, mapping previews ten pages, draft/ready/approval readback unlocks only the exact unsigned PDF',async({page},testInfo)=>{
+ const s=await open(page);await prepare(page,s);await step(page,4);await page.getByRole('button',{name:'Mark Ready for Review',exact:true}).click();await expect(page.locator('#lease-template-status')).toContainText('Ready for Review');
+ await expect(page.locator('#newlease-download')).toBeDisabled();await page.locator('#lease-template-review-confirm').check();await expect(page.getByRole('button',{name:'Approve reviewed preparation',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Approve reviewed preparation',exact:true}).click();await expect(page.locator('#lease-template-status')).toContainText('approved and verified');
+ const download=page.waitForEvent('download');await page.locator('#newlease-download').click();const pdf=await download;await pdf.saveAs(testInfo.outputPath('fictional-approved-lease.pdf'));expect(s.approvals).toHaveLength(1);expect(s.saveCalls).toHaveLength(1);
+ await step(page,3);await page.locator('#newlease-condition-0').fill('Changed since approval');await step(page,4);await expect(page.locator('#newlease-download')).toBeDisabled();
+});
+test('lost draft-save response freezes inputs and retries one immutable request without duplicate records',async({page})=>{
+ const s=await open(page);await page.evaluate(state=>window.OpsLeaseDraft.restore(state),s.fixture.state);await step(page,4);s.lostSaveReply=true;await page.getByRole('button',{name:'Save as Draft',exact:true}).click();await expect(page.locator('#lease-template-status')).toContainText('Outcome unverified');await expect(page.locator('#newlease-tenantName')).toBeDisabled();
+ await page.getByRole('button',{name:'Retry identical request',exact:true}).click();await expect(page.locator('#lease-template-status')).toContainText('Draft saved and independently verified');expect(s.saveCalls).toHaveLength(2);expect(s.saveCalls[1]).toEqual(s.saveCalls[0]);expect(s.cases.size).toBe(1);
+});
+test('sign-out clears original, conditions and late-save UI; unit changes require a fresh original and preparation',async({page})=>{
+ const s=await open(page);await prepare(page,s);await step(page,4);let release;s.saveHold=new Promise(r=>release=r);await page.getByRole('button',{name:'Save as Draft',exact:true}).click();await expect.poll(()=>s.saveCalls.length).toBe(1);await page.evaluate(()=>window.OpsCloud.signOut());s.saveHold=null;release();await expect(page.locator('#lease-template-file')).toHaveValue('');await expect(page.locator('#newlease-tenantName')).toHaveValue('');await expect(page.locator('#lease-template-status')).toHaveText('');await expect(page.locator('#newlease-download')).toBeDisabled();
+});
+test('room dropdowns support exact Custom text, separate positions and no sixth-bedroom controls',async({page})=>{
+ await open(page);await step(page,3);await page.locator('#newlease-bedrooms').selectOption('3');await page.locator('#newlease-bathrooms').selectOption('1');await page.locator('#newlease-basement').selectOption('not-included');await page.locator('#newlease-preset-0').selectOption('Fair');await expect(page.locator('#newlease-condition-0')).toHaveValue('Fair');await page.locator('#newlease-preset-0').selectOption('__custom__');await page.locator('#newlease-condition-0').fill('Good Tile — one repaired crack');
+ await page.locator('#newlease-room').selectOption('basement');await expect(page.locator('#newlease-condition-0')).toHaveValue('');await expect(page.locator('#newlease-condition-0')).toHaveAttribute('readonly','');await expect(page.locator('#newlease-bedrooms option[value="6"]')).toHaveCount(0);
+ await page.locator('#newlease-additionalRoom').check();await page.locator('#newlease-room').selectOption('additional');await page.locator('#newlease-roomLabel').fill('DEN');await page.locator('#newlease-roomSection').selectOption('bedroom-4');await expect(page.locator('#newlease-roomLabel')).toHaveValue('DEN');
+});

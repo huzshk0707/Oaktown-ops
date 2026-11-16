@@ -18,7 +18,7 @@ test('mismatched originals, unreviewed mapping, clipped text and signature colli
 });
 test('final export requires exact server-approved data, complete mapping and no sixth-bedroom generation',async()=>{
  const f=await fixture();await assert.rejects(E.generate(f.bytes,f.data,{...opts,final:true}),/server receipt/);
- const approval={id:'fictional-case',version:3,status:'approved',data:structuredClone(f.data),receipt:{schema_version:'oaktown.lease-preparation-receipt.v1',id:'fictional-case',version:3,template_sha256:f.data.template.map.templateSha256}};
+ const approval={id:'fictional-case',actor_id:'fictional-staff',version:3,status:'approved',data:structuredClone(f.data),receipt:{schema_version:'oaktown.lease-preparation-receipt.v1',id:'fictional-case',version:3,approved_by:'fictional-staff',approved_at:'2026-11-16T12:00:00Z',executed:false,data_sha256:'a'.repeat(64),template_sha256:f.data.template.map.templateSha256}};
  assert.equal((await E.generate(f.bytes,f.data,{...opts,final:true,approval})).final,true);
  f.state.address='Changed after review';await assert.rejects(E.generate(f.bytes,f.data,{...opts,final:true,approval}),/exact saved/);
  f.state.bedrooms='6';await assert.rejects(E.generate(f.bytes,f.data,opts),/Six-bedroom/);

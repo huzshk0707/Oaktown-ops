@@ -22,7 +22,7 @@
  function validateMap(map,source){
   if(!map||map.schema_version!=='oaktown.lease-template-map.v1'||map.templateSha256!==source.sha256||canonical(map.pages)!==canonical(source.pages))throw Error('The template map does not match this exact original PDF.');
   if(!Array.isArray(map.fields)||map.fields.length<1||map.fields.length>250||!Array.isArray(map.protectedAreas)||map.protectedAreas.length>80)throw Error('Choose a bounded template map with reviewed field positions.');
-  const keys=new Set(),allowedTerms=new Set([...P.terms,'bedrooms',...Array.from({length:5},(_,i)=>'utility-'+i),...Array.from({length:5},(_,i)=>'appliance-'+i)]);
+  const keys=new Set(),allowedTerms=new Set([...P.terms,'bedrooms',...Array.from({length:5},(_,i)=>['utility-'+i,'utility-'+i+'-landlord','utility-'+i+'-tenant']).flat(),...Array.from({length:7},(_,i)=>['appliance-'+i,'appliance-'+i+'-yes','appliance-'+i+'-no']).flat()]);
   const inside=r=>Number.isInteger(r.page)&&r.page>=1&&r.page<=10&&rectangle(r)&&r.x+r.width<=source.pages[r.page-1].width&&r.y+r.height<=source.pages[r.page-1].height;
   if(map.protectedAreas.some(r=>!inside(r)))throw Error('A protected signature rectangle is outside the original page.');
   for(const area of map.protectedAreas)if(!inside(area))throw Error('A protected signature area is outside its original page.');
@@ -36,10 +36,16 @@
   for(let i=0;i<map.fields.length;i++)for(let j=i+1;j<map.fields.length;j++)if(map.fields[i].page===map.fields[j].page&&overlaps(map.fields[i],map.fields[j]))throw Error('Mapped fields overlap; choose distinct positions on the original.');
   return true;
  }
- function approved(data,record){return record?.status==='approved'&&record.receipt?.schema_version==='oaktown.lease-preparation-receipt.v1'&&record.receipt.id===record.id&&record.receipt.version===record.version&&record.receipt.template_sha256===data.template.map.templateSha256&&canonical(record.data)===canonical(data);}
+ function approved(data,record){const r=record?.receipt;return record?.status==='approved'&&Number.isInteger(record.version)&&record.version>0&&r?.schema_version==='oaktown.lease-preparation-receipt.v1'&&r.id===record.id&&r.version===record.version&&r.approved_by===record.actor_id&&typeof r.approved_by==='string'&&Number.isFinite(Date.parse(r.approved_at))&&r.executed===false&&/^[a-f0-9]{64}$/.test(r.data_sha256)&&r.template_sha256===data.template.map.templateSha256&&canonical(record.data)===canonical(data);}
  function coverage(data){
   const mapped=new Set(data.template.map.fields.map(f=>f.key)),issues=[];
   for(const key of ['address','cityline','leaseDate','start','end','rent','deposit','tenantName','emails','pets','five','ten'])if(!mapped.has('term/'+key))issues.push('Map lease field '+key+' on the approved original.');
+  const all=P.values(data.state);
+  for(const [key,value]of Object.entries(all))if(value&&/^term\/occupant-/.test(key)&&!mapped.has(key))issues.push('Map occupant '+(Number(key.split('-').at(-1))+1)+'.');
+  for(const [key,value]of Object.entries(all))if(value&&/^term\/(utility|appliance)-[0-9]+$/.test(key)&&!mapped.has(key)){
+   const suffix={'Landlord':'landlord','Tenant':'tenant','Yes':'yes','No':'no'}[value];if(!suffix||!mapped.has(key+'-'+suffix))issues.push('Map the confirmed service choice '+key+'.');
+  }
+  for(const room of P.rooms(data.state))if(room.applicable===false&&['bedroom-4','basement'].includes(room.key)){const p=room.placement;if(!mapped.has('slot/'+p.section+'/'+p.column+'/'+p.row+'/label'))issues.push('Map the N/A label for '+room.title+'.');}
   for(const room of P.rooms(data.state)){
    if(room.applicable!==true)continue;const p=room.placement,prefix='slot/'+p.section+'/'+p.column+'/'+p.row+'/';
    for(const [item,value]of Object.entries(room.entries))if(value&&!mapped.has(prefix+item))issues.push('Map '+room.label+' / '+item+'; an entered observation would otherwise be omitted.');

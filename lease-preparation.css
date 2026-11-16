@@ -77,3 +77,11 @@
  #lease-template-preview-link[hidden]{display:none}
  @media(max-width:1000px){.lease-template-layout{grid-template-columns:minmax(0,1fr)}.lease-template-settings{max-width:100%}}
 }
+
+@media screen {
+ .lease-original-editor .button,.lease-preparation-save .button,.lease-unit-context .button{white-space:normal;max-width:100%;min-width:0;overflow-wrap:anywhere}
+ .lease-original-editor :is(input,select,label),.lease-preparation-save :is(input,select,label),.lease-unit-context :is(input,select,label){min-width:0;max-width:100%}
+ .lease-template-settings,.lease-template-layout>*{min-width:0}
+}
+
+@media screen {.ops-workspace .lease-draft-tool #newlease-download{white-space:normal;max-width:100%;min-width:0}}

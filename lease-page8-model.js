@@ -32,8 +32,8 @@
  function values(state){
   const result={};
   for(const name of terms){const value=name.startsWith('occupant-')?state.occupants?.[Number(name.split('-')[1])]:name==='five'||name==='ten'?M.calculateFees(state.rent,state.fiveOverride,state.tenOverride)[name].formatted:state[name];result['term/'+name]=String(value??'');}
-  for(const [i,name]of R.utilities.entries())result['term/utility-'+i]=String(state.utilities?.[name]||'');
-  for(const [i,name]of R.appliances.entries())result['term/appliance-'+i]=String(state.appliances?.[name]||'');
+  for(const [i,name]of R.utilities.entries()){const value=String(state.utilities?.[name]||'');result['term/utility-'+i]=value;result['term/utility-'+i+'-landlord']=value==='Landlord'?'X':'';result['term/utility-'+i+'-tenant']=value==='Tenant'?'X':'';}
+  for(const [i,name]of R.appliances.entries()){const value=String(state.appliances?.[name]||'');result['term/appliance-'+i]=value;result['term/appliance-'+i+'-yes']=value==='Yes'?'X':'';result['term/appliance-'+i+'-no']=value==='No'?'X':'';}
   result['term/bedrooms']=String(state.bedrooms||'');result['term/satisfactory']=String(state.satisfactory||'');
   // Inactive labels retain the source position; an active den can deliberately
   // occupy the otherwise unused Bedroom 4 slot, without duplicate identity.
