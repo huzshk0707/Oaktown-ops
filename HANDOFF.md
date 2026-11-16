@@ -1,11 +1,11 @@
 # Handoff — OPS-FOCUS-READER-CURSOR
 
-- Owner **hp**, heartbeat **2026-11-16 03:21 UTC**, claim expires **2026-11-16 03:51 UTC**. Coordination label, not staff identity.
-- Branch/base `hp/focus-reader-cursor` / `feature/focus-board-phase-5` at `712ec3d90f28652c686c3ad017906d70c3cd7248`; immediate child draft PR after accepted ownership push.
+- Owner **hp**, heartbeat **2026-11-16 03:28 UTC**, claim expires **2026-11-16 03:58 UTC**. Coordination label, not staff identity.
+- Branch/base `hp/focus-reader-cursor` / `feature/focus-board-phase-5` at `712ec3d90f28652c686c3ad017906d70c3cd7248`; [child draft PR #81](https://github.com/huzshk0707/Oaktown-ops/pull/81), remains draft; no merge/deploy.
 - Current main AGENTS/HANDOFF/TASKS/logs and live refs/PR claims read before branching. This older feature base predates coordination files; permanent main protocol still applies via `git show origin/main:AGENTS.md`. No live cursor-fix claim found. New branch; clean checkout; no leftovers.
-- Last verified pushed checkpoint: base `712ec3d`; ownership checkpoint not assumed pushed until remote verified.
+- Last verified pushed checkpoint: `d2016165e6a68b4e425371b2f7cd1e1928c0847c` (ownership accepted). This implementation checkpoint is recorded in PR after normal-push verification.
 - Scope: bounded shared task reader pagination correction from completed independent review #76 / consolidation #80. Preserve OpsToday/auth/task ordering and existing fallback; no second cache/client, task write, schema, merge or deployment. All existing feature PRs and Ravi #77 unchanged.
 - Prior review work complete: #76, #78, #79, #80. Do not redo review. The separate Defer rollover correction is next, not part of this reader task.
-- In progress / unfinished files: none; ownership-only checkpoint.
-- **NEXT STEP:** replace offset traversal in ops-task-reader.js with ascending immutable-ID cursor traversal; add deletion/insertion/repeated-page/superseded-session regressions and update existing browser mock pagination contracts. Run model/reader and relevant >1000-task/browser tests, checkpoint after first passing implementation milestone.
-- Checks: no implementation yet. Use pinned CI tools, fictional browser inputs only. Never claim keyset traversal is a transactionally consistent snapshot. Update claim/PR after milestones and within 15–20 minutes; normal-push only.
+- In progress / unfinished files: cursor implementation and regression/doc changes complete. 12 focused model/reader and 218 full unit tests passed; 42/43 initial targeted browsers passed, with a newly corrected request-count test assertion being rerun as actual dashboard-order validation. Full browser run began before that test-only correction and may report its old assertion; do not claim all green yet. No other failure diagnosed so far.
+- **NEXT STEP:** finish targeted dashboard/board rerun and inspect full browser results; diagnose any remaining failures, then push final checks/docs/claim release and preserve child draft #81. Follow with the separate Defer rollover fix on its own child branch.
+- Checks: model/reader 12 passed; full units 218 passed; inventory 29 families / 63 scripts and diff checks passed. Existing global first-page request count is not the source of truth; new dashboard assertion checks rendered priorities. See docs/fixes/SHARED-TASK-CURSOR.md. Use pinned CI tools, fictional browser inputs only. Never claim keyset traversal is a transactionally consistent snapshot. Update claim/PR after milestones and within 15–20 minutes; normal-push only.

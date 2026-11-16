@@ -23,7 +23,7 @@ test('unapproved staff role cannot sign in or see private dashboard records',asy
 });
 test('desktop dashboard fits required widths and keeps shared snapshot order',async({page})=>{
  const s=await open(page);for(const width of [1280,1440,1920]){await page.setViewportSize({width,height:1080});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await expect(page.locator('#daily-start')).toBeVisible()}
- expect(s.reads.filter(x=>x.includes('offset=0')).length).toBeLessThanOrEqual(3);expect(s.writes).toEqual([]);
+ const expected=require('../focus-board-model.js').order(s.tasks,T.today()).slice(0,6).map(t=>t.task_code+' · '+t.task_title);expect(await page.locator('#daily-priorities .daily-task-title').allTextContents()).toEqual(expected);expect(s.writes).toEqual([]);
 });
 module.exports={saved};
 
