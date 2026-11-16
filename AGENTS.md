@@ -115,7 +115,7 @@ and do not conflate Leslie's inspection with Huzy's personal EOD actions.
 - New-lease export overlays the exact approved original and reviewed field map.
   Confirmed absent areas use an N/A label with blank dependent conditions. Unknown
   facts remain unknown. Backend application and source visual validation are
-  separate release gates; a fictional fixture is never an approved real master.
+  separate activation gates; a fictional fixture is never an approved real master.
 - Preserve document clauses/layout and original unit identity; never infer signatures,
   execution, approval, payment, legal service or a verified condition from a preview.
 

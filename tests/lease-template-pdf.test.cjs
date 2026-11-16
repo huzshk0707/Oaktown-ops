@@ -20,6 +20,7 @@ test('final export requires exact server-approved data, complete mapping and no 
  const f=await fixture();await assert.rejects(E.generate(f.bytes,f.data,{...opts,final:true}),/server receipt/);
  const approval={id:'fictional-case',actor_id:'fictional-staff',version:3,status:'approved',data:structuredClone(f.data),receipt:{schema_version:'oaktown.lease-preparation-receipt.v1',id:'fictional-case',version:3,approved_by:'fictional-staff',approved_at:'2026-11-16T12:00:00Z',executed:false,data_sha256:'a'.repeat(64),template_sha256:f.data.template.map.templateSha256}};
  assert.equal((await E.generate(f.bytes,f.data,{...opts,final:true,approval})).final,true);
+ f.state.fiveOverride='invalid';await assert.rejects(E.generate(f.bytes,f.data,{...opts,final:true,approval}),/late-charge/);f.state.fiveOverride=null;
  f.state.address='Changed after review';await assert.rejects(E.generate(f.bytes,f.data,{...opts,final:true,approval}),/exact saved/);
  f.state.bedrooms='6';await assert.rejects(E.generate(f.bytes,f.data,opts),/Six-bedroom/);
 });

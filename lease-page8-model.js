@@ -51,5 +51,5 @@
  function payload(state,{unitId,leaseId=null,template=null}={}){
   return {schema_version:'oaktown.lease-preparation.v1',unit_id:unitId||null,lease_id:leaseId||null,state:JSON.parse(JSON.stringify(state)),template:template?JSON.parse(JSON.stringify(template)):null};
  }
- return Object.freeze({sections,presets,terms,placement,rooms,layoutProblems,values,exactPreset,payload});
+ return Object.freeze({sections,presets,terms,placement,rooms,layoutProblems,reviewProblems:state=>[...M.readiness(state).missing,...layoutProblems(state)],values,exactPreset,payload});
 });

@@ -107,7 +107,7 @@ synthetic examples below demonstrate behavior, not Leslie's original design.
 - `node scripts/workflow-states.cjs --check`: 30 families / 68 scripts covered.
 - Focused browser checks: `npx playwright test tests/lease-preparation.e2e.spec.cjs
   tests/lease-template.e2e.spec.cjs tests/lease-template-render.e2e.spec.cjs
-  --workers=1 --reporter=line` (18 cases; final CI result linked in the PR).
+  --workers=1 --reporter=line` (22 cases; final CI result linked in the PR).
 - `PGDATABASE=oaktown_portfolio_ci node tests/lease-preparation-database.cjs`:
   disposable clones only, using the historical baseline from the CI workflow.
   Covers native sessions/roles, direct/anonymous/OAuth denial, actor/unit linkage,

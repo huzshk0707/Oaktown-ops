@@ -119,7 +119,7 @@
   roomApplicability.hidden=!roomApplicability.textContent;
   const g=el('div','lease-draft-grid');conditionFields.replaceChildren(el('h4','',current.title),g);
   current.items.forEach((item,i)=>{
-   const key=current.key+'::'+item,n=input(g,'condition-'+i,item);n.value=notApplicable?'':conditions[key]||'';n.readOnly=notApplicable;
+   const key=current.key+'::'+item,n=input(g,'condition-'+i,item);n.value=notApplicable?'':conditions[key]||'';n.readOnly=notApplicable;n.disabled=!cloud.user||externalBusy;
    const preset=el('select');preset.id='newlease-preset-'+i;preset.setAttribute('aria-label','Preset for '+item);preset.append(new Option('Choose description',''),...(P?.presets||M.conditionOptions).map(v=>new Option(v,v)),new Option('Custom','__custom__'));
    const syncPreset=()=>preset.value=n.value?(P?.presets||M.conditionOptions).includes(n.value)?n.value:'__custom__':'';syncPreset();preset.disabled=notApplicable||externalBusy||!cloud.user;const textLabel=n.parentElement,pair=el('div','lease-condition-pair'),presetLabel=el('label','lease-draft-field','Preset for '+item);presetLabel.htmlFor=preset.id;presetLabel.append(preset);textLabel.replaceWith(pair);pair.append(presetLabel,textLabel);
    preset.addEventListener('change',()=>{if(preset.value==='__custom__'){n.focus();return}n.value=preset.value;n.dispatchEvent(new Event('input',{bubbles:true}))});
@@ -190,7 +190,7 @@
  });
  window.addEventListener('ops-portfolio-loaded',refreshUnits);
  window.addEventListener('ops-auth-change',()=>{const nextId=cloud.user?.id||null;if(nextId!==userId){userId=nextId;reset()}refreshUnits();gate()});
- window.OpsLeaseDraft=Object.freeze({getState:()=>cloud.user?state():null,getHost:()=>steps[4],getPage8Host:()=>steps[3],getContextHost:()=>steps[1],setBusy(value){externalBusy=!!value;gate()},setMessage(text){status.textContent=text},setClean(){dirty=false},restore(saved,{keepStep=false}={}){
+ window.OpsLeaseDraft=Object.freeze({getState:()=>cloud.user?state():null,getHost:()=>steps[4],getPage8Host:()=>steps[3],getContextHost:()=>steps[1],setBusy(value){externalBusy=!!value;gate()},setMessage(text){status.textContent=text},setClean(){dirty=false},markDirty(){if(cloud.user)dirty=true},restore(saved,{keepStep=false}={}){
   const previousStep=step;
   if(!cloud.user||!saved||!units.has(saved.unitId))throw Error('The saved unit is unavailable. Refresh the protected portfolio.');
   if(keepStep&&saved.unitId!==lastUnit)throw Error('Keep-step updates must stay on the selected unit.');

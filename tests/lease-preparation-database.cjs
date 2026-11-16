@@ -36,9 +36,12 @@ async function main(){const created=[];try{
  }
  denied('save',{...save,expected_version:1,request_ref:request(45),status:'ready',data:{...data,state:{...data.state,roomLocations:{'bedroom-3':'Second Floor'}}}},/Map room location/);
  denied('save',{...save,expected_version:1,request_ref:request(46),status:'ready',data:{...data,template:{...data.template,map:{...data.template.map,protectedAreas:[{page:8,x:-1,y:65,width:50,height:50}]}}}},/outside/);
+ denied('save',{...save,expected_version:1,request_ref:request(47),status:'ready',data:{...data,state:{...data.state,fiveOverride:'invalid'}}},/fee amount/);
+ denied('save',{...save,expected_version:1,request_ref:request(48),status:'ready',data:{...data,state:{...data.state,conditions:{}}}},/active unit-specific/);
  assert.equal(call('save',{...save,expected_version:1,request_ref:request(5),status:'ready'}).version,2);
  const approve={id,expected_version:2,request_ref:request(6),reviewed:true,confirmation:'APPROVE '+id+' VERSION 2'};
  denied('approve',{...approve,reviewed:false},/Exact native/);
+ denied('approve',{...approve,expected_version:null,confirmation:null},/Exact native/);
  const approved=call('approve',approve);assert.equal(approved.version,3);assert.equal(approved.receipt.executed,false);assert.deepEqual(call('approve',approve).receipt,approved.receipt);
  assert.equal(sql(db,"select count(*) from public.ops_events where event_type='lease_preparation_approved_v1';").stdout.trim(),'1');
  const context=call('context',{unit_id:unit},2);assert.equal(context.approved_conditions.version,3);assert.equal(context.condition_history.length,1);assert.equal(context.condition_history[0].approved_by,actor(1));assert.deepEqual(call('templates',{},2).templates,[data.template]);assert.equal(JSON.stringify(context.approved_conditions).includes('fictional@example.invalid'),false,'Condition reuse leaked old tenancy terms');

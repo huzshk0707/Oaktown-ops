@@ -58,7 +58,7 @@
   const who=viewerUser();if(!who)throw Error('Sign in to prepare the lease.');
   const source=await inspect(bytes,{PDFLib}),map=data?.template?.map;validateMap(map,source);
   if(data.template.originalReviewed!==true||data.template.mappingReviewed!==true||!String(data.template.reference||'').trim())throw Error('Review the approved blank original, all ten pages and exact field positions first.');
-  const problems=P.layoutProblems(data.state);if(problems.length)throw Error(problems.join(' '));
+  const problems=final?P.reviewProblems(data.state):P.layoutProblems(data.state);if(problems.length)throw Error(problems.join(' '));
   if(final&&!approved(data,approval))throw Error('Final export requires the exact saved, approved preparation and server receipt.');
   if(final&&coverage(data).length)throw Error(coverage(data).join(' '));
   const L=libs(PDFLib),doc=await L.PDFDocument.load(bytes,{updateMetadata:false}),values=P.values(data.state),fonts=new Map();

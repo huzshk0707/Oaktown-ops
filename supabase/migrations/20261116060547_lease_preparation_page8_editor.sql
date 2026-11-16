@@ -66,7 +66,7 @@ revoke all on function ops_lease_private.condition_snapshot(jsonb,uuid,integer,u
 create function ops_lease_private.validate_data(d jsonb,ready boolean) returns void
 language plpgsql security invoker set search_path='' as $$
 declare s jsonb:=d->'state'; t jsonb:=d->'template'; k text; value jsonb; calendar date;
- areas text[]:=array['kitchen','living','exterior','systems','other']; area text; pos jsonb; occupied text[]:='{}'; position_key text; f jsonb; other_f jsonb; dims jsonb; mapped_keys text[]; target text; service_index integer;
+ areas text[]:=array['kitchen','living','exterior','systems','other']; area text; pos jsonb; occupied text[]:='{}'; position_key text; f jsonb; other_f jsonb; dims jsonb; mapped_keys text[]; target text; service_index integer; active_observations integer:=0;
 begin
  if jsonb_typeof(d) is distinct from 'object' or octet_length(d::text)>250000
   or d->>'schema_version' is distinct from 'oaktown.lease-preparation.v1' or jsonb_typeof(s) is distinct from 'object'
@@ -92,9 +92,13 @@ begin
  end loop;
  if (s->>'end')::date<(s->>'start')::date then raise exception 'Lease term is reversed' using errcode='22023';end if;
  foreach k in array array['rent','deposit'] loop
-  if regexp_replace(s->>k,'[$,]','','g') !~ '^[0-9]+(\.[0-9]{1,2})?$' then raise exception 'Invalid lease amount' using errcode='22023';end if;
+  if regexp_replace(s->>k,',','','g') !~ '^[0-9]{1,9}(\.[0-9]{1,2})?$' then raise exception 'Invalid lease amount' using errcode='22023';end if;
  end loop;
- if regexp_replace(s->>'rent','[$,]','','g')::numeric<=0 then raise exception 'Positive confirmed rent required' using errcode='22023';end if;
+ foreach k in array array['fiveOverride','tenOverride','securityDeposit','petDeposit','otherFee','petRent'] loop
+  if (coalesce(s->>k,'')<>'' or k in ('fiveOverride','tenOverride') and coalesce(s->k,'null'::jsonb)<>'null'::jsonb) and regexp_replace(s->>k,',','','g') !~ '^[0-9]{1,9}(\.[0-9]{1,2})?$' then raise exception 'Invalid confirmed fee amount' using errcode='22023';end if;
+ end loop;
+ if exists(select 1 from regexp_split_to_table(s->>'emails','[,;\n]+') email where btrim(email)<>'' and btrim(email) !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$') then raise exception 'Invalid tenant email format' using errcode='22023';end if;
+ if regexp_replace(s->>'rent',',','','g')::numeric<=0 then raise exception 'Positive confirmed rent required' using errcode='22023';end if;
  if jsonb_typeof(s->'utilities') is distinct from 'object' or jsonb_typeof(s->'appliances') is distinct from 'object'
   or jsonb_typeof(s->'occupants') is distinct from 'array' or jsonb_array_length(s->'occupants') not between 1 and 5
  then raise exception 'Confirm occupants, utilities and appliances' using errcode='22023';end if;
@@ -186,10 +190,12 @@ begin
   if (coalesce(s->'roomLabels'->>area,'')<>'' or pos->>'section'<>area and area not like 'bathroom-%') and not('slot/'||position_key||'/label'=any(mapped_keys)) then raise exception 'Map edited room label' using errcode='22023';end if;
   if coalesce(s->'roomLocations'->>area,'')<>'' and not('slot/'||position_key||'/location'=any(mapped_keys)) then raise exception 'Map room location' using errcode='22023';end if;
   for k,value in select * from jsonb_each(s->'conditions') where key like area||'::%' loop
+   if btrim(value#>>'{}')<>'' then active_observations:=active_observations+1;end if;
    if value#>>'{}'<>'' and not exists(select 1 from jsonb_array_elements(t->'map'->'fields') mapped_entry where mapped_entry->>'key'='slot/'||position_key||'/'||split_part(k,'::',2))
    then raise exception 'Map every entered observation for %',area using errcode='22023';end if;
   end loop;
  end loop;
+ if active_observations=0 then raise exception 'Record at least one active unit-specific observation' using errcode='22023';end if;
 end$$;
 revoke all on function ops_lease_private.validate_data(jsonb,boolean) from public,anon,authenticated;
 
@@ -245,7 +251,7 @@ begin
   return to_jsonb(p);
  elsif action='approve' then
   previous:=(payload->>'expected_version')::integer;request_id:=(payload->>'request_ref')::uuid;reference:='APPROVE '||(payload->>'id')||' VERSION '||previous::text;
-  if request_id is null or payload->'reviewed' is distinct from 'true'::jsonb or payload->>'confirmation' is distinct from reference then raise exception 'Exact native review confirmation required' using errcode='42501';end if;
+  if previous is null or previous<1 or request_id is null or payload->'reviewed' is distinct from 'true'::jsonb or payload->>'confirmation' is distinct from reference then raise exception 'Exact native review confirmation required' using errcode='42501';end if;
   select * into p from ops_lease_private.preparations where id=(payload->>'id')::uuid and actor_id=actor for update;
   if not found then raise exception 'Preparation not found for this account' using errcode='P0002';end if;
   select * into a from ops_lease_private.approvals where case_id=p.id and actor_id=actor and request_ref=request_id;
