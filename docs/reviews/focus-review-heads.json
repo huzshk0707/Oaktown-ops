@@ -1,0 +1,300 @@
+{
+  "observedAt": "2026-11-16T03:16:32.321336+00:00",
+  "note": "Bounded live metadata snapshot; inspect current PRs for later changes. Review #79 CI subsequently verified success in PR log. Not deployment evidence.",
+  "repositories": [
+    "huzshk0707/Oaktown-ops"
+  ],
+  "pullRequests": [
+    {
+      "pr": 79,
+      "head": "309360aa70c0c22224f3c0d1cf504b548ea887f6",
+      "branch": "hp/focus-review-3",
+      "base": "main",
+      "draft": false,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 78,
+      "head": "8d539be17de31a740f3bfe70d296f80d43eab9d9",
+      "branch": "hp/focus-review-2",
+      "base": "main",
+      "draft": false,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 77,
+      "head": "9766f22aea40c03b32b130d2a1488a7886a8d456",
+      "branch": "ravi/phase6-integration",
+      "base": "feature/focus-board-phase-5",
+      "draft": true,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 76,
+      "head": "63fa193bfb8b499cc7240943e192572c5ffe96de",
+      "branch": "hp/focus-review-1",
+      "base": "main",
+      "draft": false,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 75,
+      "head": "712ec3d90f28652c686c3ad017906d70c3cd7248",
+      "branch": "feature/focus-board-phase-5",
+      "base": "feature/focus-board-phase-4",
+      "draft": true,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 73,
+      "head": "676e8961a6cb552f6916c655d966a8150f2c3ede",
+      "branch": "feature/focus-board-phase-4",
+      "base": "feature/focus-board-phase-3",
+      "draft": true,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 72,
+      "head": "536ebcade697e5c7aa59e76e7e65f3c89535cdb1",
+      "branch": "feature/focus-board-phase-3",
+      "base": "feature/focus-board-phase-2",
+      "draft": true,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 71,
+      "head": "70f63c43232f8efe7ec58ac769b949dbc31498b9",
+      "branch": "feature/focus-board-phase-2",
+      "base": "feature/focus-board-phase-1",
+      "draft": true,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    },
+    {
+      "pr": 70,
+      "head": "08888e6c53f74aca8b9e68f316a019f07e41a48d",
+      "branch": "feature/focus-board-phase-1",
+      "base": "main",
+      "draft": true,
+      "checks": [
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "checks",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "browser-downloads",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        },
+        {
+          "name": "portfolio-schema",
+          "status": "COMPLETED",
+          "conclusion": "SUCCESS"
+        }
+      ]
+    }
+  ]
+}
