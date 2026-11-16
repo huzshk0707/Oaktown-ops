@@ -75,3 +75,14 @@ Keep the branch-specific HANDOFF/TASKS separate; no branch merge is needed.
 The passing combined run is compatibility evidence, not feature merge or rollout
 approval. Source audience/retention, native approval integration and authoritative
 mailbox/deposit sources remain tracked in review #80 / independent draft #77.
+
+## Final validation and status
+
+Full hosted CI [43800034997](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43800034997)
+passed on exact source/test head `8049bd8ca7f2d3790f3fcb129ff1d3bef97a234e`:
+**214 unit / 265 browser** tests, disposable PostgreSQL/RLS/concurrency/rollback,
+Deno, dependency audit, syntax and workflow inventory. Earlier implementation
+`1b85443` also passed full CI. Local action checks were **24/24**, with new fixed
+clock cases rerun **4/4** after removing calendar-sensitive task selection.
+Later checkpoints change documentation only. Claim released; draft #82 remains
+unmerged, with no deployment, production data write or feature-branch edit.
