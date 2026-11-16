@@ -9,7 +9,7 @@ async function actionMock(page,count=9){
   const body=req.postDataJSON();
   if(s.expireSession)return reply({message:'Fictional session expired'},401);
   if(s.denyWrite||!['admin','editor'].includes(s.role))return reply({message:'Active editor access required',code:'22023'},400);
-  if(body.p_action==='new'){const id='10000000-0000-4000-8000-'+String(++serial).padStart(12,'0');sessions.add(id);return reply({session_id:id})}
+  if(body.p_action==='new'){const id='10000000-0000-4000-8000-'+String(++serial).padStart(12,'0');sessions.add(id);if(s.newHold)await s.newHold;return reply({session_id:id})}
   if(body.p_action!=='save'||!sessions.has(body.p_session))return reply({message:'Intake session unavailable',code:'22023'},400);
   s.saveCalls.push(body);if(s.saveHold)await s.saveHold;if(s.beforeSave){const fn=s.beforeSave;s.beforeSave=null;fn(s)}
   const p=body.p_payload,e=p.export,proposal=e.proposals[0],key=body.p_session+':'+e.batch_ref,prior=receipts.get(key);

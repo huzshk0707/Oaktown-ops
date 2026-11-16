@@ -6,6 +6,45 @@ async function ready(p,count){const s=await open(p,count);await expect(card(p)).
 async function complete(p){await p.locator('#focus-board-complete').click();await expect(p.locator('#focus-completion-summary')).toBeEditable();await p.locator('#focus-completion-summary').fill('Fictional inspection finished and report filed.');}
 async function confirm(p){await p.locator('#focus-action-confirm').click();await expect(modal(p)).not.toBeVisible();}
 const writes=s=>s.saveCalls.length;
+// Both instants are on the same UTC date but different Eastern workdays.
+const midnightBefore=new Date('2026-11-16T04:59:00Z'),midnightAfter=new Date('2026-11-16T05:01:00Z'),midnightDate='2026-11-16';
+async function midnightDefer(page){
+ // One task keeps selection independent of the host date used by shared fixtures.
+ await page.clock.setFixedTime(midnightBefore);const s=await ready(page,1);
+ await page.locator('#focus-board-defer').click();await expect(page.locator('#focus-followup-date')).toBeEditable();
+ await page.locator('#focus-followup-date').fill(midnightDate);await expect(page.locator('#focus-action-confirm')).toBeEnabled();return s;
+}
+async function rejectedMidnight(page,s,before){
+ await expect(page.locator('#focus-action-error')).toContainText('after today in Eastern time');
+ await expect(page.locator('#focus-followup-date')).toHaveValue(midnightDate);await expect(page.locator('#focus-action-confirm')).toBeDisabled();
+ await expect(page.locator('#focus-action-reload')).toBeVisible();expect(s.saveCalls).toHaveLength(0);expect(s.audit).toHaveLength(0);expect(s.tasks[0]).toEqual(before);
+}
+test('Defer planned before Eastern midnight requires fresh review when confirmed after midnight',async({page})=>{
+ const s=await midnightDefer(page),before=structuredClone(s.tasks[0]);await page.clock.setFixedTime(midnightAfter);
+ await page.locator('#focus-action-confirm').click();await rejectedMidnight(page,s,before);
+ expect(s.writes).toHaveLength(0);
+ await page.locator('#focus-action-reload').click();await expect(page.locator('#focus-followup-date')).toHaveValue('2026-11-17');
+ await expect(page.locator('#focus-action-confirm')).toBeEnabled();expect(s.saveCalls).toHaveLength(0);
+});
+test('Defer rechecks the Eastern day after an asynchronous shared-task preflight',async({page})=>{
+ const s=await midnightDefer(page),before=structuredClone(s.tasks[0]),reads=s.reads.length;let release;s.hold=new Promise(r=>release=r);
+ await page.locator('#focus-action-confirm').click();await expect.poll(()=>s.reads.length).toBeGreaterThan(reads);
+ await page.clock.setFixedTime(midnightAfter);s.hold=null;release();await rejectedMidnight(page,s,before);expect(s.writes).toHaveLength(0);
+});
+test('Defer rechecks the Eastern day after awaiting a new intake session',async({page})=>{
+ const s=await midnightDefer(page),before=structuredClone(s.tasks[0]);let release;s.newHold=new Promise(r=>release=r);
+ await page.locator('#focus-action-confirm').click();await expect.poll(()=>s.writes.some(w=>JSON.parse(w.body).p_action==='new')).toBe(true);
+ await page.clock.setFixedTime(midnightAfter);s.newHold=null;release();await rejectedMidnight(page,s,before);
+ expect(s.writes.map(w=>JSON.parse(w.body).p_action)).toEqual(['new']);
+});
+test('a Defer saved before midnight retries its exact lost-response request after midnight',async({page})=>{
+ const s=await midnightDefer(page);s.lostReply=true;await page.locator('#focus-action-confirm').click();
+ await expect(page.locator('#focus-action-error')).toContainText('Outcome not verified');expect(s.audit).toHaveLength(1);
+ const original=structuredClone(s.saveCalls[0]);await page.clock.setFixedTime(midnightAfter);await page.locator('#focus-action-retry').click();
+ await expect(modal(page)).not.toBeVisible();expect(s.saveCalls).toHaveLength(2);expect(s.saveCalls[1]).toEqual(original);
+ expect(s.audit).toHaveLength(1);expect(s.tasks[0].intake_details.follow_up.date).toBe(midnightDate);
+ await expect(page.locator('#focus-recent-message')).toContainText('Follow-up moved to '+midnightDate);
+});
 test('completion and cancellation require review; confirmed save advances selection and persisted Undo restores it',async({page})=>{
  const s=await ready(page);await complete(page);await expect(modal(page)).toContainText('DEMO-101');await expect(page.locator('#focus-action-changes')).toContainText('pending → completed');expect(writes(s)).toBe(0);
  await page.locator('#focus-action-cancel').click();await expect(page.locator('#focus-board-complete')).toBeFocused();expect(writes(s)).toBe(0);
