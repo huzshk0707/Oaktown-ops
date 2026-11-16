@@ -7,7 +7,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P0 — authorized release (2026-11-16)
 
-- [ ] **OPS-FOCUS-RELEASE** (ravi, `ravi/focus-release`, PR #84): merge/release #70/#71/#72/#73/#75/#77/#81/#82 as one validated candidate; main CI/Pages and release tag. User explicitly requested merge/update Ops, superseding older staging-only notes below. Native task records and external OAuth grants stay unchanged.
+- [ ] **OPS-FOCUS-RELEASE** (hp authorized takeover; `ravi/focus-release`, PR #84): merge/release #70/#71/#72/#73/#75/#77/#81/#82 as one validated candidate; main CI/Pages and release tag. User explicitly requested merge/update Ops, superseding older staging-only notes below. Native task records and external OAuth grants stay unchanged.
 
 ## Completed staging / activation backlog
 
