@@ -61,7 +61,7 @@ checked; the new migration filename is CLI-generated, not invented.
 ## Proposed authorization contract
 
 Keep the existing task RPC and its five tools intact. Add an explicitly enabled
-plan capability per existing client, defaulting **off**. Task write permission
+plan capability per existing client, defaulting **off**, plus explicit per-user native plan consent. Existing task OAuth consent must not silently expand when an administrator enables a new domain capability. Task write permission
 must not silently become plan submission/read permission.
 
 1. **Agent proposal:** the scoped connection can read authorized attested plans
@@ -123,7 +123,4 @@ elevated SQL connector to bypass the scoped contract.
 
 ## Current implementation status
 
-Ownership and architecture checkpoint only. The CLI-generated migration is an
-intentional fail-closed placeholder until implementation and disposable tests
-are complete. Exact files, tests, screenshots where applicable, remaining gates
-and final head evidence will be recorded here and in draft PR #77.
+Backend foundation is implemented and tested in disposable PostgreSQL16: native/agent separation, reserved journal guard, explicit review, immutable receipt/readback, current task versions, daily-plan conflict and duplicate-retry protection, permission/session revocation, guarded rollback and zero task writes. The initial stale-source test correctly required rereading the fixture task version; the corrected suite passes. Per-user plan consent, UI/API wiring and final workflow/browser checks are still required. This checkpoint is not ready for production. Exact final validation/evidence will be recorded here and in draft PR #77.
