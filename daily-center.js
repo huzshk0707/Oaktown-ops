@@ -30,7 +30,7 @@
  function render(){
   const on=window.OpsWorkspace.getRoute().workflow==='morning',data=store.getData(),access=readable();last.hidden=!on;highlighted=new Set(approvedTaskIds());
   $('daily-dashboard').hidden=!cloud.user;
-  const taskState=store.getState(),stale=taskState==='error'||phase==='error';
+  const taskState=store.getState(),stale=taskState==='error'||['error','denied'].includes(phase),planState=taskState==='loading'?'loading':taskState==='error'?'error':phase;
   $('daily-state').textContent=!cloud.user?'':taskState==='loading'||phase==='loading'?'Refreshing authorized records…':!access?'Shared task data unavailable. Refresh to retry.':stale?'Refresh incomplete. Last known records are stale; retry Refresh.':issue||'Authorized staff records · no automatic task or financial changes';
   last.textContent=lastRefresh?'Last successful refresh · '+stamp(lastRefresh)+(stale?' · stale':''):'No successful refresh';
   $('daily-start').disabled=!access;$('daily-date').disabled=!cloud.user;
@@ -44,7 +44,7 @@
    taskList($('daily-followups'),p.followups,'No waiting, blocked or follow-up tasks recorded.',5);
   }
   const planHost=$('daily-plan');planHost.replaceChildren();
-  $('daily-plan-status').textContent=phase==='ready'?(record?'Approved':'No approved SOD'):phase==='loading'?'Loading':phase==='denied'?'Access denied':phase==='error'?'Stale / unavailable':'Not loaded';
+  $('daily-plan-status').textContent=planState==='ready'?(record?'Approved':'No approved SOD'):planState==='loading'?'Loading':planState==='denied'?'Access denied':planState==='error'?'Stale / unavailable':'Not loaded';
   if(record&&access){
    const p=record.event_metadata.plan;
    planHost.append(node('p','Revision '+p.revision+' · approved '+new Date(record.occurred_at).toLocaleString('en-US',{timeZone:'America/New_York'})+' Eastern','daily-task-meta'),node('p','Approving staff · '+record.actor_id,'daily-task-meta'));
@@ -53,10 +53,10 @@
    const sources=node('details');sources.append(node('summary','Source references · '+Object.keys(p.sources).length));
    for(const s of Object.values(p.sources)){if(!s||typeof s.label!=='string')continue;const detail=node('p',s.label+' · '+(s.verification||'Verification not recorded')+(s.version?' · version '+s.version:'')+(s.originRef?' · '+s.originRef:''));sources.append(detail)}
    planHost.append(sources,node('p',window.OpsMorningModel.planningOnly(p)+' planning-only items. Approval does not create saved tasks.','daily-task-meta'));
-  }else planHost.append(node('p',phase==='ready'?'No valid approved plan is saved for '+day+' Eastern.':phase==='denied'?'Staff journal access was denied. No saved plan is displayed.':phase==='loading'?'Reading approved SOD from the staff journal…':'Approved SOD unavailable. Refresh to retry.','daily-empty'));
+  }else planHost.append(node('p',planState==='ready'?'No valid approved plan is saved for '+day+' Eastern.':planState==='denied'?'Staff journal access was denied. No saved plan is displayed.':planState==='loading'?'Reading approved SOD from the staff journal…':'Approved SOD unavailable. Refresh to retry.','daily-empty'));
   renderFocusPlan();
  }
- async function refreshPlan(){
+ async function refreshPlan(fullSnapshot=false){
   if(!readable())return [];
   const id=++ticket,user=cloud.user.id,selected=day;phase='loading';issue='';render();const rows=[];
   const current=()=>ticket===id&&cloud.user?.id===user&&day===selected;
@@ -69,7 +69,7 @@
     if(offset>=9900)throw Error('Approval history needs a narrower read');
    }
    if(!current()||!readable())return [];
-   record=M.latest(rows,selected);phase='ready';lastRefresh=new Date().toISOString();
+   record=M.latest(rows,selected);phase='ready';if(fullSnapshot)lastRefresh=new Date().toISOString();
    if(rows.some(r=>!M.validApproval(r,selected)))issue='Invalid approval records were ignored. The latest valid approved version is displayed.';
    render();return rows;
   }catch(error){

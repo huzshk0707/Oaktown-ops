@@ -166,12 +166,12 @@
   const real=p.rows.filter(r=>r.type==='task').length,manual=M.planningOnly(p);
   $('focus-morning-summary').textContent='Approved morning SOD · '+real+' saved tasks · '+manual+' planning-only items. Task order is unchanged.';
  }
- async function refresh(){if(!cloud.user||flow.busy)return;await store.refresh();if(active&&cloud.user&&store.getState()==='ready'){if(ready())S.beginMorning();render();await historyRefresh()}}
- async function historyRefresh(){
+ async function refresh(){if(!cloud.user||flow.busy)return;await store.refresh();if(active&&cloud.user&&store.getState()==='ready'){if(ready())S.beginMorning();render();await historyRefresh(true)}}
+ async function historyRefresh(fullSnapshot=false){
   if(!cloud.user||store.getState()!=='ready')return;const user=cloud.user.id,ticket=++historyTicket,at=epoch;
   $('morning-history-status').textContent='Reading saved approvals…';
   try{
-   const rows=await window.OpsDaily.refreshPlan();
+   const rows=await window.OpsDaily.refreshPlan(fullSnapshot===true);
    if(!current(at,user)||ticket!==historyTicket)return;
    if(!Array.isArray(rows))throw Error('Unexpected journal response');
    const list=$('morning-history');list.replaceChildren();let count=0;knownSources=[];
