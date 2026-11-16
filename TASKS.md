@@ -26,7 +26,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
   Small review steps (claim separately; no feature rewrite or merge):
   1. [x] **OPS-FOCUS-REVIEW.1:** Completed/released by hp in [review #76](https://github.com/huzshk0707/Oaktown-ops/pull/76); one open P2 pagination finding, no feature changes. Audit #70/#71 carousel, shared data, modal,
      keyboard/focus and existing Review integration; link exact heads/findings.
-  2. [ ] **OPS-FOCUS-REVIEW.2:** Claimed by hp on `hp/focus-review-2`; heartbeat 2026-11-16 02:46 UTC, expires 03:16 UTC; [review #78](https://github.com/huzshk0707/Oaktown-ops/pull/78). Report, confirmed finding, tests and desktop evidence complete; final checks pending. Audit #72 confirmation, permissions, atomic task
+  2. [x] **OPS-FOCUS-REVIEW.2:** Completed/released by hp at 2026-11-16 02:48 UTC; [review #78](https://github.com/huzshk0707/Oaktown-ops/pull/78) contains one confirmed P2 midnight-Defer finding, passing model/browser/SQL checks and desktop evidence. Audit #72 confirmation, permissions, atomic task
      versions, Defer/Undo and failure recovery using existing fictional tests.
   3. [ ] **OPS-FOCUS-REVIEW.3:** Audit #73 desktop morning/SOD flow, provenance,
      approval journal, retention/audience boundaries and missing integrations.
@@ -41,6 +41,15 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
   and the shared operating protocol; source completion is not personal EOD work.
 
 ## P2 — integrations and reliability, separate small tasks
+
+- [ ] **OPS-FOCUS-DEFER-ROLLOVER:** Unclaimed. Review #78 confirms that a Defer
+  plan validated before Eastern midnight can submit today's date after midnight.
+  Revalidate only new deferrals after preflight/before first save; preserve exact
+  uncertain-request replay. See [report/reproduction](docs/reviews/OPS-FOCUS-REVIEW-2.md).
+- [ ] **OPS-FOCUS-READER-CURSOR:** Unclaimed. Review #76's confirmed offset-page
+  deletion omission remains open; keep its bounded cursor/snapshot follow-up
+  separate from action review and carry it into final consolidation.
+
 
 - [ ] **OPS-MAILBOX:** Design/authorize an in-app read-only mailbox integration,
   provider/source-ID contract and secure retention. Phase 4 has manual intake;
