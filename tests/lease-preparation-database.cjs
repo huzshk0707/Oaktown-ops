@@ -16,7 +16,7 @@ async function main(){const created=[];try{
  sql(empty,rollback);assert.equal(sql(empty,"select to_regprocedure('public.ops_lease_preparation(text,jsonb)') is null;").stdout.trim(),'t');
  sql(db,`alter table auth.sessions add column if not exists oauth_client_id uuid;insert into auth.sessions(id,user_id) select ('dddddddd-dddd-4ddd-8ddd-'||lpad(n::text,12,'0'))::uuid,('00000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid from generate_series(1,5)n;`);
  const unit=sql(db,'select id from public.units order by id limit 1;').stdout.trim(),other=sql(db,`select id from public.leases where unit_id<>${q(unit)}::uuid limit 1;`).stdout.trim();assert.ok(unit);
- const f=await require('./lease-template-fixture.cjs').fixture(),data={schema_version:'oaktown.lease-preparation.v1',leaseId:null,...f.data};Object.assign(data.state,{unitId:unit,cityline:'Example City, KY 40201',approvalReviewed:true,depositStepReviewed:true,conditionsReviewed:true,satisfactory:'Yes'});
+ const f=await require('./lease-template-fixture.cjs').fixture(),data={schema_version:'oaktown.lease-preparation.v1',leaseId:null,...f.data};Object.assign(data.state,{unitId:unit,cityline:'Example City, KY 40201',approvalReviewed:true,depositStepReviewed:true,conditionsReviewed:true,satisfactory:'Yes',occupants:['Fictional Resident'],utilities:Object.fromEntries(require('../renewal-rules.js').utilities.map(k=>[k,'Tenant'])),appliances:Object.fromEntries(require('../renewal-rules.js').appliances.map(k=>[k,'No']))});
  const originalTasks=sql(db,"select md5(coalesce(jsonb_agg(to_jsonb(t) order by id)::text,'')) from public.ops_tasks t;").stdout.trim();
  const id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',request=n=>'cccccccc-cccc-4ccc-8ccc-'+String(n).padStart(12,'0');
  const save={id,expected_version:0,request_ref:request(1),status:'draft',data};
@@ -27,6 +27,10 @@ async function main(){const created=[];try{
  assert.equal(call('list',{}).cases.length,1);assert.equal(call('context',{unit_id:unit}).approved_conditions,null);
  if(other)denied('save',{...save,id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb2',request_ref:request(3),data:{...data,leaseId:other}},/does not belong/);
  denied('save',{...save,expected_version:1,request_ref:request(4),status:'ready',data:{...data,state:{...data.state,bedrooms:'6'}}},/six-bedroom/);
+ denied('save',{...save,expected_version:1,request_ref:request(40),status:'ready',data:{...data,state:{...data.state,roomPlacements:{living:{section:'kitchen',column:0,row:0}}}}},/collide/);
+ denied('save',{...save,expected_version:1,request_ref:request(41),status:'ready',data:{...data,template:{...data.template,map:{...data.template.map,fields:data.template.map.fields.map((f,i)=>i===0?{...f,x:-10}:f)}}}},/outside/);
+ denied('save',{...save,expected_version:1,request_ref:request(42),status:'ready',data:{...data,state:{...data.state,conditions:{...data.state.conditions,'bedroom-3::Floor':'Unmapped observation'}}}},/every entered/);
+ denied('save',{...save,expected_version:1,request_ref:request(43),status:'ready',data:{...data,state:{...data.state,utilities:{}}}},/Confirm utility/);
  assert.equal(call('save',{...save,expected_version:1,request_ref:request(5),status:'ready'}).version,2);
  const approve={id,expected_version:2,request_ref:request(6),reviewed:true,confirmation:'APPROVE '+id+' VERSION 2'};
  denied('approve',{...approve,reviewed:false},/Exact native/);

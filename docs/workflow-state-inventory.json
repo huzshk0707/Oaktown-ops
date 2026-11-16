@@ -524,7 +524,9 @@
         "lease-preparation.js",
         "lease-preparation-model.js",
         "lease-condition-pdf.js",
-        "lease-page8-model.js"
+        "lease-page8-model.js",
+        "lease-template-pdf.js",
+        "lease-template-editor.js"
       ],
       "states": [
         "locked",
@@ -532,18 +534,28 @@
         "all_fields_view",
         "reviewed",
         "invalidated",
-        "condition_export_ready"
+        "condition_export_ready",
+        "template_loaded",
+        "mapping_reviewed",
+        "saved_draft",
+        "ready_for_review",
+        "approved_preparation",
+        "unverified_save"
       ],
       "guards": [
         "Absent areas use N/A only when confirmed; unknown conditions are not invented.",
         "Condition-sheet export is available; complete ten-page PDF/export lifecycle remains unfinished.",
-        "Absent areas print N/A labels with blank dependent conditions; identities, locations and PDF slots are independent."
+        "Absent areas print N/A labels with blank dependent conditions; identities, locations and PDF slots are independent.",
+        "Original PDF bytes and explicit source hash/map; no invented coordinates; render/overflow/signature guards.",
+        "Native RPC only, private owner-scoped drafts, version CAS and identical replay; immutable approvals/readback; no lease/property/task writes."
       ],
       "tests": [
         "tests/lease-preparation.e2e.spec.cjs",
         "tests/lease-preparation-model.test.cjs",
         "tests/lease-condition-pdf.test.cjs",
-        "tests/lease-page8-model.test.cjs"
+        "tests/lease-page8-model.test.cjs",
+        "tests/lease-template-pdf.test.cjs",
+        "tests/lease-preparation-database.cjs"
       ],
       "representation": "guarded"
     },

@@ -57,6 +57,7 @@ revoke all on function ops_lease_private.staff_actor() from public,anon,authenti
 create function ops_lease_private.validate_data(d jsonb,ready boolean) returns void
 language plpgsql security invoker set search_path='' as $$
 declare s jsonb:=d->'state'; t jsonb:=d->'template'; k text; value jsonb; calendar date;
+ areas text[]:=array['kitchen','living','exterior','systems','other']; area text; pos jsonb; occupied text[]:='{}'; position_key text; f jsonb; other_f jsonb; dims jsonb;
 begin
  if jsonb_typeof(d) is distinct from 'object' or octet_length(d::text)>250000
   or d->>'schema_version' is distinct from 'oaktown.lease-preparation.v1' or jsonb_typeof(s) is distinct from 'object'
@@ -70,8 +71,8 @@ begin
  end loop;
  if not ready then return;end if;
  if s->'conditionsReviewed' is distinct from 'true'::jsonb or s->'approvalReviewed' is distinct from 'true'::jsonb or s->'depositStepReviewed' is distinct from 'true'::jsonb
-  or s->>'bedrooms' not in ('1','2','3','4','5') or s->>'bathrooms' not in ('1','2','3') or s->>'basement' not in ('included','not-included')
-  or s->>'satisfactory' not in ('Yes','No')
+  or coalesce(s->>'bedrooms','') not in ('1','2','3','4','5') or coalesce(s->>'bathrooms','') not in ('1','2','3') or coalesce(s->>'basement','') not in ('included','not-included')
+  or coalesce(s->>'satisfactory','') not in ('Yes','No')
  then raise exception 'Confirm the handoff, room facts and condition review first' using errcode='22023';end if;
  foreach k in array array['address','cityline','leaseDate','start','end','rent','deposit','tenantName','emails','pets'] loop
   if coalesce(length(btrim(s->>k)),0)=0 then raise exception 'A required lease field is missing: %',k using errcode='22023';end if;
@@ -85,12 +86,56 @@ begin
   if regexp_replace(s->>k,'[$,]','','g') !~ '^[0-9]+(\.[0-9]{1,2})?$' then raise exception 'Invalid lease amount' using errcode='22023';end if;
  end loop;
  if regexp_replace(s->>'rent','[$,]','','g')::numeric<=0 then raise exception 'Positive confirmed rent required' using errcode='22023';end if;
+ if jsonb_typeof(s->'utilities') is distinct from 'object' or jsonb_typeof(s->'appliances') is distinct from 'object'
+  or jsonb_typeof(s->'occupants') is distinct from 'array' or jsonb_array_length(s->'occupants') not between 1 and 5
+ then raise exception 'Confirm occupants, utilities and appliances' using errcode='22023';end if;
+ foreach k in array array['Water','Electric','Gas','Trash','Internet'] loop
+  if coalesce(s->'utilities'->>k,'') not in ('Landlord','Tenant') then raise exception 'Confirm utility %',k using errcode='22023';end if;
+ end loop;
+ foreach k in array array['Range','Refrigerator','Dishwasher','Blinds','Microwave','Garage Door Opener','Washer & Dryer'] loop
+  if coalesce(s->'appliances'->>k,'') not in ('Yes','No') then raise exception 'Confirm appliance %',k using errcode='22023';end if;
+ end loop;
  if jsonb_typeof(t) is distinct from 'object' or t->'originalReviewed' is distinct from 'true'::jsonb or t->'mappingReviewed' is distinct from 'true'::jsonb
   or coalesce(t->>'reference','')='' or coalesce(t->'map'->>'templateSha256','') !~ '^[a-f0-9]{64}$'
   or t->'map'->>'schema_version' is distinct from 'oaktown.lease-template-map.v1'
   or jsonb_typeof(t->'map'->'pages') is distinct from 'array' or jsonb_array_length(t->'map'->'pages')<>10
   or jsonb_typeof(t->'map'->'fields') is distinct from 'array' or jsonb_array_length(t->'map'->'fields') not between 1 and 250
+  or jsonb_typeof(t->'map'->'protectedAreas') is distinct from 'array' or jsonb_array_length(t->'map'->'protectedAreas')>80
  then raise exception 'Review the exact approved ten-page blank master and field map' using errcode='22023';end if;
+ for f in select * from jsonb_array_elements(t->'map'->'fields') loop
+  if coalesce(f->>'page','') !~ '^(10|[1-9])$' or coalesce(f->>'font','') not in ('Helvetica','Times-Roman','Courier','Custom')
+   or jsonb_typeof(f->'size') is distinct from 'number' or (f->>'size')::numeric not between 6 and 24
+  then raise exception 'Invalid template field font or page' using errcode='22023';end if;
+  dims:=t->'map'->'pages'->((f->>'page')::integer-1);
+  foreach k in array array['x','y','width','height'] loop if jsonb_typeof(f->k) is distinct from 'number' then raise exception 'Invalid template rectangle' using errcode='22023';end if;end loop;
+  if (f->>'x')::numeric<0 or (f->>'y')::numeric<0 or (f->>'width')::numeric<=0 or (f->>'height')::numeric<=0
+   or (f->>'x')::numeric+(f->>'width')::numeric>coalesce((dims->>'width')::numeric,0) or (f->>'y')::numeric+(f->>'height')::numeric>coalesce((dims->>'height')::numeric,0)
+   or f->>'key' like 'slot/%' and (f->>'page')::integer<>8
+  then raise exception 'Template field lies outside its original page' using errcode='22023';end if;
+  for other_f in select * from jsonb_array_elements(t->'map'->'protectedAreas') loop
+   if other_f->>'page'=f->>'page' and (f->>'x')::numeric<(other_f->>'x')::numeric+(other_f->>'width')::numeric
+    and (f->>'x')::numeric+(f->>'width')::numeric>(other_f->>'x')::numeric and (f->>'y')::numeric<(other_f->>'y')::numeric+(other_f->>'height')::numeric
+    and (f->>'y')::numeric+(f->>'height')::numeric>(other_f->>'y')::numeric then raise exception 'Field overlaps protected signature area' using errcode='22023';end if;
+  end loop;
+ end loop;
+ foreach k in array array['address','cityline','leaseDate','start','end','rent','deposit','tenantName','emails','pets','five','ten'] loop
+  if not exists(select 1 from jsonb_array_elements(t->'map'->'fields') mapped_entry where mapped_entry->>'key'='term/'||k) then raise exception 'Map required lease field %',k using errcode='22023';end if;
+ end loop;
+ for k in select 'bathroom-'||n from generate_series(1,(s->>'bathrooms')::integer)n union all select 'bedroom-'||n from generate_series(1,(s->>'bedrooms')::integer)n loop areas:=array_append(areas,k);end loop;
+ if s->>'basement'='included' then areas:=array_append(areas,'basement');end if;
+ if s->'additionalRoom'='true'::jsonb then areas:=array_append(areas,'additional');end if;
+ foreach area in array areas loop
+  pos:=s->'roomPlacements'->area;
+  if pos is null then pos:=jsonb_build_object('section',case when area in ('bedroom-5','bathroom-3') then 'unplaced' when area like 'bathroom-%' then 'bathroom' else area end,'column',case when area='bathroom-2' then 1 else 0 end,'row',0);end if;
+  if coalesce(pos->>'section','') not in ('kitchen','bathroom','living','bedroom-1','bedroom-2','bedroom-3','bedroom-4','bedroom-5','basement','additional','exterior','systems','other')
+   or coalesce(pos->>'column','') not in ('0','1') or coalesce(pos->>'row','') not in ('0','1','2') then raise exception 'Choose reviewed active room position for %',area using errcode='22023';end if;
+  position_key:=(pos->>'section')||'/'||(pos->>'column')||'/'||(pos->>'row');
+  if position_key=any(occupied) then raise exception 'Active room PDF positions collide' using errcode='22023';end if;occupied:=array_append(occupied,position_key);
+  for k,value in select * from jsonb_each(s->'conditions') where key like area||'::%' loop
+   if value#>>'{}'<>'' and not exists(select 1 from jsonb_array_elements(t->'map'->'fields') mapped_entry where mapped_entry->>'key'='slot/'||position_key||'/'||split_part(k,'::',2))
+   then raise exception 'Map every entered observation for %',area using errcode='22023';end if;
+  end loop;
+ end loop;
 end$$;
 revoke all on function ops_lease_private.validate_data(jsonb,boolean) from public,anon,authenticated;
 
@@ -121,7 +166,7 @@ begin
   return to_jsonb(p);
  elsif action='save' then
   d:=payload->'data';status_value:=payload->>'status';previous:=(payload->>'expected_version')::integer;request_id:=(payload->>'request_ref')::uuid;
-  if status_value not in ('draft','ready') or previous is null or previous<0 or request_id is null then raise exception 'Invalid reviewed save request' using errcode='22023';end if;
+  if status_value is null or status_value not in ('draft','ready') or previous is null or previous<0 or request_id is null then raise exception 'Invalid reviewed save request' using errcode='22023';end if;
   perform ops_lease_private.validate_data(d,status_value='ready');uid:=(d->'state'->>'unitId')::uuid;lid:=nullif(d->>'leaseId','')::uuid;
   perform 1 from public.units where id=uid for share;if not found then raise exception 'Unit unavailable' using errcode='P0002';end if;
   if lid is not null then perform 1 from public.leases where id=lid and unit_id=uid for share;if not found then raise exception 'Lease does not belong to selected unit' using errcode='22023';end if;end if;

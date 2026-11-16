@@ -185,13 +185,14 @@
  });
  window.addEventListener('ops-portfolio-loaded',refreshUnits);
  window.addEventListener('ops-auth-change',()=>{const nextId=cloud.user?.id||null;if(nextId!==userId){userId=nextId;reset()}refreshUnits();gate()});
- window.OpsLeaseDraft=Object.freeze({getState:()=>cloud.user?state():null,getHost:()=>steps[4],setBusy(value){externalBusy=!!value;gate()},setMessage(text){status.textContent=text},setClean(){dirty=false},restore(saved){
+ window.OpsLeaseDraft=Object.freeze({getState:()=>cloud.user?state():null,getHost:()=>steps[4],getPage8Host:()=>steps[3],getContextHost:()=>steps[1],setBusy(value){externalBusy=!!value;gate()},setMessage(text){status.textContent=text},setClean(){dirty=false},restore(saved,{keepStep=false}={}){
+  const previousStep=step;
   if(!cloud.user||!saved||!units.has(saved.unitId))throw Error('The saved unit is unavailable. Refresh the protected portfolio.');
   reset();lastUnit=saved.unitId;picker.value=lastUnit;
   for(const [key,value]of Object.entries(saved)){const n=$(key);if(n&&['INPUT','TEXTAREA','SELECT'].includes(n.tagName))n.type==='checkbox'?n.checked=value===true:n.value=typeof value==='string'?value:''}
   for(let i=0;i<5;i++)$('occupant-'+i).value=String(saved.occupants?.[i]||'');
   for(const [names,prefix]of [[R.utilities,'utility'],[R.appliances,'appliance']])names.forEach((name,i)=>$(prefix+'-'+i).value=saved[prefix==='utility'?'utilities':'appliances']?.[name]||'');
-  conditions={...saved.conditions};roomLabels={...saved.roomLabels};roomLocations={...saved.roomLocations};roomPlacements=structuredClone(saved.roomPlacements||{});manualFive=saved.fiveOverride!==null&&saved.fiveOverride!==undefined;manualTen=saved.tenOverride!==null&&saved.tenOverride!==undefined;if(manualFive)$('five').value=saved.fiveOverride;if(manualTen)$('ten').value=saved.tenOverride;dirty=false;renderRoom();updateFees();invalidate();
+  conditions={...saved.conditions};roomLabels={...saved.roomLabels};roomLocations={...saved.roomLocations};roomPlacements=structuredClone(saved.roomPlacements||{});manualFive=saved.fiveOverride!==null&&saved.fiveOverride!==undefined;manualTen=saved.tenOverride!==null&&saved.tenOverride!==undefined;if(manualFive)$('five').value=saved.fiveOverride;if(manualTen)$('ten').value=saved.tenOverride;dirty=false;step=keepStep?previousStep:3;render();renderRoom();updateFees();invalidate();
  }});
  reset();refreshUnits();gate();
 })();

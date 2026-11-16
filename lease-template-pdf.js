@@ -24,6 +24,7 @@
   if(!Array.isArray(map.fields)||map.fields.length<1||map.fields.length>250||!Array.isArray(map.protectedAreas)||map.protectedAreas.length>80)throw Error('Choose a bounded template map with reviewed field positions.');
   const keys=new Set(),allowedTerms=new Set([...P.terms,'bedrooms',...Array.from({length:5},(_,i)=>'utility-'+i),...Array.from({length:5},(_,i)=>'appliance-'+i)]);
   const inside=r=>Number.isInteger(r.page)&&r.page>=1&&r.page<=10&&rectangle(r)&&r.x+r.width<=source.pages[r.page-1].width&&r.y+r.height<=source.pages[r.page-1].height;
+  if(map.protectedAreas.some(r=>!inside(r)))throw Error('A protected signature rectangle is outside the original page.');
   for(const area of map.protectedAreas)if(!inside(area))throw Error('A protected signature area is outside its original page.');
   for(const field of map.fields){
    const parts=String(field.key||'').split('/');
