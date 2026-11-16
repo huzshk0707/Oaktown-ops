@@ -19,6 +19,7 @@ async function morningMock(page,count=9){
   const ordered=()=>s.events.filter(e=>!payload.work_date||e.event_metadata.work_date===payload.work_date).sort((a,b)=>b.occurred_at.localeCompare(a.occurred_at)||b.id.localeCompare(a.id));
   if(action==='head'){const event=ordered()[0]||null;return reply({schema_version:'oaktown.daily-plan-head.v1',work_date:payload.work_date,approval_id:event?.id||null,event})}
   if(action==='list')return reply(ordered().slice(payload.offset||0,(payload.offset||0)+100));
+  if(action==='get'&&s.denyReadback)return reply({message:'Readback permission changed',code:'42501'},403);
   if(action==='get'){const e=s.events.find(e=>e.id===payload.event_id);return e?reply(e):reply({message:'Approval not found',code:'P0002'},404)}
   if(action==='pending')return reply([...s.requests.values()].filter(p=>p.state==='pending_staff_review').map(p=>({proposal_id:p.review.proposal_id,work_date:p.review.event.event_metadata.work_date,from_chatgpt:p.agent,text:p.review.event.event_metadata.plan.text})));
   if(action==='prepare'){const p=s.addPlanProposal(payload.plan,{agent:false,expected:payload.expected_approval_id});return reply({proposal_id:p.review.proposal_id,state:p.state})}

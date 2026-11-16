@@ -3,7 +3,7 @@
 const {chromium}=require('@playwright/test'),fs=require('node:fs'),path=require('node:path');
 const {morningMock,signIn,ORIGIN}=require('../tests/morning-fixtures.cjs'),{saved}=require('../tests/daily-fixtures.cjs');
 (async()=>{
- const browser=await chromium.launch({args:['--no-sandbox']}),out=path.resolve('docs/phase-5-desktop');fs.mkdirSync(out,{recursive:true});
+ const browser=await chromium.launch({...(process.env.OAKTOWN_CHROMIUM_PATH?{executablePath:process.env.OAKTOWN_CHROMIUM_PATH}:{}),args:['--no-sandbox']}),out=path.resolve('docs/phase-5-desktop');fs.mkdirSync(out,{recursive:true});
  const context=await browser.newContext({viewport:{width:1440,height:1080}}),page=await context.newPage(),s=await morningMock(page);s.events=[saved(s)];
  await page.goto(ORIGIN+'/#/morning');await signIn(page);await page.waitForFunction(()=>document.querySelector('#daily-plan-status').textContent==='Approved');
  const capture=async(name)=>page.screenshot({path:path.join(out,name+'.png'),animations:'disabled'});

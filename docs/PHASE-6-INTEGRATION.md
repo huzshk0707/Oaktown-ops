@@ -152,7 +152,9 @@ elevated SQL connector to bypass the scoped contract.
   and manual-reference objects are omitted. Native staff retain the reviewed
   evidence. Receipt hashes attest the full server snapshot; comparison of
   separate reads uses the same authorized projection, not a hash of redacted JSON.
-- Lost outcomes require checking the same submission. A receipt and an independent
+- Lost outcomes require checking the same submission. A denied independent read
+  after a successful approval response preserves that original submission for
+  recovery; it must not be treated as a rejected save. A receipt and an independent
   exact read must match before success is displayed. Revocation, expiry, changed
   task versions and daily-head conflicts fail closed. No automatic resubmission.
 
@@ -171,8 +173,11 @@ elevated SQL connector to bypass the scoped contract.
   axe accessibility, 1280/1440/1920px layout, source escaping, exact confirmation,
   conflicts, uncertain readback, draft preservation and sign-out clearing.
 - Workflow inventory (30 families/65 entry scripts), Deno frozen check and
-  dependency audit pass (zero reported vulnerabilities). Full regression/hosted
-  CI and fictional desktop screenshots are the remaining review checks.
+  dependency audit pass (zero reported vulnerabilities). The full disposable SQL workflow also passes, including the unchanged task,
+  journal, import and reminder suites. [Seven fictional desktop captures](phase-6-desktop/README.md)
+  are included and inspected. Full browser/hosted CI remain in progress. The first
+  hosted SQL run exposed missing MCP dependencies in that job; CI now installs the
+  pinned connector there before the composed SQL/MCP check.
 
 ## Limits and release decisions
 

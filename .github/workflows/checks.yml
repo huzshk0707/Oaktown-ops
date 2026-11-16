@@ -105,6 +105,8 @@ jobs:
         run: node scripts/capture-morning-center.cjs
       - name: Capture Phase 5 fictional desktop dashboard
         run: node scripts/capture-daily-center.cjs
+      - name: Capture fictional desktop native plan review
+        run: node scripts/capture-plan-review.cjs
       - name: Upload fictional UI review screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -112,6 +114,7 @@ jobs:
           name: oaktown-ui-review
           path: |
             docs/phase-5-desktop/
+            docs/phase-6-desktop/
             test-results/ui-review/
             test-results/**/eod-*.png
             test-results/**/*-workspace.png
@@ -153,6 +156,11 @@ jobs:
       PGDATABASE: oaktown_portfolio_ci
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned task connector for composed SQL/MCP test
+        run: npm ci --no-fund --no-audit --prefix supabase/functions/oaktown-task-api
       - name: Install disposable database test tooling
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Verify historical portfolio migrations and existing workspace APIs

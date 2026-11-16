@@ -191,7 +191,7 @@
   const ticket=++pendingTicket,user=cloud.user?.id,list=$('plan-pending-list');
   if(!ready()){list.replaceChildren();$('plan-pending-status').textContent='Native staff editor access is required.';return}
   $('plan-pending-status').textContent='Reading your pending plan proposals…';
-  try{const rows=await A.call('pending');if(ticket!==pendingTicket||cloud.user?.id!==user)return;if(!Array.isArray(rows))throw Error('Unexpected pending review response');list.replaceChildren();const agent=rows.filter(r=>r.from_chatgpt===true);for(const item of agent){const row=node('article',null,'morning-source-card');row.append(node('strong','ChatGPT proposal · '+item.work_date),node('p',item.proposal_id,'morning-source-meta'),node('p',item.text.slice(0,180)+(item.text.length>180?'…':'')),button('Review plan',()=>showApprove(item.proposal_id)));list.append(row)}$('plan-pending-status').textContent=agent.length?agent.length+' proposals awaiting your native review. No SOD is approved yet.':'No ChatGPT plan proposals awaiting your review.';
+  try{const rows=await A.call('pending');if(ticket!==pendingTicket||cloud.user?.id!==user)return;if(!Array.isArray(rows))throw Error('Unexpected pending review response');list.replaceChildren();const agent=rows.filter(r=>r.from_chatgpt===true);for(const item of agent){const row=node('article',null,'morning-source-card');row.append(node('strong','ChatGPT proposal · '+item.work_date),node('p',item.proposal_id,'morning-source-meta'),node('p',item.text.slice(0,180)+(item.text.length>180?'…':'')),button('Review plan',()=>showApprove(item.proposal_id)));list.append(row)}$('plan-pending-status').textContent=agent.length?agent.length+' proposals awaiting your native review. These proposals are not approved.':'No ChatGPT plan proposals awaiting your review.';
   }catch(error){if(ticket===pendingTicket&&cloud.user?.id===user){list.replaceChildren();$('plan-pending-status').textContent=error.message||'Plan requests unavailable.'}}
  }
  $('plan-pending-refresh').onclick=refreshPending;
@@ -227,7 +227,7 @@
   event.preventDefault();if(flow.busy||preparing||!prepared||!ready()||!preview||!$('morning-approve-confirm').checked)return;
   if(flow.phase==='needs_review'){const reload=flow.start('reload');flow.advance(reload,'loaded')}
   const ticket=flow.start('submit');if(!ticket)return;
-  const user=cloud.user.id,at=++epoch,original=preview,reviewed=prepared;S.setLocked(true);approvalControls();$('morning-approve-status').textContent='Checking current task versions and native staff access…';
+  const user=cloud.user.id,at=++epoch,original=preview,reviewed=prepared;let approvalResponded=false;S.setLocked(true);approvalControls();$('morning-approve-status').textContent='Checking current task versions and native staff access…';
   try{
    await W.withTimeout(()=>store.refresh());if(!current(at,user))return;
    if(!ready())throw Error('Editor access or shared records are unavailable.');
@@ -235,7 +235,7 @@
    if(!pending&&approvalChannel==='manual'&&(plan()?.revision!==original.revision||plan()?.text!==original.text))throw Error('The SOD changed since review. Generate and review it again.');
    flow.advance(ticket,'approved');pending=pending||{review:reviewed,row:reviewed.event,user,channel:approvalChannel};approvalControls();
    $('morning-approve-status').textContent='Recording your confirmed native staff review…';
-   const saved=await A.call('approve',A.approvalPayload(pending.review));if(!current(at,user))return;flow.advance(ticket,'received');approvalControls();
+   const saved=await A.call('approve',A.approvalPayload(pending.review));if(!current(at,user))return;approvalResponded=true;flow.advance(ticket,'received');approvalControls();
    if(!A.receiptMatches(pending.review,saved,user))throw Error('Server review receipt not confirmed.');
    const row=await A.call('get',{event_id:pending.row.id});if(!current(at,user))return;
    if(!A.verified(pending.review,row,user)||M.canonical(saved.event)!==M.canonical(row))throw Error('Saved approval did not match independent readback.');
@@ -243,7 +243,7 @@
    feedback('Approved SOD and server review receipt saved and verified. No tasks or deposits changed.');render();historyRefresh();refreshPending();$('morning-start-open').disabled||$('morning-start-open').focus({preventScroll:true});
   }catch(error){
    if(!current(at,user))return;flow.advance(ticket,flow.phase==='checking'?'rejected':'failed');
-   if(['22023','40001','42501','P0002'].includes(error.code)){pending=null;prepared=null;}
+   if(!approvalResponded&&['22023','40001','42501','P0002'].includes(error.code)){pending=null;prepared=null;}
    $('morning-approve-status').textContent=pending?'Approval outcome is unverified. Check the original submission before another save.':error.message||'Approval not saved. Review access and source versions.';
    feedback(pending?'Approval needs verification. Use Check saved approval; a new approval is blocked.':'Approval was not saved or verified. Review current access and source conflicts.');
   }finally{if(current(at,user)){S.setLocked(false);approvalControls();render()}}
