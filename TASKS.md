@@ -24,13 +24,13 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
   part of this setup. Phase 4 head `676e896` has 211 unit / 254 browser checks
   and full CI green. Review evidence is already committed on its branch.
   Small review steps (claim separately; no feature rewrite or merge):
-  1. [ ] **OPS-FOCUS-REVIEW.1:** Audit #70/#71 carousel, shared data, modal,
+  1. [x] **OPS-FOCUS-REVIEW.1:** Completed/released by hp in [review #76](https://github.com/huzshk0707/Oaktown-ops/pull/76); do not repeat. Audit #70/#71 carousel, shared data, modal,
      keyboard/focus and existing Review integration; link exact heads/findings.
-  2. [ ] **OPS-FOCUS-REVIEW.2:** Audit #72 confirmation, permissions, atomic task
+  2. [x] **OPS-FOCUS-REVIEW.2:** Completed/released by hp in [review #78](https://github.com/huzshk0707/Oaktown-ops/pull/78); do not repeat. Audit #72 confirmation, permissions, atomic task
      versions, Defer/Undo and failure recovery using existing fictional tests.
-  3. [ ] **OPS-FOCUS-REVIEW.3:** Audit #73 desktop morning/SOD flow, provenance,
+  3. [x] **OPS-FOCUS-REVIEW.3:** Completed/released by hp in [review #79](https://github.com/huzshk0707/Oaktown-ops/pull/79); do not repeat. Audit #73 desktop morning/SOD flow, provenance,
      approval journal, retention/audience boundaries and missing integrations.
-  4. [ ] **OPS-FOCUS-REVIEW.4:** Consolidate findings and desktop review evidence;
+  4. [ ] **OPS-FOCUS-REVIEW.4:** Claimed by hp on `hp/focus-review-summary`; heartbeat 2026-11-16 03:01 UTC; expires 2026-11-16 03:31 UTC; draft PR opening. Consolidate findings and desktop review evidence;
      propose bounded fixes and ask the owner for any product/merge decisions.
 - [ ] **OPS-PLANNING-DATA:** Review recorded owner/next-action/follow-up gaps using
   the current Needs planning view. Propose source-backed fixes; do not invent
