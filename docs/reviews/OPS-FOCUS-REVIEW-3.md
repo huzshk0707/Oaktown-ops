@@ -99,8 +99,19 @@ gesture or component is added. Captures and machine-readable evidence are in
 [focus-phase-4](focus-phase-4/); the acceptance source commit remains the exact
 Phase 4 export, not a rebuilt app or a production staff session.
 
-Final capture inventory and local review-only link/scope checks are recorded in
-the PR running log after the capture process completes. The original immutable
+Capture completed: [1280 overview](focus-phase-4/desktop-overview-1280.png),
+[1440 overview](focus-phase-4/desktop-overview-1440.png),
+[1920 overview](focus-phase-4/desktop-overview-1920.png),
+[source review](focus-phase-4/incoming-source-review.png),
+[approved SOD](focus-phase-4/approved-sod.png),
+[Focus transition](focus-phase-4/approved-focus-board.png),
+[empty](focus-phase-4/empty-state.png), [error](focus-phase-4/error-state.png),
+and [capture evidence](focus-phase-4/capture-evidence.json). Twelve desktop images
+cover the scenes; one fictional journal approval and zero operational task writes
+were asserted. The served morning controller/model/SOD bytes matched the exact
+export. Final main-based branch checks passed 185 unit tests, inventory 25 families /
+54 scripts, helper syntax, report links, JSON/source evidence and review-only scope.
+The latest hosted completion result is recorded in the PR log after its run. The original immutable
 feature captures remain in
 [Phase 4 source evidence](https://github.com/huzshk0707/Oaktown-ops/tree/676e8961a6cb552f6916c655d966a8150f2c3ede/docs/ui-review/focus-board-phase-4).
 
