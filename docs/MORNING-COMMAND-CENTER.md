@@ -194,14 +194,14 @@ plan lifecycle requires a separately reviewed backend capability if later needed
 ## Verification and desktop review
 
 - 211 Node model/API/unit checks pass.
-- The 18 new Chromium cases cover intake, XSS-as-text, classification, duplicates,
+- The 19 new Chromium cases cover intake, XSS-as-text, classification, duplicates,
   reviewed proposals, Task Intake handoff, SOD editing/approval, source evidence,
   refresh/version conflict, lost-response recovery, session expiry/sign-out,
   write-free Start and execution context, plus more than 1,000 real-shaped tasks.
 - Desktop geometry at 1280/1440/1920 and scoped axe checks across all six
   appearances pass. Native dialogs trap focus, support Escape and restore focus.
   Morning introduces no animation, so it works with reduced motion unchanged.
-- All 253 browser cases pass locally. The existing suite is retained, including its historical security
+- The full 253-case browser run and the additional desktop Search-restoration regression pass locally. The existing suite is retained, including its historical security
   and responsive cases. No new mobile suite, gesture or screenshot is introduced.
 - Disposable PostgreSQL 16 verifies editor acceptance, viewer/inactive/unapproved/
   anonymous denial, server-overridden actor/time, exact readback, duplicate-key

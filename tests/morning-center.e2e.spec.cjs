@@ -1,6 +1,10 @@
 'use strict';
 const {test,expect}=require('@playwright/test'),AxeBuilder=require('@axe-core/playwright').default;
-const {open,addMessage,reviewFirst,draft,approvePlan,USER}=require('./morning-fixtures.cjs');
+const {open,morningMock,signIn,ORIGIN,addMessage,reviewFirst,draft,approvePlan,USER}=require('./morning-fixtures.cjs');
+test('shared Search returns to the full workspace after Morning when the initial route was Focus Board',async({page})=>{
+ await page.setViewportSize({width:1440,height:1080});const s=await morningMock(page);await page.goto(ORIGIN+'/#/focus');await signIn(page);await page.locator('#focus-deck').waitFor({state:'visible'});await page.locator('#focus-exit').click();await expect(page.locator('.operations-toolbar #operations-search-open')).toBeVisible();
+ await page.locator('[data-workspace="morning"]').click();await expect(page.locator('.topbar #operations-search-open')).toBeVisible();await page.locator('#morning-command-exit').click();await expect(page.locator('.operations-toolbar #operations-search-open')).toBeVisible();await page.locator('[data-workspace="focus"]').click();await page.locator('#focus-exit').click();await expect(page.locator('.operations-toolbar #operations-search-open')).toBeVisible();expect(s.writes).toEqual([]);
+});
 test('desktop Morning Command Center uses the shared snapshot, clocks and the existing single SOD editor',async({page})=>{
  const s=await open(page);await expect(page).toHaveURL(/#\/morning$/);await expect(page.locator('#morning-grid')).toBeVisible();await expect(page.locator('#morning-sod-host #sod-form')).toHaveCount(1);await expect(page.locator('#sod-form')).toHaveCount(1);await expect(page.locator('#morning-command-date')).toContainText('EASTERN');await expect(page.locator('#clock-eastern-time')).not.toBeEmpty();await expect(page.locator('#clock-india-time')).not.toBeEmpty();await expect(page.locator('#morning-priority-work')).toContainText('DEMO-101');await expect(page.locator('#morning-assignments')).toContainText('Example Staff');await expect(page.locator('.sidebar')).not.toBeVisible();expect(s.writes).toEqual([]);
  await page.locator('#morning-command-exit').click();await expect(page.locator('#today-workflow #sod-morning')).toHaveCount(1);await expect(page.locator('.sidebar')).toBeVisible();

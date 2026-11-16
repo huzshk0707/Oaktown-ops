@@ -4,7 +4,7 @@
  const host=$('morning-workflow');if(!host||!M||!S)return;
  const sod=$('sod-morning'),sodHome=document.createComment('Existing SOD editor home');sod.before(sodHome);
  const draftBoundary=$('sod-draft-boundary'),draftBoundaryHome=draftBoundary.textContent;
- const search=$('operations-search-open'),searchHome=document.createComment('Existing search home');search.before(searchHome);
+ const search=$('operations-search-open'),searchHome=document.createComment('Existing search home');document.querySelector('.operations-toolbar').prepend(searchHome);
  const topbar=document.querySelector('.topbar'),flow=W.create(),review=$('morning-review-dialog'),approve=$('morning-approve-dialog'),start=$('morning-start-dialog');
  let knownSources=[],intakeDirty=false,executionId=null,active=false,items=[],epoch=0,reviewId=null,lastFocus=null,duplicateCandidate=null,pending=null,preview=null,historyTicket=0,transition=0,starting=false;
  const request=(path,options={})=>W.withTimeout(signal=>cloud.api(path,{...options,signal}));
