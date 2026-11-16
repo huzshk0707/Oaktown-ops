@@ -90,10 +90,14 @@
    if(!allowed())throw Error('Editor access is unavailable. No new action was submitted.');
    if(!retry&&(!task(plan.id)||task(plan.id).archived_at||!W.sameVersion(task(plan.id).updated_at,plan.version)))throw Error('Task changed since review. Refresh and review again; newer work was kept.');
    if(!retry&&plan.kind==='undo')M.undo(task(plan.id),recent);
+   if(!retry&&plan.kind==='defer')M.plan(task(plan.id),'defer',{date:plan.changes.follow_up.date});
    flow.advance(ticket,'approved');controls();$('focus-action-error').textContent='Saving the confirmed action…';
    if(!pending){
     const session=await request('new');if(!live(started)||account()!==user)return;
     if(!session?.session_id)throw Error('The task API did not return a session. No task action was submitted.');
+    // Session creation can span Eastern midnight. Validate before freezing a new
+    // request; uncertain saves must still replay their original immutable payload.
+    if(plan.kind==='defer')M.plan(task(plan.id),'defer',{date:plan.changes.follow_up.date});
     const reference='focus-'+crypto.randomUUID();pending={session:session.session_id,reference,plan,nextId:window.OpsFocusBoard?.getNext(plan.id),payload:M.payload(plan,session.session_id,reference)};
    }
    const receipt=await request('save',pending.session,pending.payload);if(!live(started)||account()!==user)return;
