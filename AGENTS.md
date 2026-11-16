@@ -134,6 +134,8 @@ and do not conflate Leslie's inspection with Huzy's personal EOD actions.
 
 ## Verification and handoff
 
+- Fresh checkouts first install the pinned connector packages with
+  `npm ci --no-fund --no-audit --prefix supabase/functions/oaktown-task-api`.
 - Unit checks: `node --test tests/*.test.cjs`.
 - Browser checks: the Playwright version and commands in `.github/workflows/checks.yml`.
   Use mocked APIs/fictional inputs; do not use a real staff session for test fixtures.
