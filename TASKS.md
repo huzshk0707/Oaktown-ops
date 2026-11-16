@@ -14,7 +14,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P1 — owner-confirmed top priority: Focus Board review
 
-- [ ] **OPS-FOCUS-REVIEW:** Review the existing completed stack in dependency order:
+- [x] **OPS-FOCUS-REVIEW:** Independent review complete in #76/#78/#79/[#80](https://github.com/huzshk0707/Oaktown-ops/pull/80); feature acceptance/merge remains separate. Review the existing completed stack in dependency order:
   [#70](https://github.com/huzshk0707/Oaktown-ops/pull/70) Phase 1 → main;
   [#71](https://github.com/huzshk0707/Oaktown-ops/pull/71) Phase 2 → Phase 1;
   [#72](https://github.com/huzshk0707/Oaktown-ops/pull/72) Phase 3 → Phase 2;
@@ -30,7 +30,7 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
      versions, Defer/Undo and failure recovery using existing fictional tests.
   3. [x] **OPS-FOCUS-REVIEW.3:** Completed/released by hp in [review #79](https://github.com/huzshk0707/Oaktown-ops/pull/79); do not repeat. Audit #73 desktop morning/SOD flow, provenance,
      approval journal, retention/audience boundaries and missing integrations.
-  4. [ ] **OPS-FOCUS-REVIEW.4:** Claimed by hp on `hp/focus-review-summary`; heartbeat 2026-11-16 03:01 UTC; expires 2026-11-16 03:31 UTC; draft PR opening. Consolidate findings and desktop review evidence;
+  4. [x] **OPS-FOCUS-REVIEW.4:** Completed/released by hp at 2026-11-16 03:18 UTC; [consolidation #80](https://github.com/huzshk0707/Oaktown-ops/pull/80), [report/decision matrix](docs/reviews/FOCUS-BOARD-CONSOLIDATED-REVIEW.md). Consolidate findings and desktop review evidence;
      propose bounded fixes and ask the owner for any product/merge decisions.
 - [ ] **OPS-PLANNING-DATA:** Review recorded owner/next-action/follow-up gaps using
   the current Needs planning view. Propose source-backed fixes; do not invent
@@ -41,6 +41,22 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
   and the shared operating protocol; source completion is not personal EOD work.
 
 ## P2 — integrations and reliability, separate small tasks
+
+- [ ] **OPS-FOCUS-READER-CURSOR:** Unclaimed; recommended next bounded fix.
+  Confirmed P2 offset-page deletion omission (#76). Stage on a new child draft
+  from completed Phase 5, preserve shared auth/reader guards and add deletion/
+  insertion page-boundary regressions. Do not claim keyset is an atomic snapshot.
+- [ ] **OPS-FOCUS-DEFER-ROLLOVER:** Unclaimed; confirmed P2 in #78. Revalidate new
+  deferrals after preflight/before initial save across Eastern midnight without
+  changing dates silently or breaking identical uncertain-request replay.
+- [ ] **OPS-REVIEW-ROLLOUT-DECISIONS:** Owner decision record requested in
+  [consolidation report](docs/reviews/FOCUS-BOARD-CONSOLIDATED-REVIEW.md): minimal
+  source references/excerpts vs full bodies, authorized staff audience/retention,
+  concurrent-plan semantics and actual release scope. No production action implied.
+- [ ] **OPS-PHASE6:** Separate Ravi work in draft #77. Use its latest branch
+  HANDOFF/CI for unfinished UI/attested-read/consent wiring and tests. Do not
+  duplicate, assume activation or take over merely because this review is complete.
+
 
 - [ ] **OPS-MAILBOX:** Design/authorize an in-app read-only mailbox integration,
   provider/source-ID contract and secure retention. Phase 4 has manual intake;
