@@ -36,6 +36,12 @@ jobs:
           node --check eod.js
           node --check workspace-theme.js
           node --check connections-model.js
+          node --check daily-model.js
+          node --check daily-center.js
+          node --check morning-model.js
+          node --check morning-center.js
+          node --check plan-review-api.js
+          node --check plan-connection.js
           node --check sod-model.js
           node --check sod.js
           node --check bill-reminders-model.js
@@ -43,6 +49,11 @@ jobs:
           node --check deposit-model.js
           node --check deposit-export.js
           node --check deposit-preparation.js
+          node --check ops-task-reader.js
+          node --check focus-board-model.js
+          node --check focus-actions-model.js
+          node --check focus-actions.js
+          node --check focus-board.js
           node --check today.js
           node --check reviewed-write-model.js
           node --check task-edit-model.js
@@ -62,6 +73,7 @@ jobs:
           node --check task-connection-model.js
           node --check task-connection.js
           node --check supabase/functions/oaktown-task-api/server.mjs
+          node --check supabase/functions/oaktown-task-api/plan-tools.mjs
           node --check supabase/functions/oaktown-task-api/auth.mjs
       - name: Check workflow state inventory
         run: node scripts/workflow-states.cjs --check
@@ -79,7 +91,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install browser test tooling
-        run: npm install --no-save --no-fund --no-audit @playwright/test@1.56.1
+        run: npm install --no-save --no-fund --no-audit @playwright/test@1.56.1 @axe-core/playwright@4.10.2
       - name: Install Chromium for visual PDF download tests
         run: npx playwright install --with-deps chromium
       - name: Serve app locally
@@ -88,19 +100,26 @@ jobs:
           sleep 2
           curl --fail http://127.0.0.1:8765/generator.html >/dev/null
       - name: Test downloads, workflow navigation, cloud saves and sessions
-        env:
-          OAKTOWN_UI_SCREENSHOTS: '1'
         run: npx playwright test tests/*.e2e.spec.cjs --reporter=line --workers=1
+      - name: Capture fictional desktop Morning Command Center states
+        run: node scripts/capture-morning-center.cjs
+      - name: Capture Phase 5 fictional desktop dashboard
+        run: node scripts/capture-daily-center.cjs
+      - name: Capture fictional desktop native plan review
+        run: node scripts/capture-plan-review.cjs
       - name: Upload fictional UI review screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: oaktown-ui-review
           path: |
+            docs/phase-5-desktop/
+            docs/phase-6-desktop/
             test-results/ui-review/
             test-results/**/eod-*.png
             test-results/**/*-workspace.png
             test-results/**/*-task-queue.png
+            test-results/**/focus-*.png
           if-no-files-found: ignore
           retention-days: 14
       - name: Upload browser test diagnostics on failure
@@ -137,6 +156,11 @@ jobs:
       PGDATABASE: oaktown_portfolio_ci
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned task connector for composed SQL/MCP test
+        run: npm ci --no-fund --no-audit --prefix supabase/functions/oaktown-task-api
       - name: Install disposable database test tooling
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Verify historical portfolio migrations and existing workspace APIs
@@ -161,6 +185,10 @@ jobs:
             -f tests/task-delete-archived-check.sql \
             -f supabase/migrations/20261108050604_master_backlog_controlled_import.sql \
             -f tests/master-backlog-import-check.sql
+      - name: Verify Morning SOD approval in the existing staff journal
+        run: node tests/morning-journal-database.cjs
+      - name: Verify Focus Board actions through existing authorized task RPC
+        run: node tests/focus-actions-database.cjs
       - name: Reject concurrent task cycles and destructive import rollback
         run: node tests/master-backlog-security.cjs
       - name: Verify empty import schema rollback
@@ -175,6 +203,8 @@ jobs:
             -f tests/task-agent-check.sql
       - name: Reject duplicate concurrent saves and stale competing proposals
         run: node tests/task-agent-concurrency.cjs
+      - name: Verify scoped plan consent, native review, concurrency and guarded rollback
+        run: node tests/plan-review-database.cjs
       - name: Verify empty task connection rollback
         run: psql -v ON_ERROR_STOP=1 -f tests/task-agent-rollback-check.sql
       - name: Verify private monthly reminders and guarded rollback

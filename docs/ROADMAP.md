@@ -238,3 +238,62 @@ an import occurred. Do not rerun either migration from filename comparison alone
 reconcile registered SQL and recovery evidence in a dedicated database review.
 The reminder and authenticated-connector migrations are also registered live.
 Connector activation and actual reminder confirmations require their own evidence.
+
+## Focus Board — Phase 1 review branch
+
+The separate `feature/focus-board-phase-1` branch adds an opt-in `#/focus` task
+carousel, documented in [the Phase 1 architecture and order](FOCUS-BOARD-PHASE-1.md).
+It reuses the shared staff session, task snapshot/refresh, clocks, search and
+appearance controls. A shared paginated reader removes the task request's first
+1,000-row limit. Board interactions change selection only; task business statuses
+and Today rules are preserved. Full workspace routes remain available.
+This is a review preview, not a merged/deployed feature. Do not merge automatically.
+Later phases, completion/defer gestures, confirmation and Undo remain unimplemented.
+
+## Center Focus Mode and HUD — Phase 2 review branch
+
+`feature/focus-board-phase-2` builds on the current PR #70 head and targets its
+Phase 1 branch for independent review. The [Phase 2 guide](FOCUS-BOARD-PHASE-2.md)
+records the native task-detail modal, existing Review handoff, session/refresh
+protections and priority/motion treatment. Shared data/auth, task records and the
+production landing route are preserved. Both increments remain unmerged and
+unpublished; completion/defer/Undo and later morning-flow changes remain future work.
+
+## Focus Board — Phase 3 safe-action review branch
+
+`feature/focus-board-phase-3` builds on the unchanged Phase 2 head.
+[Phase 3 architecture and safety](FOCUS-BOARD-PHASE-3.md) documents confirmed
+Complete, follow-up-only Defer and a version-guarded persisted Undo using the
+existing intake RPC. Navigation gestures remain read-only; shared snapshot/auth,
+Review and other workspace routes remain intact. This is unmerged source for a
+draft PR targeting the Phase 2 branch, without deployment or real task writes.
+
+## Morning Command Center — Phase 4 desktop review branch
+
+`feature/focus-board-phase-4` starts at the unchanged Phase 3 head `536ebca` and
+targets `feature/focus-board-phase-3`. The opt-in `#/morning` screen organizes
+manual source review, deposit reports, shared tasks and the existing SOD editor.
+Explicit approval records a versioned snapshot in the existing authenticated
+staff journal; a confirmed transition opens the existing Focus Board. Planning
+never changes operational tasks or deposits. See [the Phase 4 guide](MORNING-COMMAND-CENTER.md)
+for architecture, desktop screenshots, tests and exact persistence boundaries.
+
+The application has no mailbox ingestion service or verified deposit ledger;
+manual intake and a disconnected verification lane are explicit. Next bounded
+integration decisions are an authorized application mailbox connector, financial
+source, and SOD/source retention/audience. Resumable unapproved drafts and a
+transactional multi-user SOD policy remain future work. Desktop widths are
+1280/1440/1920; no mobile feature work is added. This branch remains unmerged and
+unpublished; Today remains the production entry route and all workflows remain.
+
+## Desktop Command Center — Phase 5 draft
+
+The Phase 5 branch builds on the unmerged Phase 4 Morning Command Center. Its
+primary view reads shared saved tasks and authorized approved SOD journal events;
+manual intake/planning is retained as an optional secondary workflow. Deposit
+integration remains Not connected. Focus sorting/actions are reused. No production
+migration, merge or deployment is part of this draft. See
+[architecture, contracts, security and limitations](DESKTOP-COMMAND-CENTER-PHASE-5.md)
+and [fictional desktop review](phase-5-desktop/README.md). The next bounded
+integration task is a scoped, reviewed ChatGPT approved-plan write contract;
+the existing task MCP does not provide that capability.

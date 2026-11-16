@@ -5,6 +5,15 @@ Prioritized from current main code/README, roadmap/audit and live open PRs on
 planning backlog, not authorization for operational writes or feature merges.
 Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
+## P0 — current user direction: Phase 6 integration / readiness
+
+- [x] **OPS-PHASE6.1** (ravi, `ravi/phase6-integration`): inspect #75 and task OAuth/API/approval authorization; aggregate-only metadata; document activation gates.
+- [x] **OPS-PHASE6.2** (ravi, complete; claim released): stage narrow SOD proposals, independent native staff review, server-attested receipts and fail-closed permissions.
+- [x] **OPS-PHASE6.3** (ravi, complete; claim released): disposable end-to-end/security/concurrency tests and release prerequisite matrix for #70–#73/#75; no live task writes.
+- [ ] **OPS-PHASE6.4:** operator-approved connection activation and fictional staff test write after source/security review. Blocked until explicitly approved; never merge/deploy as preparation.
+
+Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/43802216681): 218 unit/API and 267 browser tests, complete SQL/security/concurrency/rollback checks and desktop captures. Implementation is staged in draft #77, not deployed. Ravi’s claim is released; independent review is the next bounded task.
+
 ## P0 — reliable shared continuation
 
 - [x] **OPS-HANDOFF:** Shared protocol, account starts and PR template completed;
@@ -14,24 +23,25 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P1 — owner-confirmed top priority: Focus Board review
 
-- [ ] **OPS-FOCUS-REVIEW:** Review the existing completed stack in dependency order:
+- [x] **OPS-FOCUS-REVIEW:** Review the existing completed stack in dependency order:
   [#70](https://github.com/huzshk0707/Oaktown-ops/pull/70) Phase 1 → main;
   [#71](https://github.com/huzshk0707/Oaktown-ops/pull/71) Phase 2 → Phase 1;
   [#72](https://github.com/huzshk0707/Oaktown-ops/pull/72) Phase 3 → Phase 2;
   [#73](https://github.com/huzshk0707/Oaktown-ops/pull/73) Phase 4 → Phase 3.
-  All remain draft and unmerged by explicit user instruction. Prepare review
+  hp’s independent reviews are complete in #76/#78/#79 and consolidated in #80. Two P2 correction tasks are separate (#81 reader cursor and hp/focus-defer-midnight); do not redo or merge them here. All feature PRs remain draft and unmerged by explicit user instruction. Prepare review
   findings/desktop acceptance; do not reimplement, mark ready or merge them as
   part of this setup. Phase 4 head `676e896` has 211 unit / 254 browser checks
   and full CI green. Review evidence is already committed on its branch.
   Small review steps (claim separately; no feature rewrite or merge):
-  1. [ ] **OPS-FOCUS-REVIEW.1:** Audit #70/#71 carousel, shared data, modal,
+  1. [x] **OPS-FOCUS-REVIEW.1:** Audit #70/#71 carousel, shared data, modal,
      keyboard/focus and existing Review integration; link exact heads/findings.
-  2. [ ] **OPS-FOCUS-REVIEW.2:** Audit #72 confirmation, permissions, atomic task
+  2. [x] **OPS-FOCUS-REVIEW.2:** Audit #72 confirmation, permissions, atomic task
      versions, Defer/Undo and failure recovery using existing fictional tests.
-  3. [ ] **OPS-FOCUS-REVIEW.3:** Audit #73 desktop morning/SOD flow, provenance,
+  3. [x] **OPS-FOCUS-REVIEW.3:** Audit #73 desktop morning/SOD flow, provenance,
      approval journal, retention/audience boundaries and missing integrations.
-  4. [ ] **OPS-FOCUS-REVIEW.4:** Consolidate findings and desktop review evidence;
+  4. [x] **OPS-FOCUS-REVIEW.4:** Consolidate findings and desktop review evidence;
      propose bounded fixes and ask the owner for any product/merge decisions.
+- [ ] **OPS-RELEASE-REVIEW:** Independently review Phase 6 #77 after ravi releases its claim, then compose approved #81/#82 corrections with the stack in a disposable checkout and rerun checks. hp completed those bounded fixes; do not redo or merge them automatically. Source-retention/audience and actual OAuth activation remain separate decisions.
 - [ ] **OPS-PLANNING-DATA:** Review recorded owner/next-action/follow-up gaps using
   the current Needs planning view. Propose source-backed fixes; do not invent
   deadlines/owners or write real tasks without the established reviewed workflow.
