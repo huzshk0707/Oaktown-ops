@@ -7,10 +7,12 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P0 — active lease page 8 upgrade
 
-- [ ] **OPS-LEASE-PAGE8.1** — hp (`hp/lease-page8-editor`): reuse existing workflow; editable room labels/location, independent 2-column/bedroom-bath placements, 3–5-bedroom cases, dropdown+Custom, blank absent-room condition lines.
-- [ ] **OPS-LEASE-PAGE8.2** — same task: backward-compatible Supabase draft/review/approval state tied to existing unit/lease IDs, shared session, stale-version/account isolation; no production test writes.
-- [ ] **OPS-LEASE-PAGE8.3** — same task: approved original-template preservation and reviewed mapping/preview/export; no invented layout or clause text. Original Drive access/visual comparison tracked explicitly.
+- [x] **OPS-LEASE-PAGE8.1** — hp (`hp/lease-page8-editor`): reuse existing workflow; editable room labels/location, independent 2-column/bedroom-bath placements, 3–5-bedroom cases, dropdown+Custom, blank absent-room condition lines.
+- [x] **OPS-LEASE-PAGE8.2** — same task: staged/tested backward-compatible Supabase draft/review/approval state tied to existing unit/lease IDs, shared session, stale-version/account isolation; no production test writes.
+- [x] **OPS-LEASE-PAGE8.3** — same task: source implementation for approved original-template preservation and reviewed mapping/preview/export; no invented layout or clause text. Original Drive access/visual comparison tracked explicitly.
 - [ ] **OPS-LEASE-PAGE8.4** — fictional regression/visual PDF samples and desktop captures; full CI; user-authorized merge/publication/tag.
+
+- [ ] **OPS-LEASE-PAGE8.ACTIVATE** — operator backend installation + approved real blank/master map and five-reference visual comparison; no deployment tool/Drive download tool exposed in this execution. See docs/releases/LEASE-PAGE8-2026-11-16.md. Source merge does not complete this step.
 
 ## Historical pre-release landing snapshot (superseded by completed #84)
 

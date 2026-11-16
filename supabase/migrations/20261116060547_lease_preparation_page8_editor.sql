@@ -54,10 +54,19 @@ begin
 end$$;
 revoke all on function ops_lease_private.staff_actor() from public,anon,authenticated;
 
+-- A condition history entry deliberately excludes all tenancy/financial/contact data.
+create function ops_lease_private.condition_snapshot(d jsonb,c uuid,v integer,a uuid,reviewed timestamptz) returns jsonb
+language sql immutable set search_path='' as $$
+ select jsonb_build_object('case_id',c,'version',v,'approved_by',a,'approved_at',reviewed,
+  'state',jsonb_build_object('bedrooms',d->'state'->'bedrooms','bathrooms',d->'state'->'bathrooms','basement',d->'state'->'basement','additionalRoom',d->'state'->'additionalRoom',
+   'conditions',d->'state'->'conditions','roomLabels',d->'state'->'roomLabels','roomLocations',d->'state'->'roomLocations','roomPlacements',d->'state'->'roomPlacements'));
+$$;
+revoke all on function ops_lease_private.condition_snapshot(jsonb,uuid,integer,uuid,timestamptz) from public,anon,authenticated;
+
 create function ops_lease_private.validate_data(d jsonb,ready boolean) returns void
 language plpgsql security invoker set search_path='' as $$
 declare s jsonb:=d->'state'; t jsonb:=d->'template'; k text; value jsonb; calendar date;
- areas text[]:=array['kitchen','living','exterior','systems','other']; area text; pos jsonb; occupied text[]:='{}'; position_key text; f jsonb; other_f jsonb; dims jsonb;
+ areas text[]:=array['kitchen','living','exterior','systems','other']; area text; pos jsonb; occupied text[]:='{}'; position_key text; f jsonb; other_f jsonb; dims jsonb; mapped_keys text[]; target text; service_index integer;
 begin
  if jsonb_typeof(d) is distinct from 'object' or octet_length(d::text)>250000
   or d->>'schema_version' is distinct from 'oaktown.lease-preparation.v1' or jsonb_typeof(s) is distinct from 'object'
@@ -102,10 +111,26 @@ begin
   or jsonb_typeof(t->'map'->'fields') is distinct from 'array' or jsonb_array_length(t->'map'->'fields') not between 1 and 250
   or jsonb_typeof(t->'map'->'protectedAreas') is distinct from 'array' or jsonb_array_length(t->'map'->'protectedAreas')>80
  then raise exception 'Review the exact approved ten-page blank master and field map' using errcode='22023';end if;
+ for dims in select * from jsonb_array_elements(t->'map'->'pages') loop
+  if jsonb_typeof(dims->'width') is distinct from 'number' or jsonb_typeof(dims->'height') is distinct from 'number'
+   or (dims->>'width')::numeric not between 100 and 2000 or (dims->>'height')::numeric not between 100 and 2000
+   or dims->>'rotation' is distinct from '0' then raise exception 'Unsupported original page dimensions or rotation' using errcode='22023';end if;
+ end loop;
+ for f in select * from jsonb_array_elements(t->'map'->'protectedAreas') loop
+  if coalesce(f->>'page','') !~ '^(10|[1-9])$' then raise exception 'Invalid protected signature page' using errcode='22023';end if;
+  dims:=t->'map'->'pages'->((f->>'page')::integer-1);
+  foreach k in array array['x','y','width','height'] loop if jsonb_typeof(f->k) is distinct from 'number' then raise exception 'Invalid protected signature rectangle' using errcode='22023';end if;end loop;
+  if (f->>'x')::numeric<0 or (f->>'y')::numeric<0 or (f->>'width')::numeric<=0 or (f->>'height')::numeric<=0
+   or (f->>'x')::numeric+(f->>'width')::numeric>(dims->>'width')::numeric or (f->>'y')::numeric+(f->>'height')::numeric>(dims->>'height')::numeric
+  then raise exception 'Protected signature rectangle outside original page' using errcode='22023';end if;
+ end loop;
+ if exists(select 1 from jsonb_array_elements(t->'map'->'fields') z group by z->>'page',z->>'key' having count(*)>1) then raise exception 'Duplicate original field binding' using errcode='22023';end if;
+ select array_agg(z->>'key') into mapped_keys from jsonb_array_elements(t->'map'->'fields') z;
  for f in select * from jsonb_array_elements(t->'map'->'fields') loop
   if coalesce(f->>'page','') !~ '^(10|[1-9])$' or coalesce(f->>'font','') not in ('Helvetica','Times-Roman','Courier','Custom')
    or jsonb_typeof(f->'size') is distinct from 'number' or (f->>'size')::numeric not between 6 and 24
   then raise exception 'Invalid template field font or page' using errcode='22023';end if;
+  if coalesce(f->>'align','left') not in ('left','center','right') or coalesce(f->>'key','') !~ '^(term/[^/]{1,100}|slot/(kitchen|bathroom|living|bedroom-[1-5]|basement|additional|exterior|systems|other)/[01]/[0-2]/[^/]{1,100})$' then raise exception 'Invalid original field binding or alignment' using errcode='22023';end if;
   dims:=t->'map'->'pages'->((f->>'page')::integer-1);
   foreach k in array array['x','y','width','height'] loop if jsonb_typeof(f->k) is distinct from 'number' then raise exception 'Invalid template rectangle' using errcode='22023';end if;end loop;
   if (f->>'x')::numeric<0 or (f->>'y')::numeric<0 or (f->>'width')::numeric<=0 or (f->>'height')::numeric<=0
@@ -117,6 +142,33 @@ begin
     and (f->>'x')::numeric+(f->>'width')::numeric>(other_f->>'x')::numeric and (f->>'y')::numeric<(other_f->>'y')::numeric+(other_f->>'height')::numeric
     and (f->>'y')::numeric+(f->>'height')::numeric>(other_f->>'y')::numeric then raise exception 'Field overlaps protected signature area' using errcode='22023';end if;
   end loop;
+ end loop;
+ if exists(select 1 from jsonb_array_elements(t->'map'->'fields') aa cross join jsonb_array_elements(t->'map'->'fields') bb
+  where aa<>bb and aa->>'page'=bb->>'page' and (aa->>'x')::numeric<(bb->>'x')::numeric+(bb->>'width')::numeric-0.1
+  and (aa->>'x')::numeric+(aa->>'width')::numeric>(bb->>'x')::numeric+0.1 and (aa->>'y')::numeric<(bb->>'y')::numeric+(bb->>'height')::numeric-0.1
+  and (aa->>'y')::numeric+(aa->>'height')::numeric>(bb->>'y')::numeric+0.1) then raise exception 'Original mapped fields overlap' using errcode='22023';end if;
+ foreach k in array array['five','ten'] loop
+  foreach service_index in array array[1,10] loop
+   if not exists(select 1 from jsonb_array_elements(t->'map'->'fields') z where z->>'key'='term/'||k and z->>'page'=service_index::text) then raise exception 'Map late charge % on actual PDF page %',k,service_index using errcode='22023';end if;
+  end loop;
+ end loop;
+ if not('term/satisfactory'=any(mapped_keys)) and not('term/satisfactory-'||lower(s->>'satisfactory')=any(mapped_keys)) then raise exception 'Map overall condition choice' using errcode='22023';end if;
+ for service_index in 0..4 loop
+  if coalesce(s->'occupants'->>service_index,'')<>'' and not('term/occupant-'||service_index=any(mapped_keys)) then raise exception 'Map every confirmed occupant' using errcode='22023';end if;
+ end loop;
+ service_index:=0;
+ foreach k in array array['Water','Electric','Gas','Trash','Internet'] loop
+  target:='term/utility-'||service_index;if not(target=any(mapped_keys)) and not(target||'-'||lower(s->'utilities'->>k)=any(mapped_keys)) then raise exception 'Map confirmed utility choice' using errcode='22023';end if;service_index:=service_index+1;
+ end loop;
+ service_index:=0;
+ foreach k in array array['Range','Refrigerator','Dishwasher','Blinds','Microwave','Garage Door Opener','Washer & Dryer'] loop
+  target:='term/appliance-'||service_index;if not(target=any(mapped_keys)) and not(target||'-'||lower(s->'appliances'->>k)=any(mapped_keys)) then raise exception 'Map confirmed appliance choice' using errcode='22023';end if;service_index:=service_index+1;
+ end loop;
+ foreach area in array array['basement','bedroom-4'] loop
+  if area='basement' and s->>'basement'='not-included' or area='bedroom-4' and (s->>'bedrooms')::integer<4 then
+   pos:=s->'roomPlacements'->area;position_key:=coalesce(pos->>'section',area)||'/'||coalesce(pos->>'column','0')||'/'||coalesce(pos->>'row','0');
+   if not('slot/'||position_key||'/label'=any(mapped_keys)) then raise exception 'Map unused room N/A label for %',area using errcode='22023';end if;
+  end if;
  end loop;
  foreach k in array array['address','cityline','leaseDate','start','end','rent','deposit','tenantName','emails','pets','five','ten'] loop
   if not exists(select 1 from jsonb_array_elements(t->'map'->'fields') mapped_entry where mapped_entry->>'key'='term/'||k) then raise exception 'Map required lease field %',k using errcode='22023';end if;
@@ -131,6 +183,8 @@ begin
    or coalesce(pos->>'column','') not in ('0','1') or coalesce(pos->>'row','') not in ('0','1','2') then raise exception 'Choose reviewed active room position for %',area using errcode='22023';end if;
   position_key:=(pos->>'section')||'/'||(pos->>'column')||'/'||(pos->>'row');
   if position_key=any(occupied) then raise exception 'Active room PDF positions collide' using errcode='22023';end if;occupied:=array_append(occupied,position_key);
+  if (coalesce(s->'roomLabels'->>area,'')<>'' or pos->>'section'<>area and area not like 'bathroom-%') and not('slot/'||position_key||'/label'=any(mapped_keys)) then raise exception 'Map edited room label' using errcode='22023';end if;
+  if coalesce(s->'roomLocations'->>area,'')<>'' and not('slot/'||position_key||'/location'=any(mapped_keys)) then raise exception 'Map room location' using errcode='22023';end if;
   for k,value in select * from jsonb_each(s->'conditions') where key like area||'::%' loop
    if value#>>'{}'<>'' and not exists(select 1 from jsonb_array_elements(t->'map'->'fields') mapped_entry where mapped_entry->>'key'='slot/'||position_key||'/'||split_part(k,'::',2))
    then raise exception 'Map every entered observation for %',area using errcode='22023';end if;
@@ -153,9 +207,9 @@ begin
    into result from public.units u join public.properties pr on pr.id=u.property_id where u.id=uid;
   if result is null then raise exception 'Unit unavailable' using errcode='P0002';end if;
   select * into a from ops_lease_private.approvals where unit_id=uid order by approved_at desc,case_id,version desc limit 1;
-  return result||jsonb_build_object('approved_conditions',case when a.case_id is null then null else jsonb_build_object('case_id',a.case_id,'version',a.version,'approved_at',a.approved_at,
-   'state',jsonb_build_object('bedrooms',a.data->'state'->'bedrooms','bathrooms',a.data->'state'->'bathrooms','basement',a.data->'state'->'basement','additionalRoom',a.data->'state'->'additionalRoom',
-    'conditions',a.data->'state'->'conditions','roomLabels',a.data->'state'->'roomLabels','roomLocations',a.data->'state'->'roomLocations','roomPlacements',a.data->'state'->'roomPlacements')) end);
+  return result||jsonb_build_object('approved_conditions',case when a.case_id is null then null else ops_lease_private.condition_snapshot(a.data,a.case_id,a.version,a.actor_id,a.approved_at) end,
+   'condition_history',coalesce((select jsonb_agg(ops_lease_private.condition_snapshot(h.data,h.case_id,h.version,h.actor_id,h.approved_at))
+    from (select * from ops_lease_private.approvals where unit_id=uid order by approved_at desc,case_id,version desc limit 20) h),'[]'));
  elsif action='templates' then
   return jsonb_build_object('templates',coalesce((select jsonb_agg(x.template) from
    (select distinct on(data->'template'->'map'->>'templateSha256') data->'template' template

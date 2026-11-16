@@ -1,4 +1,4 @@
-/* Staff-only, in-memory new-lease prototype. Export awaits clean approved masters. */
+/* Existing staff lease inputs; optional reviewed template controller owns saved I/O. */
 (()=>{'use strict';
  const M=window.OpsLeasePreparation,P=window.OpsLeasePage8,R=window.OpsRenewalRules,cloud=window.OpsCloud,panel=document.getElementById('new-lease-panel');
  if(!M||!R||!cloud||!panel)return;
@@ -9,7 +9,7 @@
  tool.append(el('span','lease-draft-badge','PREPARATION PREVIEW'),title,el('p','guide-hint','Use confirmed application and deposit details, then review the new tenancy’s terms and unit condition sheet.'));
  const limitations=el('section','lease-draft-limitations');limitations.setAttribute('aria-label','New lease preparation limits');
  limitations.append(el('strong','','Before you start'),el('p','','Inputs are temporary and are not saved to a case. Reloading or signing out clears this draft.'),el('p','','Full ten-page lease export is unavailable. You can review your inputs and download a draft page 8 condition sheet only. Nothing here signs a lease or confirms approval or payment.'));tool.append(limitations);
- const blockers=el('details','lease-draft-sources');blockers.append(el('summary','','PDF materials still needed'));
+ const blockers=el('details','lease-draft-sources');blockers.append(el('summary','','Source and template review'));
  const sourceList=el('ul');for(const reason of M.sourceBlockers)sourceList.append(el('li','',reason));blockers.append(sourceList);
  tool.append(blockers);
  const locked=el('div','lease-draft-lock');locked.append(el('p','','Sign in with your approved staff account to enter lease details.'),button('Sign in',()=>document.getElementById('account-button').click(),'button primary'));tool.append(locked);
@@ -83,12 +83,12 @@
  const feeGrid=grid(steps[4]);input(feeGrid,'five','5% late-charge amount ($)');input(feeGrid,'ten','10% late-charge amount ($)');
  const feeMode=el('p','guide-hint');feeMode.id='newlease-fee-mode';steps[4].append(feeMode,button('Use 5% / 10% rent calculation',()=>{manualFive=false;manualTen=false;updateFees();invalidate()}));
  const reviewButton=button('Review draft inputs',review,'button primary');reviewButton.id='newlease-review';
- const download=button('Download ten-page lease PDF',()=>{},'button');download.disabled=true;download.id='newlease-download';download.title='Awaiting clean approved masters, filled examples and deposit rules.';
- const actions=el('div','lease-draft-actions');actions.append(reviewButton,download);steps[4].append(actions,el('p','guide-hint','PDF export is not enabled in this draft. The field review below is not a lease.'));
+ const download=button('Download ten-page lease PDF',()=>{},'button');download.disabled=true;download.id='newlease-download';download.title='Requires the exact reviewed original, saved preparation and native approval.';
+ const actions=el('div','lease-draft-actions');actions.append(reviewButton,download);steps[4].append(actions,el('p','guide-hint','The field review below is a working summary. Use the original-template preview and explicit approval before the final unsigned download.'));
  const output=el('section','lease-draft-review');output.id='newlease-output';output.setAttribute('aria-label','New lease field review');output.hidden=true;steps[4].append(output);
  const footer=el('div','guide-footer'),back=button('Back',()=>move(-1)),next=button('Continue',()=>move(1),'button primary');footer.append(back,next);
  const status=el('p','status');status.id='newlease-status';status.setAttribute('role','status');
- form.append(...steps);work.append(toolbar,nav,form,footer,status,el('p','lease-draft-session','Working inputs stay only for this visit. Clear draft, reload or sign out to remove them. Nothing is sent, saved to a case, or signed.'));
+ form.append(...steps);work.append(toolbar,nav,form,footer,status,el('p','lease-draft-session','Unsaved edits stay only for this visit. Save as Draft before leaving to resume the details; original PDF files must be attached again. Nothing is sent or signed.'));
  tool.append(work);panel.append(tool);
  function val(id){return $(id).value.trim()}
  function state(){return {
@@ -121,7 +121,7 @@
   current.items.forEach((item,i)=>{
    const key=current.key+'::'+item,n=input(g,'condition-'+i,item);n.value=notApplicable?'':conditions[key]||'';n.readOnly=notApplicable;
    const preset=el('select');preset.id='newlease-preset-'+i;preset.setAttribute('aria-label','Preset for '+item);preset.append(new Option('Choose description',''),...(P?.presets||M.conditionOptions).map(v=>new Option(v,v)),new Option('Custom','__custom__'));
-   const syncPreset=()=>preset.value=n.value?(P?.presets||M.conditionOptions).includes(n.value)?n.value:'__custom__':'';syncPreset();preset.disabled=notApplicable||externalBusy||!cloud.user;n.parentElement.insertBefore(preset,n);
+   const syncPreset=()=>preset.value=n.value?(P?.presets||M.conditionOptions).includes(n.value)?n.value:'__custom__':'';syncPreset();preset.disabled=notApplicable||externalBusy||!cloud.user;const textLabel=n.parentElement,pair=el('div','lease-condition-pair'),presetLabel=el('label','lease-draft-field','Preset for '+item);presetLabel.htmlFor=preset.id;presetLabel.append(preset);textLabel.replaceWith(pair);pair.append(presetLabel,textLabel);
    preset.addEventListener('change',()=>{if(preset.value==='__custom__'){n.focus();return}n.value=preset.value;n.dispatchEvent(new Event('input',{bubbles:true}))});
    n.addEventListener('input',()=>{if(notApplicable)return;conditions[key]=n.value;syncPreset();dirty=true;$('conditionsReviewed').checked=false;updateCount()});
   });updateCount();
@@ -163,7 +163,7 @@
   entries.forEach(([label,value])=>details.append(el('dt','',label),el('dd','',value||'Not entered')));output.append(details);
   const observations=el('details');observations.append(el('summary','','Review all condition entries'));
   for(const group of report.rooms){observations.append(el('h4','',group.title));const lines=el('ul');Object.entries(group.entries).forEach(([k,v])=>lines.append(el('li','',k+': '+(v||'Not entered'))));observations.append(lines)}output.append(observations);
-  output.hidden=false;status.textContent='Field review prepared. PDF export is waiting for the remaining source material.';
+  output.hidden=false;status.textContent='Field review prepared. Preview the exact original-template PDF, save and approve before final download.';
  }
  picker.addEventListener('change',()=>{
   const selected=picker.value;if(selected===lastUnit)return;
@@ -179,6 +179,11 @@
   if([$('rent'),$('five'),$('ten')].includes(e.target))updateFees();invalidate();
  });
  form.addEventListener('change',e=>{if(['newlease-bedrooms','newlease-bathrooms','newlease-basement','newlease-additionalRoom'].includes(e.target.id)){$('conditionsReviewed').checked=false;renderRoom()}invalidate()});
+ window.addEventListener('ops-open-new-lease',event=>{
+  const selected=event.detail?.unitId;if(!selected||!cloud.user||externalBusy||!units.has(selected))return;
+  picker.value=selected;picker.dispatchEvent(new Event('change',{bubbles:true}));
+  if(lastUnit===selected)window.dispatchEvent(new CustomEvent('ops-lease-source-selected',{detail:{unitId:selected,leaseId:event.detail?.leaseId||null}}));
+ });
  window.addEventListener('beforeunload',event=>{
   if(!dirty||!cloud.user)return;
   event.preventDefault();event.returnValue='';
@@ -188,11 +193,12 @@
  window.OpsLeaseDraft=Object.freeze({getState:()=>cloud.user?state():null,getHost:()=>steps[4],getPage8Host:()=>steps[3],getContextHost:()=>steps[1],setBusy(value){externalBusy=!!value;gate()},setMessage(text){status.textContent=text},setClean(){dirty=false},restore(saved,{keepStep=false}={}){
   const previousStep=step;
   if(!cloud.user||!saved||!units.has(saved.unitId))throw Error('The saved unit is unavailable. Refresh the protected portfolio.');
-  reset();lastUnit=saved.unitId;picker.value=lastUnit;
+  if(keepStep&&saved.unitId!==lastUnit)throw Error('Keep-step updates must stay on the selected unit.');
+  if(!keepStep)reset();lastUnit=saved.unitId;picker.value=lastUnit;
   for(const [key,value]of Object.entries(saved)){const n=$(key);if(n&&['INPUT','TEXTAREA','SELECT'].includes(n.tagName))n.type==='checkbox'?n.checked=value===true:n.value=typeof value==='string'?value:''}
   for(let i=0;i<5;i++)$('occupant-'+i).value=String(saved.occupants?.[i]||'');
   for(const [names,prefix]of [[R.utilities,'utility'],[R.appliances,'appliance']])names.forEach((name,i)=>$(prefix+'-'+i).value=saved[prefix==='utility'?'utilities':'appliances']?.[name]||'');
-  conditions={...saved.conditions};roomLabels={...saved.roomLabels};roomLocations={...saved.roomLocations};roomPlacements=structuredClone(saved.roomPlacements||{});manualFive=saved.fiveOverride!==null&&saved.fiveOverride!==undefined;manualTen=saved.tenOverride!==null&&saved.tenOverride!==undefined;if(manualFive)$('five').value=saved.fiveOverride;if(manualTen)$('ten').value=saved.tenOverride;dirty=false;step=keepStep?previousStep:3;render();renderRoom();updateFees();invalidate();
+  conditions={...saved.conditions};roomLabels={...saved.roomLabels};roomLocations={...saved.roomLocations};roomPlacements=structuredClone(saved.roomPlacements||{});manualFive=saved.fiveOverride!==null&&saved.fiveOverride!==undefined;manualTen=saved.tenOverride!==null&&saved.tenOverride!==undefined;if(manualFive)$('five').value=saved.fiveOverride;if(manualTen)$('ten').value=saved.tenOverride;dirty=keepStep;step=keepStep?previousStep:3;render();renderRoom();updateFees();invalidate();
  }});
  reset();refreshUnits();gate();
 })();

@@ -1,3 +1,5 @@
+> November 16: historical audit snapshot below. [Lease Page 8 update](LEASE-PAGE8-EDITOR.md) adds staged saved preparations and template-preserving ten-page overlays; blank N/A dependent fields supersede the prior all-fields N/A behavior. Backend application and original visual validation remain explicit limits.
+
 # Technical audit follow-up — November 4, 2026
 
 Reviewed baseline: main `a97e8923bf087d3253aa26dd024af33ab0f20532`, after merging

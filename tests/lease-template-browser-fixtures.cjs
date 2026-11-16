@@ -18,7 +18,10 @@ async function open(page){
   if(p==='/rest/v1/rpc/ops_lease_preparation'){
    const {action,payload}=req.postDataJSON();s.calls.push({action,payload:clone(payload)});
    if(s.missing)return fail('Fictional function unavailable',404,'PGRST202');if(s.role!=='admin'&&s.role!=='editor')return fail('Native staff editor access required',403,'42501');
-   if(action==='context')return reply({unit:{id:payload.unit_id,unit_label:payload.unit_id===UNIT?'Unit 1':'Unit 2'},property:{id:PROPERTY},leases:[{id:'44444444-4444-4444-8444-444444444444',unit_id:payload.unit_id,lease_label:'Fictional verified lease',verification_status:'verified',term_start:'2026-01-01',term_end:'2026-12-31'}],rents:[],approved_conditions:s.approvals.length?{case_id:s.approvals.at(-1).id,version:s.approvals.at(-1).version,state:Object.fromEntries(['bedrooms','bathrooms','basement','additionalRoom','conditions','roomLabels','roomLocations','roomPlacements'].map(k=>[k,s.approvals.at(-1).data.state[k]]))}:null});
+   if(action==='context'){
+    const history=s.approvals.filter(r=>r.unit_id===payload.unit_id).slice().reverse().map(r=>({case_id:r.id,version:r.version,approved_by:USER,approved_at:'2026-11-16T12:00:00Z',state:Object.fromEntries(['bedrooms','bathrooms','basement','additionalRoom','conditions','roomLabels','roomLocations','roomPlacements'].map(k=>[k,r.data.state[k]]))}));
+    return reply({unit:{id:payload.unit_id,unit_label:payload.unit_id===UNIT?'Unit 1':'Unit 2'},property:{id:PROPERTY},leases:[{id:'44444444-4444-4444-8444-444444444444',unit_id:payload.unit_id,lease_label:'Fictional verified lease',verification_status:'verified',term_start:'2026-01-01',term_end:'2026-12-31'}],rents:[],approved_conditions:history[0]||null,condition_history:history});
+   }
    if(action==='templates')return reply({templates:s.approvals.map(r=>r.data.template)});
    if(action==='list')return reply({cases:[...s.cases.values()].filter(r=>!payload.unit_id||r.unit_id===payload.unit_id).map(({id,unit_id,version,status,updated_at})=>({id,unit_id,version,status,updated_at})),has_more:false});
    if(action==='get'){if(s.getHold)await s.getHold;if(s.failGet)return fail('Fictional readback unavailable',503,'upstream');return s.cases.has(payload.id)?reply(s.cases.get(payload.id)):fail('Preparation unavailable',404,'P0002')}
@@ -49,7 +52,9 @@ async function prepare(page,s){
  await page.locator('#lease-template-file').setInputFiles({name:'Fictional Approved Blank.pdf',mimeType:'application/pdf',buffer:Buffer.from(s.fixture.bytes)});
  await expect(page.locator('#lease-template-source-status')).toContainText('10 original pages');
  await expect(page.locator('#lease-template-canvas')).toHaveAttribute('data-view','original');
+ await page.locator('.lease-template-advanced').evaluate(n=>n.open=true);
  await page.locator('#lease-template-map-import').setInputFiles({name:'fictional-reviewed-map.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(s.fixture.data.template.map))});
+ await expect(page.locator('#lease-template-status')).toContainText('Mapping loaded');
  await page.locator('#lease-template-reference').fill('Fictional approved blank original and reviewed mapping');await page.locator('#lease-template-original-reviewed').check();await page.locator('#lease-template-map-reviewed').check();
  await page.getByRole('button',{name:'Preview mapped ten-page lease',exact:true}).click();await expect(page.locator('#lease-template-status')).toContainText('Ten-page draft preview ready');await expect(page.locator('#lease-template-canvas')).toHaveAttribute('data-view','preview');
 }

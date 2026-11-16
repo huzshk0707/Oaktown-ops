@@ -31,12 +31,17 @@ async function main(){const created=[];try{
  denied('save',{...save,expected_version:1,request_ref:request(41),status:'ready',data:{...data,template:{...data.template,map:{...data.template.map,fields:data.template.map.fields.map((f,i)=>i===0?{...f,x:-10}:f)}}}},/outside/);
  denied('save',{...save,expected_version:1,request_ref:request(42),status:'ready',data:{...data,state:{...data.state,conditions:{...data.state.conditions,'bedroom-3::Floor':'Unmapped observation'}}}},/every entered/);
  denied('save',{...save,expected_version:1,request_ref:request(43),status:'ready',data:{...data,state:{...data.state,utilities:{}}}},/Confirm utility/);
+ for(const key of ['term/utility-0','term/occupant-0','slot/basement/0/0/label']){
+  denied('save',{...save,expected_version:1,request_ref:request(44),status:'ready',data:{...data,template:{...data.template,map:{...data.template.map,fields:data.template.map.fields.filter(f=>f.key!==key)}}}},/Map/);
+ }
+ denied('save',{...save,expected_version:1,request_ref:request(45),status:'ready',data:{...data,state:{...data.state,roomLocations:{'bedroom-3':'Second Floor'}}}},/Map room location/);
+ denied('save',{...save,expected_version:1,request_ref:request(46),status:'ready',data:{...data,template:{...data.template,map:{...data.template.map,protectedAreas:[{page:8,x:-1,y:65,width:50,height:50}]}}}},/outside/);
  assert.equal(call('save',{...save,expected_version:1,request_ref:request(5),status:'ready'}).version,2);
  const approve={id,expected_version:2,request_ref:request(6),reviewed:true,confirmation:'APPROVE '+id+' VERSION 2'};
  denied('approve',{...approve,reviewed:false},/Exact native/);
  const approved=call('approve',approve);assert.equal(approved.version,3);assert.equal(approved.receipt.executed,false);assert.deepEqual(call('approve',approve).receipt,approved.receipt);
  assert.equal(sql(db,"select count(*) from public.ops_events where event_type='lease_preparation_approved_v1';").stdout.trim(),'1');
- const context=call('context',{unit_id:unit},2);assert.equal(context.approved_conditions.version,3);assert.equal(JSON.stringify(context.approved_conditions).includes('fictional@example.invalid'),false,'Condition reuse leaked old tenancy terms');
+ const context=call('context',{unit_id:unit},2);assert.equal(context.approved_conditions.version,3);assert.equal(context.condition_history.length,1);assert.equal(context.condition_history[0].approved_by,actor(1));assert.deepEqual(call('templates',{},2).templates,[data.template]);assert.equal(JSON.stringify(context.approved_conditions).includes('fictional@example.invalid'),false,'Condition reuse leaked old tenancy terms');
  assert.equal(call('save',{...save,expected_version:3,request_ref:request(7)}).version,4);assert.equal(call('get',{id}).receipt,null);assert.equal(call('context',{unit_id:unit}).approved_conditions.version,3,'Editing destroyed approved condition history');
  const racers=await Promise.all([8,9].map(n=>concurrent(identity()+statement('save',{...save,expected_version:4,request_ref:request(n)}))));assert.equal(racers.filter(r=>r.code===0).length,1);assert.ok(racers.some(r=>/changed/.test(r.err)));assert.equal(call('get',{id}).version,5);
  const direct=sql(db,identity()+'select * from ops_lease_private.preparations;',true);assert.notEqual(direct.status,0);assert.match(direct.stderr,/permission denied/);

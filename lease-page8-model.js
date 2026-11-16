@@ -3,7 +3,7 @@
  'use strict';
  const sections=Object.freeze(['kitchen','bathroom','living','bedroom-1','bedroom-2','bedroom-3','bedroom-4','bedroom-5','basement','additional','exterior','systems','other']);
  const presets=Object.freeze([...new Set(['Good','New','Fair','Good & New Paint','Good & Fresh Paint','New Vinyl','Good Vinyl','Good Tile','Good Granite','Good LVT','New Carpet','Good & New Carpet','Refinished Hardwoods','N/A',...M.conditionOptions])]);
- const terms=Object.freeze(['address','cityline','leaseDate','start','end','rent','deposit','tenantName','emails','pets','five','ten',...Array.from({length:5},(_,i)=>'occupant-'+i)]);
+ const terms=Object.freeze(['address','cityline','leaseDate','start','end','rent','deposit','tenantName','emails','pets','five','ten','satisfactory','satisfactory-yes','satisfactory-no',...Array.from({length:5},(_,i)=>'occupant-'+i)]);
  function placement(key,state){
   const custom=state.roomPlacements?.[key];if(custom)return {...custom};
   if(key.startsWith('bathroom-')){const n=Number(key.split('-')[1]);return {section:n<=2?'bathroom':'unplaced',column:n===2?1:0,row:0};}
@@ -34,7 +34,7 @@
   for(const name of terms){const value=name.startsWith('occupant-')?state.occupants?.[Number(name.split('-')[1])]:name==='five'||name==='ten'?M.calculateFees(state.rent,state.fiveOverride,state.tenOverride)[name].formatted:state[name];result['term/'+name]=String(value??'');}
   for(const [i,name]of R.utilities.entries()){const value=String(state.utilities?.[name]||'');result['term/utility-'+i]=value;result['term/utility-'+i+'-landlord']=value==='Landlord'?'X':'';result['term/utility-'+i+'-tenant']=value==='Tenant'?'X':'';}
   for(const [i,name]of R.appliances.entries()){const value=String(state.appliances?.[name]||'');result['term/appliance-'+i]=value;result['term/appliance-'+i+'-yes']=value==='Yes'?'X':'';result['term/appliance-'+i+'-no']=value==='No'?'X':'';}
-  result['term/bedrooms']=String(state.bedrooms||'');result['term/satisfactory']=String(state.satisfactory||'');
+  result['term/bedrooms']=String(state.bedrooms||'');result['term/satisfactory']=String(state.satisfactory||'');result['term/satisfactory-yes']=state.satisfactory==='Yes'?'X':'';result['term/satisfactory-no']=state.satisfactory==='No'?'X':'';
   // Inactive labels retain the source position; an active den can deliberately
   // occupy the otherwise unused Bedroom 4 slot, without duplicate identity.
   for(const active of [false,true])for(const room of rooms(state)){

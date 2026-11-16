@@ -8,6 +8,7 @@ end$$;
 drop function public.ops_lease_preparation(text,jsonb);
 drop function ops_lease_private.validate_data(jsonb,boolean);
 drop function ops_lease_private.staff_actor();
+drop function ops_lease_private.condition_snapshot(jsonb,uuid,integer,uuid,timestamptz);
 drop table ops_lease_private.approvals;
 drop table ops_lease_private.preparations;
 drop schema ops_lease_private;
