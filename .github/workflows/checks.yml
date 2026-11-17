@@ -66,8 +66,12 @@ jobs:
           node --check guided-workflows.js
           node --check application-guide.js
           node --check lease-preparation-model.js
+          node --check lease-page8-model.js
           node --check lease-preparation.js
           node --check lease-condition-pdf.js
+          node --check lease-template-pdf.js
+          node --check lease-template-editor.js
+          node --check lease-template-profile.js
           node --check operations-model.js
           node --check operations.js
           node --check task-connection-model.js
@@ -107,6 +111,8 @@ jobs:
         run: node scripts/capture-daily-center.cjs
       - name: Capture fictional desktop native plan review
         run: node scripts/capture-plan-review.cjs
+      - name: Capture fictional lease editor and ten-page samples
+        run: node scripts/capture-lease-editor.cjs
       - name: Upload fictional UI review screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -115,6 +121,7 @@ jobs:
           path: |
             docs/phase-5-desktop/
             docs/phase-6-desktop/
+            docs/lease-editor-examples/
             test-results/ui-review/
             test-results/**/eod-*.png
             test-results/**/*-workspace.png
@@ -205,6 +212,8 @@ jobs:
         run: node tests/task-agent-concurrency.cjs
       - name: Verify scoped plan consent, native review, concurrency and guarded rollback
         run: node tests/plan-review-database.cjs
+      - name: Verify private lease preparation, native approval, replay and guarded rollback
+        run: node tests/lease-preparation-database.cjs
       - name: Verify empty task connection rollback
         run: psql -v ON_ERROR_STOP=1 -f tests/task-agent-rollback-check.sql
       - name: Verify private monthly reminders and guarded rollback

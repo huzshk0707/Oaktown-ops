@@ -3,7 +3,7 @@
 (function(root,factory){'use strict';const api=factory(typeof module==='object'&&module.exports?require('./lease-preparation-model.js'):root.OpsLeasePreparation);if(typeof module==='object'&&module.exports)module.exports=api;if(root)root.OpsLeaseConditionPDF=api;})(typeof window!=='undefined'?window:null,function(M){
  'use strict';
  const WIDTH=612,HEIGHT=792;
- const entry=(room,item)=>room.applicable===false?'N/A':room.entries[item]||'';
+ const entry=(room,item)=>room.applicable===false?'':room.entries[item]||'';
  const clean=value=>String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim();
  function fit(pdf,value,x,y,width,{size=8.3,min=6.4,bold=false,align='left'}={}){
   const text=clean(value);if(!text)return;
@@ -20,7 +20,7 @@
   for(let i=0;i<lines;i++){rule(pdf,x,y+i*10.2,width);if(wrapped[i])fit(pdf,wrapped[i],x+1,y-2+i*10.2,width-2,{size,min:size})}
  }
  function rows(pdf,room,x,y,step,width=252){
-  fit(pdf,room.title.toUpperCase(),x,y,width,{size:8.8,min:7.2,bold:true});y+=step;
+  fit(pdf,room.applicable===false?'N/A':room.title.toUpperCase(),x,y,width,{size:8.8,min:7.2,bold:true});y+=step;
   for(const item of room.items){
    const value=entry(room,item);
    fit(pdf,item,x,y,65,{size:Math.min(8.5,step-.6),min:6.8});
@@ -33,7 +33,7 @@
   if(!rooms.length)return y;
   fit(pdf,'BATHROOM',x,y,width,{size:8.8,min:7.2,bold:true});y+=step;
   const left=71,column=(width-left)/rooms.length;
-  rooms.forEach((r,i)=>fit(pdf,r.title,x+left+i*column,y,column-3,{size:7.8,min:6.4,bold:true}));y+=step;
+  rooms.forEach((r,i)=>fit(pdf,r.applicable===false?'N/A':r.title,x+left+i*column,y,column-3,{size:7.8,min:6.4,bold:true}));y+=step;
   for(const item of rooms[0].items){
    fit(pdf,item,x,y,66,{size:Math.min(8.5,step-.6),min:6.8});
    rooms.forEach((r,i)=>{const at=x+left+i*column;rule(pdf,at,y+1.1,column-3);fit(pdf,entry(r,item),at+1,y-.25,column-5,{size:Math.min(8.3,step-.6),min:6.2})});y+=step;

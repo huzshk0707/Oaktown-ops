@@ -1,3 +1,5 @@
+> November 16 update: [the original-PDF Page 8 editor](LEASE-PAGE8-EDITOR.md) supersedes this historical visit-only export/N/A behavior. It adds staged native persistence and reviewed original-template overlays; production backend installation and original visual comparison remain separately tracked.
+
 # New-tenancy lease preparation — current scope
 
 This tool follows the application/non-refundable-deposit handoff. It is separate

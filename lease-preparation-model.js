@@ -12,7 +12,7 @@
  ]);
  // Non-identifying phrases observed in the examples. No item is a property default.
  const conditionOptions=Object.freeze([
-  'Good','New','N/A','Good & New Paint','Good & Fresh Paint','New Paint',
+  'Good','New','Fair','N/A','Good & New Paint','Good & Fresh Paint','New Paint','Refinished Hardwoods',
   'Good LVT','Good Vinyl','New Vinyl','Good Tile','New Tile','Good Hardwood','Refinished Hardwood',
   'Good & New Carpet','New Carpet','Good Laminate','Good New Painted Concrete',
   'Unfinished New Paint on Concrete Walls','Good Granite','New Granite & Backsplash','New & Granite',
@@ -73,7 +73,7 @@
   if(!['included','not-included'].includes(state.basement))missing.push('Confirm whether a basement belongs to this unit.');
   const fees=calculateFees(state.rent,state.fiveOverride,state.tenOverride);
   if(fees.five.cents===null||fees.ten.cents===null)missing.push('Complete both late-charge dollar amounts.');
-  const rooms=roomPlan(state.bedrooms,state.bathrooms,state.basement,state.roomLabels,state.additionalRoom).map(room=>({...room,entries:Object.fromEntries(room.items.map(item=>[item,room.applicable===false?'N/A':String(state.conditions?.[room.key+'::'+item]||'').trim()]))}));
+  const rooms=roomPlan(state.bedrooms,state.bathrooms,state.basement,state.roomLabels,state.additionalRoom).map(room=>({...room,label:room.applicable===false?'N/A':String(state.roomLabels?.[room.key]||room.title),location:room.applicable===false?'':String(state.roomLocations?.[room.key]||''),entries:Object.fromEntries(room.items.map(item=>[item,room.applicable===false?'':String(state.conditions?.[room.key+'::'+item]??'')]))}));
   const active=rooms.filter(r=>r.applicable!==false),notApplicable=rooms.filter(r=>r.applicable===false).reduce((n,r)=>n+r.items.length,0);
   const total=active.reduce((n,r)=>n+r.items.length,0),entered=active.reduce((n,r)=>n+Object.values(r.entries).filter(Boolean).length,0);
   if(!entered)missing.push('Record unit-specific condition observations; the example is never prefilled.');

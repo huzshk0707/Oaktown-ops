@@ -17,7 +17,7 @@ test('all sixty bedroom/bathroom/basement/den layouts use identical one-page rul
  for(const beds of [1,2,3,4,5])for(const baths of [1,2,3])for(const basement of ['included','not-included'])for(const additional of [false,true]){
   const r=recording(),layout=P.draw(r.pdf,sheet(beds,baths,additional,basement));
   const headings=r.texts.filter(x=>/^(BEDROOM [1-5]|Bathroom [1-3]|BASEMENT|DEN \/ OTHER ROOM)$/.test(x.value));
-  const geometry={lines:r.lines,headings,layout};
+  const geometry={lines:r.lines,layout};
   if(baseline)assert.deepEqual(geometry,baseline);else baseline=geometry;
   assert.equal(r.pdf.internal.getNumberOfPages(),1);assert.equal(r.pdf.internal.pageSize.getWidth(),612);assert.equal(r.pdf.internal.pageSize.getHeight(),792);assert.ok(layout.leftBottom<=635.1);assert.ok(layout.lineStep>=8);
  }
@@ -26,11 +26,11 @@ test('room-array order cannot move fields into a different template slot',()=>{
  const s=sheet(3,2,true),first=recording(),reordered=recording();P.draw(first.pdf,s);s.rooms.reverse();P.draw(reordered.pdf,s);
  assert.deepEqual(reordered.texts,first.texts);assert.deepEqual(reordered.lines,first.lines);
 });
-test('two-bedroom sheet retains bedrooms three to five and the absent basement with N/A in every field',()=>{
+test('two-bedroom sheet retains bedrooms three to five and the absent basement with N/A labels and blank condition lines',()=>{
  const s=sheet(2,1,false,'not-included');s.rooms.find(r=>r.key==='bedroom-4').entries.Doors='Stale observation must not print';
  const r=recording();P.draw(r.pdf,s);
- assert.equal(r.texts.filter(x=>x.value==='N/A').length,43);
- for(const heading of ['BEDROOM 1','BEDROOM 2','BEDROOM 3','BEDROOM 4','BEDROOM 5','BASEMENT','DEN / OTHER ROOM'])assert.ok(r.texts.some(x=>x.value===heading));
+ assert.equal(r.texts.filter(x=>x.value==='N/A').length,7);
+ for(const heading of ['BEDROOM 1','BEDROOM 2'])assert.ok(r.texts.some(x=>x.value===heading));
  assert.ok(!r.texts.some(x=>x.value.includes('Stale observation')));
 });
 test('room labels and den fields remain independent when every template section is present',()=>{

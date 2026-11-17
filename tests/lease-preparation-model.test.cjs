@@ -19,14 +19,14 @@ test('every layout retains the complete template and marks excluded areas N/A wi
   const r=M.buildReview({...fixture(),bedrooms:String(beds),conditions:{}});
   assert.equal(r.rooms.filter(x=>x.key.startsWith('bedroom-')).length,5);
   assert.equal(r.rooms.filter(x=>x.key.startsWith('bedroom-')&&x.applicable).length,beds);
-  assert.ok(r.rooms.every(room=>Object.values(room.entries).every(x=>x===(room.applicable===false?'N/A':''))));
+  assert.ok(r.rooms.every(room=>Object.values(room.entries).every(x=>x==='')));
   assert.ok(r.missing.some(x=>x.includes('Record unit-specific')));
   assert.equal(r.conditionCount.entered,0);
  }
  const notes={'bedroom-5::Doors':'Private fictional observation'};
- const two=M.buildReview({...fixture(),conditions:notes});assert.equal(two.rooms.find(x=>x.key==='bedroom-5').entries.Doors,'N/A');assert.equal(JSON.stringify(two.page8).includes(notes['bedroom-5::Doors']),false);
+ const two=M.buildReview({...fixture(),conditions:notes});assert.equal(two.rooms.find(x=>x.key==='bedroom-5').entries.Doors,'');assert.equal(JSON.stringify(two.page8).includes(notes['bedroom-5::Doors']),false);
  const five=M.buildReview({...fixture(),bedrooms:'5',conditions:notes});assert.equal(five.rooms.find(x=>x.key==='bedroom-5').entries.Doors,notes['bedroom-5::Doors']);
- const basement=two.rooms.find(x=>x.key==='basement');assert.ok(Object.values(basement.entries).every(x=>x==='N/A'));
+ const basement=two.rooms.find(x=>x.key==='basement');assert.ok(Object.values(basement.entries).every(x=>x===''));
  assert.equal(two.conditionCount.notApplicable,43);
 });
 test('a filled field review cannot enable a ten-page export before source approval',()=>{
@@ -43,7 +43,7 @@ test('source-derived room labels, optional den and condition choices remain expl
  const s={...fixture(),bedrooms:'3',additionalRoom:true,roomLabels:{'bedroom-3':'Primary bedroom','bathroom-1':'Main bath',additional:'Den'}};
  const r=M.buildReview(s);assert.equal(r.rooms.find(x=>x.key==='additional').title,'Den');assert.equal(r.rooms.find(x=>x.key==='bedroom-3').title,'Primary bedroom');assert.equal(r.rooms.find(x=>x.key==='bathroom-1').title,'Main bath');assert.ok(r.rooms.find(x=>x.key==='additional').items.includes('Ceiling'));
  for(const phrase of ['Rekeyed','New Paint','Refinished Hardwood','Good Laminate','N/A'])assert.ok(M.conditionOptions.includes(phrase));
- assert.ok(r.rooms.every(x=>x.key==='kitchen'||Object.values(x.entries).every(v=>v===(x.applicable===false?'N/A':''))));
+ assert.ok(r.rooms.every(x=>x.key==='kitchen'||Object.values(x.entries).every(v=>v==='')));
 });
 
 test('unknown room counts and basement presence stay unconfirmed rather than being marked N/A',()=>{
