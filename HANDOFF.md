@@ -1,3 +1,9 @@
+# Authorized merge continuation
+
+- Owner codex; heartbeat 2026-11-17 12:57 UTC; expires 2026-11-17 13:27 UTC. Previous ravi claim expired; user requests review/merge #86 and #87 plus old-PR closure.
+- Exact #86 head 92cbfaa reviewed; all CI jobs pass. #87 reviewed and merged separately. Current #86 conflicts with newer lease work; preserve both implementations with a normal merge of current main, then rerun combined checks. No production schema changes.
+- NEXT STEP: resolve main integration, run combined UI/lease regressions and hosted CI, merge #86 only when passing. Preserve branches and retain older review evidence in closed PRs.
+
 # Handoff — Morning UX and motion
 
 - Last updated: 2026-11-17 07:53 UTC by ravi; claim expires 08:23 UTC.
