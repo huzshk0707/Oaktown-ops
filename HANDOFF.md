@@ -1,3 +1,13 @@
+# Current continuation — original lease source validation
+
+- Owner **codex**, heartbeat **2026-11-17 07:11 UTC**, claim expires **2026-11-17 07:41 UTC**. Continuing existing `hp/lease-page8-editor` / PR #85 at 85c321d; previous hp claim expired. Clean working tree, current main e96beea; no competing updates found.
+- Current user instruction explicitly requires **DO NOT MERGE OR DEPLOY**. This supersedes every older merge/release instruction below. No production records or schema changes during testing.
+- Existing editor/persistence/original overlay implementation is preserved. Drive references are now accessible and downloaded outside Git; compare actual page indexes and structure before claiming visual fidelity.
+- NEXT STEP: inspect the original page-8 samples and current template mapping engine; add a source-backed reusable mapping workflow or identify exact clean-template blockers, then run original-render comparisons and existing regression suites.
+- This ownership-only checkpoint contains no runtime edits or private source documents.
+
+## Prior handoff (historical; merge instructions superseded)
+
 # Handoff — lease generator / page 8 editor
 
 - Owner **hp**, heartbeat **2026-11-16 07:42 UTC**, claim expires **2026-11-16 08:12 UTC**. Branch `hp/lease-page8-editor`, base latest main **e96beea6dbb7b3c18dd891bd5b164823b11e55cc**. New task OPS-LEASE-PAGE8; ownership-only checkpoint, [draft PR #85](https://github.com/huzshk0707/Oaktown-ops/pull/85), opened immediately after ownership push. User explicitly requests implementation **and merge**, overriding the pasted generic no-auto-merge instruction.
