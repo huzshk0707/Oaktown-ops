@@ -1,3 +1,9 @@
+# Merged — awaiting exact-main verification
+
+- Owner **hp**, heartbeat **2026-11-17 08:51 UTC**, expires **2026-11-17 09:21 UTC**.
+- User-authorized PR #85 merged with expected head 26664002a9d4eb0d5bfed636e36195d7b172b045, merge commit **bef12a84576f88efc40c909c4c8f8294692bf897**. Full PR CI [44048901219](https://github.com/huzshk0707/Oaktown-ops/actions/runs/44048901219) passed **239 Node / 287 browser**, all SQL/dependency/capture jobs.
+- NEXT STEP: verify CI and Pages for exact main bef12a8, verify published assets, create next unused annotated v0.5.3, then release claim. Backend migration and clean unsigned full-master acceptance remain activation follow-ups; no production record writes. Preserve this branch as the post-merge handoff record.
+
 # Current continuation — source integration complete; authorized merge pending CI
 
 - Owner **hp**, heartbeat **2026-11-17 08:43 UTC**, expires **2026-11-17 09:13 UTC**. Latest user explicitly authorizes completion and merge of PR #85; older no-merge instructions below superseded. Existing branch retained, normal pushes only.
