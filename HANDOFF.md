@@ -1,3 +1,11 @@
+# Authorized PR cleanup and release complete
+
+- Owner codex; claim released. #87 merged at 1d9fea2; #86 merged at b91b4c7df2920a03df1670d28a67ee8ae5a148a3. User explicitly authorized both merges and cleanup.
+- Exact-main CI 44090288462 and Pages 44090286047 passed. Annotated v0.5.3 created for b91b4c7 and pushed; remote peeled commit verified. Local 239 Node/API + 28 focused browser cases passed; both final branch and prior runtime integration CI passed.
+- Eleven older PRs closed with disposition notes; feature tips independently verified in main. No open PRs at cleanup readback. Branches and historical review evidence retained.
+- No backend/schema/operational writes. Lease migration remains staged; clean unsigned master and authorized backend installation remain activation prerequisites. Direct site HTTP request returned 403 here; publication verified through GitHub Pages.
+- NEXT STEP: product acceptance on published app; handle lease activation as its own authorized task. This branch's final handoff commit is documentation-only and does not alter main/tag.
+
 # Morning integration reviewed — hosted gate pending
 
 - Owner codex, heartbeat 2026-11-17 13:03 UTC, expiry 13:33 UTC. User authorized #86/#87 merge and closure of historical PRs. Current branch ravi/morning-motion; runtime integration 659d85e.
