@@ -27,7 +27,7 @@
   const states=[
    ['access',signed?'ready':'idle',signed?'Verified staff session':'Sign in to begin'],
    ['tasks',!signed?'idle':taskState==='loading'?'loading':access?'ready':'error',!signed?'Awaiting sign-in':taskState==='loading'?'Loading shared tasks':access?'Shared snapshot ready':'Unavailable · retry refresh'],
-   ['sod',!signed?'idle':phase==='loading'?'loading':stale?'error':phase==='ready'?'ready':'idle',!signed?'Awaiting sign-in':phase==='loading'?'Reading approved SOD':stale?'Unavailable · retry refresh':phase==='ready'?(record?'Approved plan available':'No approved plan yet'):'Awaiting task snapshot']
+   ['sod',!signed?'idle':phase==='loading'?'loading':stale?'error':phase==='ready'?(record?'ready':'empty'):'idle',!signed?'Awaiting sign-in':phase==='loading'?'Reading approved SOD':stale?'Unavailable · retry refresh':phase==='ready'?(record?'Approved plan available':'No approved plan yet'):'Awaiting task snapshot']
   ];
   for(const [name,state,label] of states){$('daily-'+name+'-step').dataset.state=state;$('daily-'+name+'-state').textContent=label}
   $('daily-dashboard').setAttribute('aria-busy',String(loading));

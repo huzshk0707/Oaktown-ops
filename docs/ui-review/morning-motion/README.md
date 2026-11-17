@@ -15,9 +15,11 @@ Account: ravi. Base: released main `e96beea`. PR: [#86](https://github.com/huzsh
 
 The visual reference is the restrained reveal/progress language of AI workspaces such as Grok, interpreted for operational work. It is not a claim to reproduce Grok's internal processing. All controls are immediately usable; there is no splash-screen delay or animation-dependent navigation.
 
+Reference checked: [UI/UX Pro Max UX guidelines](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/main/src/ui-ux-pro-max/data/ux-guidelines.csv), specifically motion preferences, finite decorative motion, transform/opacity performance, actual async feedback, visible focus and sticky-header focus clearance. This is design guidance, not a runtime dependency or an imported application framework.
+
 ## Architecture and scope
 
-`workspace.js` changes only the bare-entry fallback. `index.html` adds semantic presentation and controls. `daily-center.js` renders the existing OpsToday and approved-SOD state and toggles the existing planner. `daily-center.css` contains the desktop hierarchy and motion. No new runtime dependency, task fetcher, database, approval mechanism or write endpoint.
+`workspace.js` changes only the bare-entry fallback. `index.html` adds semantic presentation and controls. `daily-center.js` renders the existing OpsToday and approved-SOD state and toggles the existing planner. `daily-center.css` contains the desktop hierarchy and motion. `morning-center.js` clarifies that the current draft may be unapproved even when another saved plan is displayed in the overview. No new runtime dependency, task fetcher, database, approval mechanism or write endpoint.
 
 A valid direct link wins over the default entry. Full workspace remains one action away. The same SOD editor is mounted by the existing Morning controller. The preparation shortcut does not approve or generate a plan. Counts follow the selected Eastern date; deterministic task order stays authoritative. Sign-out clears private counts/content through existing events. The loading effect ends visually after a few cycles even if the server remains slow; the textual pending state remains until the actual response.
 
@@ -29,6 +31,8 @@ The wider workspace receives only a short route entrance; its existing workflows
 
 All captures contain fictional fixtures and zero operational writes.
 
+- [Motion preview · click to play/download](motion-preview.webm) — fictional pending read, planner switch and Focus entry; no production records.
+- [Before: overview](before-overview.png) · [before: buried planner](before-planner.png)
 - [Overview · 1280](overview-1280.png), [1440](overview-1440.png), [1920](overview-1920.png)
 - [Planner](planner-1440.png)
 - [Staff entry](staff-entry.png)
@@ -37,7 +41,7 @@ All captures contain fictional fixtures and zero operational writes.
 - [Reduced motion](reduced-motion.png)
 - [Existing Focus Board](focus-board.png)
 
-Run the local server on port 8765; with the pinned CI Playwright dependencies, run `node scripts/capture-morning-motion.cjs`. `OAKTOWN_CHROMIUM_PATH` optionally selects the installed Chromium executable.
+Run the local server on port 8765; with the pinned CI Playwright dependencies, run `node scripts/capture-morning-motion.cjs`. `OAKTOWN_CHROMIUM_PATH` optionally selects the installed Chromium executable. With Playwright FFmpeg available, set `OAKTOWN_RECORD_MOTION=1` to also regenerate the optional WebM. The 10-second recording holds a fictional approved-plan read for 2.2 seconds to demonstrate the real pending state. No artificial delay exists in application code.
 
 ## Validation
 

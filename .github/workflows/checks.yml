@@ -107,6 +107,8 @@ jobs:
         run: node scripts/capture-daily-center.cjs
       - name: Capture fictional desktop native plan review
         run: node scripts/capture-plan-review.cjs
+      - name: Capture morning UX and motion states
+        run: node scripts/capture-morning-motion.cjs
       - name: Upload fictional UI review screenshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -115,6 +117,7 @@ jobs:
           path: |
             docs/phase-5-desktop/
             docs/phase-6-desktop/
+            docs/ui-review/morning-motion/
             test-results/ui-review/
             test-results/**/eod-*.png
             test-results/**/*-workspace.png

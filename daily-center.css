@@ -116,3 +116,15 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  .morning-center #sod-output:not([hidden]) {animation:morning-arrive .38s cubic-bezier(.2,.8,.2,1)}
  .morning-center #sod-output:focus {border-color:#a6d8d9}
 }
+@media screen {
+ .morning-heading {min-height:0;padding-bottom:18px}
+ .morning-heading h1 br {display:none}
+ .morning-heading h1 span::before {content:' '}
+ .morning-signal {width:110px;height:110px;right:23%;top:-8px;opacity:.5}
+ .daily-readiness [data-state="empty"] .daily-step-dot {background:#e7c58e;box-shadow:0 0 0 5px #e7c58e10}
+ .focus-board-mode .focus-board-heading,.focus-board-mode .focus-morning-plan {animation:morning-arrive .28s ease-out}
+}
+@media screen {
+ html:has(body.morning-mode) {scroll-padding-top:92px}
+ .morning-column {scroll-padding-top:76px}
+}

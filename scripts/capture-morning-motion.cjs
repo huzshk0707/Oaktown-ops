@@ -13,5 +13,16 @@ const {morningMock,signIn,ORIGIN}=require('../tests/morning-fixtures.cjs'),{save
  let release;s.historyHold=new Promise(r=>release=r);await page.locator('#morning-command-refresh').click();await page.waitForFunction(()=>document.querySelector('#daily-sod-step').dataset.state==='loading');await capture('reading-approved-plan');s.historyHold=null;release();await page.waitForFunction(()=>document.querySelector('#daily-plan-status').textContent==='Approved');
  s.historyFail=true;await page.locator('#morning-command-refresh').click();await page.waitForFunction(()=>document.querySelector('#daily-plan-status').textContent==='Stale / unavailable');await capture('refresh-error');s.historyFail=false;await page.locator('#morning-command-refresh').click();await page.waitForFunction(()=>document.querySelector('#daily-plan-status').textContent==='Approved');
  await page.emulateMedia({reducedMotion:'reduce'});await capture('reduced-motion');await page.locator('#daily-start').click();await page.locator('#focus-deck').waitFor({state:'visible'});await capture('focus-board');
- if(s.writes.length)throw Error('Capture attempted a write');await context.close();await browser.close();console.log('Desktop UX screenshots: fictional records, zero writes.');
+ if(s.writes.length)throw Error('Capture attempted a write');await context.close();
+ if(process.env.OAKTOWN_RECORD_MOTION==='1'){
+  const demo=await browser.newContext({viewport:{width:1440,height:900},recordVideo:{dir:'/tmp/oaktown-motion-demo',size:{width:1440,height:900}}});
+  const p=await demo.newPage(),fixture=await morningMock(p);fixture.events=[saved(fixture)];
+  await p.goto(ORIGIN+'/');await signIn(p);await p.waitForFunction(()=>document.querySelector('#daily-plan-status').textContent==='Approved');
+  let finish;fixture.historyHold=new Promise(r=>finish=r);await p.locator('#morning-command-refresh').click();await p.waitForFunction(()=>document.querySelector('#daily-sod-step').dataset.state==='loading');
+  // Hold a fictional read only to make actual pending-state motion visible in the review clip.
+  await p.waitForTimeout(2200);fixture.historyHold=null;finish();await p.waitForFunction(()=>document.querySelector('#daily-plan-status').textContent==='Approved');
+  await p.waitForTimeout(500);await p.locator('#daily-prepare').click();await p.waitForTimeout(700);await p.locator('#daily-overview').click();await p.waitForTimeout(500);await p.locator('#daily-start').click();await p.locator('#focus-deck').waitFor();await p.waitForTimeout(700);
+  if(fixture.writes.length)throw Error('Motion recording attempted a write');const video=p.video();await demo.close();await video.saveAs(path.join(out,'motion-preview.webm'));
+ }
+ await browser.close();console.log('Desktop UX screenshots: fictional records, zero writes.');
 })().catch(e=>{console.error(e);process.exitCode=1});
