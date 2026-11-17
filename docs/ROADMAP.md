@@ -1,3 +1,12 @@
+## November 16 lease editor update
+
+PR #85 adds reusable original-PDF profiles, independent room/column placements,
+blank dependent fields for absent rooms, native saved Draft/Ready/approval and
+immutable condition history. Source merge/publication is user-authorized;
+backend migration installation and comparison with the restricted originals are
+separate outstanding activation steps. See [implementation and testing](LEASE-PAGE8-EDITOR.md)
+and [deployment packet](releases/LEASE-PAGE8-2026-11-16.md). Earlier dated snapshots below are historical.
+
 # Current Oaktown Ops status and next work
 
 Updated November 15, 2026. Main includes merged PRs through #68. The current
@@ -21,7 +30,7 @@ See [the technical audit](TECHNICAL-AUDIT-2026-11-04.md) and
 | Properties | Protected list/detail browser; connected property and independent unit profiles, recorded rents, linked people/leases/tasks and expandable activity | Source reconciliation, controlled editing and further integrity guards |
 | Notices | Unit selection, local drafts, CSV import, message preparation, PDF/ZIP/Firm Book | Shared evidence associations, staff verification and real printing |
 | Renewals | Five-page unsigned PDF; separate tracking/preparation; journal-backed action view | Retention/signing/executed-contract lifecycle remains separate |
-| New leases | Guided draft, editable terms, fixed 5%/10% labels and full page 8 with N/A | Ten-page PDF mapping, deposit rules, page 7 disclosures; visit-only drafts |
+| New leases | Original-PDF mapped ten-page editor, independent 3–5-bedroom placements, native draft/review/approval and condition history; absent-room N/A labels with blank dependent lines | Install staged backend; approve real-master maps/fonts/page-7 choices and compare restricted originals; confirm deposit allocation rules |
 | Reference library | Ten original PDFs in restricted Drive; staff-only catalog and browse/open UI | Categories, verified property/unit links, versions and controlled uploads |
 | Recovery | Verified restore of 24 application tables/1,678 rows and ten PDFs; restricted recovery ZIP with readback checksum | Scheduled retention and full Supabase Auth/provider/platform restoration |
 | Database hardening | Eight live composite keys, server journal attribution, nine indexes and reviewed Today RPC correction | Nullable task-to-renewal scopes, provenance/target controls and repeatable import tooling |

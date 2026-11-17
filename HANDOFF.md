@@ -18,77 +18,62 @@
 ## Previous main handoff (historical)
 
 # Handoff — authorized Focus merge and publication
+# Source provenance follow-up complete
 
-- Updated **2026-11-16 05:27 UTC**; owner **hp**, heartbeat 2026-11-16 05:27 UTC, claim expires **2026-11-16 05:57 UTC**. Branch `ravi/focus-release`, PR #84, base main `065a88c`. Ownership checkpoint **0bb0970ee63f5fa0feae1c181b6e630248380d22** normal-pushed and remote verified; current PR log records merge authorization.
-- Latest user explicitly says **“merge it then we wanted to merge it”**. This supersedes the prior hold and authorizes #84 merge/frontend publication. Do not request another merge confirmation. Backend is already operator-deployed; do not reapply SQL/Edge, enable OAuth/client permissions or write operational records.
-- Startup: latest main AGENTS/HANDOFF/TASKS/log -15, fresh refs, status/worktrees/open PRs/remote branches, current branch handoff and PR read. Clean latest remote head **3e637bcb6f2c2c1d53ae88e9e44a31bc38588881**, prior hp claim released, no leftovers.
-- Existing evidence: operator migration 20261116050626 / Edge v3 / DB grants/counts verified; independent **8/8 HTTP checks** passed, health 1.1.0/eight tools and denied anonymous task/plan access. Integrated app/test candidate ce749d1 passed **222 unit/API / 272 browser** plus SQL/Deno/audit; source heads retained. docs/releases/FOCUS-2026-11-16.md records exact evidence/migration mapping. Do not redo implementation or backend deployment.
-- **NEXT STEP:** mark #84 ready and merge the exact pushed release head using a guarded merge commit (no squash/rebase/deletion), then fetch resulting main SHA and verify its CI/Pages/live assets. Pre-merge 8/8 HTTP checks passed again; all app/schema/function/test files still match green ce749d1. The helper supports `--published` for postflight. Create and independently verify next unused annotated tag only after exact-main CI/Pages pass. Final handoff remains on this task branch and PR registry; the main copy is a pre-merge snapshot.
-- Unfinished files: none at claim. Claim lasts 30 minutes; checkpoint/normal-push after milestones and within 15–20 minutes. No force-push or source-branch deletion. Release claim and push exact publication/test/tag evidence when done.
+- Owner codex; claim released. Branch `codex/lease-source-provenance`, PR #87, base merged main bef12a8. **No merge/deploy/production writes.**
+- Recovered original Page 8 builder; exact source/font fingerprints and PyMuPDF version enforced. Rebuilt PDF hash exactly equals the merged asset. Three rendered sizes match; original-vs-repaired comparison has zero changed pixels outside documented repairs.
+- Existing source/PDF/model tests passed (17). No runtime, template binary or migration changes. Superseded local runtime changes are preserved outside Git as a recovery patch; merged #85 remains authoritative.
+- NEXT STEP: review #87's builder/provenance evidence. For operational activation, obtain/review a clean unsigned full master and separately authorize/install the staged lease migration. Existing full CI/Pages at main bef12a8 passed; do not redo #85 or infer database installation from frontend publication.
 
-Previous repository landing snapshot follows for historical context; live release notes above govern this authorized task.
+# Source provenance follow-up
 
-# Handoff
+- Owner codex, heartbeat 2026-11-17 12:24 UTC, expires 2026-11-17 12:54 UTC. Base merged main bef12a8. Separate follow-up; do not merge or deploy.
+- Checked shared completion: PR #85 merged at bef12a8; exact-main CI 44050224515 and Pages 44050221138 both passed. Preserve that implementation. Its database migration remains staged and clean-master acceptance remains outstanding.
+- Earlier local runtime edits were superseded by 2666400; saved a recovery patch outside Git without overwriting current work. A clean checkout under /tmp avoids the full /workspace filesystem.
+- NEXT STEP: recover the original blank-checklist repair builder, compare its rendering with the retained asset, document reproducible source evidence, and open a separate review PR. No app/SQL/data changes.
 
-- Last updated: 2026-11-16 00:55 UTC by ravi
-- Current task / branch / PR: OPS-HANDOFF — shared continuation setup complete / `ravi/shared-handoff` / [PR #74](https://github.com/huzshk0707/Oaktown-ops/pull/74). This final checkpoint is published to main and the task branch together; verify live refs/PR rather than a local-only hash.
-- Active owner: none. ravi releases the completed setup claim with this checkpoint; future work needs its own branch claim.
-- Last verified pushed checkpoint before this update: `2c36477ac02a646fb730e81ba036a93bae666b93`; live branch/PR identifies newer checkpoints.
-- Done so far: inspected current main/log/branches and live PRs/issues; pushed two WIP checkpoints and opened the setup PR; completed permanent rules, HANDOFF, prioritized TASKS, identical hp/felix starts, PR running-log template and README links; verified relative links and Markdown-only scope; existing relevant tests pass.
-- In progress (files being edited): none. Seven Markdown files only; no runtime, database, auth, operational data or existing feature PR changes.
-- NEXT STEP (exact and specific): verify main contains this handoff, then start owner-prioritized OPS-FOCUS-REVIEW.1 (or claim another unowned review substep in TASKS). Recheck live PR #70–#73 heads/CI, read their existing branch guides and screenshots, and record findings on a new `<account>/focus-review-*` draft PR. Do not reimplement or merge them. To read the latest Phase 4 guide: `git fetch origin feature/focus-board-phase-4`, then `git show FETCH_HEAD:docs/MORNING-COMMAND-CENTER.md`.
-- Known bugs / blockers: no setup blocker. Never-pushed edits cannot be recovered by another account. Checkpoint every 15–20 minutes and after meaningful steps. This protocol does not supply missing GitHub/provider permissions.
-- How to run and test: Node 24; task-connector `npm ci` first, then inventory and unit commands below. Latest setup validation: 185/185 Node tests, inventory 25 families / 54 active scripts, seven-file Markdown/link/scope checks and diff check passed. No new runtime tests were necessary for these documentation-only edits; full PR/main CI is the live additional regression record.
-- Decisions made and why: use Git commits plus branch handoffs and live PR logs as portable shared memory; preserve existing project rules; keep account identity separate from actual staff attribution. Main landing notes index parallel PRs instead of pretending all accounts share one checkout.
+# Current continuation — source integration complete; authorized merge pending CI
 
-## Publication and next ownership
+- Owner **hp**, heartbeat **2026-11-17 08:43 UTC**, expires **2026-11-17 09:13 UTC**. Latest user explicitly authorizes completion and merge of PR #85; older no-merge instructions below superseded. Existing branch retained, normal pushes only.
+- Completed source-profile UI: explicit placement suggestions, original blank Page 8 preview, measured mapping on a matching clean master; no automatic full-master substitution. Fixed slash-containing condition bindings, baseline fit and moved-room labels; grouped fields validated in staged SQL. Existing engine rejects known signed/premarked full-master hashes.
+- Tests: 239 Node pass; 13 lease browser flows pass plus desktop/themes and ten-case rendered preservation (five synthetic, five retained original blank). Disposable SQL passes including grouped coverage/invalid binding denial. Source-only PDFs generated; original five-bedroom output inspected. Final minor label fix rerun/hosted checks next.
+- Migration staged, NOT applied. SHA 943d7b05ede488f7ddfa884896993b9b32de1e2cc16bd62e3dd8751639e91efa; rollback unchanged. Source provenance and builder limitation in lease-assets/README.md. Full clean unsigned master still required for final operational export; no production record writes.
+- NEXT STEP: finish checks on pushed head, mark #85 ready, merge using expected SHA, verify exact-main CI/Pages and create next unused annotated tag. Then release claim and record activation blockers. Do not restart prior implementation.
 
-This commit contains the completed setup state and is normal-pushed atomically to
-main and `ravi/shared-handoff`; a rejected transaction publishes neither ref.
-Read the current PR/main refs to confirm installation. No unpushed work is part
-of the shared handoff. The owner confirmed Ops Focus Board #70–#73 review first;
-that choice does not authorize merging/deploying the existing draft stack.
+## Previous checkpoints (historical instructions superseded above)
 
-## Repository state to preserve
+# Current continuation — source-backed Page 8 (WIP)
 
-Main is through #69. Focus Board #70–#73 is completed review work, not merged. Phase 4 head 676e896 passed full CI; leave all four feature PRs draft.
+- Owner **codex**, heartbeat **2026-11-17 07:26 UTC**, expires **2026-11-17 07:56 UTC**. PR #85 / `hp/lease-page8-editor`. **Do not merge or deploy.**
+- Five requested completed references were accessed through the authorized Drive connector. All are 12-page packets with condition sheet at actual PDF page 8; do not use signature/completion packets as blank ten-page masters.
+- Original old blank page 8 is vector text. Corrected only its displaced Bedroom 3 / Bedroom 4 Ceiling/Floor fields and cleared preselected satisfactory X, retaining all sections/signatures. New blank-only `lease-assets` contains no tenant records. The updated blank master still has a filled page 8 and signed/premarked page 7: clean unsigned master remains a final-export prerequisite.
+- WIP `lease-template-profile.js` supplies source-measured positions and optional layouts, grouped observations, and replacement with the original blank Page 8. Engine group/baseline support added; UI and SQL integration/tests NOT complete. Existing 11 focused model/engine tests passed before these changes.
+- Live migration list inspected read-only: lease preparation migration 20261116060547 is not applied. No production writes.
+- NEXT STEP: integrate source layout/preview controls with existing controller, validate grouped bindings in the staged SQL, then run source-render and browser/database regressions. Asset builder/evidence still to document before acceptance.
 
-## Run and test
+# Current continuation — original lease source validation
 
-Use Node 24. A fresh checkout needs the locked task-connector dependencies before unit tests. From the repo root:
+- Owner **codex**, heartbeat **2026-11-17 07:11 UTC**, claim expires **2026-11-17 07:41 UTC**. Continuing existing `hp/lease-page8-editor` / PR #85 at 85c321d; previous hp claim expired. Clean working tree, current main e96beea; no competing updates found.
+- Current user instruction explicitly requires **DO NOT MERGE OR DEPLOY**. This supersedes every older merge/release instruction below. No production records or schema changes during testing.
+- Existing editor/persistence/original overlay implementation is preserved. Drive references are now accessible and downloaded outside Git; compare actual page indexes and structure before claiming visual fidelity.
+- NEXT STEP: inspect the original page-8 samples and current template mapping engine; add a source-backed reusable mapping workflow or identify exact clean-template blockers, then run original-render comparisons and existing regression suites.
+- This ownership-only checkpoint contains no runtime edits or private source documents.
 
-```sh
-npm ci --no-fund --no-audit --prefix supabase/functions/oaktown-task-api
-node scripts/workflow-states.cjs --check
-node --test tests/*.test.cjs
-python3 -m http.server 8765 --bind 127.0.0.1
-```
+## Prior handoff (historical; merge instructions superseded)
 
-For browser/SQL/dependency checks follow `.github/workflows/checks.yml`. It pins
-Playwright 1.56.1; task-connector dependencies use their own lockfile. SQL tests
-must run only in disposable `oaktown_portfolio_ci`. For Phase 4 specifically,
-read its branch guide and use its tests, not a count from main.
+# Handoff — lease generator / page 8 editor
 
-## Existing review stack (not an active editing claim)
-
-| PR | Branch / exact head | Base | State |
-| --- | --- | --- | --- |
-| #70 | `feature/focus-board-phase-1` / `08888e6` | main | Draft; implemented, CI passed |
-| #71 | `feature/focus-board-phase-2` / `70f63c4` | Phase 1 | Draft; implemented, CI passed |
-| #72 | `feature/focus-board-phase-3` / `536ebca` | Phase 2 | Draft; implemented, CI passed |
-| #73 | `feature/focus-board-phase-4` / `676e896` | Phase 3 | Draft; implemented, 211 unit / 254 browser, CI passed |
-
-Phase 4's architecture and all fictional desktop screenshots are committed at
-[PR #73](https://github.com/huzshk0707/Oaktown-ops/pull/73). Its journal approvals
-are not a mailbox connector, verified deposit ledger or server-atomic multi-user
-plan workflow. Unapproved intake/drafts remain visit-only. Continue review from
-existing evidence; do not redo these implementations or infer merge permission.
-
-## Receiving account checklist
-
-Read current main's AGENTS/HANDOFF/TASKS, then `git log -15`, live open PRs and
-branches. Choose the active task's latest branch/PR; inspect status and preserve
-leftovers. Check owner/expiry before claiming and pushing your own checkpoint.
-Follow that branch's exact NEXT STEP. If setup is complete and no task is claimed,
-choose the first actionable unclaimed TASKS item; retain explicit review/approval
-blockers instead of redoing finished work. hp/felix starts are in `docs/ai-accounts/`.
+- Owner **hp**, heartbeat **2026-11-16 07:42 UTC**, claim expires **2026-11-16 08:12 UTC**. Branch `hp/lease-page8-editor`, base latest main **e96beea6dbb7b3c18dd891bd5b164823b11e55cc**. New task OPS-LEASE-PAGE8; ownership-only checkpoint, [draft PR #85](https://github.com/huzshk0707/Oaktown-ops/pull/85), opened immediately after ownership push. User explicitly requests implementation **and merge**, overriding the pasted generic no-auto-merge instruction.
+- Startup read latest main AGENTS/HANDOFF/TASKS/log -15, status/worktrees/fresh refs/open PRs/remote branches; no competing lease task claim. Existing release #84 completed at v0.5.2 (task branch final 19ec364); do not redo it. New branch from clean main; no leftovers.
+- Inspection: five-page renewal generator uses sanitized master backgrounds; new-lease form is visit-only and page 8 is vector reconstruction, not verified exact original. Existing unit/lease portfolio and lease-reference catalog must be reused; no duplicate property/lease database. User specifies 3/4/5 bedrooms, editable labels/locations and independent multi-column placements; absent rooms N/A label with blank dependent fields supersedes old N/A-every-line behavior.
+- Source blocker: supplied Drive folder redirects to Google sign-in over public HTTP. User says Drive access is granted; this execution's callable tools currently expose no Drive/search/download connector or desktop/browser session tool. Checking authorized available access only; do not borrow credentials or claim original matching from reconstructed PDFs. Need approved blank ten-page master and five completed examples for exact comparison. Continue editor/persistence/template-preserving infrastructure independently; never invent original coordinates/clauses or silently mark a template verified.
+- Milestone: separate room identity/location/label/section/column/row model; explicit presets+Custom controls; blank N/A dependents; den in unused bedroom slot, independent master bathroom and collision/unplaced-room guards; no six-bedroom support. Legacy preview remains explicitly reconstructed draft; original engine still next. Existing account/unit clearing preserved. **20 model/PDF tests + 8/8 existing lease browser tests passed**, Node syntax and workflow inventory (30 families/66 scripts) passed.
+- Milestone 2: original-PDF additive engine and fictional ten-page fixture implemented. **5/5 new PDF tests + 6/6 room tests passed**: page order/dimensions/original content streams preserved, exact source hash, blank-master/overlap/overflow/signature guards, final receipt and mapping coverage. Private native-session draft/review/approval RPC, immutable approval snapshots/receipts, unit/lease validation, CAS/retry and guarded rollback implemented. **Real disposable DB test passed** for native roles/sessions, owner isolation, linkage, concurrent saves, replay, approved condition-only reuse/redaction and zero task changes. No production apply.
+- Milestone 3 WIP: strict Ready validation added server-side for facts/services, active placement collision/unplaced rooms, map bounds/signature rectangles and omission of entered observations. **Disposable SQL suite passes**, including new rejection cases. Original canvas/map editor and native saved draft/Ready/Approve/readback/final-download controller wired into existing form with shared state/auth; app/model/PDF engine syntax and inventory pass. Existing browser rerun **7/8 passed**, one horizontal-overflow failure in existing six-theme/mobile regression. No production change; not ready to merge.
+- Milestone 4: real PDF.js rendering and complete mocked draft→Ready→Approve→readback→unsigned download flow pass. Lost-response immutable retry, pending input lock, sign-out clearing and Custom room controls covered. Pinned PDF.js 5.4.149 replaces incompatible 6.x API. Existing six-theme narrow regression repaired (download-button wrap): **12/12 combined lease browser checks passed**. Strict receipt metadata, approved template profiles and checkbox bindings added after that run; final rerun pending. No production schema apply.
+- Milestone 5: 233/233 Node and 18/18 focused browsers passed at the prior implementation check, including saved reload, unit change, missing backend/revoked role/CAS/readback failure, all desktop widths/themes and ten-page rendered pixel preservation across five fictional variants. Advanced mapping hidden from routine profile use; renewal Prepare Lease entry added. Fictional screenshots/PDFs generated and inspected. Latest condition-history/strict map/actual-page-8 default changes are under final rerun; do not confuse earlier green count with that rerun.
+- Final acceptance checkpoint: **233/233 Node**, **22/22 focused browsers**, syntax/inventory and disposable SQL pass. Explicit profile reuse/live preview/overflow, stale-load edit retention, late-save signout, condition-only history reuse and pending dynamic-input lock covered. Server rejects missing approval version, invalid fees, empty active observations, omitted service/occupant/label/location and both-page late charges. Full engine revalidates readiness on final export. Refreshed fictional desktop/PDF examples inspected. Migration SHA **910ec43cfbf9389aa1a5d15fb31494b5cdd9ca07b8e9b2a61493bb3c2080a60c**, rollback **cb162af9b21b8fa72aabb9319afa54d18d43c32ad51b913e02e6337d7d4e258c**; packet updated. Still staged, not live.
+- Previous full CI at 09d10db passed 280/282 browsers; two Ready status checks exposed the live-preview callback overwriting the save status. Fixed by cancelling pending automatic previews and separating automatic PDF status from saved-review status; all 22 focused checks now pass. Hosted final rerun required for this checkpoint, not inferred from older CI.
+- **NEXT STEP:** inspect `gh pr checks 85` for the newly pushed exact head; require all three jobs (including complete browsers/captures/SQL) green, then perform the user-authorized merge with that exact head. Verify merged-main CI and Pages at the same SHA, tag next unused v0.5.x, and release claim. Backend installation and real-source comparison remain the explicit OPS-LEASE-PAGE8.ACTIVATE follow-up; no live test records or unrelated merges.
+- Remaining acceptance: original Drive files unavailable through current exposed tools despite user authorization. No guessed original map or claimed Leslie visual match. UI supports one-time advanced original mapping and approved profile reuse. Supabase management credentials/tool absent; native RPC actions fail visibly and cannot approve/export if backend is absent. Need authorized operator installation plus real-source map/visual review; do not invent either result.
+- Test resources: own container hp-lease-page8-pg, network none, fictional oaktown_portfolio_ci; OAKTOWN_PSQL_BIN=/tmp/hp-lease-bin/psql. Server session 87513 serves current repo on 127.0.0.1:8765. Browser/Node tooling outside repo at /workspace/.cache/oaktown-tools; Playwright browser cache /workspace/.cache/ms-playwright. No user/private documents in Git.

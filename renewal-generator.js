@@ -59,6 +59,9 @@ function refresh(){
  }
  $('renewal-date').value=R.displayDate(R.leaseDate());resetReview();
 }
+const prepareFull=document.createElement('button');prepareFull.type='button';prepareFull.className='button';prepareFull.id='renewal-prepare-full';prepareFull.textContent='Prepare Lease · ten-page original / Page 8';
+prepareFull.addEventListener('click',()=>{const unitId=$('renewal-unit').value;if(!cloud.user||!unitId){$('renewal-status').textContent='Choose the exact protected property/unit first.';return}window.dispatchEvent(new CustomEvent('ops-open-new-lease',{detail:{unitId,leaseId:$('renewal-lease').value||null}}))});
+section.querySelector('.section-head').append(prepareFull);
 function selectedLease(){return (index?.leases.get($('renewal-unit').value)||[]).find(x=>x.id===$('renewal-lease').value)||null}
 function chooseUnit(){
  resetReview();$('renewal-verified').checked=false;

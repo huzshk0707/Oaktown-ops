@@ -58,3 +58,40 @@
   .ops-workspace:has(#leases-workflow:not([hidden]) #new-lease-panel:not([hidden])) :is(.workspace-instrument,.workspace-kicker) {display:none}
  }
 }
+
+@media screen {
+ .lease-original-editor,.lease-preparation-save,.lease-unit-context{margin:24px 0;padding:20px;border:1px solid var(--ui-border);border-radius:12px;background:var(--ui-soft);overflow-wrap:anywhere}
+ .lease-original-editor>p,.lease-preparation-save>p,.lease-unit-context>p{font-size:13px;line-height:1.6;margin:12px 0}
+ .lease-template-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start;margin:20px 0}
+ .lease-template-paper{position:relative;min-width:0;border:1px solid var(--ui-control);background:#fff;line-height:0}
+ #lease-template-canvas{width:100%;height:auto;display:block;cursor:crosshair}
+ .lease-template-boxes{position:absolute;inset:0;pointer-events:none}
+ .lease-template-box{position:absolute;border:1px solid #237bd0;background:rgba(35,123,208,.10);box-sizing:border-box}
+ .lease-template-box.protected{border:2px dashed #b94520;background:rgba(185,69,32,.10)}
+ .lease-template-settings .lease-draft-field{font-size:12px;margin:8px 0}
+ .lease-template-settings .lease-draft-grid{gap:8px;margin:10px 0}
+ .lease-template-settings .lease-draft-actions{margin:12px 0;gap:8px}
+ .lease-template-settings>p{font-size:12px;line-height:1.6}
+ .lease-original-editor .lease-draft-check{font-weight:400}
+ #lease-template-preview-link{display:inline-block;margin:12px 0;color:var(--mode-accent)}
+ #lease-template-preview-link[hidden]{display:none}
+ @media(max-width:1000px){.lease-template-layout{grid-template-columns:minmax(0,1fr)}.lease-template-settings{max-width:100%}}
+}
+
+@media screen {
+ .lease-original-editor .button,.lease-preparation-save .button,.lease-unit-context .button{white-space:normal;max-width:100%;min-width:0;overflow-wrap:anywhere}
+ .lease-original-editor :is(input,select,label),.lease-preparation-save :is(input,select,label),.lease-unit-context :is(input,select,label){min-width:0;max-width:100%}
+ .lease-template-settings,.lease-template-layout>*{min-width:0}
+}
+
+@media screen {.ops-workspace .lease-draft-tool #newlease-download{white-space:normal;max-width:100%;min-width:0}}
+
+@media screen {
+ .lease-template-advanced{margin:20px 0;border:1px solid var(--ui-border);border-radius:8px;padding:12px}
+ .lease-template-advanced>summary{cursor:pointer;font-weight:600}
+ .lease-template-settings{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;margin-top:16px}
+ .lease-template-settings>p,.lease-template-settings>.lease-draft-actions{grid-column:1/-1}
+ .lease-template-paper{max-width:780px;margin:0 auto;width:100%}
+}
+
+@media screen {.lease-condition-pair{min-width:0}.lease-condition-pair>.lease-draft-field{margin:6px 0}}
