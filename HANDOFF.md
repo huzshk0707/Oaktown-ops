@@ -1,3 +1,10 @@
+# Source provenance follow-up
+
+- Owner codex, heartbeat 2026-11-17 12:24 UTC, expires 2026-11-17 12:54 UTC. Base merged main bef12a8. Separate follow-up; do not merge or deploy.
+- Checked shared completion: PR #85 merged at bef12a8; exact-main CI 44050224515 and Pages 44050221138 both passed. Preserve that implementation. Its database migration remains staged and clean-master acceptance remains outstanding.
+- Earlier local runtime edits were superseded by 2666400; saved a recovery patch outside Git without overwriting current work. A clean checkout under /tmp avoids the full /workspace filesystem.
+- NEXT STEP: recover the original blank-checklist repair builder, compare its rendering with the retained asset, document reproducible source evidence, and open a separate review PR. No app/SQL/data changes.
+
 # Current continuation — source integration complete; authorized merge pending CI
 
 - Owner **hp**, heartbeat **2026-11-17 08:43 UTC**, expires **2026-11-17 09:13 UTC**. Latest user explicitly authorizes completion and merge of PR #85; older no-merge instructions below superseded. Existing branch retained, normal pushes only.
