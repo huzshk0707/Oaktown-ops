@@ -1,3 +1,11 @@
+# Current continuation — authorized completion and merge
+
+- Owner **hp**, heartbeat **2026-11-17 08:36 UTC**, expires **2026-11-17 09:06 UTC**. User explicitly reassigned completion and merge; this supersedes the older no-merge instruction below. Existing branch and PR #85 retained.
+- Fetched current refs, read main protocol/handoff/tasks/log, inspected worktree/status/open PRs. Latest remote 233877e cleanly fast-forwarded; no local leftovers to preserve. Previous codex claim expired.
+- NEXT STEP: finish source profile UI and grouped SQL validation from 233877e, run source-render/browser/SQL checks, update evidence, then merge #85 and verify main CI/Pages/tag. Clean unsigned master and backend installation are still explicit activation limitations.
+
+## Previous checkpoints (historical instructions superseded above)
+
 # Current continuation — source-backed Page 8 (WIP)
 
 - Owner **codex**, heartbeat **2026-11-17 07:26 UTC**, expires **2026-11-17 07:56 UTC**. PR #85 / `hp/lease-page8-editor`. **Do not merge or deploy.**
