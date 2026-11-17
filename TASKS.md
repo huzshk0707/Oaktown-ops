@@ -105,3 +105,6 @@ Runtime/test head 31f103e has [green full CI](https://github.com/huzshk0707/Oakt
 The owner confirmed Focus Board #70–#73 review first on 2026-11-16. Remaining priorities are provisional; product/launch decisions and
 missing sources stay explicit. Add owner/branch/PR beside a task only when claimed.
 See [HANDOFF.md](HANDOFF.md) and [roadmap](docs/ROADMAP.md).
+
+
+- Completed OPS-LEASE-SOURCE-PROVENANCE (#87): recover original repair builder; exact-byte rebuild, three-size render match, and bounded original-page pixel verification. No runtime/schema changes; clean full master and backend activation remain separate.
