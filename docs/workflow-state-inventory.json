@@ -526,6 +526,7 @@
         "lease-condition-pdf.js",
         "lease-page8-model.js",
         "lease-template-pdf.js",
+        "lease-template-profile.js",
         "lease-template-editor.js"
       ],
       "states": [

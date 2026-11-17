@@ -1,3 +1,12 @@
+# Current continuation — source-backed Page 8 (WIP)
+
+- Owner **codex**, heartbeat **2026-11-17 07:26 UTC**, expires **2026-11-17 07:56 UTC**. PR #85 / `hp/lease-page8-editor`. **Do not merge or deploy.**
+- Five requested completed references were accessed through the authorized Drive connector. All are 12-page packets with condition sheet at actual PDF page 8; do not use signature/completion packets as blank ten-page masters.
+- Original old blank page 8 is vector text. Corrected only its displaced Bedroom 3 / Bedroom 4 Ceiling/Floor fields and cleared preselected satisfactory X, retaining all sections/signatures. New blank-only `lease-assets` contains no tenant records. The updated blank master still has a filled page 8 and signed/premarked page 7: clean unsigned master remains a final-export prerequisite.
+- WIP `lease-template-profile.js` supplies source-measured positions and optional layouts, grouped observations, and replacement with the original blank Page 8. Engine group/baseline support added; UI and SQL integration/tests NOT complete. Existing 11 focused model/engine tests passed before these changes.
+- Live migration list inspected read-only: lease preparation migration 20261116060547 is not applied. No production writes.
+- NEXT STEP: integrate source layout/preview controls with existing controller, validate grouped bindings in the staged SQL, then run source-render and browser/database regressions. Asset builder/evidence still to document before acceptance.
+
 # Current continuation — original lease source validation
 
 - Owner **codex**, heartbeat **2026-11-17 07:11 UTC**, claim expires **2026-11-17 07:41 UTC**. Continuing existing `hp/lease-page8-editor` / PR #85 at 85c321d; previous hp claim expired. Clean working tree, current main e96beea; no competing updates found.

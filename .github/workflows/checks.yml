@@ -71,6 +71,7 @@ jobs:
           node --check lease-condition-pdf.js
           node --check lease-template-pdf.js
           node --check lease-template-editor.js
+          node --check lease-template-profile.js
           node --check operations-model.js
           node --check operations.js
           node --check task-connection-model.js
