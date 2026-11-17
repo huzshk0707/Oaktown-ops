@@ -1,3 +1,31 @@
+# Morning integration reviewed — hosted gate pending
+
+- Owner codex, heartbeat 2026-11-17 13:03 UTC, expiry 13:33 UTC. User authorized #86/#87 merge and closure of historical PRs. Current branch ravi/morning-motion; runtime integration 659d85e.
+- #87 merged at 1d9fea2. Resolved four conflicts against current main preserving the complete lease generator, template provenance, Morning UI, both CI captures and both task histories.
+- Local combined validation: 239 Node/API tests, 28 Morning/lease browser cases, workflow inventory 30/69 and diff check passed. Source reviewed; no new write/auth/backend path. Full hosted CI 44088330057 pending at runtime checkpoint; this completion note changes docs only.
+- Closed #71/#72/#73/#75/#77/#81/#82 after verifying exact current tips are ancestors of main. Closed #76/#78/#79/#80 as completed historical reports; evidence and branches retained.
+- NEXT STEP: confirm all hosted jobs on the final branch pass; mark #86 ready and merge with expected SHA, verify exact-main CI and Pages, create next unused annotated patch tag. Then update PR with publication proof and release claim. No production SQL or operational writes.
+
+# Authorized merge continuation
+
+- Owner codex; heartbeat 2026-11-17 12:57 UTC; expires 2026-11-17 13:27 UTC. Previous ravi claim expired; user requests review/merge #86 and #87 plus old-PR closure.
+- Exact #86 head 92cbfaa reviewed; all CI jobs pass. #87 reviewed and merged separately. Current #86 conflicts with newer lease work; preserve both implementations with a normal merge of current main, then rerun combined checks. No production schema changes.
+- NEXT STEP: resolve main integration, run combined UI/lease regressions and hosted CI, merge #86 only when passing. Preserve branches and retain older review evidence in closed PRs.
+
+# Handoff — Morning UX and motion
+
+- Last updated: 2026-11-17 07:53 UTC by ravi; claim expires 08:23 UTC.
+- Current task / branch / PR: OPS-MORNING-UX / `ravi/morning-motion` / PR #86; base main e96beea.
+- Done: inspected live main, release #84, open PRs and branch ownership. Integrated release already merged; active #85 lease editor belongs to another account and is outside scope.
+- In progress: implementation and fictional desktop captures complete; full regression run underway; before/after screenshots and optional fictional WebM saved. Changed workspace.js, index.html, daily-center.js/css; existing test entry URLs now explicit Today; new morning-motion browser tests. No backend changes.
+- NEXT STEP: inspect the latest PR #86 CI after this checkpoint; fix any regression, review screenshots in docs/ui-review/morning-motion, then record final validation and release claim. Local 222 unit/API and 26 existing Morning/daily browser checks passed. Initial full local sweep: 270/277 passed; the remaining seven found one access-refresh test race, legacy navigation-helper assumptions and the need to keep submitted-plan review available inside planning. All are corrected; 18 targeted Morning/plan/connection checks and the Focus gesture retry pass. Await exact-head full CI. Existing Focus gesture test exposed a cancel-during-access-refresh setup race; targeted retry passed, and test now waits for the actual enabled handle before keyboard activation. No write behavior changed. The same pending-plan panel moves between overview and planner; no duplicate review workflow or requests. New test caught return-focus timing, now fixed; full run includes it.
+- Known limits: old local ravi/focus-release worktree has unpushed Python smoke helper/workflow edits from the previous interrupted session; untouched and superseded by hp’s published verification helper. Do not replay or discard those files automatically. No backend changes or operational writes required here.
+- Tests: Node unit suite; targeted then full Playwright with fictional fixtures at desktop widths; workflow inventory; all six themes and reduced motion. Document exact results in PR.
+- Decisions: separate task branch; no overlap with lease work. User asks for Grok-inspired motion, not fake reasoning, invented progress or a blocking splash. Existing auth, writes, approvals and direct links remain intact. Earlier release authorization completed through #84; this UI iteration will be independently reviewable.
+
+## Previous main handoff (historical)
+
+# Handoff — authorized Focus merge and publication
 # Source provenance follow-up complete
 
 - Owner codex; claim released. Branch `codex/lease-source-provenance`, PR #87, base merged main bef12a8. **No merge/deploy/production writes.**

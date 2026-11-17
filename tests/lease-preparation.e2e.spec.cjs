@@ -16,7 +16,7 @@ async function setup(page,signin=true){
   if(u.pathname.startsWith('/rest/')&&req.method()!=='GET')writes.push({path:u.pathname,body:req.postData()});
   return route.fulfill({status:200,headers,body:JSON.stringify(data)});
  });
- await page.goto(ORIGIN+'/');
+ await page.goto(ORIGIN+'/#/today');
  if(signin){await page.locator('#account-button').click();await page.locator('#pilot-email').fill('staff@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#account-label')).toHaveText('Signed in')}
  await navigate(page,'leases');await page.locator('#lease-tab-new').click();return writes;
 }

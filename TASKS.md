@@ -5,6 +5,13 @@ Prioritized from current main code/README, roadmap/audit and live open PRs on
 planning backlog, not authorization for operational writes or feature merges.
 Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
+## P0 — requested morning UX iteration
+
+- [x] **OPS-MORNING-UX.1** Audit launch, morning/daily dashboard and Focus hierarchy on current main.
+- [x] **OPS-MORNING-UX.2** Implement desktop morning landing and honest, accessible motion with existing data services.
+- [x] **OPS-MORNING-UX.3** Verify routes, auth/refresh, reduced motion, six themes and fictional desktop screenshots; publish review evidence.
+
+## Previous release backlog (main includes #84; historical notes below)
 ## P0 — active lease page 8 upgrade
 
 - [x] **OPS-LEASE-PAGE8.1** — hp (`hp/lease-page8-editor`): reuse existing workflow; editable room labels/location, independent 2-column/bedroom-bath placements, 3–5-bedroom cases, dropdown+Custom, blank absent-room condition lines.
@@ -108,3 +115,5 @@ See [HANDOFF.md](HANDOFF.md) and [roadmap](docs/ROADMAP.md).
 
 
 - Completed OPS-LEASE-SOURCE-PROVENANCE (#87): recover original repair builder; exact-byte rebuild, three-size render match, and bounded original-page pixel verification. No runtime/schema changes; clean full master and backend activation remain separate.
+
+- PR cleanup authorized: #87 merged; #86 integrated with current lease work (239 unit/API + 28 focused browser cases pass); seven historical feature PRs verified in main and eleven older PRs closed. Final hosted merge/publication status is recorded on #86.

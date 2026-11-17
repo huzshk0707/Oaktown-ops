@@ -5,7 +5,7 @@ const ORIGIN='http://127.0.0.1:8765';
 test('compact workspace exposes mobile destinations and appearance without hiding essential status',async({page})=>{
  test.setTimeout(90000);
  await page.route('**/*',route=>new URL(route.request().url()).origin===ORIGIN?route.continue():route.abort());
- await page.goto(ORIGIN+'/');
+ await page.goto(ORIGIN+'/#/today');
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
   await chooseTheme(page,theme);
   for(const width of [320,390,768,1440]){

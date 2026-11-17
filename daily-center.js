@@ -9,8 +9,34 @@
  const last=node('span','No successful refresh','daily-last-refresh');last.id='daily-last-refresh';last.hidden=true;$('morning-command-date').after(last);
  $('daily-date').value=day;
  const returnToMorning=node('button','Morning Command Center','button');returnToMorning.type='button';returnToMorning.id='focus-return-morning';returnToMorning.onclick=()=>window.OpsWorkspace.navigate('morning');document.querySelector('.focus-board-tools').append(returnToMorning);
+ const planner=$('morning-secondary'),reviews=$('plan-pending-panel'),reviewsHome=document.createComment('Shared plan review panel home');
+ reviews.before(reviewsHome);
+ function plannerView(open){
+  planner.open=open;syncPlannerView();
+  (open?$('morning-plan-title'):$('daily-prepare')).focus({preventScroll:true});
+ }
+ $('daily-prepare').onclick=()=>plannerView(true);
+ $('daily-overview').onclick=()=>plannerView(false);
+ function syncPlannerView(){
+  if(planner.open)$('morning-readiness').before(reviews);else reviewsHome.after(reviews);
+  $('daily-prepare').hidden=planner.open;$('daily-overview').hidden=!planner.open;
+  $('morning-workflow').classList.toggle('planning-open',planner.open);
+ }
+ planner.addEventListener('toggle',syncPlannerView);
+ function readiness(taskState,access,stale){
+  const signed=!!cloud.user,loading=signed&&(taskState==='loading'||phase==='loading');
+  $('morning-workflow').dataset.loadState=!signed?'signed-out':stale?'error':loading?'loading':access?'ready':'idle';
+  const states=[
+   ['access',signed?'ready':'idle',signed?'Verified staff session':'Sign in to begin'],
+   ['tasks',!signed?'idle':taskState==='loading'?'loading':access?'ready':'error',!signed?'Awaiting sign-in':taskState==='loading'?'Loading shared tasks':access?'Shared snapshot ready':'Unavailable · retry refresh'],
+   ['sod',!signed?'idle':phase==='loading'?'loading':stale?'error':phase==='ready'?(record?'ready':'empty'):'idle',!signed?'Awaiting sign-in':phase==='loading'?'Reading approved SOD':stale?'Unavailable · retry refresh':phase==='ready'?(record?'Approved plan available':'No approved plan yet'):'Awaiting task snapshot']
+  ];
+  for(const [name,state,label] of states){$('daily-'+name+'-step').dataset.state=state;$('daily-'+name+'-state').textContent=label}
+  $('daily-dashboard').setAttribute('aria-busy',String(loading));
+ }
  function taskRow(task){
   const row=node('li',null,'daily-task'),copy=node('div'),button=node('button',(task.task_code?task.task_code+' · ':'')+task.task_title,'daily-task-title');button.type='button';button.onclick=()=>openTask(task.id);
+  row.dataset.urgency=window.OpsFocusBoardModel.lane(task,day);
   copy.append(button,node('span',window.OpsFocusBoardModel.appearance(task,day).label+' · '+task.status+' · '+(task.assigned_label||task.assigned_user_id||'Unassigned'),'daily-task-meta'));
   const info=task.intake_details||{},next=info.blocked_reason||info.waiting_on||info.next_action;if(next)copy.append(node('p',next));
   const schedule=T.scheduled(task);if(schedule)copy.append(node('span',schedule.type+' · '+schedule.date,'daily-task-meta'));
@@ -31,12 +57,14 @@
   const on=window.OpsWorkspace.getRoute().workflow==='morning',data=store.getData(),access=readable();last.hidden=!on;highlighted=new Set(approvedTaskIds());
   $('daily-dashboard').hidden=!cloud.user;
   const taskState=store.getState(),stale=taskState==='error'||['error','denied'].includes(phase),planState=taskState==='loading'?'loading':taskState==='error'?'error':phase;
+  readiness(taskState,access,stale);
+  $('daily-prepare').disabled=!access;
   $('daily-state').textContent=!cloud.user?'':taskState==='loading'||phase==='loading'?'Refreshing authorized records…':!access?'Shared task data unavailable. Refresh to retry.':stale?'Refresh incomplete. Last known records are stale; retry Refresh.':issue||'Authorized staff records · no automatic task or financial changes';
   last.textContent=lastRefresh?'Last successful refresh · '+stamp(lastRefresh)+(stale?' · stale':''):'No successful refresh';
   $('daily-start').disabled=!access;$('daily-date').disabled=!cloud.user;
-  if(!access){for(const id of ['daily-priorities','daily-assignments','daily-followups'])$(id).replaceChildren();$('daily-counts').textContent='';}
+  if(!access){for(const id of ['daily-priorities','daily-assignments','daily-followups'])$(id).replaceChildren();$('daily-counts').textContent='';for(const id of ['active','attention','followup'])$('daily-'+id+'-count').textContent='—';}
   else{
-   const p=M.project(data.tasks,day);$('daily-counts').textContent=p.active.length+' active tasks / '+p.attention+' need attention / '+p.followups.length+' follow-ups';
+   const p=M.project(data.tasks,day);$('daily-active-count').textContent=p.active.length;$('daily-attention-count').textContent=p.attention;$('daily-followup-count').textContent=p.followups.length;$('daily-counts').textContent=p.active.length+' active tasks / '+p.attention+' need attention / '+p.followups.length+' follow-ups';
    taskList($('daily-priorities'),p.active,'No active saved tasks.');
    const owners=$('daily-assignments');owners.replaceChildren();
    for(const group of p.owners){const section=node('details',null,'daily-owner');section.open=true;section.append(node('summary',group.label+' · '+group.tasks.length+' active'));const list=node('div');taskList(list,group.tasks,'',3);section.append(list);owners.append(section)}
@@ -54,6 +82,7 @@
    for(const s of Object.values(p.sources)){if(!s||typeof s.label!=='string')continue;const detail=node('p',s.label+' · '+(s.verification||'Verification not recorded')+(s.version?' · version '+s.version:'')+(s.originRef?' · '+s.originRef:''));sources.append(detail)}
    planHost.append(sources,node('p',window.OpsMorningModel.planningOnly(p)+' planning-only items. Approval does not create saved tasks.','daily-task-meta'));
   }else planHost.append(node('p',planState==='ready'?'No valid approved plan is saved for '+day+' Eastern.':planState==='denied'?'Server-reviewed plan access was denied. No saved plan is displayed.':planState==='loading'?'Reading server-reviewed SOD…':'Approved SOD unavailable. Refresh to retry.','daily-empty'));
+  $('daily-plan-status').dataset.state=planState==='ready'?(record?'approved':'empty'):planState;
   renderFocusPlan();
  }
  async function refreshPlan(fullSnapshot=false){

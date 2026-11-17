@@ -89,7 +89,7 @@ async function setup(page){
   if(p==='/rest/v1/rpc/ops_task_intake')return reply([]);
   return reply([]);
  });
- await page.goto(ORIGIN+'/');return s;
+ await page.goto(ORIGIN+'/#/today');return s;
 }
 test('Today is protected, uses recorded dates only, and links to existing workflows',async({page})=>{
  const s=await setup(page);

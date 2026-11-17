@@ -3,7 +3,7 @@ const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765';
 test('notice step navigation keeps the local draft and exposes review checks without changing export controls',async({page})=>{
  await page.route('**/*',route=>new URL(route.request().url()).origin===ORIGIN?route.continue():route.abort());
- await page.goto(ORIGIN+'/');await page.locator('[data-workspace="notices"]').click();
+ await page.goto(ORIGIN+'/#/today');await page.locator('[data-workspace="notices"]').click();
  const nav=page.getByRole('navigation',{name:'Jump to a notice preparation step'});
  await expect(nav).toBeVisible();
  const studio=page.frameLocator('#studio-frame');
@@ -25,7 +25,7 @@ test('notice step navigation keeps the local draft and exposes review checks wit
 test('notice navigation does not claim a draft was saved when browser storage is blocked',async({page})=>{
  await page.addInitScript(()=>{Object.defineProperty(Storage.prototype,'setItem',{value(){throw Error('Storage blocked')}})});
  await page.route('**/*',route=>new URL(route.request().url()).origin===ORIGIN?route.continue():route.abort());
- await page.goto(ORIGIN+'/');await page.locator('[data-workspace="notices"]').click();
+ await page.goto(ORIGIN+'/#/today');await page.locator('[data-workspace="notices"]').click();
  const studio=page.frameLocator('#studio-frame');await studio.locator('#tenant').fill('Fictional unsaved resident');
  await expect(studio.locator('#status')).toContainText('Export JSON to save');
  await expect(page.locator('#notice-workflow-context')).toContainText('export a JSON backup');
@@ -34,7 +34,7 @@ test('notice navigation does not claim a draft was saved when browser storage is
 
 test('active notice PDF toolbar jumps to the matching tenant message and returns to that notice',async({page})=>{
  await page.route('**/*',route=>new URL(route.request().url()).origin===ORIGIN?route.continue():route.abort());
- await page.goto(ORIGIN+'/');
+ await page.goto(ORIGIN+'/#/today');
  await page.locator('[data-workspace="notices"]').click();
  const frame=page.frameLocator('#studio-frame');
  await expect(frame.locator('#goTenantMessage')).toBeVisible();

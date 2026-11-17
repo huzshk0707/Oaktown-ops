@@ -2,7 +2,7 @@
 const {test,expect}=require('@playwright/test');
 test.use({browserName:'chromium'});
 test('renewal lease initials become yellow while black glyphs and lines remain intact',async({page})=>{
- await page.goto('http://127.0.0.1:8765/');
+ await page.goto('http://127.0.0.1:8765/#/today');
  const result=await page.evaluate(async()=>{
   const P=window.OpsRenewalPDF;
   if(!P)throw Error('Renewal PDF module did not load');

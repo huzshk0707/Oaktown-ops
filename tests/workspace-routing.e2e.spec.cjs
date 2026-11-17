@@ -39,7 +39,7 @@ test('protected record deep links wait for verified sign-in and survive refresh'
  await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#operations-profile-dialog')).not.toBeVisible();await expect(page.locator('#operations-profile-content')).toBeEmpty();await expect(page).toHaveURL(/#\/properties$/);
 });
 test('record profile history opens exact related records and clears on navigation',async({page})=>{
- const s=await mock(page);await page.goto(ORIGIN+'/');await signIn(page);
+ const s=await mock(page);await page.goto(ORIGIN+'/#/today');await signIn(page);
  await page.evaluate(()=>window.OpsOperations.openProfile('unit','u1'));await expect(page).toHaveURL(/#\/today\/record\/unit\/u1$/);await expect(page.locator('#operations-profile-title')).toHaveText('100 Fictional Route · Unit A');
  await page.locator('#operations-profile-content').getByRole('button',{name:'Fictional reference lease',exact:true}).click();await expect(page).toHaveURL(/#\/today\/record\/lease\/l1$/);await expect(page.locator('#operations-profile-title')).toHaveText('Fictional reference lease');
  await page.goBack();await expect(page.locator('#operations-profile-title')).toHaveText('100 Fictional Route · Unit A');

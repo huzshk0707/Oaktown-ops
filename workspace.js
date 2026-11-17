@@ -46,7 +46,7 @@ function restoreRoute(){
  let state=readRoute();
  // Password-recovery tokens and ordinary page anchors belong to their existing handlers.
  if(state===null&&location.hash)return;
- if(!state)state={workflow:'today',tab:null,record:null};
+ if(!state)state={workflow:state===null?'morning':'today',tab:null,record:null};
  routePaused=true;
  try{
   if(workflow!==state.workflow)showWorkflow(state.workflow);
