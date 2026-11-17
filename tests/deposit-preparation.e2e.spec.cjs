@@ -13,7 +13,7 @@ async function setup(page){
   else if(u.pathname==='/rest/v1/staff_memberships')data=[{user_id:USER,role:'admin',is_active:true}];
   else if(u.pathname.startsWith('/rest/')&&r.method()!=='GET')writes++;
   return route.fulfill({headers,body:JSON.stringify(data)});
- });await page.goto(ORIGIN+'/');await navigate(page,'applications');await page.locator('#application-deposit-open').click();
+ });await page.goto(ORIGIN+'/#/today');await navigate(page,'applications');await page.locator('#application-deposit-open').click();
  await expect(page.locator('#deposit-address')).toBeDisabled();await page.locator('#deposit-signin').click();
  await page.locator('#pilot-email').fill('staff@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#deposit-address')).toBeEnabled();return ()=>writes;
 }

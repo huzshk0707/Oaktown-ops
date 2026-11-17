@@ -20,3 +20,99 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
 .daily-last-refresh {font:10px/1.5 ui-monospace,monospace;color:#b1cbdc;max-width:150px;flex-shrink:1}.daily-last-refresh[hidden] {display:none}
 .morning-mode .topbar {gap:8px!important;padding:12px 16px!important}.morning-mode .workspace-clocks {gap:12px}.morning-mode .topbar #morning-command-refresh {font-size:11px!important}
 .morning-mode #daily-state {color:#c0d5e4;font:12px/1.6 system-ui,sans-serif}.morning-mode #morning-state:empty {display:none}
+
+/* Morning UX: one visible planning surface, live readiness, no animation gates. */
+@media screen {
+ .morning-mode .topbar {position:sticky;top:0;z-index:20}
+ .morning-center {padding:36px 32px 48px;background:radial-gradient(ellipse at 78% 0%,#1e52552b,transparent 48%),#080e17}
+ .morning-heading {position:relative;min-height:138px;padding:0 0 28px;isolation:isolate}
+ .morning-heading h1 {font-size:clamp(34px,3.1vw,48px);font-weight:500;line-height:1.08;letter-spacing:-.045em;margin:12px 0 16px}
+ .morning-heading h1 span {color:#a9c4d0}
+ .morning-heading>div>p:last-child {font-size:14px}
+ .morning-heading .morning-badge {align-self:flex-start;margin-top:12px;border-radius:20px;background:#0e232b;color:#c1e7df;border-color:#385e62}
+ .morning-signal {position:absolute;width:144px;height:144px;right:27%;top:0;display:grid;place-items:center;z-index:-1;color:#bfeced;opacity:.75}
+ .morning-signal i {position:absolute;inset:8px;border:1px solid #76b6c03d;border-radius:50%;transform:rotate(-24deg) scaleY(.7)}
+ .morning-signal i:nth-child(2){inset:22px;transform:rotate(30deg) scaleY(.75);border-color:#84d0c777}
+ .morning-signal i:nth-child(3){inset:38px;transform:rotate(85deg) scaleY(.8);border-color:#afe7ee99}
+ .morning-signal span {font:300 38px/1 system-ui,sans-serif;letter-spacing:-.1em;text-shadow:0 0 28px #a9e7ff70}
+ .daily-readiness {list-style:none;margin:8px 0 18px;padding:0;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #2b414f;border-radius:10px;background:#0d1822;overflow:hidden}
+ .daily-readiness li {position:relative;display:flex;gap:12px;align-items:center;padding:14px 20px;color:#a7c1d0;font:11px/1.5 system-ui,sans-serif}
+ .daily-readiness li+li {border-left:1px solid #2b414f}
+ .daily-readiness strong {display:block;font-size:12px;font-weight:500;color:#d8e7ef}
+ .daily-step-dot {width:7px;height:7px;border-radius:50%;background:#6e8190;box-shadow:0 0 0 5px #8197a210;flex:none}
+ .daily-readiness [data-state="ready"] .daily-step-dot {background:#8dd5b7;box-shadow:0 0 0 5px #8dd5b710}
+ .daily-readiness [data-state="error"] .daily-step-dot {background:#f0b5a9}
+ .daily-readiness [data-state="loading"]::after {content:"";position:absolute;bottom:0;left:0;width:35%;height:1px;background:linear-gradient(90deg,transparent,#b6edf0,transparent);animation:morning-scan 1.4s ease-in-out 3}
+ .daily-readiness [data-state="loading"] .daily-step-dot {background:#bbeced}
+ .morning-center[data-load-state="loading"] .morning-signal i {animation:morning-orbit 2.1s ease-in-out 2}
+ .morning-center[data-load-state="loading"] .morning-signal i:nth-child(2){animation-delay:.12s}
+ .morning-center[data-load-state="loading"] .morning-signal i:nth-child(3){animation-delay:.24s}
+ .morning-mode #daily-state {margin:0;min-height:20px;font-size:11px;color:#b2c9d6}
+ .daily-controls {gap:12px;padding:16px 0;margin:0;border:0;background:transparent;box-shadow:none}
+ .daily-controls>div {min-width:0}.daily-controls .morning-eyebrow {font-size:9px;color:#a3b7c6}
+ .daily-controls p {font-size:12px}.daily-controls label {gap:8px;font-size:11px}
+ .daily-controls input {max-width:145px;min-height:42px}
+ html[data-ops-theme] .morning-mode .daily-controls .button {min-height:44px;font-size:12px;padding:11px 16px;border-radius:8px}
+ html[data-ops-theme] .morning-mode #daily-start {color:#102729;background:#bce5df;border-color:#bce5df}
+ .daily-metrics {display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 24px}
+ .daily-metrics>div {display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 16px;padding:16px 20px;border:1px solid #2a414f;border-radius:10px;background:linear-gradient(120deg,#122330,#0e1a25)}
+ .daily-metrics span {color:#cadce8;font:500 12px/1.5 system-ui,sans-serif}
+ .daily-metrics strong {grid-column:2;grid-row:1/span 2;color:#e2eff7;font:400 30px/1.1 system-ui,sans-serif;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+ .daily-metrics small {color:#a7bdcc;font:11px/1.5 system-ui,sans-serif}
+ .daily-metrics>div:nth-child(2) strong {color:#efc793}
+ .daily-grid {grid-template-columns:minmax(300px,1.15fr) minmax(360px,1.4fr) minmax(270px,.95fr);gap:16px}
+ .daily-panel {padding:22px;border-color:#2c4556;border-top-width:1px;max-height:540px;border-radius:12px;background:linear-gradient(155deg,#112332,#0e1b27 65%);box-shadow:0 16px 44px #0002}
+ .daily-panel h2 {font-size:20px;font-weight:500}.daily-panel header{margin-bottom:14px}
+ .daily-plan-panel {border-color:#527d87;max-height:900px;background:radial-gradient(ellipse at 100% 0%,#27515133,transparent 55%),#122331}
+ .daily-blockers-panel {grid-column:3;grid-row:1}.daily-deposit-panel{grid-column:3;grid-row:2}.daily-assignments-panel{grid-column:1;grid-row:2}
+ .daily-plan-panel .daily-tag[data-state="approved"] {background:#19392f;color:#bcebd7;border-color:#477e69}
+ .daily-plan-panel .daily-tag:is([data-state="denied"],[data-state="error"]) {color:#f3c1b7;border-color:#965b55;background:#302323}
+ .daily-plan-text {font-size:14px;line-height:1.9;border-left-color:#7bc6c0;border-radius:0 8px 8px 0;padding:20px}
+ .daily-task {padding:14px 0;gap:8px}.daily-task[data-urgency="overdue"]{border-left:2px solid #bc8280;padding-left:10px}
+ .daily-task[data-urgency="today"],.daily-task[data-urgency="urgent"]{border-left:2px solid #c0a16e;padding-left:10px}
+ html[data-ops-theme] .daily-task .daily-task-title {font-weight:500;font-size:13px;text-decoration:none;line-height:1.6}
+ html[data-ops-theme] .daily-task .daily-task-title:hover {color:#b4eff1;text-decoration:underline;text-underline-offset:4px}
+ .daily-task .daily-tag {white-space:normal;max-width:74px;font-size:9px;flex:none}
+ .daily-task p {font-size:12px;color:#adbfcd}.daily-task-meta {font-size:10px;color:#abc2d2}
+ .daily-disconnected {font-size:17px;margin:8px 0;color:#d2be9c}
+ .daily-deposit-panel p {font-size:12px;color:#bacbd8;line-height:1.65}
+ .morning-center.planning-open .daily-grid {display:none}
+ .morning-center .morning-secondary {margin-top:18px;border:1px solid #314e60;border-radius:12px;padding:18px;background:#0c1722}
+ .morning-secondary>summary {font-size:14px;min-height:28px}
+ .morning-secondary>summary span {font-size:11px;color:#abc6d1}
+ .morning-secondary>p {max-width:80ch;line-height:1.7}
+ .morning-column {max-height:calc(100dvh - 180px);border-top-width:1px;border-radius:10px;padding:20px;line-height:1.7}
+ .morning-plan-column {border-color:#5b8990;background:#112332}
+ .morning-panel-head h2 {font-size:21px;font-weight:500}
+ .morning-center .sod-morning>summary {color:#e3f1f4;font-size:18px}
+ .morning-center #sod-output {font:14px/1.85 system-ui,sans-serif}
+ html[data-ops-theme] .morning-mode :is(.morning-center,.morning-dialog) :is(.button,input,select) {min-height:42px}
+ html[data-ops-theme] .morning-mode :is(.morning-center,.morning-dialog) .button {transition:background .16s ease,border-color .16s ease,box-shadow .16s ease}
+ html[data-ops-theme] .morning-mode :is(.morning-center,.morning-dialog) .button:not(:disabled):hover {border-color:#a9d9de;box-shadow:0 0 0 2px #a9d9de12}
+ #morning-signin {margin:18px 0}
+ /* Entry is finite and never delays controls or announces pretend processing. */
+ .morning-center:not([hidden]) .morning-heading {animation:morning-arrive .5s cubic-bezier(.2,.8,.2,1) both}
+ .daily-grid>.daily-panel {animation:morning-arrive .45s cubic-bezier(.2,.8,.2,1) both}
+ .daily-grid>.daily-panel:nth-child(2){animation-delay:.045s}.daily-grid>.daily-panel:nth-child(3){animation-delay:.09s}
+ #morning-secondary[open] .morning-column {animation:morning-arrive .35s cubic-bezier(.2,.8,.2,1) both}
+ .morning-dialog[open],.focus-action-dialog[open] {animation:morning-arrive .2s ease-out}
+ .ops-workspace .workspace-main>section:not([hidden]):not(#morning-workflow):not(#focus-workflow) {animation:morning-arrive .18s ease-out}
+ @keyframes morning-arrive {from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+ @keyframes morning-scan {from{transform:translateX(-100%)}to{transform:translateX(390%)}}
+ @keyframes morning-orbit {50%{opacity:.35;scale:.94}100%{opacity:1;scale:1}}
+ html[data-ops-motion="off"] .ops-workspace *,html[data-ops-motion="off"] .ops-workspace *::before,html[data-ops-motion="off"] .ops-workspace *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ @media(prefers-reduced-motion:reduce){.ops-workspace *,.ops-workspace *::before,.ops-workspace *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+}
+@media screen {
+ .morning-center.planning-open .morning-heading {min-height:0;padding-bottom:12px}
+ .morning-center.planning-open .morning-heading h1 {font-size:30px;margin:8px 0}
+ .morning-center.planning-open .morning-heading h1 br {display:none}
+ .morning-center.planning-open .morning-heading h1 span::before {content:' '}
+ .morning-center.planning-open .morning-signal,.morning-center.planning-open .daily-metrics {display:none}
+ .morning-center.planning-open .morning-secondary {margin-top:0}
+ .daily-controls [hidden] {display:none!important}
+}
+@media screen {
+ .morning-center #sod-output:not([hidden]) {animation:morning-arrive .38s cubic-bezier(.2,.8,.2,1)}
+ .morning-center #sod-output:focus {border-color:#a6d8d9}
+}

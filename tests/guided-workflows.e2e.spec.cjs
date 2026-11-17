@@ -5,7 +5,7 @@ const ORIGIN='http://127.0.0.1:8765';
 async function setup(page,workspace,theme='ember'){
  const calls=[];
  await page.route('**/*',route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();calls.push(route.request().url());return route.abort()});
- await page.goto(ORIGIN+'/');await chooseTheme(page,theme);
+ await page.goto(ORIGIN+'/#/today');await chooseTheme(page,theme);
  await navigate(page,workspace);
  return {root:page.locator('#'+workspace+'-workflow'),calls};
 }

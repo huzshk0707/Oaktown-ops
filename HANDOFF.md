@@ -1,10 +1,10 @@
 # Handoff — Morning UX and motion
 
-- Last updated: 2026-11-17 07:32 UTC by ravi; claim expires 08:02 UTC.
-- Current task / branch / PR: OPS-MORNING-UX / `ravi/morning-motion` / draft PR being opened; base main e96beea.
+- Last updated: 2026-11-17 07:40 UTC by ravi; claim expires 08:10 UTC.
+- Current task / branch / PR: OPS-MORNING-UX / `ravi/morning-motion` / PR #86; base main e96beea.
 - Done: inspected live main, release #84, open PRs and branch ownership. Integrated release already merged; active #85 lease editor belongs to another account and is outside scope.
-- In progress: audit launch, daily dashboard, morning planner and Focus motion using fictional desktop records.
-- NEXT STEP: inspect actual browser states and controllers; implement a morning landing with honest loading feedback, clearer operational hierarchy and restrained reduced-motion-safe transitions. Preserve explicit routes and authenticated shared snapshots.
+- In progress: implementation and fictional desktop captures complete; full regression run underway. Changed workspace.js, index.html, daily-center.js/css; existing test entry URLs now explicit Today; new morning-motion browser tests. No backend changes.
+- NEXT STEP: inspect /tmp/morning-full-browser.log and full PR CI; fix any regression, review screenshots in docs/ui-review/morning-motion, then record final validation and release claim. Local 222 unit/API and 26 existing Morning/daily browser checks passed. New test caught return-focus timing, now fixed; full run includes it.
 - Known limits: old local ravi/focus-release worktree has unpushed Python smoke helper/workflow edits from the previous interrupted session; untouched and superseded by hp’s published verification helper. Do not replay or discard those files automatically. No backend changes or operational writes required here.
 - Tests: Node unit suite; targeted then full Playwright with fictional fixtures at desktop widths; workflow inventory; all six themes and reduced motion. Document exact results in PR.
 - Decisions: separate task branch; no overlap with lease work. User asks for Grok-inspired motion, not fake reasoning, invented progress or a blocking splash. Existing auth, writes, approvals and direct links remain intact. Earlier release authorization completed through #84; this UI iteration will be independently reviewable.

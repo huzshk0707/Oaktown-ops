@@ -26,7 +26,7 @@ async function open(page,viewer=false){
   if(req.method()==='POST')writes++;
   return reply([]);
  });
- await page.goto(ORIGIN+'/');await page.locator('#today-signin').click();await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#today-status')).toContainText('Updated');await openTasks(page);return ()=>writes;
+ await page.goto(ORIGIN+'/#/today');await page.locator('#today-signin').click();await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#today-status')).toContainText('Updated');await openTasks(page);return ()=>writes;
 }
 test('Active task queue searches codes, filters saved status, includes later dates and reveals remaining rows',async({page})=>{
  const writes=await open(page);

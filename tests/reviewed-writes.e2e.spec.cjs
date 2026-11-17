@@ -59,7 +59,7 @@ async function setup(page){
   if(p==='/rest/v1/renewal_cases')return reply([A,B].map((id,i)=>({id,property_id:P,unit_id:U,oak_record_id:i?'OAK-FAKE-B':'OAK-FAKE-A',action_status:'Pending',is_applicable:true})));
   return reply([]);
  });
- await page.goto(ORIGIN+'/');return s;
+ await page.goto(ORIGIN+'/#/today');return s;
 }
 async function signIn(page){
  await page.locator('#account-button').click();await page.locator('#pilot-email').fill('example@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();

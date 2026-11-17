@@ -51,7 +51,7 @@ async function login(page){
  }
 }
 test('Notices search selects multiple of 55 portfolio records and creates editable notice drafts',async({page})=>{
- await page.goto('http://127.0.0.1:8765/');
+ await page.goto('http://127.0.0.1:8765/#/today');
  await login(page);
  await expect(page.locator('#notices-load-all')).toBeHidden();
  const search=page.locator('#notice-picker-search');
@@ -93,7 +93,7 @@ test('preview bulk selection searches matching addresses without losing checked 
 });
 
 test('pasted list matches in user order, reviews missing rows and creates ordered drafts',async({page})=>{
- await page.goto('http://127.0.0.1:8765/');
+ await page.goto('http://127.0.0.1:8765/#/today');
  await login(page);
  await page.locator('#notice-bulk-input').fill('Sequoia\nDemo Avenue');
  await page.locator('#notice-bulk-match').click();
@@ -110,7 +110,7 @@ test('pasted list matches in user order, reviews missing rows and creates ordere
  await frame.locator('#noticeList button[data-select]').nth(1).click();await expect(frame.locator('#tenant')).toHaveValue('Fictional reviewed recipient');
 });
 test('pasted list refuses missing matches until corrected',async({page})=>{
- await page.goto('http://127.0.0.1:8765/');
+ await page.goto('http://127.0.0.1:8765/#/today');
  await login(page);
  await page.locator('#notice-bulk-input').fill('Sequoia\nUnknown Fictional Address');
  await page.locator('#notice-bulk-match').click();
@@ -122,7 +122,7 @@ test('pasted list refuses missing matches until corrected',async({page})=>{
 });
 
 test('editing a matched notice list invalidates its selections and sign-out clears private matches',async({page})=>{
- await page.goto('http://127.0.0.1:8765/');await login(page);
+ await page.goto('http://127.0.0.1:8765/#/today');await login(page);
  await page.locator('#notice-bulk-input').fill('Sequoia\nDemo Avenue');await page.locator('#notice-bulk-match').click();
  await expect(page.locator('#notice-picker-make')).toBeEnabled();
  await page.locator('#notice-bulk-input').fill('Sequoia');
@@ -133,7 +133,7 @@ test('editing a matched notice list invalidates its selections and sign-out clea
  await expect(page.locator('#notice-picker-list')).toBeEmpty();await expect(page.locator('#notice-bulk-match')).toBeDisabled();
 });
 test('unavailable optional aliases retain normal notice address search and draft creation',async({page})=>{
- await page.goto('http://127.0.0.1:8765/');await login(page);
+ await page.goto('http://127.0.0.1:8765/#/today');await login(page);
  await page.route('**/rest/v1/*_aliases?*',route=>route.fulfill({status:403,headers:{'access-control-allow-origin':'*','content-type':'application/json'},body:JSON.stringify({message:'Optional alias lookup unavailable'})}));
  await page.locator('#notice-picker-refresh').click();
  await expect(page.locator('#notice-picker-status')).toContainText('55 units and lots ready');
@@ -144,7 +144,7 @@ test('unavailable optional aliases retain normal notice address search and draft
 });
 
 test('ambiguous pasted properties require unit choices and duplicate units block creation',async({page})=>{
- await page.goto('http://127.0.0.1:8765/');await login(page);
+ await page.goto('http://127.0.0.1:8765/#/today');await login(page);
  const extra={id:'66666666-6666-4666-8666-666666666666',property_id:properties[0].id,unit_code:'DEMO-B',unit_label:'Unit B',unit_class:'residential',occupancy_status:'Leased'};
  const headers={'access-control-allow-origin':'*','content-type':'application/json'};
  await page.route('**/rest/v1/units?*',route=>route.fulfill({headers,body:JSON.stringify([...units,extra])}));

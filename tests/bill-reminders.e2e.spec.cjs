@@ -28,7 +28,7 @@ async function setup(page){
   }
   return reply([]);
  });
- await page.goto(ORIGIN+'/');return s;
+ await page.goto(ORIGIN+'/#/today');return s;
 }
 async function signIn(page){await page.locator('#bill-signin').click();await page.locator('#pilot-email').fill('staff@example.invalid');await page.locator('#pilot-password').fill('fictional-password');await page.locator('#pilot-login').click();await expect(page.locator('#bill-status')).toContainText('up to date');await expect(page.locator('#today-status')).toContainText('Updated');}
 const first=page=>page.locator('#bill-attention .bill-item').filter({hasText:'Fictional North Card'});

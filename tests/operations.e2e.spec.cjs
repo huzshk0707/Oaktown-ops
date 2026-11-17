@@ -36,7 +36,7 @@ async function setup(page,{login=true,viewer=false}={}){
   const offset=Number(u.searchParams.get('offset')||0),limit=Number(u.searchParams.get('limit')||1000);
   return reply(rows.slice(offset,offset+limit));
  });
- await page.goto(ORIGIN+'/');
+ await page.goto(ORIGIN+'/#/today');
  if(login){await signIn(page);await expect(page.locator('#operations-status')).toContainText('Connected records ready for search')}
  return state;
 }

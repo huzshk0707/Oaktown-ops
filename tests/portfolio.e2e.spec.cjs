@@ -39,7 +39,7 @@ async function login(page){
   else throw Error('Unexpected test API: '+path);
   return route.fulfill({status:200,headers:h,body:JSON.stringify(body)});
  });
- await page.goto('http://127.0.0.1:8765/');
+ await page.goto('http://127.0.0.1:8765/#/today');
  await page.locator('#account-button').click();
  await page.locator('#pilot-email').fill('tester@example.invalid');
  await page.locator('#pilot-password').fill('fictional-password');

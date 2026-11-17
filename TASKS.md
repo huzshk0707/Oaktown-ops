@@ -7,8 +7,8 @@ Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
 ## P0 — requested morning UX iteration
 
-- [ ] **OPS-MORNING-UX.1** Audit launch, morning/daily dashboard and Focus hierarchy on current main.
-- [ ] **OPS-MORNING-UX.2** Implement desktop morning landing and honest, accessible motion with existing data services.
+- [x] **OPS-MORNING-UX.1** Audit launch, morning/daily dashboard and Focus hierarchy on current main.
+- [x] **OPS-MORNING-UX.2** Implement desktop morning landing and honest, accessible motion with existing data services.
 - [ ] **OPS-MORNING-UX.3** Verify routes, auth/refresh, reduced motion, six themes and fictional desktop screenshots; publish review evidence.
 
 ## Previous release backlog (main includes #84; historical notes below)

@@ -8,7 +8,7 @@ for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl'])test('Appli
   if(new URL(route.request().url()).origin===ORIGIN)return route.continue();
   external.push(route.request().url());return route.abort();
  });
- await page.goto(ORIGIN+'/');
+ await page.goto(ORIGIN+'/#/today');
  await chooseTheme(page,theme);
  await navigate(page,'applications');
  await expect(page.locator('#applications-workflow')).toBeVisible();

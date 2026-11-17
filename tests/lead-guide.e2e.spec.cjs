@@ -4,7 +4,7 @@ const {test,expect}=require('@playwright/test');
 const ORIGIN='http://127.0.0.1:8765';
 for(const theme of ['veyra','oryn','nilo']) test('Lead Handling guide generates local portable prompt in '+theme, async({page})=>{
  const external=[];await page.route('**/*',route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();external.push(route.request().url());return route.abort();});
- await page.goto(ORIGIN+'/');await chooseTheme(page,theme);
+ await page.goto(ORIGIN+'/#/today');await chooseTheme(page,theme);
  await navigate(page,'leads');
  await expect(page.locator('#leads-workflow')).toBeVisible();
  await expect(page.locator('#listings-workflow')).toBeHidden();
