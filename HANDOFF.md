@@ -1,3 +1,11 @@
+# Morning integration reviewed — hosted gate pending
+
+- Owner codex, heartbeat 2026-11-17 13:03 UTC, expiry 13:33 UTC. User authorized #86/#87 merge and closure of historical PRs. Current branch ravi/morning-motion; runtime integration 659d85e.
+- #87 merged at 1d9fea2. Resolved four conflicts against current main preserving the complete lease generator, template provenance, Morning UI, both CI captures and both task histories.
+- Local combined validation: 239 Node/API tests, 28 Morning/lease browser cases, workflow inventory 30/69 and diff check passed. Source reviewed; no new write/auth/backend path. Full hosted CI 44088330057 pending at runtime checkpoint; this completion note changes docs only.
+- Closed #71/#72/#73/#75/#77/#81/#82 after verifying exact current tips are ancestors of main. Closed #76/#78/#79/#80 as completed historical reports; evidence and branches retained.
+- NEXT STEP: confirm all hosted jobs on the final branch pass; mark #86 ready and merge with expected SHA, verify exact-main CI and Pages, create next unused annotated patch tag. Then update PR with publication proof and release claim. No production SQL or operational writes.
+
 # Authorized merge continuation
 
 - Owner codex; heartbeat 2026-11-17 12:57 UTC; expires 2026-11-17 13:27 UTC. Previous ravi claim expired; user requests review/merge #86 and #87 plus old-PR closure.
