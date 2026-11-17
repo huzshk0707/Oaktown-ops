@@ -21,3 +21,14 @@ and mocked saved preparation. They do not establish production backend rollout.
 
 Run `node scripts/capture-lease-editor.cjs` with pinned Playwright dependencies
 and the repo served on localhost:8765. See [implementation/testing instructions](../LEASE-PAGE8-EDITOR.md).
+
+## Retained original checklist previews
+
+The following use the source-review checkpoint's blank checklist with fictional
+short observations. They are unsigned drafts, not completed reference leases:
+[three bedrooms](original-three-bedroom-DRAFT.pdf),
+[three plus den](original-three-bedroom-den-DRAFT.pdf),
+[four with basement](original-four-bedroom-basement-DRAFT.pdf),
+[four with three baths](original-four-bedroom-three-baths-DRAFT.pdf),
+[five with associated bathroom](original-five-bedroom-master-bath-DRAFT.pdf).
+See [asset provenance and limits](../../lease-assets/README.md).

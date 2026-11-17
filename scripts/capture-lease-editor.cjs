@@ -17,5 +17,7 @@ const {open,prepare}=require('../tests/lease-template-browser-fixtures.cjs'),{va
    const p=await doc.getPage(8),v=p.getViewport({scale:1.5}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;await p.render({canvasContext:c.getContext('2d'),viewport:v}).promise;const png=c.toDataURL('image/png').split(',')[1];await doc.destroy();return png;
   },Array.from(result.bytes));fs.writeFileSync(path.join(out,name+'-page8.png'),Buffer.from(png,'base64'));
  }
+ const profile=require('../lease-template-profile.js'),L=require('../vendor/lease-pdf/pdf-lib-1.17.1.min.js');
+ for(const name of names){const f=await variant(name);f.state.roomPlacements=profile.suggestPlacements(f.state,name.includes('master')?'master':'columns');for(const key of Object.keys(f.state.conditions))f.state.conditions[key]='Good';f.state.roomLabels={};f.state.roomLocations={};const bytes=await profile.page8Preview(f.state,{PDFLib:L,E,viewerUser:()=> 'fictional'});fs.writeFileSync(path.join(out,'original-'+name+'-DRAFT.pdf'),bytes);}
  await browser.close();console.log('Fictional lease editor desktop/PDF examples captured; no live records used.');
 })().catch(e=>{console.error(e);process.exitCode=1});

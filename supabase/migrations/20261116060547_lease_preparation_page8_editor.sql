@@ -134,7 +134,16 @@ begin
   if coalesce(f->>'page','') !~ '^(10|[1-9])$' or coalesce(f->>'font','') not in ('Helvetica','Times-Roman','Courier','Custom')
    or jsonb_typeof(f->'size') is distinct from 'number' or (f->>'size')::numeric not between 6 and 24
   then raise exception 'Invalid template field font or page' using errcode='22023';end if;
-  if coalesce(f->>'align','left') not in ('left','center','right') or coalesce(f->>'key','') !~ '^(term/[^/]{1,100}|slot/(kitchen|bathroom|living|bedroom-[1-5]|basement|additional|exterior|systems|other)/[01]/[0-2]/[^/]{1,100})$' then raise exception 'Invalid original field binding or alignment' using errcode='22023';end if;
+  if coalesce(f->>'align','left') not in ('left','center','right') or coalesce(f->>'key','') !~ '^(term/[^/]{1,100}|slot/(kitchen|bathroom|living|bedroom-[1-5]|basement|additional|exterior|systems|other)/[01]/[0-2]/.{1,100})$' then raise exception 'Invalid original field binding or alignment' using errcode='22023';end if;
+  if f ? 'baseline' and (jsonb_typeof(f->'baseline') is distinct from 'number' or (f->>'baseline')::numeric<0 or (f->>'baseline')::numeric>(f->>'height')::numeric) then raise exception 'Invalid text baseline' using errcode='22023';end if;
+  if f ? 'sources' then
+   if jsonb_typeof(f->'sources') is distinct from 'array' or jsonb_array_length(f->'sources')>12 or f->>'page'<>'8' then raise exception 'Invalid grouped condition binding' using errcode='22023';end if;
+   for other_f in select * from jsonb_array_elements(f->'sources') loop
+    if coalesce(other_f->>'key','') !~ '^slot/(kitchen|bathroom|living|bedroom-[1-5]|basement|additional|exterior|systems|other)/[01]/[0-2]/.{1,100}$' or jsonb_typeof(other_f->'label') is distinct from 'string' or length(other_f->>'label')>100 then raise exception 'Invalid grouped condition binding' using errcode='22023';end if;
+    if other_f->>'key'=any(mapped_keys) then raise exception 'Duplicate grouped condition binding' using errcode='22023';end if;
+    mapped_keys:=array_append(mapped_keys,other_f->>'key');
+   end loop;
+  end if;
   dims:=t->'map'->'pages'->((f->>'page')::integer-1);
   foreach k in array array['x','y','width','height'] loop if jsonb_typeof(f->k) is distinct from 'number' then raise exception 'Invalid template rectangle' using errcode='22023';end if;end loop;
   if (f->>'x')::numeric<0 or (f->>'y')::numeric<0 or (f->>'width')::numeric<=0 or (f->>'height')::numeric<=0
@@ -191,7 +200,7 @@ begin
   if coalesce(s->'roomLocations'->>area,'')<>'' and not('slot/'||position_key||'/location'=any(mapped_keys)) then raise exception 'Map room location' using errcode='22023';end if;
   for k,value in select * from jsonb_each(s->'conditions') where key like area||'::%' loop
    if btrim(value#>>'{}')<>'' then active_observations:=active_observations+1;end if;
-   if value#>>'{}'<>'' and not exists(select 1 from jsonb_array_elements(t->'map'->'fields') mapped_entry where mapped_entry->>'key'='slot/'||position_key||'/'||split_part(k,'::',2))
+   if value#>>'{}'<>'' and not('slot/'||position_key||'/'||split_part(k,'::',2)=any(mapped_keys))
    then raise exception 'Map every entered observation for %',area using errcode='22023';end if;
   end loop;
  end loop;

@@ -19,7 +19,7 @@
   function field(key,x,baseline,width,size=9,page=8){
     // Tight source rows have 9pt pitch. The baseline is explicit; it is not
     // obtained by shrinking text or moving rows to accommodate observations.
-    return {key,page,x,y:792-baseline-1.8,width,height:9,size,font:'Helvetica',align:'left',baseline:1.8};
+    return {key,page,x,y:792-baseline-2.1,width,height:9,size,font:'Helvetica',align:'left',baseline:2.1};
   }
   function suggestPlacements(state,mode='columns'){
     const places={...state.roomPlacements};
@@ -37,7 +37,7 @@
     const fields=[field('term/address',143,83.8,337,11),field('term/bedrooms',520,83.8,38,11),
       field('term/satisfactory-yes',352,43.5,15,11),field('term/satisfactory-no',410,43.5,15,11)];
     // Tall header values have ample source whitespace above their baselines.
-    for(const f of fields){f.height=14;f.y=792-(f.key.includes('satisfactory')?43.5:83.8)-2;f.baseline=2;}
+    for(const f of fields){f.height=14;f.y=792-(f.key.includes('satisfactory')?43.5:83.8)-2.5;f.baseline=2.5;}
     const all=P.rooms(state),active=all.filter(r=>r.applicable===true),groups=new Map();
     for(const room of all){
       if(room.applicable!==true&&!['bedroom-4','basement'].includes(room.key))continue;
@@ -58,7 +58,7 @@
         // Original headings are retained. Editable labels are annotations beside
         // them, exactly as DEN / MASTER / N/A appear in the supplied examples.
         f.omitValues=[room.key.startsWith('bathroom-')?'Bathroom '+room.key.slice(-1):room.key.startsWith('bedroom-')?'Bedroom '+room.key.slice(-1):({kitchen:'Kitchen',living:'Living room',basement:'Basement'}[room.key]||'')];
-        if(room.applicable===false)f.omitValues=[];
+        if(room.applicable===false||p.section!==room.key&&!(room.key.startsWith('bathroom-')&&p.section==='bathroom'))f.omitValues=[];
         f.sources=[{key:pre+'location',label:''}];f.join=' · ';fields.push(f);
       }
       const items=room.items;
@@ -119,6 +119,7 @@
     const bytes=await prepare(await master.save(),PDFLib),source=await E.inspect(bytes);
     const mapping=map(source,state,null);mapping.fields=page8Fields(state);mapping.protectedAreas=protectedAreas.filter(p=>p.page===8);
     const data={state,template:{reference:'Original blank checklist · source-measured draft',originalReviewed:true,mappingReviewed:true,map:mapping}};
+    const missing=E.coverage(data).filter(message=>/observation|edited label|location|N\/A label/.test(message));if(missing.length)throw Error(missing.join(' '));
     const result=await E.generate(bytes,data,{PDFLib,viewerUser});const full=await PDFLib.PDFDocument.load(result.bytes),single=await PDFLib.PDFDocument.create();const [p]=await single.copyPages(full,[7]);single.addPage(p);single.setSubject('DRAFT · original checklist · not approved or executed');return single.save();
   }
   return Object.freeze({id,referenceOnly:hash=>referenceOnly.has(hash),suggestPlacements,page8Fields,page1Fields,map,prepare,page8Preview,blankBytes});

@@ -3,12 +3,12 @@ const {test,expect}=require('@playwright/test'),{open,prepare}=require('./lease-
 const AxeBuilder=require('@axe-core/playwright').default,{chooseTheme}=require('./ui-helpers.cjs');
 test('rendered three/four/five bedroom samples retain every original pixel outside their reviewed fields',async({page},testInfo)=>{
  test.setTimeout(120000);await page.goto('http://127.0.0.1:8765/');
- for(const name of names){
-  const f=await variant(name);expect(E.coverage(f.data),name).toEqual([]);const result=await E.generate(f.bytes,f.data,{viewerUser:()=> 'fictional-staff'});
+ for(const name of [...names,...names.map(n=>'original:'+n)]){
+  const originalCase=name.startsWith('original:'),f=await variant(name.replace('original:',''));if(originalCase){const profile=require('../lease-template-profile.js'),L=require('../vendor/lease-pdf/pdf-lib-1.17.1.min.js');f.state.roomPlacements=profile.suggestPlacements(f.state,name.includes('master')?'master':'columns');for(const k of Object.keys(f.state.conditions))f.state.conditions[k]='Good';f.state.roomLabels={};f.state.roomLocations={};f.bytes=await profile.prepare(f.bytes,L);const source=await E.inspect(f.bytes);f.data.template.map={...f.data.template.map,templateSha256:source.sha256,fields:[...f.data.template.map.fields.filter(x=>x.page!==8),...profile.page8Fields(f.state)],protectedAreas:profile.map(source,f.state,null).protectedAreas.filter(p=>p.page===8)};}expect(E.coverage(f.data),name).toEqual([]);const result=await E.generate(f.bytes,f.data,{viewerUser:()=> 'fictional-staff'});
   const comparison=await page.evaluate(async({original,filled,fields})=>{
    const pdfjs=await import('/vendor/lease-pdf/pdfjs/pdf.mjs');pdfjs.GlobalWorkerOptions.workerSrc='/vendor/lease-pdf/pdfjs/pdf.worker.mjs';
    const settings={isEvalSupported:false,useSystemFonts:false,standardFontDataUrl:location.origin+'/vendor/lease-pdf/pdfjs/standard_fonts/',wasmUrl:location.origin+'/vendor/lease-pdf/pdfjs/wasm/'};
-   const a=await pdfjs.getDocument({...settings,data:Uint8Array.from(original)}).promise,b=await pdfjs.getDocument({...settings,data:Uint8Array.from(filled)}).promise;const diffs=[];
+   const a=await pdfjs.getDocument({...settings,data:Uint8Array.from(atob(original),c=>c.charCodeAt(0))}).promise,b=await pdfjs.getDocument({...settings,data:Uint8Array.from(atob(filled),c=>c.charCodeAt(0))}).promise;const diffs=[];
    for(let n=1;n<=10;n++){
     const render=async doc=>{const p=await doc.getPage(n),v=p.getViewport({scale:1}),c=document.createElement('canvas');c.width=v.width;c.height=v.height;await p.render({canvasContext:c.getContext('2d'),viewport:v}).promise;return c};
     const before=await render(a),after=await render(b),x=before.getContext('2d').getImageData(0,0,before.width,before.height).data,y=after.getContext('2d').getImageData(0,0,after.width,after.height).data,rects=fields.filter(f=>f.page===n);let outside=0,inside=0;
@@ -16,7 +16,7 @@ test('rendered three/four/five bedroom samples retain every original pixel outsi
     diffs.push({page:n,outside,inside,width:after.width,height:after.height});
    }
    await a.destroy();await b.destroy();return diffs;
-  },{original:Array.from(f.bytes),filled:Array.from(result.bytes),fields:f.data.template.map.fields});
+  },{original:Buffer.from(f.bytes).toString("base64"),filled:Buffer.from(result.bytes).toString("base64"),fields:f.data.template.map.fields});
   expect(comparison.map(x=>x.outside),name).toEqual(Array(10).fill(0));expect(comparison.every(x=>x.width===612&&x.height===792)).toBe(true);expect(comparison.find(x=>x.page===8).inside).toBeGreaterThan(0);
   await testInfo.attach(name+'-pixel-comparison',{body:Buffer.from(JSON.stringify(comparison)),contentType:'application/json'});
  }

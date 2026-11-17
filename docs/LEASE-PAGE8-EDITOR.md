@@ -1,3 +1,5 @@
+> November 17 continuation: the authorized Drive review is recorded at checkpoint 233877e. All five completed references contain twelve pages, with the checklist at actual page 8. The source-measured blank-checklist profile is now wired into the editor. Use **Suggest original room positions**, **Preview original Page 8**, or **Use measured Page 8 positions** on a matching clean master. Suggestions remain editable; no condition facts are inferred. The full supplied master contains existing disclosure/signature marks and remains unsuitable for final unsigned export. See [source asset and validation notes](../lease-assets/README.md). Earlier access limitations below are historical.
+
 # Lease preparation and original Page 8 editor
 
 November 16, 2026 · PR #85 · replaces the visit-only export limitation described

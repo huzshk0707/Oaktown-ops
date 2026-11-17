@@ -38,6 +38,9 @@ async function main(){const created=[];try{
  denied('save',{...save,expected_version:1,request_ref:request(46),status:'ready',data:{...data,template:{...data.template,map:{...data.template.map,protectedAreas:[{page:8,x:-1,y:65,width:50,height:50}]}}}},/outside/);
  denied('save',{...save,expected_version:1,request_ref:request(47),status:'ready',data:{...data,state:{...data.state,fiveOverride:'invalid'}}},/fee amount/);
  denied('save',{...save,expected_version:1,request_ref:request(48),status:'ready',data:{...data,state:{...data.state,conditions:{}}}},/active unit-specific/);
+ const grouped=structuredClone(data);grouped.state.conditions['bathroom-1::Floor']='Good';grouped.template.map.fields.at(-1).sources=[{key:'slot/bathroom/0/0/Floor',label:'Bath'}];
+ assert.equal(call('save',{...save,id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb9',request_ref:request(49),status:'ready',data:grouped}).status,'ready');
+ grouped.template.map.fields.at(-1).sources[0].key='slot/invalid/0/0/Floor';denied('save',{...save,request_ref:request(50),status:'ready',data:grouped},/grouped condition/);
  assert.equal(call('save',{...save,expected_version:1,request_ref:request(5),status:'ready'}).version,2);
  const approve={id,expected_version:2,request_ref:request(6),reviewed:true,confirmation:'APPROVE '+id+' VERSION 2'};
  denied('approve',{...approve,reviewed:false},/Exact native/);

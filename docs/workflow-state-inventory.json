@@ -558,7 +558,8 @@
         "tests/lease-template-pdf.test.cjs",
         "tests/lease-preparation-database.cjs",
         "tests/lease-template.e2e.spec.cjs",
-        "tests/lease-template-render.e2e.spec.cjs"
+        "tests/lease-template-render.e2e.spec.cjs",
+        "tests/lease-template-profile.test.cjs"
       ],
       "representation": "guarded"
     },

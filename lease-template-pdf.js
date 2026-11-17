@@ -32,11 +32,12 @@
   if(!Array.isArray(map.fields)||map.fields.length<1||map.fields.length>250||!Array.isArray(map.protectedAreas)||map.protectedAreas.length>80)throw Error('Choose a bounded template map with reviewed field positions.');
   const keys=new Set(),allowedTerms=new Set([...P.terms,'bedrooms',...Array.from({length:5},(_,i)=>['utility-'+i,'utility-'+i+'-landlord','utility-'+i+'-tenant']).flat(),...Array.from({length:7},(_,i)=>['appliance-'+i,'appliance-'+i+'-yes','appliance-'+i+'-no']).flat()]);
   const inside=r=>Number.isInteger(r.page)&&r.page>=1&&r.page<=10&&rectangle(r)&&r.x+r.width<=source.pages[r.page-1].width&&r.y+r.height<=source.pages[r.page-1].height;
+  if(map.protectedAreas.some(r=>!inside(r)))throw Error('Invalid protected signature rectangle.');
   for(const field of map.fields){
    const parts=String(field.key||'').split('/');
-   const binding=parts[0]==='term'&&parts.length===2&&allowedTerms.has(parts[1])||parts[0]==='slot'&&parts.length===5&&P.sections.includes(parts[1])&&['0','1'].includes(parts[2])&&['0','1','2'].includes(parts[3])&&parts[4].length>0&&parts[4].length<=100;
+   const binding=parts[0]==='term'&&parts.length===2&&allowedTerms.has(parts[1])||parts[0]==='slot'&&parts.length>=5&&P.sections.includes(parts[1])&&['0','1'].includes(parts[2])&&['0','1','2'].includes(parts[3])&&parts.slice(4).join('/').length>0&&parts.slice(4).join('/').length<=100;
    if(!binding||parts[0]==='slot'&&field.page!==8||!inside(field)||!Number.isFinite(field.size)||field.size<6||field.size>24||!['Helvetica','Times-Roman','Courier','Custom'].includes(field.font)||!['left','center','right'].includes(field.align||'left'))throw Error('A template field has an invalid binding, size, font or page position.');
-   if(field.sources!==undefined&&(!Array.isArray(field.sources)||field.sources.length>12||field.sources.some(s=>!s||typeof s.key!=='string'||!s.key.startsWith('slot/')||typeof s.label!=='string'||s.label.length>100)))throw Error('Invalid grouped condition binding.');
+   if(field.sources!==undefined&&(!Array.isArray(field.sources)||field.sources.length>12||field.sources.some(s=>!s||typeof s.key!=='string'||!/^slot\/(kitchen|bathroom|living|bedroom-[1-5]|basement|additional|exterior|systems|other)\/[01]\/[0-2]\/.{1,100}$/.test(s.key)||field.page!==8||typeof s.label!=='string'||s.label.length>100)))throw Error('Invalid grouped condition binding.');
    if(field.baseline!==undefined&&(!Number.isFinite(field.baseline)||field.baseline<0||field.baseline>field.height))throw Error('Invalid text baseline.');
    for(const key of fieldKeys(field)){const id=field.page+':'+key;if(keys.has(id))throw Error('Duplicate field mapping on the same page.');keys.add(id);}
    if(map.protectedAreas.some(r=>r.page===field.page&&overlaps(r,field)))throw Error('A mapped field overlaps a protected signature area.');

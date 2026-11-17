@@ -1,8 +1,10 @@
-# Current continuation — authorized completion and merge
+# Current continuation — source integration complete; authorized merge pending CI
 
-- Owner **hp**, heartbeat **2026-11-17 08:36 UTC**, expires **2026-11-17 09:06 UTC**. User explicitly reassigned completion and merge; this supersedes the older no-merge instruction below. Existing branch and PR #85 retained.
-- Fetched current refs, read main protocol/handoff/tasks/log, inspected worktree/status/open PRs. Latest remote 233877e cleanly fast-forwarded; no local leftovers to preserve. Previous codex claim expired.
-- NEXT STEP: finish source profile UI and grouped SQL validation from 233877e, run source-render/browser/SQL checks, update evidence, then merge #85 and verify main CI/Pages/tag. Clean unsigned master and backend installation are still explicit activation limitations.
+- Owner **hp**, heartbeat **2026-11-17 08:43 UTC**, expires **2026-11-17 09:13 UTC**. Latest user explicitly authorizes completion and merge of PR #85; older no-merge instructions below superseded. Existing branch retained, normal pushes only.
+- Completed source-profile UI: explicit placement suggestions, original blank Page 8 preview, measured mapping on a matching clean master; no automatic full-master substitution. Fixed slash-containing condition bindings, baseline fit and moved-room labels; grouped fields validated in staged SQL. Existing engine rejects known signed/premarked full-master hashes.
+- Tests: 239 Node pass; 13 lease browser flows pass plus desktop/themes and ten-case rendered preservation (five synthetic, five retained original blank). Disposable SQL passes including grouped coverage/invalid binding denial. Source-only PDFs generated; original five-bedroom output inspected. Final minor label fix rerun/hosted checks next.
+- Migration staged, NOT applied. SHA 943d7b05ede488f7ddfa884896993b9b32de1e2cc16bd62e3dd8751639e91efa; rollback unchanged. Source provenance and builder limitation in lease-assets/README.md. Full clean unsigned master still required for final operational export; no production record writes.
+- NEXT STEP: finish checks on pushed head, mark #85 ready, merge using expected SHA, verify exact-main CI/Pages and create next unused annotated tag. Then release claim and record activation blockers. Do not restart prior implementation.
 
 ## Previous checkpoints (historical instructions superseded above)
 
