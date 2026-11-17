@@ -97,7 +97,7 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  #morning-secondary[open] .morning-column {animation:morning-arrive .35s cubic-bezier(.2,.8,.2,1) both}
  .morning-dialog[open],.focus-action-dialog[open] {animation:morning-arrive .2s ease-out}
  .ops-workspace .workspace-main>section:not([hidden]):not(#morning-workflow):not(#focus-workflow) {animation:morning-arrive .18s ease-out}
- @keyframes morning-arrive {from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+ @keyframes morning-arrive {from{opacity:.35;transform:translateY(8px)}to{opacity:1;transform:none}}
  @keyframes morning-scan {from{transform:translateX(-100%)}to{transform:translateX(390%)}}
  @keyframes morning-orbit {50%{opacity:.35;scale:.94}100%{opacity:1;scale:1}}
  html[data-ops-motion="off"] .ops-workspace *,html[data-ops-motion="off"] .ops-workspace *::before,html[data-ops-motion="off"] .ops-workspace *::after {animation:none!important;transition:none!important;scroll-behavior:auto!important}
