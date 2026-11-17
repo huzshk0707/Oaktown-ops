@@ -1,0 +1,87 @@
+{
+  "source_sha256": "9e8d2538c2501c002a509fb1446db49a93fc2436ec63fa73f17ea2e790473a59",
+  "retained_sha256": "e85a2b639c78f80811e529ac67a77d2b9b563663c8395156e187829220011cf3",
+  "rebuilt_sha256": "e85a2b639c78f80811e529ac67a77d2b9b563663c8395156e187829220011cf3",
+  "renderer": "1.26.6",
+  "comparisons": [
+    {
+      "scale": 1,
+      "width": 612,
+      "height": 792,
+      "different_pixels": 0
+    },
+    {
+      "scale": 1.5,
+      "width": 918,
+      "height": 1188,
+      "different_pixels": 0
+    },
+    {
+      "scale": 2,
+      "width": 1224,
+      "height": 1584,
+      "different_pixels": 0
+    }
+  ],
+  "source_comparison": {
+    "scale": 2,
+    "changed_inside_repairs": 4473,
+    "changed_outside_repairs": 0,
+    "repair_regions": [
+      [
+        345,
+        32,
+        362,
+        49
+      ],
+      [
+        71,
+        443,
+        128,
+        456
+      ],
+      [
+        323,
+        524,
+        363,
+        537
+      ],
+      [
+        552,
+        533,
+        577,
+        546
+      ],
+      [
+        70,
+        533,
+        229,
+        546
+      ],
+      [
+        35,
+        443,
+        92,
+        456
+      ],
+      [
+        35,
+        524,
+        65,
+        537
+      ],
+      [
+        35,
+        542,
+        59,
+        555
+      ],
+      [
+        107,
+        524,
+        264,
+        537
+      ]
+    ]
+  }
+}
