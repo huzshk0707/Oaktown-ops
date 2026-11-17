@@ -12,6 +12,8 @@ async function chooseTheme(page,theme){
  await openAppearance(page);await page.getByLabel('Workspace theme').selectOption(theme);await closeAppearance(page);
 }
 async function navigate(page,workflow,tab){
+ // Morning and Focus deliberately hide the sidebar; use their public exit first.
+ for(const id of ['focus-exit','morning-command-exit']){const exit=page.locator('#'+id);if(await exit.isVisible())await exit.click()}
  const destination=page.locator('.sidebar [data-workspace="'+workflow+'"]');
  if(!await destination.isVisible())await page.locator('#workspace-menu-toggle').click();
  await destination.click();

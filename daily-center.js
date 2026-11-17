@@ -9,7 +9,8 @@
  const last=node('span','No successful refresh','daily-last-refresh');last.id='daily-last-refresh';last.hidden=true;$('morning-command-date').after(last);
  $('daily-date').value=day;
  const returnToMorning=node('button','Morning Command Center','button');returnToMorning.type='button';returnToMorning.id='focus-return-morning';returnToMorning.onclick=()=>window.OpsWorkspace.navigate('morning');document.querySelector('.focus-board-tools').append(returnToMorning);
- const planner=$('morning-secondary');
+ const planner=$('morning-secondary'),reviews=$('plan-pending-panel'),reviewsHome=document.createComment('Shared plan review panel home');
+ reviews.before(reviewsHome);
  function plannerView(open){
   planner.open=open;syncPlannerView();
   (open?$('morning-plan-title'):$('daily-prepare')).focus({preventScroll:true});
@@ -17,6 +18,7 @@
  $('daily-prepare').onclick=()=>plannerView(true);
  $('daily-overview').onclick=()=>plannerView(false);
  function syncPlannerView(){
+  if(planner.open)$('morning-readiness').before(reviews);else reviewsHome.after(reviews);
   $('daily-prepare').hidden=planner.open;$('daily-overview').hidden=!planner.open;
   $('morning-workflow').classList.toggle('planning-open',planner.open);
  }

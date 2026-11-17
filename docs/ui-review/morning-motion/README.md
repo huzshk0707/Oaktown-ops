@@ -7,7 +7,7 @@ Account: ravi. Base: released main `e96beea`. PR: [#86](https://github.com/huzsh
 | Priority | Finding on the released interface | Change |
 | --- | --- | --- |
 | High | Bare launch opened Today; the new daily command center was easy to miss. | Only a URL without a route opens `#/morning`. Explicit Today, Focus, task, property and lease links still work; unknown app routes retain Today fallback. Auth recovery hashes/ordinary anchors retain their handlers. |
-| High | The manual planner appeared below a long, second dashboard with nested scrolling. | A visible **Prepare / edit SOD** control switches the existing overview to the existing planner. **Back to overview** restores the overview and keyboard focus. Neither action rebuilds the editor or loses draft text. |
+| High | The manual planner appeared below a long, second dashboard with nested scrolling. | A visible **Prepare / edit SOD** control switches the existing overview to the existing planner. **Back to overview** restores the overview and keyboard focus. Neither action rebuilds the editor or loses draft text. The same submitted-plan review panel stays available inside the planner. |
 | Medium | Flat, equally weighted panels made urgent work hard to scan. | Three real snapshot counts, restrained urgency borders with text labels, stronger central plan, clearer task typography and a prominent Focus action. |
 | Medium | A disconnected deposit feed occupied the first screen while follow-ups sat lower down. | Follow-ups move into the first row. Deposit limitations stay explicit in a supporting panel; no simulated financial data. |
 | Medium | Small loading text gave little sense of what the workspace was doing. | A three-part readiness strip reflects verified staff access, the shared task snapshot and the actual approved-plan request. Errors and missing plans remain textual. No percentages, fake AI reasoning or timed success. |
@@ -47,7 +47,7 @@ Run the local server on port 8765; with the pinned CI Playwright dependencies, r
 
 Initial audit checks: 222 unit/API checks and 26 existing Morning/daily browser checks passed. New tests cover bare entry versus direct links/history/anchors, actual loading/error/sign-out states, planner draft and focus retention, live motion preferences, all six themes with axe, desktop widths 1280/1440/1920 and 1,005 tasks without writes. One initial focus-restoration defect was found and fixed by synchronizing control visibility before focusing the return button.
 
-Full final results are recorded in the PR and final handoff. Existing workspace-specific tests now explicitly start at `#/today` rather than relying on the old root default; their assertions, security checks and mobile regressions remain intact. A dedicated new test covers the new root contract.
+The initial full local sweep passed 270/277. Remaining cases exposed the pending-plan panel visibility regression and test setup assumptions about the old default route; both are corrected. The Focus gesture test now waits for the actual access refresh before keyboard activation. All 18 targeted Morning/plan-review/connection cases pass; the Focus retry passes. The multi-width/six-theme axe case has its own 90-second budget for its combined scans. Final exact-head CI results are recorded in the PR and final handoff. Existing workspace-specific tests now explicitly start at `#/today` rather than relying on the old root default; their assertions, security checks and mobile regressions remain intact. A dedicated new test covers the new root contract.
 
 ## Remaining work
 

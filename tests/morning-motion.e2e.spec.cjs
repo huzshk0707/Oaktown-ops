@@ -23,7 +23,7 @@ test('readiness follows actual pending responses, failure, recovery and sign-out
  await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#daily-active-count')).toHaveText('—');await expect(page.locator('#daily-sod-state')).toHaveText('Awaiting sign-in');expect(s.writes).toEqual([]);
 });
 test('planner switch keeps the same editor, unsaved wording and keyboard focus',async({page})=>{
- const s=await start(page);await page.locator('#daily-prepare').focus();await page.keyboard.press('Enter');await expect(page.locator('#morning-plan-title')).toBeFocused();await expect(page.locator('.daily-grid')).toBeHidden();
+ const s=await start(page);await page.locator('#daily-prepare').focus();await page.keyboard.press('Enter');await expect(page.locator('#morning-plan-title')).toBeFocused();await expect(page.locator('.daily-grid')).toBeHidden();await expect(page.locator('#plan-pending-panel')).toBeVisible();
  await page.locator('#sod-extras').fill('Keep this fictional planning note.');await page.locator('#daily-overview').click();await expect(page.locator('#daily-prepare')).toBeFocused();await expect(page.locator('.daily-grid')).toBeVisible();
  await page.locator('#daily-prepare').click();await expect(page.locator('#sod-extras')).toHaveValue('Keep this fictional planning note.');expect(await page.locator('#sod-morning').count()).toBe(1);expect(s.writes).toEqual([]);
 });
@@ -36,6 +36,7 @@ test('motion respects the device and live appearance toggle, including loading i
  s.historyHold=null;release();await expect(page.locator('#daily-plan-status')).toHaveText('Approved');expect(s.writes).toEqual([]);
 });
 test('desktop widths and all six appearance themes retain readable controls and accessible states',async({page})=>{
+ test.setTimeout(90000); // Three widths plus six separate axe scans of the large fixture.
  const s=await start(page,1005);
  for(const width of [1280,1440,1920]){await page.setViewportSize({width,height:1000});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await expect(page.locator('#daily-active-count')).toHaveText('1005');await page.locator('#daily-prepare').click();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('#daily-overview').click()}
  for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){await chooseTheme(page,theme);const result=await new AxeBuilder({page}).include('#morning-workflow').include('.topbar').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(result.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([])}
