@@ -5,7 +5,13 @@ Prioritized from current main code/README, roadmap/audit and live open PRs on
 planning backlog, not authorization for operational writes or feature merges.
 Account owner is unclaimed unless an active branch/PR claim says otherwise.
 
-## P0 — authorized release (2026-11-16)
+## P0 — requested morning UX iteration
+
+- [ ] **OPS-MORNING-UX.1** Audit launch, morning/daily dashboard and Focus hierarchy on current main.
+- [ ] **OPS-MORNING-UX.2** Implement desktop morning landing and honest, accessible motion with existing data services.
+- [ ] **OPS-MORNING-UX.3** Verify routes, auth/refresh, reduced motion, six themes and fictional desktop screenshots; publish review evidence.
+
+## Previous release backlog (main includes #84; historical notes below)
 
 - [ ] **OPS-FOCUS-RELEASE** (hp post-deployment verification; `ravi/focus-release`, PR #84): **User now explicitly authorized merge/frontend publication (latest “merge it” instruction)**; proceed with #84 after final head check, then verify exact-main CI/Pages/tag. Operator reports backend migration 20261116050626 / Edge v3 complete; independent health 1.1.0/eight-tool/anonymous-denial checks pass. Reviewed source CI: 222 unit/API / 272 browsers. Future approved merge must retain source ancestry and verify exact-main CI/Pages/tag; no activation or operational writes. Current evidence: docs/releases/FOCUS-2026-11-16.md.
 - [x] **OPS-FOCUS-RELEASE.HTTP-REVIEW** — independent eight-check live HTTP run and targeted #84 review complete; no new blocking code finding. DB/RLS/grants/version/count verification remains attributed to the operator. Prior hold superseded by the user’s explicit merge instruction. Reproduce with `NODE_USE_ENV_PROXY=1 node docs/releases/verify-focus-http.cjs`.
