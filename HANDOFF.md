@@ -1,3 +1,16 @@
+# Active handoff — 2026-11-22 roadmap synchronization (documentation-only)
+
+- **Owner:** ChatGPT; **branch:** `chatgpt/roadmap-2026-11-22`; **base:** `b91b4c7df2`; **claim:** 2026-11-21T23:58:55.149Z through 2026-11-22T00:28:55.149Z (UTC). No other account's branch or worktree touched.
+- **User request:** Update `docs/ROADMAP.md`, `TASKS.md`, and `HANDOFF.md` to match the current agreed release order and checked GitHub/Supabase evidence.
+- **Scope:** Documentation only. Do not modify runtime, Supabase records, migrations, Auth/OAuth settings, tenant information, or deployment. No merge approval is implied.
+- **Current checks:** Main `b91b4c7df2`; PR #86 merged; exact-main GitHub CI and Pages passed; no open PRs at starting inspection. Source release, platform activation, and real staff acceptance are separate.
+- **In progress:** Documentation branch created; staged plan reconciliation is next. Historical checkpoints below are superseded as active instructions.
+- **NEXT STEP:** Add authoritative current-status sections to `docs/ROADMAP.md` and `TASKS.md`; update this handoff with final checks; request review in the draft PR, without merging.
+
+---
+
+## Historical handoffs (preserved; not current instructions)
+
 # Morning integration reviewed — hosted gate pending
 
 - Owner codex, heartbeat 2026-11-17 13:03 UTC, expiry 13:33 UTC. User authorized #86/#87 merge and closure of historical PRs. Current branch ravi/morning-motion; runtime integration 659d85e.
