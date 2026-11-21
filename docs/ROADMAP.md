@@ -1,5 +1,21 @@
 # Current Oaktown Ops status and next work
 
+## Current product plan — the Friday shift
+
+Build on the existing workspace. The operational day starts at the office at 7 PM and runs through the 5 AM EOD. Preserve each action's actual timestamp and group it under the shift it belongs to across midnight. Confirm how the operator's local shift maps to Louisville/Eastern reporting dates during the rehearsal.
+
+1. **Rehearse Friday and fix EOD attribution first.** Use fictional records. Queue Gary’s recurring Friday hours, then let Huzy choose Leslie’s tenant statement first. Record preparation and delivery to Leslie, then revision and delivery to the attorney after midnight. Keep one statement task and two attributable actions. Friday’s draft must show both bullets exactly once, actual progress on Gary’s hours and the next step. Leslie’s work belongs in property history. The required external timesheet remains the time record. Start in [the EOD model](../eod-model.js) and [its tests](../tests/eod-model.test.cjs). Verify a repeated update and a fresh chat retrieving the same saved action.
+2. **Connect the daily ChatGPT Project workflow.** Start one chat per shift. “Start my shift” reads the Supabase handoff and task histories, relevant Gmail and attachments, then accepts voice context and relayed softphone messages. Compare new evidence to exact records, resolve ambiguous matches, preview updates, obtain Huzy’s approval, save, and read back. Preserve source, actor, next action and open questions. Extend the scoped connector for attributable work events and verified property links. Prove chat B can retrieve chat A’s approved update and read the intended GitHub guidance. Verify deployed version, staff connection and backlog reconciliation separately. Follow the [Project protocol](CHATGPT-PROJECT-OPERATING-PROTOCOL.md).
+3. **Organize Today and Tasks.** Today shows urgent work, one chosen focus, queued work and follow-ups due. Quick capture keeps the focus intact. Persist the exact task and resume note across refreshes, devices and chats. A Friday commitment should surface even without an email. Keep SOD as an optional draft for Leslie. Tasks owns All work, History and Add/import, including reviewed imports and receipts. Keep one browse entry on Today. Filter waiting by who acts next (Huzy, Leslie, Gary, vendor, tenant or unassigned) and track who owns each follow-up.
+4. **Carry inspections through to maintenance.** Link the scheduled inspection to the exact property. On confirmation record Leslie’s inspection, source email, photos and findings. Attribute report preparation and filing to Huzy and link the PDF in Property Documents. Each repair has its own owner, next action and confirmed completion. Test two repairs, one assigned to Gary and one unassigned, visible consistently on the property and main pending list. Filing the PDF closes only the documentation work.
+5. **Apply the command-console visual direction to the proven workflow.** Use the existing navy/cyan workspace and circular instrument as the starting point. The walkthrough explores an animated property instrument, voice capture, approved-save feedback and an overnight EOD review. Keep the next action legible on mobile and with reduced motion. Treat the film as a design reference.
+
+### Future projects
+
+Oaktown Ops ends with Huzy’s reviewed personal EOD. In the daily chat, “closing the day” is a separate future **Oaktown Records** workflow: write the fuller shift Markdown record to a dedicated private GitHub repository, include source references and unresolved observations, amend the same shift file on correction, and verify the revision link. Keep sensitive originals in restricted storage. **Oaktown Brain** will hold curated SOPs and reusable knowledge. Test a fresh chat against current status in Supabase, dated history in Records and guidance in Brain, including a corrected fact and a question with no known answer.
+
+## Earlier status and portfolio backlog
+
 Updated November 8, 2026. Main includes merged PRs #40–#45; PR #23 is closed
 as superseded. The first database hardening migration is now applied live.
 The connected-workspace increment from PR #42 is merged into main. A follow-up
@@ -182,7 +198,7 @@ and plugin installation must be checked explicitly; packaged source does not mea
 that a Project automatically has write tools. See the
 [task connection setup and verification guide](CHATGPT-TASK-CONNECTION.md).
 
-Next milestones, in order:
+Earlier portfolio milestones:
 
 1. **Verify the related-record workflow after deployment.** Pages is enabled at
    https://huzshk0707.github.io/Oaktown-ops/ and PR #42's deployment succeeded.
