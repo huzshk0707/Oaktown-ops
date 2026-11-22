@@ -5,7 +5,9 @@
 ## First build — Morning Command Center
 
 - [x] **OPS-SHIFT-BRIEF.1:** Implemented the first desktop view and the exact Focus Board handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89). Verified the layout, unavailable and empty states, themes and keyboard navigation with fictional records.
-- [ ] **OPS-SHIFT-BRIEF.2:** Rehearse Friday on the reviewed screen. Check the statement, Gary’s queued hours and the resume note. Plan durable per-user focus and recurring work after the first slice.
+- [x] **OPS-SHIFT-BRIEF.2:** Rehearsed Friday with fictional records in [PR #90](https://github.com/huzshk0707/Oaktown-ops/pull/90). Verified task review, the saved resume step after reload and the EOD draft with attributed fixtures. The missing native performer field is tracked in OPS-PERSONAL-WORK.1.
+- [ ] **OPS-SHIFT-BRIEF.3:** Persist an explicit Focus choice for the staff member and shift. Reopen the same eligible task and its current saved next action after reload. Check sign-out, changed access and tasks closed elsewhere.
+- [ ] **OPS-SHIFT-BRIEF.4:** Let staff configure the Friday hours commitment. Create or surface one occurrence per applicable work date and keep retries and refreshes from duplicating it.
 
 ## P0 — operational activation and acceptance
 

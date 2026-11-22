@@ -1,9 +1,11 @@
-# Friday shift rehearsal
+# Friday shift rehearsal completed
 
-- Owner codex, heartbeat 2026-11-22 01:04 UTC, claim valid through 01:34 UTC.
-- Task OPS-SHIFT-BRIEF.2, branch `codex/friday-rehearsal`, based on reviewed screen PR #89 at `68bed16`. PR #89 is open and green. Review this follow-up against its screen branch.
-- Scope: rehearse the statement, Leslie response, Gary's resume step and personal EOD with fictional records. Carry over the prior EOD rendering work where the rehearsal exposes the known action-loss problem.
-- NEXT STEP: run Morning → Focus → reviewed task updates → Today EOD with the existing routes. Check the two statement actions and Gary's next-shift priority. Record any capture or persistence gaps for follow-up.
+- Task OPS-SHIFT-BRIEF.2, branch `codex/friday-rehearsal`, [PR #90](https://github.com/huzshk0707/Oaktown-ops/pull/90). Owner codex, claim released after local verification. Review against screen PR #89 at `68bed16`.
+- A fictional Friday run uses the Morning and Focus entry points and reviewed Task Intake. The statement keeps its ID through waiting for Leslie, revision and delivery. Replaying the delivery export adds no action. Gary’s saved next step appears after reload because his task is in progress.
+- The EOD draft keeps preceding work when the statement closes and removes a matching completion summary. It lists Gary’s recorded progress and accepts typed next-shift priorities. The test crosses local midnight and uses Friday’s saved Eastern work date.
+- Task Intake v1 does not collect a performer. The first browser test verifies those new activity rows cannot be credited as personal work. A separate fixture explicitly attributes work to test the draft, including excluding Leslie’s action. See [Friday EOD preview](docs/ui-review/friday-rehearsal/eod-friday.png).
+- Checks: `node --test tests/*.test.cjs` (240 passed), workflow inventory (30 families, 69 scripts), and 48 Chromium cases across Friday rehearsal and Today. The EOD screenshot case also passed on the final status copy. Fictional fixtures only.
+- NEXT STEP: in OPS-PERSONAL-WORK.1, design reviewed Record Work on an existing task. Save the actual performer, Eastern work date, explicit action and evidence, including progress while the task stays open. Verify the saved ID and show it in the EOD.
 
 ---
 

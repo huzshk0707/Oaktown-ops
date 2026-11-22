@@ -389,6 +389,8 @@
 .ops-workspace .today-recorded-work {margin-top:24px}
 .ops-workspace .eod-controls {display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-top:18px}
 .ops-workspace .eod-controls label {display:grid;gap:6px;font-size:12px;color:var(--ui-muted)}
+.ops-workspace .eod-priorities {display:grid;gap:6px;margin-top:12px;max-width:640px;font-size:12px;color:var(--ui-muted)}
+.ops-workspace .eod-priorities textarea {width:100%;resize:vertical}
 .ops-workspace #eod-date {background:var(--ui-soft);color:var(--ui-text);border:1px solid var(--ui-border);border-radius:8px;padding:10px;font:inherit;min-height:42px;color-scheme:dark}
 .ops-workspace #eod-report {white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.75 ui-monospace,monospace;background:var(--ui-soft);padding:18px;border:1px solid var(--ui-border);border-radius:10px;max-height:600px;overflow-y:auto}
 
