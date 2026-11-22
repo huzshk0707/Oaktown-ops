@@ -9,6 +9,25 @@
 - In progress: record the verified Go-plan capability boundary and current OAuth/client/hook readiness without secrets.
 - NEXT STEP: review the draft PR and corrected activation report; owner interaction is required before any OAuth or account setup.
 
+## Read-only activation findings — 2026-11-22
+
+- ChatGPT Go cannot create/use the required write-capable custom MCP connection under current OpenAI plan availability. Business or Enterprise/Edu is required for full write MCP; Pro is read/fetch-only. No Oaktown task MCP tools are present in this Go conversation.
+- Supabase project `wjdzaexhhjsjtdgxivyw` is ACTIVE_HEALTHY. `oaktown-task-api` is ACTIVE v3; the API uses its own scoped JWT verification (gateway `verify_jwt=false`).
+- Supabase Auth contains one manually registered confidential client named `Oaktown ChatGPT Tasks`, authorization-code + refresh-token grants, `client_secret_basic`, and redirect URI `https://chatgpt.com/connector/oauth/CR_Fqd9rVoRb`.
+- Auth OAuth consent count is 0. Oaktown `ops_agent_private.clients` allowlist count is 0 (no enabled/write client). The token-hook functions exist, but Auth dashboard hook configuration and signing algorithm cannot be verified through the available Supabase tools.
+- `oaktown_task_agent` is NOLOGIN/NOINHERIT with no direct table grants. `ops_tasks` and `ops_events` have RLS. Staff admin/editor task write policies and the Task Intake UI remain available; they have not been disabled.
+- **No scoped task read was possible** because this ChatGPT Go conversation has no Oaktown MCP connection/token. A privileged SQL read is not a substitute. No fictional task or real task was written.
+- The existing ChatGPT plugin catalogue includes the Supabase admin connector, but it is not the Oaktown scoped task API.
+
+## Exact owner decision / next step
+
+1. Choose whether to use an eligible Business/Enterprise/Edu workspace for the intended ChatGPT write workflow, or remain on Go and use ChatGPT only to prepare proposals that are reviewed/saved in Oaktown Ops.
+2. If using an eligible workspace, have the Supabase owner verify OAuth Server settings, authorization path `/`, Site URL, Custom Access Token Hook `public.ops_task_agent_token_hook`, existing hook composition, and ES256/RS256 signing. Reuse the existing OAuth client only if its secret is securely available and the exact redirect URI matches; otherwise rotate/register a replacement securely.
+3. Have an Oaktown administrator add the client in Tasks → Settings & connections → ChatGPT task connection with read-only access first. Install/connect the MCP server in ChatGPT, complete staff OAuth and consent, then prove scoped read and direct-access denial before enabling writes.
+4. Only after those gates, prepare a fictional General Operations write proposal for explicit Huzy approval. No production Auth, RLS, task or deployment changes are authorized by this report.
+
+**NEXT STEP:** Huzy chooses an eligible ChatGPT workspace or the Go-compatible manual approval fallback. Stop here for account-owner interaction.
+
 ---
 
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
