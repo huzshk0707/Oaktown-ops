@@ -8,9 +8,13 @@ let data=null,selected=null,owner=cloud.user?.id||null;
 const archiveDialog=$('today-archive-dialog'),archiveFlow=W.create();
 let archiveTarget=null;
 const more=$('today-edit-more');
+const archiveConfirm=$('today-archive-confirm'),archiveDismiss=$('today-archive-dismiss');
+const archiveHeading=$('today-archive-heading'),archiveTitle=$('today-archive-title'),archiveFeedback=$('today-archive-feedback');
+const archiveHistory=$('today-archive-history'),archiveDescription=$('today-archive-description');
 const reload=document.createElement('button');reload.type='button';reload.id='today-edit-reload';reload.className='button';reload.textContent='Reload saved version';reload.hidden=true;$('today-edit-save').after(reload);
 function controls(){
- more.hidden=!flow.can('submit')||!data?.canEdit||!cloud.user||!selected?.id||!selected.task_title||!W.sameVersion(selected.updated_at,selected.updated_at)||!M.classify([selected]).all.length;
+ const editable=flow.can('submit')&&data?.canEdit&&cloud.user;
+ more.hidden=!(editable&&selected?.id&&selected.task_title&&W.sameVersion(selected.updated_at,selected.updated_at)&&M.classify([selected]).all.length);
  if(more.hidden)more.open=false;
  dialog.dataset.workflowState=flow.phase;
  form.setAttribute('aria-busy',String(flow.busy));
@@ -148,7 +152,7 @@ window.addEventListener('ops-today-data',event=>{
   if(dialog.open)dialog.close();
   reset();
   if(archiveDialog.open){
-   $('today-archive-title').textContent='';
+   archiveTitle.textContent='';
    if(archiveFlow.phase==='reviewing')dismissArchive();
   }
  }
@@ -171,42 +175,46 @@ async function readEditableTask(id,account){
 function dismissArchive(){
  archiveFlow.reset();archiveTarget=null;
  if(archiveDialog.open)archiveDialog.close();
- $('today-archive-title').textContent='';$('today-archive-feedback').textContent='';
+ archiveTitle.textContent='';archiveFeedback.textContent='';
 }
 $('today-archive-one').addEventListener('click',()=>{
  if(!dialog.open||more.hidden||!data?.canEdit||!cloud.user||archiveDialog.open)return;
  archiveTarget=selected;archiveFlow.reset();archiveFlow.open();
- $('today-archive-heading').textContent='Archive task?';
- $('today-archive-title').textContent=archiveTarget.task_title;
- $('today-archive-description').hidden=false;$('today-archive-feedback').textContent='';
- $('today-archive-history').hidden=true;$('today-archive-confirm').hidden=false;
- $('today-archive-dismiss').disabled=false;$('today-archive-dismiss').textContent='Cancel';
- archiveDialog.showModal();$('today-archive-dismiss').focus();
+ archiveHeading.textContent='Archive task?';
+ archiveTitle.textContent=archiveTarget.task_title;
+ archiveDescription.hidden=false;
+ archiveFeedback.textContent='';
+ archiveHistory.hidden=true;
+ archiveConfirm.hidden=false;
+ archiveDismiss.disabled=false;
+ archiveDismiss.textContent='Cancel';
+ archiveDialog.showModal();
+ archiveDismiss.focus();
 });
-$('today-archive-dismiss').addEventListener('click',()=>{if(!archiveFlow.busy)dismissArchive()});
+archiveDismiss.addEventListener('click',()=>{if(!archiveFlow.busy)dismissArchive()});
 archiveDialog.addEventListener('cancel',event=>{event.preventDefault();if(!archiveFlow.busy)dismissArchive()});
-$('today-archive-history').addEventListener('click',()=>{
+archiveHistory.addEventListener('click',()=>{
  dismissArchive();window.OpsWorkspace.openTasks('history','today-history');
 });
-$('today-archive-confirm').addEventListener('click',async()=>{
+archiveConfirm.addEventListener('click',async()=>{
  const task=archiveTarget,account=cloud.user?.id;
  if(!account||!data?.canEdit||!archiveDialog.open||!task||selected!==task)return;
  const ticket=archiveFlow.start('submit');
  if(!ticket)return;
  const stillCurrent=()=>archiveFlow.current(ticket)&&cloud.user?.id===account;
- const message=$('today-archive-feedback');
- $('today-archive-confirm').hidden=true;$('today-archive-dismiss').disabled=true;
- $('today-archive-description').hidden=true;
- message.textContent='Checking the saved task…';
+ archiveConfirm.hidden=true;
+ archiveDismiss.disabled=true;
+ archiveDescription.hidden=true;
+ archiveFeedback.textContent='Checking the saved task…';
  close();
  let receipt=null,failure='';
  try{
   const latest=await readEditableTask(task.id,account);
   if(!stillCurrent())return;
-  if(!data?.canEdit||latest.task_title!==task.task_title||latest.status!==task.status||!W.sameVersion(latest.updated_at,task.updated_at))
+  if(!data?.canEdit||latest.archived_at!==null||latest.task_title!==task.task_title||latest.status!==task.status||!W.sameVersion(latest.updated_at,task.updated_at))
    throw Error('The task changed after you opened Review. Open the latest version to confirm again.');
   archiveFlow.advance(ticket,'approved');
-  message.textContent='Archiving the selected task…';
+  archiveFeedback.textContent='Archiving the selected task…';
   receipt=await request('/rest/v1/rpc/ops_task_set_archived',{
    method:'POST',body:JSON.stringify({p_task:latest.id,p_expected_updated_at:latest.updated_at,p_archived:true})
   });
@@ -217,25 +225,29 @@ $('today-archive-confirm').addEventListener('click',async()=>{
    throw Error('The archive receipt was incomplete or mismatched.');
  }catch(error){
   if(!stillCurrent())return;
-  failure=[401,403].includes(error.status)?'Editor access or the saved task is unavailable.':
-   error.code==='40001'||error.status===409?'The task changed during review.':error.message||'The request failed.';
+  failure=error.message||'The request failed.';
+  if([401,403].includes(error.status))failure='Editor access or the saved task is unavailable.';
+  if(error.code==='40001'||error.status===409)failure='The task changed during review.';
  }
  if(!stillCurrent())return;
- message.textContent='Refreshing saved tasks…';
+ archiveFeedback.textContent='Refreshing saved tasks…';
  try{await W.withTimeout(()=>window.OpsToday.refresh())}
  catch{failure=failure||'Saved tasks could not be refreshed.'}
  if(!stillCurrent())return;
  window.dispatchEvent(new Event('ops-task-archive-change'));
  const saved=window.OpsToday.getState()==='ready'&&data?.tasks.find(row=>row.id===task.id);
  const verified=!failure&&saved&&saved.status===task.status&&W.sameVersion(saved.updated_at,receipt.updated_at)&&W.sameVersion(saved.archived_at,receipt.archived_at);
- archiveFlow.advance(ticket,verified?'verified':archiveFlow.phase==='checking'?'rejected':'failed');
+ if(verified)archiveFlow.advance(ticket,'verified');
+ else archiveFlow.advance(ticket,archiveFlow.phase==='checking'?'rejected':'failed');
  archiveTarget=null;
- if(!data?.canEdit)$('today-archive-title').textContent='';
- $('today-archive-heading').textContent=verified?'Task archived':'Archive unverified';
+ if(!data?.canEdit)archiveTitle.textContent='';
+ archiveHeading.textContent=verified?'Task archived':'Archive unverified';
  const location=saved?.archived_at?'The refreshed task is in History.':saved?'The refreshed task is outside the archive.':'Refresh Tasks to check its saved state.';
- message.textContent=verified?'Verified in Tasks → History.':(failure||'The refreshed task did not match the receipt.')+' '+location;
- $('today-archive-history').hidden=!data;
- $('today-archive-dismiss').disabled=false;$('today-archive-dismiss').textContent='Close';$('today-archive-dismiss').focus();
+ archiveFeedback.textContent=verified?'Verified in Tasks → History.':(failure||'The refreshed task did not match the receipt.')+' '+location;
+ archiveHistory.hidden=!data;
+ archiveDismiss.disabled=false;
+ archiveDismiss.textContent='Close';
+ archiveDismiss.focus();
 });
 reload.addEventListener('click',async()=>{
  if(!selected||!cloud.user)return;

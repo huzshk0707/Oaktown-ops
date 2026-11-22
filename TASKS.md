@@ -2,6 +2,10 @@
 
 **Active delivery index · 2026-11-22.** Authoritative for new work until reviewed/superseded. Historical checklist snapshots below are retained for investigation but must not be re-executed solely because an old box is unchecked. This is **planning, not production write or merge permission**. Consult [ROADMAP](docs/ROADMAP.md), [HANDOFF](HANDOFF.md), [AGENTS](AGENTS.md), and current main/PR status before a new task is claimed.
 
+## Individual task archiving
+
+- [x] Implemented in [PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) for review. The fictional browser round trip verifies that the selected task returns to active work as In Progress. Staff manual acceptance follows approved release.
+
 ## First build — Morning Command Center
 
 - [ ] **OPS-SHIFT-BRIEF.1:** In [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89), put urgent work, waiting dependencies and the exact Focus task above the Start of Day and assignment details. Check the first desktop view, the one-click Focus handoff, unavailable/empty states, themes and keyboard navigation with fictional records.
