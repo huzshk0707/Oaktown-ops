@@ -1,3 +1,9 @@
+## Individual task archive
+
+[PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) targets main from `codex/single-task-archive`. Owner Codex, claim released after local verification. The task editor shared by Tasks and Focus offers More actions → Archive task. Its confirmation uses the saved title, checks editor access and the reviewed version, and verifies the one-task receipt against refreshed data. Existing History Restore verifies identity, version and saved status. Bulk settings and connector permissions are outside this change.
+
+Local verification passed for 239 Node tests, workflow inventory and 58 Chromium cases in the Today suite (57 together plus the Focus Center entry case). The disposable database job passed for the archive/restore field, history and isolation assertions in checkpoint `3150157`. NEXT STEP: review PR #92 and its final checks. After separate deployment approval, staff can manually archive the designated fictional task and restore it through Tasks → History.
+
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 
 **Status:** [PR #88](https://github.com/huzshk0707/Oaktown-ops/pull/88) reconciles the November 22 plan with Huzy’s first-screen direction. Huzy authorized merging the documentation after review. Codex reviewed the three documentation files against main `b91b4c7`, the agreed Friday workflow and the current Morning implementation. The UI work has its own handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89).

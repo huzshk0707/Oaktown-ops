@@ -7,6 +7,7 @@ select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000001'
 do $check$
 declare sid uuid:=current_setting('ci.intake.session')::uuid;
  st jsonb; tid uuid; old_version timestamptz; result jsonb; saved_receipts integer;
+ saved_task jsonb; other_tasks jsonb; prior_history jsonb;
 begin
  st:=public.ops_task_intake('state',sid);
  if jsonb_typeof(st->'receipts'->0)<>'object' or st->'receipts'->0->>'schema_version'<>'oaktown.task-receipt.v1' then
@@ -15,7 +16,15 @@ begin
  saved_receipts:=jsonb_array_length(st->'receipts');
  select id,updated_at into tid,old_version from public.ops_tasks where task_title='Fictional general task' limit 1;
  if tid is null then raise exception 'No fictional task to archive';end if;
+ select to_jsonb(t)-array['updated_at','archived_at','archived_by'] into saved_task from public.ops_tasks t where id=tid;
+ select jsonb_agg(to_jsonb(t) order by t.id) into other_tasks from public.ops_tasks t where id<>tid;
+ select jsonb_agg(to_jsonb(e) order by e.id) into prior_history from public.ops_events e where entity_id=tid;
  result:=public.ops_task_set_archived(tid,old_version,true);
+ if result->>'task_id' is distinct from tid::text or
+    (select to_jsonb(t)-array['updated_at','archived_at','archived_by'] from public.ops_tasks t where id=tid) is distinct from saved_task or
+    (select jsonb_agg(to_jsonb(t) order by t.id) from public.ops_tasks t where id<>tid) is distinct from other_tasks then
+  raise exception 'Individual archive changed task identity, business fields or a different task';
+ end if;
  if result->>'archived_at' is null then raise exception 'Archive did not return state';end if;
  st:=public.ops_task_intake('state',sid);
  if not exists(select 1 from jsonb_array_elements(st->'tasks') x where x->>'id'=tid::text and x->>'archived_at' is not null) then
@@ -26,6 +35,12 @@ begin
  begin perform public.ops_task_set_archived(tid,old_version,false);raise exception 'Stale-version restore was accepted';exception when serialization_failure then null;end;
  result:=public.ops_task_set_archived(tid,(result->>'updated_at')::timestamptz,false);
  if result->>'archived_at' is not null then raise exception 'Restore did not clear archive';end if;
+ if result->>'task_id' is distinct from tid::text or
+    (select to_jsonb(t)-array['updated_at','archived_at','archived_by'] from public.ops_tasks t where id=tid) is distinct from saved_task or
+    (select jsonb_agg(to_jsonb(t) order by t.id) from public.ops_tasks t where id<>tid) is distinct from other_tasks or
+    (select jsonb_agg(to_jsonb(e) order by e.id) from public.ops_events e where entity_id=tid and event_type not in ('task_archived','task_restored')) is distinct from prior_history then
+  raise exception 'Restore changed identity, business fields, another task or prior activity';
+ end if;
  if (select count(*) from public.ops_events where entity_id=tid and event_type in ('task_archived','task_restored'))<>2 then
   raise exception 'Expected two immutable audit events';
  end if;
