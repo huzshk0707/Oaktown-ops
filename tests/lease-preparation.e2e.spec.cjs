@@ -21,6 +21,45 @@ async function setup(page,signin=true){
  await navigate(page,'leases');await page.locator('#lease-tab-new').click();return writes;
 }
 async function step(page,i){await page.locator('#new-lease-panel .guide-form-jump').nth(i).click()}
+test('fictional one-bedroom rehearsal is locally reviewable and cannot carry into a real unit',async({page})=>{
+ const writes=await setup(page);
+ await page.locator('#newlease-rehearsal-start').click();
+ await expect(page.locator('#newlease-rehearsal-status')).toContainText('FICTIONAL REHEARSAL ACTIVE');
+ await expect(page.locator('#newlease-progress')).toContainText('Step 2 of 5');
+ await expect(page.locator('#newlease-unit')).toHaveValue('');
+ await expect(page.locator('#newlease-rent')).toHaveValue('1025.00');
+ await expect(page.locator('#newlease-deposit')).toHaveValue('1000.00');
+ await expect(page.locator('#newlease-rehearsal-status')).toContainText('$1,150 total');
+ await expect(page.locator('#newlease-securityDeposit')).toHaveValue('1000.00');
+ await expect(page.locator('#newlease-petDeposit')).toHaveValue('150.00');
+ await step(page,2);await expect(page.locator('#newlease-tenantName')).toHaveValue('Avery Example (DEMO)');
+ await expect(page.locator('#newlease-approvalReviewed')).not.toBeChecked();
+ await step(page,3);
+ await expect(page.locator('#newlease-bedrooms')).toHaveValue('1');
+ await expect(page.locator('#newlease-bathrooms')).toHaveValue('1');
+ await expect(page.locator('#newlease-satisfactory')).toHaveValue('');
+ await expect(page.locator('#newlease-condition-3')).toHaveValue('Good Tile');
+ await expect(page.locator('.lease-draft-placement')).not.toHaveAttribute('open','');
+ await page.locator('#newlease-room').selectOption('bedroom-2');
+ await expect(page.locator('#newlease-condition-0')).toHaveValue('');
+ await expect(page.locator('#newlease-condition-0')).toHaveAttribute('readonly','');
+ await step(page,4);
+ await expect(page.locator('#newlease-five')).toHaveValue('51.25');
+ await expect(page.locator('#newlease-ten')).toHaveValue('102.50');
+ await page.locator('#newlease-review').click();
+ await expect(page.locator('#newlease-output')).toContainText('123 Fictional Lane');
+ await expect(page.locator('.lease-review-issues')).toHaveAttribute('open','');
+ await page.locator('.lease-review-issues').getByRole('button',{name:'Edit step 4'}).first().click();
+ await expect(page.locator('[data-new-lease-step="3"]')).toBeVisible();
+ await step(page,1);
+ page.once('dialog',d=>d.accept());
+ await page.locator('#newlease-unit').selectOption('u1');
+ await expect(page.locator('#newlease-tenantName')).toHaveValue('');
+ await expect(page.locator('#newlease-address')).toHaveValue('111 Fictional Road Unit 1');
+ await expect(page.locator('#newlease-rehearsal-status')).toHaveText('');
+ expect(writes).toEqual([]);
+});
+
 test('new lease has its own staff-only tab and opens from the application handoff',async({page})=>{
  await setup(page,false);await expect(page.locator('.lease-draft-lock')).toBeVisible();await expect(page.locator('#newlease-form')).toBeHidden();await expect(page.locator('#newlease-tenantName')).toBeDisabled();
  await navigate(page,'applications');await page.locator('#applications-workflow .guide-step-button').last().click();await page.getByRole('button',{name:'Open new lease preparation'}).click();
