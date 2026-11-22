@@ -1,4 +1,5 @@
 const {test,expect}=require('@playwright/test');
+const AxeBuilder=require('@axe-core/playwright').default;
 const {morningMock,signIn,ORIGIN,USER}=require('./morning-fixtures.cjs');
 const T=require('../today-model.js');
 const {saved}=require('./daily-fixtures.cjs');
@@ -24,7 +25,7 @@ test('unapproved staff role cannot sign in or see private dashboard records',asy
 test('desktop first view answers the three questions and enters the displayed task in Focus',async({page})=>{
  const s=await open(page);
  const focus=s.tasks.find(task=>task.status==='in_progress');
- for(const width of [1280,1440,1920]){
+ for(const width of [320,390,768,1280,1440,1920]){
   await page.setViewportSize({width,height:640});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   for(const id of ['daily-priorities','daily-followups','daily-pickup','daily-start']){
@@ -81,6 +82,13 @@ test('high-priority actionable undated tasks appear in attention without inventi
   await expect(page.locator('#daily-priorities')).toContainText('High priority · actionable');
  }
  await expect(page.locator('#daily-priorities')).toContainText('Contact tenant for access');
+ for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
+  await page.locator('#workspace-appearance-open').click();
+  await page.getByLabel('Workspace theme').selectOption(theme);
+  await page.locator('#workspace-appearance-dialog').getByRole('button',{name:'Close',exact:true}).click();
+  const audit=await new AxeBuilder({page}).include('.topbar').include('#morning-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+  expect(audit.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),theme).toEqual([]);
+ }
  await expect(page.locator('#daily-priorities')).not.toContainText('Await contractor availability');
  await expect(page.locator('#daily-priorities')).not.toContainText('Completed repair');
  await expect(page.locator('#daily-followups')).toContainText('Await contractor availability');
