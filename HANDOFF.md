@@ -1,3 +1,16 @@
+# Current handoff — OPS-ACTIVATE-TASK-CONNECTION
+
+- Owner: codex
+- Branch: `codex/ops-activate-task-connection`
+- Base: `main` at `bea1f979de54f371ac39e972f198b51fe938d979`
+- Claim checkpoint: 2026-11-22 UTC; 30-minute cooperative claim
+- Scope: documentation and read-only activation investigation only; no production auth changes, migrations, deployments or task writes.
+- Done: read AGENTS.md, current HANDOFF.md, TASKS.md, connection docs, Oaktownbrain procedure, active PRs and live Supabase metadata.
+- In progress: record the verified Go-plan capability boundary and current OAuth/client/hook readiness without secrets.
+- NEXT STEP: review the draft PR and corrected activation report; owner interaction is required before any OAuth or account setup.
+
+---
+
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 
 **Status:** [PR #88](https://github.com/huzshk0707/Oaktown-ops/pull/88) reconciles the November 22 plan with Huzy’s first-screen direction. Huzy authorized merging the documentation after review. Codex reviewed the three documentation files against main `b91b4c7`, the agreed Friday workflow and the current Morning implementation. The UI work has its own handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89).
