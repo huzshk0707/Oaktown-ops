@@ -1,3 +1,9 @@
+## Active lease rehearsal UX PR — 2026-11-22
+
+- **Owner:** chatgpt. **Branch:** `chatgpt/lease-rehearsal-ux`. **Base:** main d4e4df5ff8455e7cd5641e818cb98cc0e1c3d4b7. **Claim:** 2026-11-22T07:11:00.293Z to 2026-11-22T07:41:00.296Z UTC.
+- **Scope:** a staff-only, fictional one-bedroom rehearsal launcher; clearer preparation steps and review/action UI. No real tenant data, Supabase migration, template rewrite, approval, deployment, or merge.
+- **NEXT STEP:** open draft PR, implement progressive rehearsal UI in existing `lease-preparation.js` and `lease-preparation.css`, add fictional browser checks, run/inspect GitHub checks and leave exact handoff.
+
 ## Individual task archive
 
 [PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) targets main from `codex/single-task-archive`. Owner Codex, claim released after local verification. The task editor shared by Tasks and Focus offers More actions → Archive task. Its confirmation uses the saved title, checks editor access and the reviewed version, and verifies the one-task receipt against refreshed data. Existing History Restore verifies identity, version and saved status. Bulk settings and connector permissions are outside this change.
