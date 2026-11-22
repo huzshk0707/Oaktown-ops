@@ -1,3 +1,10 @@
+## Morning Plan personal consent SQL repair
+
+- Owner felix. UTC heartbeat 2026-11-22 06:40; claim valid until 2026-11-22 07:10 UTC.
+- Branch `felix/morning-plan-consent` from `main` at `d4e4df5`. Ownership checkpoint.
+- Scope is the native personal-consent connection lookup and its regression tests.
+- **NEXT STEP:** Inspect `supabase/migrations/20261116012926_morning_plan_review_authorization.sql` and `tests/plan-review-database.cjs`, then add the forward migration and reproduce the original error in disposable PostgreSQL.
+
 ## Individual task archive
 
 [PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) targets main from `codex/single-task-archive`. Owner Codex, claim released after local verification. The task editor shared by Tasks and Focus offers More actions → Archive task. Its confirmation uses the saved title, checks editor access and the reviewed version, and verifies the one-task receipt against refreshed data. Existing History Restore verifies identity, version and saved status. Bulk settings and connector permissions are outside this change.
