@@ -1,9 +1,9 @@
 ## ChatGPT Morning Plan integration
 
-- Owner felix. UTC heartbeat 2026-11-22 07:01. Claim valid until 07:31 UTC. User extended existing [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) from checkpoint `93001e3`.
-- Migration `20261122064143_morning_plan_personal_consent_alias.sql` changes the native `my_connections` table alias and preserves the installed function's owner, grants, security settings and other branches.
-- Passed `node --test tests/*.test.cjs` (239), workflow inventory, the full disposable PostgreSQL 16 `portfolio-schema` test chain, and 61 Chromium cases across plan review, Morning, task connection and Focus actions. The database reproduced the original error and verified OAuth filtering, consent and capability readback, submission and approval gates, scoped task write/readback, drift refusal and transactional rollback.
-- **NEXT STEP:** Add the scoped Morning Priority Snapshot using existing task authorization and Morning rules, then verify its complete review workflow.
+- Owner felix. Claim released 2026-11-22 07:12 UTC after implementation and local verification. [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) targets `main` from `felix/morning-plan-consent`. The verified personal-consent migration from `93001e3` is preserved.
+- `read_morning_priority_snapshot` reads the complete active priority pool through the scoped task RPC. Its 25-row pages carry a total and cursor. A change in the pool invalidates the cursor. The three plan tools keep exact proposal submission, native staff review and independent approval readback.
+- Verified with 240 Node tests, workflow inventory, Deno type check, the disposable PostgreSQL 16 workflow, and 61 targeted Chromium cases. The database test compares snapshot ordering to the browser model and checks stale versions, duplicate intent, authorization denial and existing scoped task create and update.
+- **NEXT STEP:** Review PR #93 and its final GitHub Actions run, then use [the manual rollout steps](docs/CHATGPT-TASK-CONNECTION.md#manual-rollout-after-pr-review) after separate authorization.
 
 ## Individual task archive
 

@@ -213,7 +213,7 @@ jobs:
             -f tests/task-agent-check.sql
       - name: Reject duplicate concurrent saves and stale competing proposals
         run: node tests/task-agent-concurrency.cjs
-      - name: Verify scoped plan consent, native review, concurrency and guarded rollback
+      - name: Verify scoped Morning snapshot, plan consent, native review, concurrency and guarded rollback
         run: node tests/plan-review-database.cjs
       - name: Verify private lease preparation, native approval, replay and guarded rollback
         run: node tests/lease-preparation-database.cjs
