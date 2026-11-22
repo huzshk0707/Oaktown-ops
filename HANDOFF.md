@@ -3,11 +3,11 @@
 - Owner: codex
 - Branch: `codex/ops-activate-task-connection`
 - Base: `main` at `bea1f979de54f371ac39e972f198b51fe938d979`
-- Claim checkpoint: 2026-11-22 UTC; 30-minute cooperative claim
-- Scope: documentation and read-only activation investigation only; no production auth changes, migrations, deployments or task writes.
-- Done: read AGENTS.md, current HANDOFF.md, TASKS.md, connection docs, Oaktownbrain procedure, active PRs and live Supabase metadata.
-- In progress: record the verified Go-plan capability boundary and current OAuth/client/hook readiness without secrets.
-- NEXT STEP: review the draft PR and corrected activation report; owner interaction is required before any OAuth or account setup.
+- Claim: released after documentation checkpoint; 2026-11-22 UTC
+- Scope completed: documentation and read-only activation investigation only; no production Auth changes, migrations, deployments or task writes.
+- Done: read AGENTS.md, current HANDOFF.md, TASKS.md, connection docs, Oaktownbrain procedure and active PRs; inspected live Supabase project, Edge Function, OAuth client/consent counts, scoped client registry, role grants, RLS policies and token-hook functions; confirmed account-plan limitation from current OpenAI documentation.
+- Verification: read back all three changed files and reviewed the complete PR diff. No runtime tests were needed for documentation-only changes.
+- NEXT STEP: Huzy chooses an eligible Business/Enterprise/Edu workspace or the Go-compatible manual approval fallback; account-owner action is required before OAuth setup.
 
 ## Read-only activation findings — 2026-11-22
 
