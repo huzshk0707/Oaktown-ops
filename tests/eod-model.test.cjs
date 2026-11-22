@@ -13,8 +13,22 @@ test('completed tasks without work entries never invent time',()=>{
 test('EOD focuses on work done by default and requires explicit time inclusion',()=>{
  const r=M.build([work('a',90)],[task('a')],date);assert.match(r.text,/Fictional batch work/);assert.match(r.text,/Fictional details/);assert.doesNotMatch(r.text,/minutes|Recorded time|recorded time/);
 });
-test('completed work is listed once without repeating the linked activity duration in the default report',()=>{
- const entry=work('e',90);entry.entity_id='t';entry.event_metadata.activity.summary='Fictional batch; 90 estimated minutes';const r=M.build([entry],[task('t')],date);assert.match(r.text,/Fictional details/);assert.doesNotMatch(r.text,/90|minutes/);assert.equal(r.workCount,1);
+test('Friday shift preserves both actions and repeats neither the delivery nor time',()=>{
+ const friday='2026-11-20';
+ const first=work('prep',10,'reported',friday),last=work('delivery',5,'reported',friday);
+ first.entity_id=last.entity_id='statement';
+ first.event_metadata.activity.summary='Prepared and sent to Leslie.';
+ last.event_metadata.activity.summary='Revised and sent to attorney.';
+ last.occurred_at='2026-11-21T08:00:00Z';
+ const done=task('statement',last.occurred_at);
+ Object.assign(done.intake_details.eod,{work_date:friday,summary:last.event_metadata.activity.summary});
+ const r=M.build([first,last],[done],friday,{nextDayPriorities:['Resume Gary at Thursday.']});
+ assert.equal(r.actionCount,2);
+ assert.equal(r.reported,15);
+ assert.equal(r.text.split('Revised and sent to attorney.').length,2);
+ assert.match(r.text,/Prepared and sent to Leslie/);
+ assert.match(r.text,/Resume Gary at Thursday/);
+ assert.doesNotMatch(r.text,/minutes/);
 });
 test('work date and Eastern completion date are independent, including DST transitions',()=>{
  const tasks=[task('before','2026-11-01T03:59:00Z'),task('first','2026-11-01T05:30:00Z'),task('second','2026-11-01T06:30:00Z'),task('next','2026-11-02T05:00:00Z')];

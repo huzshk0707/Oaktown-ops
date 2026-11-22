@@ -17,7 +17,6 @@
   if(events.length>=1000||tasks.length>=1000)throw Error('The report reached its 1,000-record limit. No partial report was generated.');
   if(!trim(performer))throw Error('Report performer is required.');
   const completed=tasks.filter(t=>personalCompletion(t,date,performer));
-  const taskIds=new Set(completed.map(t=>t.id).filter(Boolean));
   const seen=new Set(),work=[];let reported=0,estimated=0,unknown=0;
   for(const event of events){
    if(event?.event_type!=='task_work_recorded')continue;
@@ -36,11 +35,14 @@
   const dateLabel=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z'));
   const subject='Daily Task Status / Update – '+dateLabel;
   const lines=['Subject: '+subject,'','Hey Leslie,','','Please find my end-of-day update based on today’s tasks completed, and follow-ups.','','Today’s Focus & Completed Work',''];
-  const rows=completed.map(t=>{
+  const rows=work.map(a=>({label:trim(a.label),summary:trim(a.summary),work:a}));
+  for(const t of completed){
    const e=t.intake_details.eod;
-   return {label:trim(e.label)||trim(t.task_title)||'Completed action',summary:trim(e.summary)||trim(t.intake_details.completion_summary)};
-  });
-  for(const a of work)if(!a.task_id||!taskIds.has(a.task_id))rows.push({label:trim(a.label),summary:trim(a.summary),work:a});
+   const summary=trim(e.summary)||trim(t.intake_details.completion_summary);
+   // Match only within this task. Different actions can share a task ID.
+   if(work.some(a=>a.task_id===t.id&&(!summary||trim(a.summary)===summary)))continue;
+   rows.push({label:trim(e.label)||trim(t.task_title)||'Completed action',summary});
+  }
   if(!rows.length)lines.push('- No personal completed work recorded for this date.');
   for(const item of rows){
    const body=(item.label?item.label+': ':'')+(item.summary||'Completion recorded; details not provided.');
