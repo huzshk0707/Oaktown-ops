@@ -1,5 +1,7 @@
 # Oaktown Ops — active roadmap (22 November 2026)
 
+**Last verified:** 2026-11-22 · GitHub main and read-only Supabase snapshot.
+
 **Authority:** This section is the current delivery plan. The dated material under “Historical roadmap snapshots” is preserved for audit context, not an open build queue. Status was cross-checked against GitHub main, CI/Pages and read-only Supabase inspection on 22 November 2026. Numbers below are a dated snapshot, not automated live counters.
 
 ## Product direction
