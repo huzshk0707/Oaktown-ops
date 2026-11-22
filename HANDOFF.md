@@ -1,3 +1,10 @@
+# Morning Command Center shift brief
+
+- Owner codex, heartbeat 2026-11-22 00:24 UTC, claim valid through 00:54 UTC.
+- Branch `codex/morning-shift-brief` from main `b91b4c7`. PR #88 is a separate docs-only change.
+- Scope: move attention items, follow-ups and the Focus Board entry task into the first desktop view. Use the existing shared task snapshot and planner. Run checks with fictional records.
+- NEXT STEP: update `daily-model.js`, `daily-center.js`, `daily-center.css` and the Morning markup in `index.html`. Verify the task displayed in the brief opens in Focus.
+
 # Morning integration reviewed — hosted gate pending
 
 - Owner codex, heartbeat 2026-11-17 13:03 UTC, expiry 13:33 UTC. User authorized #86/#87 merge and closure of historical PRs. Current branch ravi/morning-motion; runtime integration 659d85e.
