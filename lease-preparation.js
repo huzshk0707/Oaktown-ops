@@ -146,7 +146,7 @@
   if(!cloud.user||externalBusy)return;
   if(dirty&&!window.confirm('Replace the current draft with fictional rehearsal values? Unsaved edits will be lost.'))return;
   reset();demoActive=true;
-  const sample={address:'123 Fictional Lane, Unit 6',cityline:'Example City, KY 40000',leaseDate:'2026-11-20',start:'2026-11-20',end:'2027-11-19',rent:'1025.00',deposit:'1150.00',securityDeposit:'1000.00',petDeposit:'150.00',petRent:'25.00',tenantName:'Avery Example (DEMO)',emails:'avery@example.invalid',pets:'Example dog - mixed breed, 40 lb (DEMO)',bedrooms:'1',bathrooms:'1',basement:'not-included'};
+  const sample={address:'123 Fictional Lane, Unit 6',cityline:'Example City, KY 40000',leaseDate:'2026-11-20',start:'2026-11-20',end:'2027-11-19',rent:'1025.00',deposit:'1000.00',securityDeposit:'1000.00',petDeposit:'150.00',petRent:'25.00',tenantName:'Avery Example (DEMO)',emails:'avery@example.invalid',pets:'Example dog - mixed breed, 40 lb (DEMO)',bedrooms:'1',bathrooms:'1',basement:'not-included'};
   for(const [key,value]of Object.entries(sample))$(key).value=value;
   $('occupant-0').value='Avery Example (DEMO)';
   // These are training-only descriptions, not observed condition facts from any real unit.
