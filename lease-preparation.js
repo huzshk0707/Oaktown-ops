@@ -6,7 +6,7 @@
  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n};
  const button=(text,fn,cls='button')=>{const b=el('button',cls,text);b.type='button';b.addEventListener('click',fn);return b};
  const tool=el('div','lease-draft-tool'),title=el('h2','','Prepare a new lease');title.id='new-lease-title';title.tabIndex=-1;
- tool.append(el('span','lease-draft-badge','PREPARATION PREVIEW'),title,el('p','guide-hint','Use confirmed application and deposit details, then review the new tenancy’s terms and unit condition sheet.'));
+ tool.append(el('span','lease-draft-badge','PREPARATION PREVIEW'),title,el('p','guide-hint','Review a new tenancy in five guided steps, or try the fictional one-bedroom rehearsal before entering real details.'));
  const limitations=el('section','lease-draft-limitations');limitations.setAttribute('aria-label','New lease preparation limits');
  limitations.append(el('strong','','Before you start'),el('p','','Inputs are temporary and are not saved to a case. Reloading or signing out clears this draft.'),el('p','','Full ten-page lease export is unavailable. You can review your inputs and download a draft page 8 condition sheet only. Nothing here signs a lease or confirms approval or payment.'));tool.append(limitations);
  const blockers=el('details','lease-draft-sources');blockers.append(el('summary','','Source and template review'));
@@ -14,8 +14,13 @@
  tool.append(blockers);
  const locked=el('div','lease-draft-lock');locked.append(el('p','','Sign in with your approved staff account to enter lease details.'),button('Sign in',()=>document.getElementById('account-button').click(),'button primary'));tool.append(locked);
  const work=el('div'),form=el('form');form.id='newlease-form';form.autocomplete='off';form.noValidate=true;form.addEventListener('submit',e=>e.preventDefault());
+ const rehearsal=el('section','lease-rehearsal');rehearsal.setAttribute('aria-label','Practice a fictional lease');
+ const rehearsalButton=button('Try a fictional one-bedroom rehearsal',startRehearsal,'button primary');rehearsalButton.id='newlease-rehearsal-start';
+ const rehearsalStatus=el('p','lease-rehearsal-status');rehearsalStatus.id='newlease-rehearsal-status';rehearsalStatus.setAttribute('role','status');
+ rehearsal.append(el('strong','','Practice before preparing a real lease'),el('p','','Load a fictional one-bedroom example with sample rent, deposit, pet and room notes. No property is selected; selecting a real unit clears these demonstration values.'),rehearsalButton,rehearsalStatus);
+ const progress=el('p','lease-draft-progress');progress.id='newlease-progress';progress.setAttribute('role','status');
  const toolbar=el('div','lease-draft-toolbar'),modeControls=el('div','guide-segments');modeControls.setAttribute('role','group');modeControls.setAttribute('aria-label','New lease reading mode');
- let all=false,step=0,conditions={},roomLabels={},roomLocations={},roomPlacements={},room='kitchen',userId=cloud.user?.id||null,lastUnit='',units=new Map(),manualFive=false,manualTen=false,dirty=false,externalBusy=false;
+ let all=false,step=0,conditions={},roomLabels={},roomLocations={},roomPlacements={},room='kitchen',userId=cloud.user?.id||null,lastUnit='',units=new Map(),manualFive=false,manualTen=false,dirty=false,externalBusy=false,demoActive=false;
  const one=button('One step',()=>{all=false;render()}),every=button('View all',()=>{all=true;render()});modeControls.append(one,every);toolbar.append(modeControls,button('Clear draft',()=>{if(!dirty||window.confirm('Clear all new-lease inputs? This temporary draft cannot be recovered.'))reset()}));
  const nav=el('nav','guide-form-nav');nav.setAttribute('aria-label','New lease preparation steps');const jumps=[],steps=[];
  const names=['Handoff','Page 1 · Terms','People & services','Page 8 · Conditions','Late charges & review'];
@@ -42,7 +47,7 @@
  input(terms,'address','Exact street address / unit');input(terms,'cityline','City / state / ZIP');
  input(terms,'leaseDate','Date of lease',{type:'date'});input(terms,'rent','Monthly rental ($)',{placeholder:'e.g. 1,500.00'});
  input(terms,'start','Beginning term',{type:'date'});input(terms,'end','Ending term',{type:'date'});
- const money=el('details','lease-draft-money');money.append(el('summary','','Deposit and fee components'));const components=grid(money);
+ const money=el('details','lease-draft-money');money.open=true;money.append(el('summary','','Deposit breakdown — confirm each part'));const components=grid(money);
  input(components,'securityDeposit','Security deposit ($, if confirmed)');input(components,'petDeposit','Pet deposit ($, if confirmed)');
  input(components,'otherFee','Other one-time fee ($, if confirmed)');input(components,'otherFeeDescription','What is the other fee?');
  input(components,'petRent','Monthly pet rent ($, if confirmed)');
@@ -65,11 +70,12 @@
  const roomSelect=input(steps[3],'room','Area to inspect',{values:[['kitchen','Kitchen']]});
  const roomLabelInput=input(steps[3],'roomLabel','Area label (optional)',{hint:'For example: Main bath, Basement bath, Primary bedroom or Den. Leave blank to keep the generic label.'});
  const roomLocationInput=input(steps[3],'roomLocation','Room location (optional)',{hint:'First Floor, Second Floor or BSMT; this does not change room identity.'});
- const positions=grid(steps[3]);
+ const advancedPlacement=el('details','lease-draft-placement');advancedPlacement.append(el('summary','','Advanced · room positions on the original PDF'));steps[3].append(advancedPlacement);
+ const positions=grid(advancedPlacement);
  const sectionInput=input(positions,'roomSection','Position in the existing checklist',{values:[['unplaced','Choose available space'],...(P?.sections||[]).map(x=>[x,x.replaceAll('-',' ')])]});
  const columnInput=input(positions,'roomColumn','Existing column',{values:[['0','Left / first column'],['1','Right / second column']]});
  const rowInput=input(positions,'roomRow','Entry within this position',{values:[['0','First entry'],['1','Second entry'],['2','Third entry']]});
- const placementStatus=el('p','guide-hint');placementStatus.id='newlease-placement-status';placementStatus.setAttribute('role','status');steps[3].append(placementStatus);
+ const placementStatus=el('p','guide-hint');placementStatus.id='newlease-placement-status';placementStatus.setAttribute('role','status');advancedPlacement.append(placementStatus);
  const roomApplicability=el('p','guide-hint');roomApplicability.id='newlease-room-applicability';roomApplicability.setAttribute('role','status');steps[3].append(roomApplicability);
  const count=el('p','guide-hint');count.id='newlease-condition-count';steps[3].append(count);
  const conditionFields=el('div','lease-condition-fields');steps[3].append(conditionFields);
@@ -88,7 +94,7 @@
  const output=el('section','lease-draft-review');output.id='newlease-output';output.setAttribute('aria-label','New lease field review');output.hidden=true;steps[4].append(output);
  const footer=el('div','guide-footer'),back=button('Back',()=>move(-1)),next=button('Continue',()=>move(1),'button primary');footer.append(back,next);
  const status=el('p','status');status.id='newlease-status';status.setAttribute('role','status');
- form.append(...steps);work.append(toolbar,nav,form,footer,status,el('p','lease-draft-session','Unsaved edits stay only for this visit. Save as Draft before leaving to resume the details; original PDF files must be attached again. Nothing is sent or signed.'));
+ form.append(...steps);work.append(rehearsal,toolbar,progress,nav,form,footer,status,el('p','lease-draft-session','Unsaved edits stay only for this visit. Save as Draft before leaving to resume the details; original PDF files must be attached again. Nothing is sent or signed.'));
  tool.append(work);panel.append(tool);
  function val(id){return $(id).value.trim()}
  function state(){return {
@@ -97,7 +103,8 @@
   occupants:Array.from({length:5},(_,i)=>val('occupant-'+i)),utilities:Object.fromEntries(R.utilities.map((k,i)=>[k,val('utility-'+i)])),appliances:Object.fromEntries(R.appliances.map((k,i)=>[k,val('appliance-'+i)])),
   fiveOverride:manualFive?val('five'):null,tenOverride:manualTen?val('ten'):null,conditions:{...conditions},roomLabels:{...roomLabels},roomLocations:{...roomLocations},roomPlacements:structuredClone(roomPlacements),unitId:lastUnit,additionalRoom:$('additionalRoom').checked,conditionsReviewed:$('conditionsReviewed').checked
  }}
- function invalidate(){window.dispatchEvent(new Event('ops-lease-draft-change'));previewStatus.textContent='';output.hidden=true;output.replaceChildren();status.textContent='Draft inputs changed. Review again when ready.'}
+ function invalidate(){window.dispatchEvent(new Event('ops-lease-draft-change'));previewStatus.textContent='';output.hidden=true;output.replaceChildren();status.textContent='Draft inputs changed. Review again when ready.';updateProgress()}
+ function updateProgress(){const issues=M.readiness(state()).missing.length;progress.textContent='Step '+(step+1)+' of '+steps.length+' · '+names[step]+' · '+(issues?issues+' checks still need review':'Form checks complete; template and approval checks remain');progress.classList.toggle('lease-progress-demo',demoActive)}
  function updateFees(){
   const amounts=M.calculateFees(val('rent'),manualFive?val('five'):null,manualTen?val('ten'):null);
   if(!manualFive)$('five').value=amounts.five.cents===null?'':(amounts.five.cents/100).toFixed(2);
@@ -128,12 +135,29 @@
  }
  function render(){
   steps.forEach((n,i)=>n.hidden=!all&&i!==step);jumps.forEach((b,i)=>{if(!all&&i===step)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});
-  one.setAttribute('aria-pressed',String(!all));every.setAttribute('aria-pressed',String(all));footer.hidden=all;back.disabled=step===0;next.hidden=step===steps.length-1;
+  one.setAttribute('aria-pressed',String(!all));every.setAttribute('aria-pressed',String(all));footer.hidden=all;back.disabled=step===0;next.hidden=step===steps.length-1;updateProgress();
  }
  function move(delta){step=Math.max(0,Math.min(steps.length-1,step+delta));render();steps[step].querySelector('h3').focus()}
  function reset(){
-  form.reset();conditions={};roomLabels={};roomLocations={};roomPlacements={};externalBusy=false;window.dispatchEvent(new Event('ops-lease-draft-reset'));manualFive=false;manualTen=false;dirty=false;lastUnit='';room='kitchen';step=0;
+  form.reset();conditions={};roomLabels={};roomLocations={};roomPlacements={};externalBusy=false;demoActive=false;rehearsalStatus.textContent='';window.dispatchEvent(new Event('ops-lease-draft-reset'));manualFive=false;manualTen=false;dirty=false;lastUnit='';room='kitchen';step=0;
   $('leaseDate').value=R.leaseDate();renderRoom();updateFees();invalidate();status.textContent='Fresh new-lease draft. No records changed.';render();
+ }
+ function startRehearsal(){
+  if(!cloud.user||externalBusy)return;
+  if(dirty&&!window.confirm('Replace the current draft with fictional rehearsal values? Unsaved edits will be lost.'))return;
+  reset();demoActive=true;
+  const sample={address:'123 Fictional Lane, Unit 6',cityline:'Example City, KY 40000',leaseDate:'2026-11-20',start:'2026-11-20',end:'2027-11-19',rent:'1025.00',deposit:'1150.00',securityDeposit:'1000.00',petDeposit:'150.00',petRent:'25.00',tenantName:'Avery Example (DEMO)',emails:'avery@example.invalid',pets:'Example dog - mixed breed, 40 lb (DEMO)',bedrooms:'1',bathrooms:'1',basement:'not-included'};
+  for(const [key,value]of Object.entries(sample))$(key).value=value;
+  $('occupant-0').value='Avery Example (DEMO)';
+  // These are training-only descriptions, not observed condition facts from any real unit.
+  const utilitySample={Water:'Landlord',Electric:'Tenant',Gas:'Tenant',Trash:'Landlord',Internet:'Tenant'};
+  R.utilities.forEach((name,i)=>$('utility-'+i).value=utilitySample[name]);
+  const applianceSample={Range:'Yes',Refrigerator:'Yes',Dishwasher:'No',Blinds:'No',Microwave:'No','Garage Door Opener':'No','Washer & Dryer':'No'};
+  R.appliances.forEach((name,i)=>$('appliance-'+i).value=applianceSample[name]);
+  conditions={'kitchen::Walls':'Good & New Paint','kitchen::Floor':'Good Tile','kitchen::Cabinets':'New Shaker Cabinets','kitchen::Countertop':'Good Granite','bathroom-1::Floor':'Good Tile','bathroom-1::Shower':'Good Tile Surround','living::Floor':'Good Tile','bedroom-1::Floor':'Good Tile','exterior::Locks & keys':'Rekeyed','systems::Furnace / AC':'Forced air; window A/C'};
+  step=1;dirty=true;renderRoom();updateFees();render();invalidate();
+  rehearsalStatus.textContent='FICTIONAL REHEARSAL ACTIVE · No unit linked. Handoff approval, condition acceptance and signatures remain unconfirmed. Select a real unit to start a clean draft.';
+  status.textContent='Fictional sample loaded. Explore the five steps, then review. Nothing was saved or approved.';
  }
  function refreshUnits(){
   const data=cloud.user?window.OpsPortfolio?.getData():null,props=new Map((data?.properties||[]).map(p=>[p.id,p]));units=new Map();
@@ -144,7 +168,7 @@
   }
   picker.value=units.has(lastUnit)?lastUnit:'';
  }
- function gate(){locked.hidden=!!cloud.user;work.hidden=!cloud.user;form.querySelectorAll('input,textarea,select,button').forEach(n=>n.disabled=!cloud.user||externalBusy);download.disabled=true;renderRoom();}
+ function gate(){locked.hidden=!!cloud.user;work.hidden=!cloud.user;rehearsalButton.disabled=!cloud.user||externalBusy;form.querySelectorAll('input,textarea,select,button').forEach(n=>n.disabled=!cloud.user||externalBusy);download.disabled=true;renderRoom();}
  function previewCondition(){
   if(!cloud.user)return;
   try{
@@ -157,7 +181,10 @@
   if(!cloud.user){reset();gate();return}
   const report=M.buildReview(state());output.replaceChildren(el('h4','',report.kind));
   const sources=el('details'),pending=el('ul');sources.append(el('summary','','Source materials pending ('+report.sourceBlockers.length+')'));report.sourceBlockers.forEach(s=>pending.append(el('li','',s)));sources.append(pending);output.append(sources);
-  if(report.missing.length){const disclosure=el('details'),missing=el('ul');disclosure.append(el('summary','','Fields still to check ('+report.missing.length+')'));report.missing.forEach(s=>missing.append(el('li','',s)));disclosure.append(missing);output.append(disclosure)}
+  if(report.missing.length){const disclosure=el('details','lease-review-issues'),missing=el('ul');disclosure.open=true;disclosure.append(el('summary','','Fields still to check ('+report.missing.length+')'));report.missing.forEach(s=>{
+   const item=el('li','lease-review-issue'),target=/approval handoff|preceding deposit step/i.test(s)?0:/tenant name|tenant email|occupants|pet description|who pays|appliance/i.test(s)?2:/bedroom|bathroom|basement|condition|observations|satisfactory/i.test(s)?3:/late-charge/i.test(s)?4:1;
+   item.append(el('span','',s),button('Edit step '+(target+1),()=>{all=false;step=target;render();steps[target].querySelector('h3').focus()},'button lease-review-edit'));missing.append(item)
+  });disclosure.append(missing);output.append(disclosure)}
   const details=el('dl');
   const entries=[['Tenant(s)',report.page1.tenantName],['Email(s)',report.page1.emails],['Property/unit',[report.page1.address,report.page1.cityline].filter(Boolean).join(', ')],['Lease date',report.page1.leaseDate],['Term',report.page1.start+' → '+report.page1.end],['Monthly rent',report.page1.rent],['Deposit amount to print',report.page1.depositToPrint],['Security deposit component',report.deposits.security],['Pet deposit component',report.deposits.pet],['Other one-time fee',report.deposits.otherFee+' · '+(report.deposits.otherFeeDescription||'No description')],['Monthly pet rent',report.deposits.monthlyPetRent],['5% · pages 1 and 10',report.page1.lateFive],['10% · pages 1 and 10',report.page1.lateTen],['Occupants',report.page1.occupants.filter(Boolean).join('; ')],['Pets',report.page1.pets],['Utilities',Object.entries(report.page1.utilities).map(([k,v])=>k+': '+(v||'Not entered')).join(' · ')],['Appliances',Object.entries(report.page1.appliances).map(([k,v])=>k+': '+(v||'Not entered')).join(' · ')],['Page 8 overall satisfactory',report.page8.satisfactory||'Not entered'],['Condition entries',report.conditionCount.entered+' of '+report.conditionCount.total]];
   entries.forEach(([label,value])=>details.append(el('dt','',label),el('dd','',value||'Not entered')));output.append(details);
