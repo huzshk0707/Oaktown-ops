@@ -1,3 +1,12 @@
+# Friday shift rehearsal
+
+- Owner codex, heartbeat 2026-11-22 01:04 UTC, claim valid through 01:34 UTC.
+- Task OPS-SHIFT-BRIEF.2, branch `codex/friday-rehearsal`, based on reviewed screen PR #89 at `68bed16`. PR #89 is open and green. Review this follow-up against its screen branch.
+- Scope: rehearse the statement, Leslie response, Gary's resume step and personal EOD with fictional records. Carry over the prior EOD rendering work where the rehearsal exposes the known action-loss problem.
+- NEXT STEP: run Morning → Focus → reviewed task updates → Today EOD with the existing routes. Check the two statement actions and Gary's next-shift priority. Record any capture or persistence gaps for follow-up.
+
+---
+
 # Morning Command Center shift brief — review complete
 
 - Task OPS-SHIFT-BRIEF.1, branch `codex/morning-shift-brief`, [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89). Owner codex, claim released after local verification. Merged roadmap PR #88 is included through main `bea1f97`.
