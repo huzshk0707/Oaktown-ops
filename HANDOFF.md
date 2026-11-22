@@ -9,7 +9,6 @@
 - Supabase production schema inspection: ops_tasks and ops_events have RLS enabled. Staff policies restrict task reads to active memberships and task inserts/updates to active admin/editor memberships; event reads require active membership and event inserts require active admin/editor membership. authenticated has table grants (tasks SELECT/INSERT/UPDATE; events SELECT/INSERT), while the scoped oaktown_task_agent role is not granted direct table access by the reviewed connection design.
 - Scoped ChatGPT OAuth task connection is not established: no registered active ChatGPT client/consent was verified in the existing handoff. Existing SQL/API CI tests use fictional identities and mocks; they are not a real ChatGPT OAuth integration test. Do not substitute administrative SQL for this workflow.
 - No production data, A06, migrations, production authorization, or deployed code changed. PR remains unmerged.
-- First hosted attempt exposed one new test expectation error: the implementation correctly retained the existing alphabetical tie-break (Contact precedes Mockernut). The assertion is corrected to preserve that stable ordering; rerun CI and confirm the corrected job before treating checks as passed.
 - NEXT STEP: review this PR's updated hosted Node/browser/Postgres checks and screenshot artifact. Separately activate and verify the intended scoped OAuth client/consent before running a real fictional General Operations task API rehearsal; do not create a task until the connection is proven.
 
 ---

@@ -73,6 +73,7 @@ test('high-priority actionable undated tasks appear in attention without inventi
  const completed=mk('a0600000-0000-4000-8000-000000000004','DEMO-DONE','Completed repair','completed','high',{next_action:'Already completed.'});
  s.tasks.push(a06,contact,blocked,completed);
  await page.locator('#morning-command-refresh').click();
+ await page.locator('#daily-priorities .daily-show-all').click();
  for(const width of [1280,1440,1920]){
   await page.setViewportSize({width,height:640});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
