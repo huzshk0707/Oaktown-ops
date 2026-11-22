@@ -1,10 +1,9 @@
 ## Morning Plan personal consent SQL repair
 
-- Owner felix. UTC heartbeat 2026-11-22 06:45. Claim valid until 2026-11-22 07:15 UTC.
-- [Draft PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) targets `main` at `d4e4df5`. Prior checkpoint `8dfd3e8`.
-- The forward migration uses `registered_client` in the native connection lookup. The existing PostgreSQL function, owner and grants are preserved. The migration requires a single match for the prior lookup query.
-- The disposable plan verification reproduced the original ambiguity, then passed lookup, capability, personal consent, SOD approval, scoped task write/readback and rollback checks. All 239 Node tests passed. Full SQL chain and targeted Chromium run are in progress.
-- **NEXT STEP:** Check the disposable SQL chain and the Playwright run for plan review, Morning, task connection and Focus actions. Record their exact results and send PR #93 for review.
+- Owner felix. Claim released 2026-11-22 06:47 UTC after local verification. [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) targets `main` from `felix/morning-plan-consent`. Runtime and test checkpoint `b495d1d`.
+- Migration `20261122064143_morning_plan_personal_consent_alias.sql` changes the native `my_connections` table alias and preserves the installed function's owner, grants, security settings and other branches.
+- Passed `node --test tests/*.test.cjs` (239), workflow inventory, the full disposable PostgreSQL 16 `portfolio-schema` test chain, and 61 Chromium cases across plan review, Morning, task connection and Focus actions. The database reproduced the original error and verified OAuth filtering, consent and capability readback, submission and approval gates, scoped task write/readback, drift refusal and transactional rollback.
+- **NEXT STEP:** Review PR #93 and confirm its GitHub Actions checks. The PR contains manual production preflight, single-migration application and staff-session readback instructions.
 
 ## Individual task archive
 
