@@ -41,11 +41,11 @@ test('high-priority actionable undated work is attention, not an external depend
  const noAction={id:id(14),task_title:'High priority without next step',status:'pending',priority:'high',intake_details:{}};
  const completed={id:id(15),task_title:'Completed high-priority work',status:'completed',priority:'high',intake_details:{next_action:'Already done.'}};
  const tasks=[a06,contact,blocked,external,noAction,completed],before=JSON.stringify(tasks),p=D.project(tasks,day);
- assert.deepEqual(p.attention.map(t=>t.id),[a06.id,contact.id]);
+ assert.deepEqual(p.attention.map(t=>t.id),[contact.id,a06.id]);
  assert.deepEqual(p.waiting.map(t=>t.id),[external.id,blocked.id]);
  assert.equal(p.active.some(t=>t.id===completed.id),false);
  assert.equal(p.active.some(t=>t.id===noAction.id),true);
- assert.equal(p.focus.task.id,a06.id);
+ assert.equal(p.focus.task.id,contact.id,'Focus keeps the existing stable title ordering when no task is in progress');
  assert.equal(JSON.stringify(tasks),before);
 });
 test('an explicit contact action is not misrepresented as waiting on the contact',()=>{
