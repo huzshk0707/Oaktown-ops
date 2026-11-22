@@ -1,3 +1,9 @@
+## Review for PR #88
+
+- Owner codex, heartbeat 2026-11-22 00:30 UTC, claim valid through 01:00 UTC. User authorized aligning and merging PR #88.
+- Branch `chatgpt/roadmap-2026-11-22`, base `b91b4c7`, reviewed predecessor `e026aee`. Previous claim released.
+- NEXT STEP: reconcile the three roadmap documents with the first-screen work in PR #89, Friday’s EOD and the separate Records and Brain plans. Verify and merge the reviewed docs.
+
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 
 **Status:** Documentation synchronization prepared in [draft PR #88](https://github.com/huzshk0707/Oaktown-ops/pull/88), branch `chatgpt/roadmap-2026-11-22`, based on main `b91b4c7df2920a03df1670d28a67ee8ae5a148a3`. **Not merged or deployed.** This section supersedes the November 17 completion/merge instructions below. Owner: ChatGPT for this docs-only PR; claim released after pushing verified docs. No active feature-owner claim or production operator assignment is implied.
