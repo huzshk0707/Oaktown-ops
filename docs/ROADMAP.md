@@ -1,3 +1,83 @@
+# Oaktown Ops — active roadmap (22 November 2026)
+
+**Last verified:** 2026-11-22 · GitHub main and read-only Supabase snapshot.
+
+**Authority:** This section is the current delivery plan. The dated material under “Historical roadmap snapshots” is preserved for audit context, not an open build queue. Status was cross-checked against GitHub main, CI/Pages and read-only Supabase inspection on 22 November 2026. Numbers below are a dated snapshot, not automated live counters.
+
+## Product direction
+
+**Huzy's desired flow:** Gmail and supplied texts/call transcripts → ChatGPT retrieves the existing task and history in Supabase plus the relevant Oaktownbrain SOP → proposes a precise create/update and the next action → Huzy reviews and approves → an authorized scoped workflow writes and independently verifies the Supabase record → Oaktown Ops displays the shared saved state and provides execution controls.
+
+- **Supabase:** canonical operational tasks, status, event history, dates, links and approved plans. Never rely on chat memory as the database.
+- **Oaktown Brain:** curated SOPs, Leslie's confirmed decisions, workflow exceptions and evidence pointers.
+- **ChatGPT:** one Project chat per shift. “Start my shift” reads current tasks and their history from Supabase, with the connected app and GitHub guidance verified from a fresh chat. Gmail and relayed softphone updates feed reviewed proposals.
+- **Oaktown Ops:** one shift workflow from the Morning Command Center through the reviewed personal EOD, with existing document and operations tools available in the full workspace. The required external timesheet records time.
+- **External sources:** TurboTenant is authoritative for current tenant/payment/lease facts as applicable; REI Hub for posted accounting; Gmail/Drive for message and source evidence. Email statements alone do not verify a deposited payment. Keep high-impact sends, postings, leases and notices separately reviewed and authorized.
+
+Huzy's shift is 7 PM–5 AM Asia/Kolkata, which overlaps Louisville business hours (8:30 AM–6:30 PM EST or 9:30 AM–7:30 PM EDT). A shift is grouped under its start date across local midnight. Preserve actual timestamps and the applicable Louisville work date.
+
+## Verified release baseline and activation gaps
+
+- Main at [b91b4c7](https://github.com/huzshk0707/Oaktown-ops/commit/b91b4c7df2920a03df1670d28a67ee8ae5a148a3), merged through [PR #86](https://github.com/huzshk0707/Oaktown-ops/pull/86) (morning UX/motion), [#87](https://github.com/huzshk0707/Oaktown-ops/pull/87) (original lease checklist provenance), [#85](https://github.com/huzshk0707/Oaktown-ops/pull/85) (Page 8 frontend) and [#84](https://github.com/huzshk0707/Oaktown-ops/pull/84) (Focus Board/Morning release). Exact-main [CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/44090288462) and [Pages deployment](https://github.com/huzshk0707/Oaktown-ops/actions/runs/44090286047) succeeded on November 17. Before this documentation PR there were zero open PRs; [issue #83](https://github.com/huzshk0707/Oaktown-ops/issues/83) remains an accounting discovery candidate.
+- Existing: Today, Tasks/History/intake, Focus Board with Center Focus and reviewed Complete/Defer/Undo, Morning Command Center and reviewed SOD, personal EOD view, properties/units, notices, renewals, deposit packet preparation and six themes. **Merged code/green CI do not prove successful live staff acceptance.**
+- Read-only Supabase snapshot: **46 tasks total; 36 active, including 4 waiting; 34 active have neither due_at nor structured follow_up.** The database should not invent deadlines or treat undated items as overdue.
+- Supabase `oaktown-task-api` Edge Function version 3 is ACTIVE and the morning plan authorization migration is registered as `20261116051226`. **Zero registered scoped task clients, zero provider consents and zero task proposals** at the check. The full ChatGPT-to-approved-task loop is not activated merely because the function exists.
+- The Page 8 editor frontend is merged, but migration `20261116060547_lease_preparation_page8_editor.sql` is **not registered in live migration history**; the preparation RPC/private schema were absent at the inspection. Real blank unsigned master, source mappings and completed-reference comparisons still require approved verification. Do not equate UI publication with working saved Draft/Ready/Approve or full lease export.
+- The morning_plan_approved_v1 event count was zero at inspection; this is not evidence that no SOD emails were sent outside Ops.
+
+## Release sequence
+
+### First screen — Morning Command Center
+
+- **OPS-SHIFT-BRIEF** is the first build. Put three answers in the first desktop view: **What needs attention now? Who am I waiting on? Where do I pick up?** Show overdue, due and urgent work, recorded dependencies and follow-up dates, then one actionable task and its saved next action. Identify suggested focus clearly and open the exact displayed task in the existing Focus Board.
+- Use the existing shared task snapshot. Keep Start of Day as an optional draft for Leslie and preserve the reviewed plan, Tasks/History/Add or import, and full workspace routes. Review with fictional tasks at desktop sizes. The navy/cyan instrument and restrained motion from the command-console walkthrough guide the presentation.
+- [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89) tracks the screen change. Its fictional rehearsal can proceed while the live connector and lease activation are assessed separately.
+
+### Operational activation — parallel with the first screen
+1. **OPS-ACTIVATE-TASK-CONNECTION:** Operator verifies OAuth-server settings, asymmetric token hook, client/redirect registration, exact scoped roles and explicit Huzy consent. Start **read-only**. Run a staff-authorized fictional task search/preview/approval/save/audit/readback test, plus revoke/stale/replay/denial checks before enabling real use. Never substitute management SQL or service-role shortcuts. Document observed outcome, not just a green source test.
+2. **OPS-LEASE-PAGE8.ACTIVATE:** Separately review the staged migration's exact SQL/hash/rollback and existing live schema. Only an authorized operator may install it after approval, then verify grants/RLS/read-only RPC responses and unchanged production row counts. Real PDF/master comparison and signed-versus-unsigned restrictions are independent acceptance gates. See [deployment packet](releases/LEASE-PAGE8-2026-11-16.md).
+3. **Release hygiene:** Verify main tags and release notes without rerunning historical imports or claiming the already-merged #84/#85/#86/#87 need another merge.
+
+### Daily Work Readiness — after the first screen
+- **OPS-PLANNING-DATA:** Improve the *existing* Needs Planning flow, not another dashboard. Review saved owner, exact next action, waiting person/blocker, recorded due date, follow-up/check date, source freshness and intentionally unscheduled state, one task at a time.
+- Suggest missing metadata but **never infer and silently write** dates, owner, property/unit association, payment status or priority. Display “unknown/needs review” when evidence is missing.
+- Reuse the existing reviewed, version-checked task editor/intake RPCs; preserve stable IDs, existing due dates unless deliberately changed, audit/readback and shared `OpsToday` task snapshot. Waiting tasks stay active but should not masquerade as immediately executable focus work.
+- Keep the chosen task and a precise resume note available across sessions as a later persistence step. Surface Gary’s Friday hours as recurring work when configured.
+- **Acceptance:** After authorized staff review, each selected active task has a verified actionable next step and a confirmed schedule/follow-up or explicit “no date needed”; Today, Morning and Focus display the same saved result. Fictional tests cover conflict/retry, sign-out, keyboard/reduced motion, all six themes and Eastern date boundaries. No production mass update.
+
+### Phase 2 — Personal work and trustworthy EOD
+- **OPS-PERSONAL-WORK:** Record a Huzy-performed action on an existing task **without requiring the whole task to be closed**; independently attribute Leslie's work to Leslie. Capture actual performer, America/New_York work date, concrete action, source/evidence, audited event and verified readback. Extend native editor and scoped task-connection contract only with separately reviewed security tests.
+- **Acceptance:** Friday’s statement stays one task. Huzy’s preparation and delivery to Leslie, then revision and delivery to the attorney, appear as two distinct actions in the shift’s EOD even across local midnight. Gary’s entry shows confirmed progress and the saved resume step. Work performed by others is attributed in the property history. Existing reporting changes on [the EOD review branch](https://github.com/huzshk0707/Oaktown-ops/commit/8d697ea78bc838299ce41f2504fc3f1b126d20b2) await integration and end-to-end acceptance.
+
+### Phase 3 — Intelligent incoming-work review and quick capture
+- **OPS-AI-INTAKE:** In ChatGPT, retrieve authorized Gmail messages/attachments when explicitly invoked, accept Huzy-pasted Leslie texts/call transcripts, check exact Supabase task IDs and history, consult Oaktownbrain procedures, and propose create/update/waiting/follow-up decisions before a human-reviewed scoped write. Duplicate detection and precise source references are mandatory. No unapproved polling or external sends.
+- **OPS-QUICK-CAPTURE:** Add a lightweight capture affordance accessible from the execution experience; unsaved ideas remain clearly unsaved until reviewed and persisted through the existing flow. Preserve focus context. Reuse Morning's source review instead of creating a competing inbox.
+- ChatGPT Gmail access is **not** an in-app Gmail service; consider a separately authorized read-only mailbox backend only if operational testing establishes that need.
+
+### Phase 4 — Reliability and focused workbenches
+- **OPS-RENEWAL-ATOMIC / OPS-RECOVERY:** Transactional, idempotent renewal journal append with conflict handling; explicitly owned platform/Auth/doc recovery and security-advisor disposition.
+- **OPS-LEASE-EXPORT / OPS-RESUMABLE-CASES:** Complete verified ten-page unsigned lease generation only after original-master, disclosure/deposit and source-version approvals; allow reviewable application/deposit/lease handoffs without treating preparation as execution.
+- **Inspection through maintenance:** Schedule the inspection on the property. Record Leslie as the performer when confirmed, attach the source and findings, and record Huzy’s separate PDF filing action. Give each repair its own next action, responsible party and confirmation of closure. Property Maintenance and the pending board show the same repair records.
+- **OPS-PIPELINES:** Define further maintenance/work-order, lead/listing/application handoffs using actual staff practice, permissions and audit contracts.
+- **OPS-ACCOUNTING:** [Issue #83](https://github.com/huzshk0707/Oaktown-ops/issues/83) remains discovery-only: Gmail invoice evidence, REI Hub import feed types, loan/card transfers and statement-grounded splits. REI Hub remains the posting source of truth; do not auto-book transactions or guess property allocation.
+
+## Future projects
+
+- **Oaktown Records:** A separate private GitHub repository. “Closing the day” in the daily ChatGPT chat creates or updates one Markdown record keyed to the shift start date and verifies the GitHub revision. Include decisions, who did what, sources and open questions. Keep sensitive originals in restricted storage.
+- **Oaktown Brain:** Curate reusable operating knowledge. From a fresh chat, verify that a question about a property finds the proper source, respects later corrections, and reports missing information accurately.
+
+## Build discipline and exact next action
+
+**No new dashboard rewrite, visual-theme expansion, second task database or unreviewed bulk task migration.** Follow [AGENTS.md](../AGENTS.md) branch/PR ownership rules. Separate production activation from Codex feature PRs. Check live refs and scope before edits; protect private sources and credentials.
+
+**Next operator action:** Begin `OPS-ACTIVATE-TASK-CONNECTION.1` with read-only verification of actual Auth/OAuth configuration, registered client and scoped session. Record missing setup. After safe consent and test-read checks, run the approved fictional write acceptance; do not act on real tasks as a smoke test.
+
+**Next Codex step:** Verify the three answers in the Morning Command Center with fictional tasks in PR #89. Follow up in Needs Planning with reviewed scheduling and next-action changes for one task at a time. See [TASKS.md](../TASKS.md) and [HANDOFF.md](../HANDOFF.md).
+
+---
+
+## Historical roadmap snapshots (superseded by the active plan above)
+
 ## November 16 lease editor update
 
 PR #85 adds reusable original-PDF profiles, independent room/column placements,
@@ -7,7 +87,7 @@ backend migration installation and comparison with the restricted originals are
 separate outstanding activation steps. See [implementation and testing](LEASE-PAGE8-EDITOR.md)
 and [deployment packet](releases/LEASE-PAGE8-2026-11-16.md). Earlier dated snapshots below are historical.
 
-# Current Oaktown Ops status and next work
+### Historical Oaktown Ops status (November 15, 2026)
 
 Updated November 15, 2026. Main includes merged PRs through #68. The current
 baseline passed CI and Pages publication. The audit follow-up brings daily actions
