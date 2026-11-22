@@ -1,6 +1,6 @@
 ## Individual task archive
 
-Owner Codex, claimed 04:21 UTC, expires 04:51 UTC on Nov 22, 2026. Base main bea1f97. NEXT STEP: trace the individual Review and Workspace entry points and implement one confirmed, version-checked archive with fictional browser tests.
+Owner Codex, PR #92, heartbeat 04:26 UTC, expires 04:56 UTC on Nov 22, 2026. Base main bea1f97. Individual archive and readback are implemented in the reviewed editor. Initial 8 fictional browser cases and 239 Node checks passed. NEXT STEP: verify the full Today browser suite, sign-out in flight, theme and restore readback coverage, and the disposable database CI job.
 
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 

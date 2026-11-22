@@ -3,7 +3,7 @@ const {chooseTheme,navigate,openAdvanced,openTasks,openTaskSettings}=require('./
 const {test,expect}=require('@playwright/test');
 const M=require('../today-model.js');
 test.use({browserName:'chromium'});
-const ORIGIN='http://127.0.0.1:8765',HOST='wjdzaexhhjsjtdgxivyw.supabase.co';
+const ORIGIN='http://127.0.0.1:'+(process.env.OAKTOWN_TEST_PORT||8765),HOST='wjdzaexhhjsjtdgxivyw.supabase.co';
 const USER='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const pad=n=>String(n).padStart(2,'0');
 function offset(date,days){const d=new Date(date+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+days);return [d.getUTCFullYear(),pad(d.getUTCMonth()+1),pad(d.getUTCDate())].join('-')}
@@ -60,12 +60,14 @@ async function setup(page){
   if(p==='/rest/v1/rpc/ops_task_set_archived'){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);s.archives.push(b);
     if(s.archives.length===s.failArchiveAt)return reply({message:'Task changed; refresh.'},409);
-    if(s.viewer||!task||task.updated_at!==b.p_expected_updated_at)return reply({message:'Denied or stale task'},403);
+    if(s.viewer||s.denyArchive)return reply({message:'Editor required'},403);
+    if(!task||task.updated_at!==b.p_expected_updated_at)return reply({message:'Stale task',code:'40001'},409);
     task.archived_at=b.p_archived?new Date().toISOString():null;task.updated_at=new Date().toISOString();
+    if(s.audit)s.audit.push({entity_id:task.id,event_type:b.p_archived?'task_archived':'task_restored'});
     if(s.holdArchive)await s.holdArchive;
     if(s.failReadsAfterArchive)s.fail=true;
     if(s.loseArchiveReply)return route.abort('connectionreset');
-    return reply({task_id:task.id,archived_at:task.archived_at,updated_at:task.updated_at});
+    return reply({task_id:s.wrongArchiveReceipt?'wrong-task':task.id,archived_at:task.archived_at,updated_at:task.updated_at});
   }
   if(p==='/rest/v1/rpc/ops_task_update_v1'){
     const b=req.postDataJSON(),task=s.tasks.find(t=>t.id===b.p_task);
@@ -740,3 +742,76 @@ test('edited morning plan warns before reload and clears that guard on sign-out'
  await expect(page.locator('#sod-extras')).toHaveValue('Fictional morning priority');
  await page.evaluate(()=>window.OpsCloud.signOut());let prompted=false;page.once('dialog',async d=>{prompted=true;await d.accept()});await page.reload();expect(prompted).toBe(false);
 });
+
+const archiveId='260ec5b1-3fd1-4b6c-aced-514f1dce36b4';
+const archiveTitle='FICTIONAL — ChatGPT MCP integration acceptance test';
+async function reviewIndividualArchive(page){
+ const state=await setup(page);
+ Object.assign(state.tasks[0],{id:archiveId,task_title:archiveTitle,status:'in_progress',assigned_label:'Fictional editor',
+  property_id:'p1',unit_id:'u1',lease_id:'l1',renewal_case_id:'r1'});
+ state.tasks[0].intake_details.next_action='Check the fictional receipt';
+ state.audit=[{entity_id:archiveId,event_type:'task_work_recorded'}];
+ await signInToday(page);await openTasks(page);
+ await page.locator('#today-queue .today-task').filter({hasText:archiveTitle}).getByRole('button',{name:'Edit task'}).click();
+ await page.locator('#today-edit-more summary').click();
+ await page.locator('#today-archive-one').click();
+ await expect(page.locator('#today-archive-title')).toHaveText(archiveTitle);
+ await expect(page.locator('#today-archive-dismiss')).toBeFocused();
+ return state;
+}
+test('individual archive and reviewed restore preserve the selected In Progress task across Tasks, History and Focus',async({page})=>{
+ const state=await reviewIndividualArchive(page),before=structuredClone(state.tasks);
+ await page.locator('#today-archive-dismiss').click();
+ expect(state.archives).toHaveLength(0);
+ await expect(page.locator('#today-edit-dialog')).toBeVisible();
+ await page.locator('#today-edit-title').fill('Unsaved draft title');
+ await page.locator('#today-archive-one').click();
+ await expect(page.locator('#today-archive-title')).toHaveText(archiveTitle);
+ await page.locator('#today-archive-confirm').evaluate(button=>{button.click();button.click()});
+ await expect(page.locator('#today-archive-heading')).toHaveText('Task archived');
+ expect(state.archives).toEqual([{p_task:archiveId,p_expected_updated_at:before[0].updated_at,p_archived:true}]);
+ const archivedVersion=state.tasks[0].updated_at;
+ expect(state.tasks[0]).toEqual({...before[0],archived_at:expect.any(String),updated_at:archivedVersion});
+ expect(state.tasks.slice(1)).toEqual(before.slice(1));
+ await expect(page.locator('#today-queue')).not.toContainText(archiveTitle);
+ await page.locator('#today-archive-history').click();
+ const row=page.locator('#today-archived .today-archive-row').filter({hasText:archiveTitle});
+ await expect(row).toContainText('Archived · in_progress');
+ await page.goto(ORIGIN+'/#/focus');
+ await expect(page.locator('#focus-count')).toHaveText('2 active tasks');
+ await expect(page.locator('.focus-card[data-task-id="'+archiveId+'"]')).toHaveCount(0);
+ await openTasks(page,'history');
+ if(!await row.isVisible())await page.locator('#today-history>summary').click();
+ page.once('dialog',async confirmation=>{expect(confirmation.message()).toContain(archiveTitle);await confirmation.accept()});
+ await row.getByRole('button',{name:'Restore'}).click();
+ await expect(page.locator('#today-history-status')).toContainText('Restored from archive and verified');
+ await expect(row).toHaveCount(0);
+ expect(state.archives[1]).toEqual({p_task:archiveId,p_expected_updated_at:archivedVersion,p_archived:false});
+ expect(state.archives).toHaveLength(2);
+ expect(state.tasks).toEqual([{...before[0],updated_at:expect.any(String)},...before.slice(1)]);
+ expect(state.audit.map(event=>[event.entity_id,event.event_type])).toEqual(['task_work_recorded','task_archived','task_restored'].map(type=>[archiveId,type]));
+ await openTasks(page);await page.locator('#today-queue .today-task').filter({hasText:archiveTitle}).getByRole('button',{name:'Edit task'}).click();
+ await expect(page.locator('#today-edit-status')).toHaveValue('in_progress');
+});
+for(const [scenario,expectedWrites] of [['changed before confirmation',0],['revoked editor',0],['RPC permission denial',1],['concurrent update',1],['lost reply',1],['wrong receipt',1],['unavailable readback',1]]){
+ test('individual archive handles '+scenario+' without a blind retry',async({page})=>{
+  const state=await reviewIndividualArchive(page);
+  if(scenario==='changed before confirmation')state.tasks[0].updated_at='2026-11-21T11:00:00.000001Z';
+  if(scenario==='revoked editor')state.viewer=true;
+  if(scenario==='RPC permission denial')state.denyArchive=true;
+  if(scenario==='concurrent update')state.failArchiveAt=1;
+  if(scenario==='lost reply')state.loseArchiveReply=true;
+  if(scenario==='wrong receipt')state.wrongArchiveReceipt=true;
+  if(scenario==='unavailable readback')state.failReadsAfterArchive=true;
+  await page.locator('#today-archive-confirm').click();
+  await expect(page.locator('#today-archive-heading')).toHaveText('Archive unverified');
+  await expect(page.locator('#today-archive-confirm')).toBeHidden();
+  await page.locator('#today-archive-confirm').evaluate(button=>button.click());
+  expect(state.archives).toHaveLength(expectedWrites);
+  if(scenario==='revoked editor'){
+   await expect(page.locator('#today-archive-title')).toBeEmpty();await page.locator('#today-archive-dismiss').click();
+   await expect(page.locator('#today-queue .today-edit-trigger')).toHaveCount(0);
+   await expect(page.locator('#today-edit-more')).toBeHidden();
+  }
+ });
+}
