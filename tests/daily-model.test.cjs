@@ -42,7 +42,7 @@ test('high-priority actionable undated work is attention, not an external depend
  const completed={id:id(15),task_title:'Completed high-priority work',status:'completed',priority:'high',intake_details:{next_action:'Already done.'}};
  const tasks=[a06,contact,blocked,external,noAction,completed],before=JSON.stringify(tasks),p=D.project(tasks,day);
  assert.deepEqual(p.attention.map(t=>t.id),[a06.id,contact.id]);
- assert.deepEqual(p.waiting.map(t=>t.id),[blocked.id,external.id]);
+ assert.deepEqual(p.waiting.map(t=>t.id),[external.id,blocked.id]);
  assert.equal(p.active.some(t=>t.id===completed.id),false);
  assert.equal(p.active.some(t=>t.id===noAction.id),true);
  assert.equal(p.focus.task.id,a06.id);
