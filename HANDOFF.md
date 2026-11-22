@@ -1,3 +1,10 @@
+## ChatGPT Morning Plan integration
+
+- Owner felix. Claim released 2026-11-22 07:12 UTC after implementation and local verification. [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) targets `main` from `felix/morning-plan-consent`. The verified personal-consent migration from `93001e3` is preserved.
+- `read_morning_priority_snapshot` reads the complete active priority pool through the scoped task RPC. Its 25-row pages carry a total and cursor. A change in the pool invalidates the cursor. The three plan tools keep exact proposal submission, native staff review and independent approval readback.
+- Verified with 240 Node tests, workflow inventory, Deno type check, the disposable PostgreSQL 16 workflow, and 61 targeted Chromium cases. The database test compares snapshot ordering to the browser model and checks stale versions, duplicate intent, authorization denial and existing scoped task create and update.
+- **NEXT STEP:** Review PR #93 and its final GitHub Actions run, then use [the manual rollout steps](docs/CHATGPT-TASK-CONNECTION.md#manual-rollout-after-pr-review) after separate authorization.
+
 ## Individual task archive
 
 [PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) targets main from `codex/single-task-archive`. Owner Codex, claim released after local verification. The task editor shared by Tasks and Focus offers More actions → Archive task. Its confirmation uses the saved title, checks editor access and the reviewed version, and verifies the one-task receipt against refreshed data. Existing History Restore verifies identity, version and saved status. Bulk settings and connector permissions are outside this change.

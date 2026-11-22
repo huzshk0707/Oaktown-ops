@@ -13,6 +13,10 @@
 
 ## P0 — operational activation and acceptance
 
+- **ChatGPT Morning Plan integration** in [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93).
+  1. [x] Preserve the personal-consent alias repair and add the scoped, complete Morning Priority Snapshot.
+  2. [x] Verify the snapshot-to-proposal flow, native approval, independent readback and task API regressions with fictional data.
+  3. [ ] Review the final PR and run the separate operator rollout in the documented order.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.1 — inspect live OAuth setup:** Confirm OAuth server, existing access-token-hook composition, approved registered client/redirect, signing algorithm, enabled admin client and least-privilege grants. Edge Function v3 is ACTIVE but the inspected scoped-client and consent counts are zero. Do not create secrets in Git/chat. **Exit:** written evidence of which parts are actually activated.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.2 — read-only acceptance:** With authorized staff login/consent, search/read a known fictional task via the scoped ChatGPT connector. Verify exact identity/history and deny privileged/direct access. **Exit:** readback, no operational changes.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.3 — approved fictional write acceptance:** Only after the read-only check, preview, explicitly approve, write, audit/readback and replay-test one disposable General Operations task. Test stale version, revoked grant and read-only denial. Confirm exact Ops refresh. **Exit:** verified receipt and audit evidence, no real tenant task touched.
