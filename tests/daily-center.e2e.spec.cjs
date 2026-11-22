@@ -21,15 +21,39 @@ test('date selection rejects late old-date results and sign-out rejects private 
 test('unapproved staff role cannot sign in or see private dashboard records',async({page})=>{
  const s=await morningMock(page);s.role='viewer';s.readRole='viewer';s.events=[saved(s)];await page.goto(ORIGIN+'/#/morning');await signIn(page);await expect(page.locator('#pilot-auth-status')).toContainText('access not approved');await expect(page.locator('#daily-dashboard')).not.toBeVisible();await expect(page.locator('#daily-plan')).not.toContainText('Fictional');expect(s.writes).toEqual([]);
 });
-test('desktop dashboard fits required widths and keeps shared snapshot order',async({page})=>{
- const s=await open(page);for(const width of [1280,1440,1920]){await page.setViewportSize({width,height:1080});expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await expect(page.locator('#daily-start')).toBeVisible()}
- const expected=require('../focus-board-model.js').order(s.tasks,T.today()).slice(0,6).map(t=>t.task_code+' · '+t.task_title);expect(await page.locator('#daily-priorities .daily-task-title').allTextContents()).toEqual(expected);expect(s.writes).toEqual([]);
+test('desktop first view answers the three questions and enters the displayed task in Focus',async({page})=>{
+ const s=await open(page);
+ const focus=s.tasks.find(task=>task.status==='in_progress');
+ for(const width of [1280,1440,1920]){
+  await page.setViewportSize({width,height:640});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  for(const id of ['daily-priorities','daily-followups','daily-pickup','daily-start']){
+   await expect(page.locator('#'+id)).toBeInViewport({ratio:1});
+  }
+ }
+ await expect(page.locator('#daily-priorities')).toContainText('Overdue');
+ await expect(page.locator('#daily-followups')).toContainText('Example Reviewer');
+ const F=require('../focus-board-model.js');
+ const expected=F.order(s.tasks,T.today()).filter(task=>F.lane(task,T.today())!=='remaining').map(task=>task.task_code+' · '+task.task_title);
+ await expect(page.locator('#daily-priorities .daily-task-title')).toHaveText(expected.slice(0,3));
+ await page.locator('#daily-priorities .daily-show-all').click();
+ await expect(page.locator('#daily-priorities .daily-task-title')).toHaveText(expected);
+ await expect(page.locator('#daily-pickup')).toContainText(focus.task_title);
+ await expect(page.locator('#daily-pickup')).toContainText(focus.intake_details.next_action);
+ await page.locator('#daily-start').click();
+ await expect(page.locator('.focus-card[data-offset="0"]')).toHaveAttribute('data-task-id',focus.id);
+ await page.locator('#focus-next').click();
+ const selected=await page.locator('.focus-card[data-offset="0"]').getAttribute('data-task-id');
+ await page.locator('#focus-return-morning').click();
+ await expect(page.locator('#daily-pickup')).toContainText('Last shown in Focus');
+ await expect(page.locator('#daily-pickup')).toContainText(s.tasks.find(task=>task.id===selected).task_title);
+ expect(s.writes).toEqual([]);
 });
 module.exports={saved};
 
 test('approval pagination finds a valid plan beyond invalid rows and keeps the selected Eastern date',async({page})=>{
  const s=await morningMock(page);s.events=Array.from({length:101},(_,i)=>{const r=saved(s,i+10);r.occurred_at='2026-11-16T23:00:00Z';r.event_metadata.plan.stale=['unresolved'];return r});s.events.push(saved(s));await page.goto(ORIGIN+'/#/morning');await signIn(page);await expect(page.locator('#daily-plan')).toContainText('Fictional approved SOD 1');await expect(page.locator('#daily-date')).toHaveValue(T.today());expect(s.writes).toEqual([]);
 });
-test('session expiration clears dashboard tasks and approved source text',async({page})=>{
- const s=await open(page);s.fail=true;s.failStatus=401;s.expireSession=true;await page.locator('#morning-command-refresh').click();await expect(page.locator('#daily-dashboard')).not.toBeVisible();await expect(page.locator('#daily-priorities')).toBeEmpty();await expect(page.locator('#daily-plan')).not.toContainText('Fictional');expect(s.writes).toEqual([]);
+test('session expiration clears dashboard tasks, the pickup step and approved source text',async({page})=>{
+ const s=await open(page);s.fail=true;s.failStatus=401;s.expireSession=true;await page.locator('#morning-command-refresh').click();await expect(page.locator('#daily-dashboard')).not.toBeVisible();await expect(page.locator('#daily-priorities')).toBeEmpty();await expect(page.locator('#daily-pickup')).toBeEmpty();await expect(page.locator('#daily-plan')).not.toContainText('Fictional');expect(s.writes).toEqual([]);
 });

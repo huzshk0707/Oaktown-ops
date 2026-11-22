@@ -14,7 +14,21 @@ test('latest valid staff approval uses approval time across plan IDs and preserv
 });
 test('task counts, owner identities and follow-ups reuse Focus order without mutations',()=>{
  const tasks=[{id:id(1),task_title:'Blocked',status:'blocked',assigned_label:'Example',assigned_user_id:id(50),intake_details:{blocked_reason:'Approval required'}},{id:id(2),task_title:'Overdue',status:'pending',priority:'low',assigned_label:'Example',assigned_user_id:id(51),intake_details:{due:{date:'2026-11-15'}}},{id:id(3),task_title:'Closed',status:'completed'},{id:id(4),task_title:'Archived',status:'pending',archived_at:'2026-11-16'}];
- const before=JSON.stringify(tasks),p=D.project(tasks,day);assert.deepEqual(p.active,F.order(tasks,day));assert.equal(p.active.length,2);assert.equal(p.attention,1);assert.equal(p.owners.length,2);assert.equal(p.followups.length,1);assert.equal(JSON.stringify(tasks),before);
+ const before=JSON.stringify(tasks),p=D.project(tasks,day);assert.deepEqual(p.active,F.order(tasks,day));assert.equal(p.active.length,2);assert.equal(p.attention.length,1);assert.equal(p.owners.length,2);assert.equal(p.waiting.length,1);assert.equal(JSON.stringify(tasks),before);
+});
+test('a dated callback needs attention while only a recorded dependency is waiting',()=>{
+ const callback={id:id(1),task_title:'Call the vendor',status:'pending',intake_details:{follow_up:{date:day}}};
+ const waiting={id:id(2),task_title:'Tenant access',status:'waiting',intake_details:{waiting_on:'Example tenant',follow_up:{date:'2026-11-17'}}};
+ const started={id:id(3),task_title:'Friday hours',status:'in_progress',intake_details:{next_action:'Start at Thursday'}};
+ const tasks=[callback,waiting,started];
+ const brief=D.project(tasks,day,waiting.id);
+ assert.deepEqual(brief.attention.map(t=>t.id),[callback.id]);
+ assert.deepEqual(brief.waiting.map(t=>t.id),[waiting.id]);
+ assert.equal(brief.focus.task.id,started.id);
+ assert.equal(brief.focus.label,'In progress');
+ assert.equal(D.project(tasks,day,callback.id).focus.task.id,callback.id);
+ assert.equal(D.project([waiting],day).focus,null);
+ assert.equal(D.project([callback],day).focus.label,'Suggested focus');
 });
 test('Eastern date stays on prior business day while India and UTC advance',()=>{assert.equal(T.today(new Date('2026-11-17T02:30:00Z')),day)});
 module.exports={approval,day};

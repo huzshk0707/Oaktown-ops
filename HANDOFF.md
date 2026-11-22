@@ -1,9 +1,11 @@
 # Morning Command Center shift brief
 
-- Owner codex, heartbeat 2026-11-22 00:24 UTC, claim valid through 00:54 UTC.
-- Branch `codex/morning-shift-brief` from main `b91b4c7`. PR #88 is a separate docs-only change.
-- Scope: move attention items, follow-ups and the Focus Board entry task into the first desktop view. Use the existing shared task snapshot and planner. Run checks with fictional records.
-- NEXT STEP: update `daily-model.js`, `daily-center.js`, `daily-center.css` and the Morning markup in `index.html`. Verify the task displayed in the brief opens in Focus.
+- Owner codex, heartbeat 2026-11-22 00:37 UTC, claim valid through 01:07 UTC.
+- Task OPS-SHIFT-BRIEF.1, branch `codex/morning-shift-brief`, [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89), from main `b91b4c7`.
+- Implemented the three primary questions in the first desktop view, using the existing shared staff snapshot. Due and urgent work, recorded dependencies and the selected or suggested action link to existing task and Focus routes. SOD, review requests, assignments and deposit context remain available.
+- Last shown Focus selection is available in the current workspace session. Persistent per-user selection and quick capture are tracked separately. The screen changes do not alter task records.
+- Local checks passed: `node --test tests/*.test.cjs` (240), `node scripts/workflow-states.cjs --check` (30 families, 69 scripts), and 44 Chromium cases for Daily, Morning, plan review, motion and Focus with fictional fixtures. The updated sign-out and first-view checks passed again. See [desktop preview](docs/ui-review/morning-motion/shift-brief-desktop.png).
+- NEXT STEP: after #88’s roadmap merge, reconcile this handoff with current main, run the reviewed branch checks and record its review status in PR #89.
 
 # Morning integration reviewed — hosted gate pending
 
