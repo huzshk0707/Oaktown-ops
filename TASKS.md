@@ -42,6 +42,8 @@
 
 ## P3 — larger workbenches, discovery first
 
+- [ ] **OPS-LEASE-REHEARSAL-UX:** [Draft PR #94](https://github.com/huzshk0707/Oaktown-ops/pull/94) adds fictional one-bedroom rehearsal, clearer deposits, advanced-layout disclosure, progress and issue-to-edit navigation. Verify CI + desktop staff rehearsal before merge; real lease export still awaits clean master and backend acceptance.
+
 - [ ] **OPS-LEASE-EXPORT / OPS-RESUMABLE-CASES:** Finish verified clean-master ten-page export and saved application/deposit/lease lifecycle after source and policy acceptance.
 - [ ] **OPS-PIPELINES:** Ground maintenance, leads/listings and application handoffs in actual staff workflow; assess APIs, permissions and work-order data before building.
 - [ ] **OPS-ACCOUNTING:** Progress [issue #83](https://github.com/huzshk0707/Oaktown-ops/issues/83) from discovery only after REI Hub evidence/loan-split workflow confirmation; never invent chart-of-accounts categories or claim Ops performed financial postings.
