@@ -9,7 +9,7 @@
 
 ## P0 — operational activation and acceptance
 
-- [ ] **OPS-ACTIVATE-TASK-CONNECTION.1 — inspect live OAuth setup:** Confirm OAuth server, existing access-token-hook composition, approved registered client/redirect, signing algorithm, enabled admin client and least-privilege grants. Edge Function v3 is ACTIVE but the inspected scoped-client and consent counts are zero. Do not create secrets in Git/chat. **Exit:** written evidence of which parts are actually activated.
+- [ ] **OPS-ACTIVATE-TASK-CONNECTION.1 — inspect live OAuth setup:** ChatGPT Go is not eligible for the write-capable custom MCP flow under current OpenAI availability; Pro is read/fetch-only. Supabase has one manually registered confidential OAuth client (`Oaktown ChatGPT Tasks`) and its redirect URI is recorded in the connection guide, but the Oaktown client allowlist is empty and OAuth consent count is zero. The token-hook SQL function exists; Auth hook activation/signing algorithm still require owner-dashboard verification. Edge Function v3 is ACTIVE. **Exit:** owner selects an eligible ChatGPT workspace or Go fallback and verifies Auth settings.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.2 — read-only acceptance:** With authorized staff login/consent, search/read a known fictional task via the scoped ChatGPT connector. Verify exact identity/history and deny privileged/direct access. **Exit:** readback, no operational changes.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.3 — approved fictional write acceptance:** Only after the read-only check, preview, explicitly approve, write, audit/readback and replay-test one disposable General Operations task. Test stale version, revoked grant and read-only denial. Confirm exact Ops refresh. **Exit:** verified receipt and audit evidence, no real tenant task touched.
 - [ ] **OPS-LEASE-PAGE8.ACTIVATE.1 — backend:** Compare exact staged migration `20261116060547` with live history; seek separate operator authorization and safely apply only after preflight. Confirm RLS, grants, schema/RPC and unchanged existing records. **Not yet live at latest check.**
@@ -58,7 +58,7 @@
 
 ## Dated live readiness snapshot (read only)
 
-As inspected 2026-11-22: 46 tasks total, 36 active (4 waiting), 34 active without `due_at` and `intake_details.follow_up`; zero registered scoped task clients; no recorded `morning_plan_approved_v1` events. Counts can change. Do not derive deadlines or completion from these aggregates.
+As inspected 2026-11-22: 46 tasks total, 36 active (4 waiting), 34 active without `due_at` and `intake_details.follow_up`; one Supabase Auth OAuth client is registered, but zero Oaktown scoped-client allowlist rows and zero OAuth consent rows exist; no recorded `morning_plan_approved_v1` events. The current ChatGPT Go account cannot connect this write-capable custom MCP. Counts can change. Do not derive deadlines or completion from these aggregates.
 
 **NEXT STEP:** Verify `OPS-SHIFT-BRIEF.1` in PR #89. The operator’s read-only OAuth assessment and lease activation are tracked separately above.
 
