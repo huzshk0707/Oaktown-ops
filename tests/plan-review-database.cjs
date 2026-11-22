@@ -4,6 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 if(process.env.PGDATABASE!=='oaktown_portfolio_ci')throw Error('Disposable oaktown_portfolio_ci required');
 const bin=process.env.OAKTOWN_PSQL_BIN||'psql',db='oaktown_sod_authorization_ci',empty='oaktown_sod_empty_ci';
 const root=path.resolve(__dirname,'..'),migration=fs.readFileSync(path.join(root,'supabase/migrations/20261116012926_morning_plan_review_authorization.sql'),'utf8'),rollback=fs.readFileSync(path.join(root,'supabase/rollback/20261116012926_morning_plan_review_authorization.sql'),'utf8');
+const aliasFix=fs.readFileSync(path.join(root,'supabase/migrations/20261122064143_morning_plan_personal_consent_alias.sql'),'utf8');
 const quote=s=>"'"+String(s).replace(/'/g,"''")+"'",actor=n=>'00000000-0000-4000-8000-'+String(n).padStart(12,'0'),nativeSid=n=>'dddddddd-dddd-4ddd-8ddd-'+String(n).padStart(12,'0'),oauthSid='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1';
 const sessions=[];
 function sql(database,input,allowed=false){const r=spawnSync(bin,['-X','-qAt','-v','ON_ERROR_STOP=1','-d',database],{input,encoding:'utf8',timeout:20000,maxBuffer:3e6});if(r.error)throw r.error;if(r.status&&!allowed)throw Error((r.stderr||r.stdout).slice(-3000));return r}
@@ -33,18 +34,57 @@ async function mcpRoundTrip(input){
 async function main(){const created=[];try{
  assert.equal(sql('oaktown_portfolio_ci',"select current_database()='oaktown_portfolio_ci' and to_regclass('ops_agent_private.clients') is not null and to_regprocedure('public.ops_morning_plan(text,jsonb)') is null;").stdout.trim(),'t','Pre-Phase6 fictional baseline required');
  for(const name of [db,empty]){sql('postgres',`create database ${name} template oaktown_portfolio_ci;`);created.push(name)}
- sql(empty,migration);sql(empty,rollback);assert.equal(sql(empty,"select to_regprocedure('public.ops_morning_plan(text,jsonb)') is null and to_regprocedure('public.ops_task_agent(text,jsonb)') is not null;").stdout.trim(),'t');
+ sql(empty,migration);sql(empty,aliasFix);sql(empty,rollback);assert.equal(sql(empty,"select to_regprocedure('public.ops_morning_plan(text,jsonb)') is null and to_regprocedure('public.ops_task_agent(text,jsonb)') is not null;").stdout.trim(),'t');
  sql(db,migration);
  sql(db,`alter table auth.sessions add column oauth_client_id uuid;insert into auth.sessions(id,user_id) select ('dddddddd-dddd-4ddd-8ddd-'||lpad(n::text,12,'0'))::uuid,('00000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid from generate_series(1,5)n;create table ci.plan_task_writes(actor text);create function ci.guard_plan_task_writes() returns trigger language plpgsql security definer set search_path='' as $$begin if current_setting('role',true) in ('authenticated','oaktown_task_agent') then insert into ci.plan_task_writes values(current_setting('role',true));end if;return new;end$$;create trigger ci_plan_writes after insert or update or delete on public.ops_tasks for each row execute function ci.guard_plan_task_writes();`);
+
+ const lookup=identity()+statement('my_connections',{});
+ const ambiguous=sql(db,lookup,true);
+ assert.notEqual(ambiguous.status,0);
+ assert.match(ambiguous.stderr,/column reference "c\.client_id" is ambiguous/);
+
+ const proc="'ops_agent_private.morning_plan(text,jsonb)'::regprocedure";
+ const functionMetadata=`select oid, proowner, proacl, prosecdef, proconfig from pg_proc where oid=${proc};`;
+ const originalMetadata=sql(db,functionMetadata).stdout;
+ sql(db,'begin;\n'+aliasFix+'\nrollback;');
+ assert.match(sql(db,lookup,true).stderr,/column reference "c\.client_id" is ambiguous/);
+ sql(db,aliasFix);
+ assert.equal(sql(db,functionMetadata).stdout,originalMetadata,'Function identity, owner, grants and security settings must survive replacement');
+ const drift=sql(db,aliasFix,true);
+ assert.notEqual(drift.status,0);
+ assert.match(drift.stderr,/Expected one Morning Plan my_connections query/);
+
+ const client={client_id:'fictional-chatgpt',label:'Fictional ChatGPT',enabled:true,can_read_plans:false,can_submit_plans:false,my_can_read_plans:false,my_can_submit_plans:false};
+ const reader={...client,client_id:'fictional-readonly',label:'Fictional reader'};
+ assert.deepEqual(call('my_connections'),[client,reader]);
+ sql(db,`delete from auth.oauth_consents where user_id=${quote(actor(2))};`);
+ assert.deepEqual(call('my_connections',{},'native',2),[]);
+ denied('my_connections',{},/cannot review or approve/,'agent');
+
  const task=JSON.parse(sql(db,"select to_jsonb(t) from public.ops_tasks t where task_title='Fictional integration task';").stdout.trim());
  const intent=(ref,day='2026-11-16',expected=null)=>({request_ref:ref,expected_approval_id:expected,work_date:day,text:'Fictional SOD: review original evidence. Submitted funds are not verified money.',tasks:[{task_id:task.id,expected_updated_at:task.updated_at,action:'Review the fictional source.',section:'Immediate priorities'}],planning_items:[{title:'Verify fictional report',action:'Check an approved source.',section:'Deposits and payments',source_ref:'fictional-email-001',source_note:'Deposit reported submitted. Not proof of receipt or clearance.'}]});
+ const input=intent('plan-example');
+ const planConsent={client_id:client.client_id,can_read_plans:true,can_submit_plans:true,confirmed:true};
  denied('list',{work_date:'2026-11-16'},/no approved plan capability/,'agent');
+ denied('submit',input,/no approved plan capability/,'agent');
  denied('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true},/administrator/,'native',1);
+ denied('configure',{client_id:client.client_id,can_read_plans:false,can_submit_plans:true},/requires explicit plan read permission/,'native',2);
  call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true},'native',2);
+ const configured={...client,can_read_plans:true,can_submit_plans:true};
+ assert.deepEqual(call('my_connections'),[configured,reader]);
+ denied('consent',planConsent,/Complete the OAuth connection first/,'native',2);
  denied('list',{work_date:'2026-11-16'},/no approved plan capability/,'agent');
- call('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true});
+ denied('submit',input,/no approved plan capability/,'agent');
+ denied('consent',{...planConsent,can_read_plans:false},/Explicit native plan consent required/);
+ call('consent',{...planConsent,can_submit_plans:false});
+ assert.deepEqual(call('my_connections'),[{...configured,my_can_read_plans:true},reader]);
+ assert.deepEqual(call('list',{work_date:input.work_date},'agent'),[]);
+ denied('submit',input,/no approved plan capability/,'agent');
+ call('consent',planConsent);
+ assert.deepEqual(call('my_connections'),[{...configured,my_can_read_plans:true,my_can_submit_plans:true},reader]);
+ assert.deepEqual(call('my_connections',{},'native',2),[]);
  assert.deepEqual(call('list',{work_date:'2026-11-16'},'agent'),[]);
- const input=intent('plan-example'),submitted=call('submit',input,'agent');assert.equal(submitted.state,'pending_staff_review');assert.equal(submitted.approval_required,true);assert.equal(submitted.review_token,undefined);assert.equal(submitted.receipt,null);
+ const submitted=call('submit',input,'agent');assert.equal(submitted.state,'pending_staff_review');assert.equal(submitted.approval_required,true);assert.equal(submitted.review_token,undefined);assert.equal(submitted.receipt,null);
  assert.equal(call('submit',input,'agent').proposal_id,submitted.proposal_id);denied('submit',{...input,text:'Different intent'},/reused with different content/,'agent');
  denied('prepare',{request_ref:'agent-native',expected_approval_id:null,plan:{}},/cannot review or approve/,'agent');
  denied('review',{proposal_id:submitted.proposal_id},/cannot review or approve/,'agent');
@@ -55,15 +95,44 @@ async function main(){const created=[];try{
  const raw=reviewed.event;const forgery=sql(db,identity()+`insert into public.ops_events(id,entity_type,entity_id,event_type,actor_id,summary,event_metadata) values(${quote(raw.id)},'morning_plan',${quote(raw.entity_id)},'morning_plan_approved_v1',${quote(actor(1))},${quote(raw.summary)},${quote(JSON.stringify(raw.event_metadata))}::jsonb);`,true);assert.notEqual(forgery.status,0);assert.match(forgery.stderr,/native staff review operation/);
  denied('approve',{...approve(reviewed),review_token:'ffffffff-ffff-4fff-8fff-ffffffffffff'},/Exact native staff/);
  denied('approve',approve(reviewed),/cannot review or approve/,'agent');
+ denied('approve',approve(reviewed),/Native staff editor review required/,'native',3);
  const receipt=call('approve',approve(reviewed));assert.equal(receipt.replayed,false);assert.equal(receipt.event.actor_id,actor(1));assert.equal(receipt.event.review_proof.event_id,raw.id);assert.equal(receipt.event.review_proof.channel,'native_staff_review');assert.equal(receipt.event.review_proof.content_hash,receipt.receipt.content_hash);
  assert.equal(call('approve',approve(reviewed)).replayed,true);assert.equal(call('get',{event_id:raw.id},'agent').id,raw.id);assert.equal(call('status',{proposal_id:submitted.proposal_id},'agent').state,'approved');assert.equal(call('list',{work_date:input.work_date},'agent').length,1);assert.equal(call('head',{work_date:input.work_date},'agent').approval_id,raw.id);
  const agentRead=call('get',{event_id:raw.id},'agent');assert.equal(agentRead.source_projection,'references_only');assert.ok(!JSON.stringify(agentRead).includes(input.planning_items[0].source_note),'Direct scoped RPC leaked original source note');assert.ok(JSON.stringify(call('get',{event_id:raw.id})).includes(input.planning_items[0].source_note),'Native review lost source evidence');
  const current=raw.id;denied('submit',intent('stale-daily',input.work_date),/Daily approval changed/,'agent');
  const unapproved=call('submit',intent('revoked-plan',input.work_date,current),'agent'),rv=call('review',{proposal_id:unapproved.proposal_id});
  call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:false},'native',2);denied('approve',approve(rv),/capability revoked/);denied('status',{proposal_id:submitted.proposal_id},/no approved plan capability/,'agent');call('configure',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true},'native',2);denied('list',{work_date:input.work_date},/no approved plan capability/,'agent');assert.equal(JSON.parse(sql(db,identity('agent')+`select public.ops_task_agent('get',${quote(JSON.stringify({task_id:task.id}))}::jsonb);`).stdout.trim().split('\n').at(-1)).id,task.id,'Revoking plan consent altered existing task read permission');call('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true});
- sql(db,"update auth.oauth_consents set revoked_at=clock_timestamp() where client_id='fictional-chatgpt';");denied('approve',approve(rv),/consent revoked/);denied('list',{work_date:input.work_date},/OAuth consent/,'agent');sql(db,"update auth.oauth_consents set revoked_at=null where client_id='fictional-chatgpt';");
+ sql(db,"update auth.oauth_consents set revoked_at=clock_timestamp() where client_id='fictional-chatgpt';");
+ assert.deepEqual(call('my_connections'),[reader]);
+ denied('approve',approve(rv),/consent revoked/);denied('list',{work_date:input.work_date},/OAuth consent/,'agent');sql(db,"update auth.oauth_consents set revoked_at=null where client_id='fictional-chatgpt';");
  denied('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true},/cannot review or approve/,'agent');
- call('consent',{client_id:'fictional-chatgpt',can_read_plans:false,can_submit_plans:false,confirmed:true});denied('approve',approve(rv),/native plan consent revoked/);denied('list',{work_date:input.work_date},/no approved plan capability/,'agent');assert.equal(JSON.parse(sql(db,identity('agent')+`select public.ops_task_agent('get',${quote(JSON.stringify({task_id:task.id}))}::jsonb);`).stdout.trim().split('\n').at(-1)).id,task.id,'Revoking plan consent altered existing task read permission');call('consent',{client_id:'fictional-chatgpt',can_read_plans:true,can_submit_plans:true,confirmed:true});
+ call('consent',{...planConsent,can_read_plans:false,can_submit_plans:false});
+ assert.deepEqual(call('my_connections'),[configured,reader]);
+ denied('approve',approve(rv),/native plan consent revoked/);denied('list',{work_date:input.work_date},/no approved plan capability/,'agent');
+ denied('submit',input,/no approved plan capability/,'agent');
+
+ // A normal reviewed, scoped task update still works without personal plan consent.
+ sql(db,`begin;
+ ${identity('agent')}
+ do $task$
+ declare original jsonb; proposal jsonb; saved jsonb;
+ begin
+  original:=public.ops_task_agent('get',jsonb_build_object('task_id',${quote(task.id)}));
+  proposal:=public.ops_task_agent('preview',jsonb_build_object(
+   'operation','update','request_ref','fictional-after-plan-revoke','task_id',${quote(task.id)},
+   'expected_updated_at',original->>'updated_at','source_note','Fictional change after plan consent revocation',
+   'changes',jsonb_build_object('priority','urgent'),'clear_fields','[]'::jsonb
+  ));
+  saved:=public.ops_task_agent('apply',jsonb_build_object(
+   'proposal_id',proposal->>'proposal_id','preview_token',proposal->>'preview_token',
+   'confirmation',proposal->>'confirmation','reviewed',true
+  ));
+  if saved->'task'->>'priority' is distinct from 'urgent'
+     or public.ops_task_agent('get',jsonb_build_object('task_id',${quote(task.id)})) is distinct from saved->'task'
+  then raise exception 'Scoped task update/readback failed after plan consent revocation';end if;
+ end $task$;
+ rollback;`);
+ call('consent',planConsent);
  const src=call('submit',intent('changed-task','2026-11-17'),'agent'),sr=call('review',{proposal_id:src.proposal_id});sql(db,`update public.ops_tasks set updated_at=updated_at+interval '0.000001 seconds' where id=${quote(task.id)};`);denied('approve',approve(sr),/saved task changed/);sql(db,`update public.ops_tasks set updated_at=${quote(task.updated_at)} where id=${quote(task.id)};`);task.updated_at=sql(db,`select updated_at from public.ops_tasks where id=${quote(task.id)};`).stdout.trim();
  sql(db,`update ops_agent_private.plan_requests set expires_at=clock_timestamp()-interval '1 second' where id=${quote(src.proposal_id)};`);denied('approve',approve(sr),/expired/);
  const p1=call('submit',intent('concurrent-one','2026-11-18'),'agent'),p2=call('submit',intent('concurrent-two','2026-11-18'),'agent'),r1=call('review',{proposal_id:p1.proposal_id}),r2=call('review',{proposal_id:p2.proposal_id});await competing(approve(r1),approve(r2),false);
@@ -79,6 +148,6 @@ async function main(){const created=[];try{
  assert.equal(sql(db,'select count(*) from ci.plan_task_writes;').stdout.trim(),'0','Plan operations changed task records');
  assert.equal(sql(db,"select count(*) from public.ops_events where event_type='morning_plan_approved_v1';").stdout.trim(),'5','Approval retries duplicated journal events');
  const refused=sql(db,rollback,true);assert.notEqual(refused.status,0);assert.match(refused.stderr,/preservation\/recovery plan/);
- console.log('Plan authorization: default-off capabilities and separate per-user consent, agent/native separation, forged journal denial, exact review/receipt, replay, source conflicts, revoked grants/sessions, concurrent approvals, safe rollback and zero task writes passed.');
+ console.log('Plan authorization: OAuth connection lookup, capability and consent readback, scoped task update/readback after plan revocation, agent/native separation, forged journal denial, exact review/receipt, replay, source conflicts, revoked grants/sessions, concurrent approvals, and guarded rollback passed.');
  }finally{for(const s of sessions)if(!s.closed){s.child.stdin.end('rollback;\n');s.child.kill()}for(const name of created.reverse())sql('postgres',`drop database ${name} with (force);`)} }
 main().catch(e=>{console.error(e);process.exitCode=1});

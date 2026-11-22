@@ -1,9 +1,10 @@
 ## Morning Plan personal consent SQL repair
 
-- Owner felix. UTC heartbeat 2026-11-22 06:40; claim valid until 2026-11-22 07:10 UTC.
-- Branch `felix/morning-plan-consent` from `main` at `d4e4df5`. Ownership checkpoint.
-- Scope is the native personal-consent connection lookup and its regression tests.
-- **NEXT STEP:** Inspect `supabase/migrations/20261116012926_morning_plan_review_authorization.sql` and `tests/plan-review-database.cjs`, then add the forward migration and reproduce the original error in disposable PostgreSQL.
+- Owner felix. UTC heartbeat 2026-11-22 06:45. Claim valid until 2026-11-22 07:15 UTC.
+- [Draft PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) targets `main` at `d4e4df5`. Prior checkpoint `8dfd3e8`.
+- The forward migration uses `registered_client` in the native connection lookup. The existing PostgreSQL function, owner and grants are preserved. The migration requires a single match for the prior lookup query.
+- The disposable plan verification reproduced the original ambiguity, then passed lookup, capability, personal consent, SOD approval, scoped task write/readback and rollback checks. All 239 Node tests passed. Full SQL chain and targeted Chromium run are in progress.
+- **NEXT STEP:** Check the disposable SQL chain and the Playwright run for plan review, Morning, task connection and Focus actions. Record their exact results and send PR #93 for review.
 
 ## Individual task archive
 
