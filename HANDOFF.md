@@ -5,7 +5,7 @@
 - **Completed:** rehearsal launcher (no unit linked), print-vs-pet deposit distinction, five-step progress, advanced room placement collapsed, review issue edit links, style/version updates, fictional regression test and `docs/LEASE-REHEARSAL-UX.md`. `TASKS.md` tracks the draft PR.
 - **Static checks:** modified JS and browser test parse successfully; CSS braces balanced; changed code/docs/test free of real applicant and Cherokee identifying strings. CI `checks` and `portfolio-schema` passed at earlier implementation and current head `0e5a2098cf8a`; `browser-downloads` was running at 2026-11-22T07:16:22.837Z.
 - **Current last implementation tip:** `0e5a2098cf8a160e551d7236778a1f47bd7294de` (before this handoff-only commit).
-- **NEXT STEP:** review exact final-head GitHub Actions browser result and fictional Page 8 preview, fix any failure, then request staff UX acceptance. Keep PR draft and do not merge or deploy without separate authorization; separate clean-master and Supabase migration activation remain outstanding.
+- **Claim released at 2026-11-22T07:17:17.723Z. NEXT STEP:** review exact final-head GitHub Actions browser result and fictional Page 8 preview, fix any failure, then request staff UX acceptance. Keep PR draft and do not merge or deploy without separate authorization; separate clean-master and Supabase migration activation remain outstanding.
 
 ## Individual task archive
 
