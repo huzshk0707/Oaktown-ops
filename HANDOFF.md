@@ -1,17 +1,46 @@
-# Active handoff — 2026-11-22 roadmap synchronization (documentation-only)
+# Current handoff — 2026-11-22 Oaktown Ops delivery plan
 
-- **Owner:** ChatGPT; **branch:** `chatgpt/roadmap-2026-11-22`; **base:** `b91b4c7df2`; **claim:** 2026-11-21T23:58:55.149Z through 2026-11-22T00:28:55.149Z (UTC). No other account's branch or worktree touched.
-- **User request:** Update `docs/ROADMAP.md`, `TASKS.md`, and `HANDOFF.md` to match the current agreed release order and checked GitHub/Supabase evidence.
-- **Scope:** Documentation only. Do not modify runtime, Supabase records, migrations, Auth/OAuth settings, tenant information, or deployment. No merge approval is implied.
-- **Current checks:** Main `b91b4c7df2`; PR #86 merged; exact-main GitHub CI and Pages passed; no open PRs at starting inspection. Source release, platform activation, and real staff acceptance are separate.
-- **In progress:** Documentation branch created; staged plan reconciliation is next. Historical checkpoints below are superseded as active instructions.
-- **NEXT STEP:** Add authoritative current-status sections to `docs/ROADMAP.md` and `TASKS.md`; update this handoff with final checks; request review in the draft PR, without merging.
+**Status:** Documentation synchronization prepared in [draft PR #88](https://github.com/huzshk0707/Oaktown-ops/pull/88), branch `chatgpt/roadmap-2026-11-22`, based on main `b91b4c7df2920a03df1670d28a67ee8ae5a148a3`. **Not merged or deployed.** This section supersedes the November 17 completion/merge instructions below. Owner: ChatGPT for this docs-only PR; claim released after pushing verified docs. No active feature-owner claim or production operator assignment is implied.
+
+## What is already finished
+
+- Focus and Morning release PR #84, Morning UX PR #86, Page 8 frontend PR #85 and lease source provenance PR #87 are **merged to main**. The final main `b91b4c7` had successful [CI](https://github.com/huzshk0707/Oaktown-ops/actions/runs/44090288462) and [Pages](https://github.com/huzshk0707/Oaktown-ops/actions/runs/44090286047) runs. The old stacked PRs were closed; no open PRs existed before draft #88.
+- Current task API backend is an ACTIVE Supabase Edge Function (v3); morning-plan migration `20261116051226` is registered. Page 8 frontend publication does **not** mean its separate backend is installed.
+- This PR changes **only** `docs/ROADMAP.md`, `TASKS.md` and `HANDOFF.md` and preserves prior dated plans as history. It does not modify runtime/test code, migrations, credentials, any Supabase row, or platform authorization.
+
+## Read-only operational status checked 2026-11-22
+
+- 46 tasks total, **36 active** of which 4 are `waiting`. **34 active** lack both a due timestamp and structured follow-up field.
+- Scoped task-agent registered clients: **0**. No valid active ChatGPT task client/consent was established by this check. A deployed backend must not be described as a completed OAuth activation.
+- `morning_plan_approved_v1` event count: **0** at review; this says nothing about outgoing SOD emails sent from Gmail.
+- Page 8 migration `20261116060547_lease_preparation_page8_editor.sql` is **absent from Supabase's registered migration list**; the private preparation schema and RPC were absent on read-only inspection. Do not apply automatically or rewrite migration history.
+- Accounting issue [#83](https://github.com/huzshk0707/Oaktown-ops/issues/83) remains discovery-only.
+
+## Product intent and constraints
+
+For Huzy's **7 PM–5 AM IST** shift (Louisville working hours), start with current urgent/waiting/one focus task, work through one Focus action at a time, capture new instructions without disruption, and end with an accurately attributed EOD. ChatGPT reasons using Gmail/supplied texts, saved Supabase task/history and verified Oaktownbrain SOPs; Huzy reviews change proposals; authorized scoped actions save and independently read back; the UI displays the same saved source of truth. No parallel ledger or competing command center.
+
+## Active priority and precise handoff
+
+1. **P0: OPS-ACTIVATE-TASK-CONNECTION.1 (operator assessment, no code changes required).** Inspect actual Supabase OAuth-server status, signing/token hook and registered client/redirect. Start read-only. Record missing setup; do not use a service-role or management SQL connection for real task changes. Only after safe authorization, test fictional exact-task read, preview, Huzy approval, scoped save, audit and readback. Do not claim success before verified.
+2. **P0: OPS-LEASE-PAGE8.ACTIVATE.1 (separate operator gate).** Reconcile exact staged migration hash and live history, request authorization before applying. Confirm RLS/grants/zero unintended data writes; compare clean unsigned master and the five original examples before staff acceptance/full export.
+3. **P1: OPS-PLANNING-DATA.1 (next Codex feature after activation assessment).** On a **new independent branch/draft PR**, first inspect Needs Planning, task editor, `OpsToday`, Morning and Focus. Design the smallest review-before-save scheduling/owner/next-action flow; preserve IDs/history and data uncertainty. No live mass edits. Then implement bounded fictional tests and screenshot review in subsequent numbered subtasks.
+4. **P1/P2:** Personal EOD work attribution, then intelligent ChatGPT Gmail/text task-intake plus quick capture; keep actual sources and approvals explicit.
+5. **P2/P3:** Atomic renewal event writes/security/recovery, reviewed ten-page lease/document handoffs, maintenance/leads and [Accounting issue #83](https://github.com/huzshk0707/Oaktown-ops/issues/83) only after workflow discovery.
+
+**NEXT STEP for the reader of this handoff:** Review and merge documentation-only PR #88 if desired. Before taking on the next task, re-check current main, PRs, live Supabase status and any other owner's current branch claim. **The first operational action is OPS-ACTIVATE-TASK-CONNECTION.1; the first new Codex build is OPS-PLANNING-DATA.1.** Do not rerun the Master Backlog import or re-merge Focus/Page 8 code.
+
+## Documentation PR verification and release state
+
+- Review provenance: main `b91b4c7`, latest successful hosted CI/Pages linked above; read-only migrations, Edge Function, tasks and task-client counts cross-checked.
+- Draft PR #88 is intentionally left unmerged. Source changes are Markdown-only; no CI result is treated as a live staff acceptance or operational authorization.
+- Changes must be read back from the **PR branch** after pushing and verified against its diff before marking the draft ready.
 
 ---
 
-## Historical handoffs (preserved; not current instructions)
+## Historical handoffs — prior November 17 checkpoints (non-authoritative)
 
-# Morning integration reviewed — hosted gate pending
+### Morning integration reviewed — hosted gate pending
 
 - Owner codex, heartbeat 2026-11-17 13:03 UTC, expiry 13:33 UTC. User authorized #86/#87 merge and closure of historical PRs. Current branch ravi/morning-motion; runtime integration 659d85e.
 - #87 merged at 1d9fea2. Resolved four conflicts against current main preserving the complete lease generator, template provenance, Morning UI, both CI captures and both task histories.
@@ -19,13 +48,13 @@
 - Closed #71/#72/#73/#75/#77/#81/#82 after verifying exact current tips are ancestors of main. Closed #76/#78/#79/#80 as completed historical reports; evidence and branches retained.
 - NEXT STEP: confirm all hosted jobs on the final branch pass; mark #86 ready and merge with expected SHA, verify exact-main CI and Pages, create next unused annotated patch tag. Then update PR with publication proof and release claim. No production SQL or operational writes.
 
-# Authorized merge continuation
+### Authorized merge continuation
 
 - Owner codex; heartbeat 2026-11-17 12:57 UTC; expires 2026-11-17 13:27 UTC. Previous ravi claim expired; user requests review/merge #86 and #87 plus old-PR closure.
 - Exact #86 head 92cbfaa reviewed; all CI jobs pass. #87 reviewed and merged separately. Current #86 conflicts with newer lease work; preserve both implementations with a normal merge of current main, then rerun combined checks. No production schema changes.
 - NEXT STEP: resolve main integration, run combined UI/lease regressions and hosted CI, merge #86 only when passing. Preserve branches and retain older review evidence in closed PRs.
 
-# Handoff — Morning UX and motion
+### Handoff — Morning UX and motion
 
 - Last updated: 2026-11-17 07:53 UTC by ravi; claim expires 08:23 UTC.
 - Current task / branch / PR: OPS-MORNING-UX / `ravi/morning-motion` / PR #86; base main e96beea.
@@ -36,24 +65,24 @@
 - Tests: Node unit suite; targeted then full Playwright with fictional fixtures at desktop widths; workflow inventory; all six themes and reduced motion. Document exact results in PR.
 - Decisions: separate task branch; no overlap with lease work. User asks for Grok-inspired motion, not fake reasoning, invented progress or a blocking splash. Existing auth, writes, approvals and direct links remain intact. Earlier release authorization completed through #84; this UI iteration will be independently reviewable.
 
-## Previous main handoff (historical)
+#### Previous main handoff (historical)
 
-# Handoff — authorized Focus merge and publication
-# Source provenance follow-up complete
+### Handoff — authorized Focus merge and publication
+### Source provenance follow-up complete
 
 - Owner codex; claim released. Branch `codex/lease-source-provenance`, PR #87, base merged main bef12a8. **No merge/deploy/production writes.**
 - Recovered original Page 8 builder; exact source/font fingerprints and PyMuPDF version enforced. Rebuilt PDF hash exactly equals the merged asset. Three rendered sizes match; original-vs-repaired comparison has zero changed pixels outside documented repairs.
 - Existing source/PDF/model tests passed (17). No runtime, template binary or migration changes. Superseded local runtime changes are preserved outside Git as a recovery patch; merged #85 remains authoritative.
 - NEXT STEP: review #87's builder/provenance evidence. For operational activation, obtain/review a clean unsigned full master and separately authorize/install the staged lease migration. Existing full CI/Pages at main bef12a8 passed; do not redo #85 or infer database installation from frontend publication.
 
-# Source provenance follow-up
+### Source provenance follow-up
 
 - Owner codex, heartbeat 2026-11-17 12:24 UTC, expires 2026-11-17 12:54 UTC. Base merged main bef12a8. Separate follow-up; do not merge or deploy.
 - Checked shared completion: PR #85 merged at bef12a8; exact-main CI 44050224515 and Pages 44050221138 both passed. Preserve that implementation. Its database migration remains staged and clean-master acceptance remains outstanding.
 - Earlier local runtime edits were superseded by 2666400; saved a recovery patch outside Git without overwriting current work. A clean checkout under /tmp avoids the full /workspace filesystem.
 - NEXT STEP: recover the original blank-checklist repair builder, compare its rendering with the retained asset, document reproducible source evidence, and open a separate review PR. No app/SQL/data changes.
 
-# Current continuation — source integration complete; authorized merge pending CI
+### Current continuation — source integration complete; authorized merge pending CI
 
 - Owner **hp**, heartbeat **2026-11-17 08:43 UTC**, expires **2026-11-17 09:13 UTC**. Latest user explicitly authorizes completion and merge of PR #85; older no-merge instructions below superseded. Existing branch retained, normal pushes only.
 - Completed source-profile UI: explicit placement suggestions, original blank Page 8 preview, measured mapping on a matching clean master; no automatic full-master substitution. Fixed slash-containing condition bindings, baseline fit and moved-room labels; grouped fields validated in staged SQL. Existing engine rejects known signed/premarked full-master hashes.
@@ -61,9 +90,9 @@
 - Migration staged, NOT applied. SHA 943d7b05ede488f7ddfa884896993b9b32de1e2cc16bd62e3dd8751639e91efa; rollback unchanged. Source provenance and builder limitation in lease-assets/README.md. Full clean unsigned master still required for final operational export; no production record writes.
 - NEXT STEP: finish checks on pushed head, mark #85 ready, merge using expected SHA, verify exact-main CI/Pages and create next unused annotated tag. Then release claim and record activation blockers. Do not restart prior implementation.
 
-## Previous checkpoints (historical instructions superseded above)
+#### Previous checkpoints (historical instructions superseded above)
 
-# Current continuation — source-backed Page 8 (WIP)
+### Current continuation — source-backed Page 8 (WIP)
 
 - Owner **codex**, heartbeat **2026-11-17 07:26 UTC**, expires **2026-11-17 07:56 UTC**. PR #85 / `hp/lease-page8-editor`. **Do not merge or deploy.**
 - Five requested completed references were accessed through the authorized Drive connector. All are 12-page packets with condition sheet at actual PDF page 8; do not use signature/completion packets as blank ten-page masters.
@@ -72,7 +101,7 @@
 - Live migration list inspected read-only: lease preparation migration 20261116060547 is not applied. No production writes.
 - NEXT STEP: integrate source layout/preview controls with existing controller, validate grouped bindings in the staged SQL, then run source-render and browser/database regressions. Asset builder/evidence still to document before acceptance.
 
-# Current continuation — original lease source validation
+### Current continuation — original lease source validation
 
 - Owner **codex**, heartbeat **2026-11-17 07:11 UTC**, claim expires **2026-11-17 07:41 UTC**. Continuing existing `hp/lease-page8-editor` / PR #85 at 85c321d; previous hp claim expired. Clean working tree, current main e96beea; no competing updates found.
 - Current user instruction explicitly requires **DO NOT MERGE OR DEPLOY**. This supersedes every older merge/release instruction below. No production records or schema changes during testing.
@@ -80,9 +109,9 @@
 - NEXT STEP: inspect the original page-8 samples and current template mapping engine; add a source-backed reusable mapping workflow or identify exact clean-template blockers, then run original-render comparisons and existing regression suites.
 - This ownership-only checkpoint contains no runtime edits or private source documents.
 
-## Prior handoff (historical; merge instructions superseded)
+#### Prior handoff (historical; merge instructions superseded)
 
-# Handoff — lease generator / page 8 editor
+### Handoff — lease generator / page 8 editor
 
 - Owner **hp**, heartbeat **2026-11-16 07:42 UTC**, claim expires **2026-11-16 08:12 UTC**. Branch `hp/lease-page8-editor`, base latest main **e96beea6dbb7b3c18dd891bd5b164823b11e55cc**. New task OPS-LEASE-PAGE8; ownership-only checkpoint, [draft PR #85](https://github.com/huzshk0707/Oaktown-ops/pull/85), opened immediately after ownership push. User explicitly requests implementation **and merge**, overriding the pasted generic no-auto-merge instruction.
 - Startup read latest main AGENTS/HANDOFF/TASKS/log -15, status/worktrees/fresh refs/open PRs/remote branches; no competing lease task claim. Existing release #84 completed at v0.5.2 (task branch final 19ec364); do not redo it. New branch from clean main; no leftovers.
