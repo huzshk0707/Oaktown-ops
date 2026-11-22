@@ -30,6 +30,15 @@
   options.sort((a,b)=>a.date.localeCompare(b.date));
   return options[0]||null;
  }
+ function hasDependency(task){
+  const info=task?.intake_details||{};
+  return ['waiting','blocked'].includes(String(task?.status||'').toLowerCase())||
+   [info.waiting_on,info.blocked_reason].some(value=>typeof value==='string'&&value.trim());
+ }
+ function actionable(task){
+  const value=task?.intake_details?.next_action;
+  return typeof value==='string'&&value.trim().length>0;
+ }
  function classify(tasks,reference=today()){
   const date=validDate(reference)?reference:today();
   const result={overdue:[],today:[],upcoming:[],undated:[],waiting:[],completed:[],all:[]};
@@ -68,5 +77,5 @@
   return !!(task&&task.status==='completed'&&!task.archived_at&&validDate(date)&&e&&e.completed_by===performer&&e.work_date===date);
  }
  function needsPlanning(task){return !scheduled(task)||!String(task?.assigned_label||'').trim();}
- return Object.freeze({needsPlanning,ZONE,today,validDate,scheduled,classify,expiring,personalCompletion});
+ return Object.freeze({needsPlanning,hasDependency,actionable,ZONE,today,validDate,scheduled,classify,expiring,personalCompletion});
 });

@@ -18,11 +18,6 @@
  // Server approval time orders different plans; a draft revision is local to its plan ID.
  const fraction=value=>(value.match(/\.(\d+)/)?.[1]||'').padEnd(9,'0');
  function latest(rows,day){return rows.filter(r=>validApproval(r,day)).sort((a,b)=>Date.parse(b.occurred_at)-Date.parse(a.occurred_at)||fraction(b.occurred_at).localeCompare(fraction(a.occurred_at))||b.id.localeCompare(a.id))[0]||null}
- function hasDependency(task){
-  const info=task.intake_details||{};
-  return ['waiting','blocked'].includes(task.status)||
-   [info.waiting_on,info.blocked_reason].some(value=>typeof value==='string'&&value.trim());
- }
  function chooseFocus(tasks,selectedId){
   const selected=tasks.find(task=>task.id===selectedId);
   if(selected)return {task:selected,label:'Last shown in Focus'};
@@ -36,9 +31,9 @@
   return {
    active,
    owners:[...owners.values()],
-   waiting:active.filter(hasDependency),
-   attention:active.filter(task=>F.lane(task,day)!=='remaining'),
-   focus:chooseFocus(active.filter(task=>!hasDependency(task)),selectedId)
+   waiting:active.filter(T.hasDependency),
+   attention:active.filter(task=>F.lane(task,day)!=='remaining'||(String(task.priority||'').toLowerCase()==='high'&&T.actionable(task)&&!T.hasDependency(task))),
+   focus:chooseFocus(active.filter(task=>!T.hasDependency(task)),selectedId)
   };
  }
  return Object.freeze({validApproval,latest,project});

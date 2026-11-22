@@ -173,6 +173,8 @@ jobs:
         run: npm ci --no-fund --no-audit --prefix supabase/functions/oaktown-task-api
       - name: Install disposable database test tooling
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Verify isolated SQL write, readback and rollback smoke test
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql-write-smoke.sql
       - name: Verify historical portfolio migrations and existing workspace APIs
         shell: bash
         run: |

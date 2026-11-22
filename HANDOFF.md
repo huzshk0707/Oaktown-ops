@@ -1,3 +1,18 @@
+# PR #89 operational classification follow-up — 2026-11-22
+
+- Rehearsal finding: the shift brief's attention projection previously used only overdue, due-today and urgent Focus lanes. High-priority, actionable undated tasks such as fictional A06 were omitted.
+- Fix in review: preserve Focus Board lane/order and selection; additionally surface active high-priority tasks with a non-empty saved next_action in Morning attention, provided no recorded dependency exists. Label them **High priority · actionable**, not urgent.
+- Dependency semantics: only saved waiting/blocked status, non-empty waiting_on, or non-empty blocked_reason qualify for the waiting section. A pending task whose next action is to call/contact someone remains actionable work; the UI does not invent a waiting party, owner, due date or urgency.
+- SOD section projection follows the same rule: high-priority actionable undated tasks map to Immediate priorities unless a recorded dependency places them in Pending and blocked. Approval validation, task IDs, source versions and saved records are unchanged.
+- Regression coverage added for A06-like work, contact initiation, external dependencies, blocked tasks, high-priority tasks with no next action, and completed tasks. A browser regression checks the Morning display at 1280/1440/1920 widths and no horizontal overflow.
+- SQL smoke test added to the existing disposable GitHub Actions Postgres service. It refuses any database other than oaktown_portfolio_ci, performs the temporary-table insert/update/readback and rolls back, then asserts the temporary table is gone. It is not run against Supabase production.
+- Supabase production schema inspection: ops_tasks and ops_events have RLS enabled. Staff policies restrict task reads to active memberships and task inserts/updates to active admin/editor memberships; event reads require active membership and event inserts require active admin/editor membership. authenticated has table grants (tasks SELECT/INSERT/UPDATE; events SELECT/INSERT), while the scoped oaktown_task_agent role is not granted direct table access by the reviewed connection design.
+- Scoped ChatGPT OAuth task connection is not established: no registered active ChatGPT client/consent was verified in the existing handoff. Existing SQL/API CI tests use fictional identities and mocks; they are not a real ChatGPT OAuth integration test. Do not substitute administrative SQL for this workflow.
+- No production data, A06, migrations, production authorization, or deployed code changed. PR remains unmerged.
+- NEXT STEP: review this PR's updated hosted Node/browser/Postgres checks and screenshot artifact. Separately activate and verify the intended scoped OAuth client/consent before running a real fictional General Operations task API rehearsal; do not create a task until the connection is proven.
+
+---
+
 # Morning Command Center shift brief — review complete
 
 - Task OPS-SHIFT-BRIEF.1, branch `codex/morning-shift-brief`, [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89). Owner codex, claim released after local verification. Merged roadmap PR #88 is included through main `bea1f97`.

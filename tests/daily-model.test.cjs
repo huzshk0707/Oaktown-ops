@@ -32,3 +32,25 @@ test('a dated callback needs attention while only a recorded dependency is waiti
 });
 test('Eastern date stays on prior business day while India and UTC advance',()=>{assert.equal(T.today(new Date('2026-11-17T02:30:00Z')),day)});
 module.exports={approval,day};
+
+test('high-priority actionable undated work is attention, not an external dependency',()=>{
+ const a06={id:id(10),task_code:'A06',task_title:'Mockernut follow-up repairs',status:'pending',priority:'high',intake_details:{next_action:'Confirm repair provider and Monday access time.'}};
+ const contact={id:id(11),task_title:'Contact tenant for access',status:'pending',priority:'high',intake_details:{next_action:'Call tenant to request access.'}};
+ const blocked={id:id(12),task_title:'Await vendor confirmation',status:'blocked',priority:'high',intake_details:{next_action:'Check repair schedule.',blocked_reason:'Vendor availability not confirmed.'}};
+ const external={id:id(13),task_title:'Await tenant reply',status:'pending',priority:'high',intake_details:{next_action:'Review reply when received.',waiting_on:'Tenant'}};
+ const noAction={id:id(14),task_title:'High priority without next step',status:'pending',priority:'high',intake_details:{}};
+ const completed={id:id(15),task_title:'Completed high-priority work',status:'completed',priority:'high',intake_details:{next_action:'Already done.'}};
+ const tasks=[a06,contact,blocked,external,noAction,completed],before=JSON.stringify(tasks),p=D.project(tasks,day);
+ assert.deepEqual(p.attention.map(t=>t.id),[a06.id,contact.id]);
+ assert.deepEqual(p.waiting.map(t=>t.id),[blocked.id,external.id]);
+ assert.equal(p.active.some(t=>t.id===completed.id),false);
+ assert.equal(p.active.some(t=>t.id===noAction.id),true);
+ assert.equal(p.focus.task.id,a06.id);
+ assert.equal(JSON.stringify(tasks),before);
+});
+test('an explicit contact action is not misrepresented as waiting on the contact',()=>{
+ const task={status:'pending',priority:'high',intake_details:{next_action:'Contact the tenant to request a suitable access window.'}};
+ assert.equal(T.actionable(task),true);assert.equal(T.hasDependency(task),false);
+ const waiting={status:'waiting',intake_details:{waiting_on:'Tenant'}};
+ assert.equal(T.hasDependency(waiting),true);
+});

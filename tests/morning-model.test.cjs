@@ -47,3 +47,10 @@ test('approval uses the existing append-only journal without supplied actor or t
 test('approved source versions detect intervening microsecond changes, closures and work-date rollover',()=>{
  const task={id:'t',status:'pending',updated_at:'2026-11-16T13:00:00.123456Z'},plan={workDate:day,rows:[{id:'t',type:'task',subject:'Fictional task',updatedAt:task.updated_at}]};assert.deepEqual(M.conflicts(plan,[task],day),[]);assert.equal(M.conflicts(plan,[{...task,updated_at:'2026-11-16T13:00:00.123457Z'}],day).length,1);assert.equal(M.conflicts(plan,[{...task,status:'completed'}],day).length,1);assert.equal(M.conflicts(plan,[],'2026-11-17').length,2);
 });
+
+test('SOD sections surface high-priority actionable work without inventing a dependency',()=>{
+ const task={status:'pending',priority:'high',workflow_key:'maintenance',intake_details:{next_action:'Contact the repair provider and confirm availability.'}};
+ assert.equal(M.taskSection(task,day),'Immediate priorities');
+ assert.equal(M.taskSection({...task,intake_details:{...task.intake_details,waiting_on:'Contractor'}},day),'Pending and blocked');
+ assert.equal(M.taskSection({...task,priority:'normal'},day),'Property operations');
+});
