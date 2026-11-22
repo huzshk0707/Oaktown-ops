@@ -1,3 +1,7 @@
+## Individual task archive
+
+Owner Codex, claimed 04:21 UTC, expires 04:51 UTC on Nov 22, 2026. Base main bea1f97. NEXT STEP: trace the individual Review and Workspace entry points and implement one confirmed, version-checked archive with fictional browser tests.
+
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 
 **Status:** [PR #88](https://github.com/huzshk0707/Oaktown-ops/pull/88) reconciles the November 22 plan with Huzy’s first-screen direction. Huzy authorized merging the documentation after review. Codex reviewed the three documentation files against main `b91b4c7`, the agreed Friday workflow and the current Morning implementation. The UI work has its own handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89).
