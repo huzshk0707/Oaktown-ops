@@ -1,3 +1,9 @@
+## PR #94 browser regression fix — 2026-11-22T07:23:58.308Z
+
+- Owner: chatgpt; claim 2026-11-22T07:23:58.308Z – 2026-11-22T07:53:58.308Z. Existing PR head before claim: 915c3425e163d35ebc21492b2417847735f4dff8.
+- Verified: browser job failed 1/305 tests due to intentional advanced room-position collapse; test tried selecting hidden #newlease-roomSection in tests/lease-template.e2e.spec.cjs:20. Prior run: 304 passed.
+- NEXT STEP: Expand .lease-draft-placement in the existing browser test, rerun exact-head CI, inspect before any authorized merge. No backend/production writes.
+
 ## Active lease rehearsal UX PR #94 — 2026-11-22
 
 - **Owner:** chatgpt. **Branch:** `chatgpt/lease-rehearsal-ux`. **Base:** main d4e4df5ff8455e7cd5641e818cb98cc0e1c3d4b7. **Claim:** 2026-11-22T07:16:22.837Z to 2026-11-22T07:46:22.837Z UTC.
