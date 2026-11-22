@@ -156,7 +156,7 @@
   R.appliances.forEach((name,i)=>$('appliance-'+i).value=applianceSample[name]);
   conditions={'kitchen::Walls':'Good & New Paint','kitchen::Floor':'Good Tile','kitchen::Cabinets':'New Shaker Cabinets','kitchen::Countertop':'Good Granite','bathroom-1::Floor':'Good Tile','bathroom-1::Shower':'Good Tile Surround','living::Floor':'Good Tile','bedroom-1::Floor':'Good Tile','exterior::Locks & keys':'Rekeyed','systems::Furnace / AC':'Forced air; window A/C'};
   step=1;dirty=true;renderRoom();updateFees();render();invalidate();
-  rehearsalStatus.textContent='FICTIONAL REHEARSAL ACTIVE · No unit linked. Handoff approval, condition acceptance and signatures remain unconfirmed. Select a real unit to start a clean draft.';
+  rehearsalStatus.textContent='FICTIONAL REHEARSAL ACTIVE · $1,000 printed security deposit + $150 pet deposit = $1,150 total. No unit linked. Handoff approval, condition acceptance and signatures remain unconfirmed. Select a real unit to start a clean draft.';
   status.textContent='Fictional sample loaded. Explore the five steps, then review. Nothing was saved or approved.';
  }
  function refreshUnits(){
