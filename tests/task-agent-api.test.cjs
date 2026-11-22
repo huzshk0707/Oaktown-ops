@@ -22,12 +22,35 @@ test('MCP discovery has OAuth policies and explicit write confirmation annotatio
   const r=await h(new Request(URL,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json, text/event-stream'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,...(method==='initialize'?{params:{protocolVersion:'2025-03-26',capabilities:{},clientInfo:{name:'fictional-ci',version:'1'}}}:{})})}));
   assert.equal(r.status,200);const d=await r.json();
   if(method==='tools/list'){
-   assert.equal(d.result.tools.length,8);for(const t of d.result.tools)assert.equal(t._meta.securitySchemes[0].type,'oauth2');
+   assert.equal(d.result.tools.length,9);for(const t of d.result.tools)assert.equal(t._meta.securitySchemes[0].type,'oauth2');
+   const snapshot=d.result.tools.find(t=>t.name==='read_morning_priority_snapshot');
+   assert.equal(snapshot.annotations.readOnlyHint,true);assert.deepEqual(snapshot._meta.securitySchemes[0].scopes,['openid']);
    const apply=d.result.tools.find(t=>t.name==='apply_task_change');assert.equal(apply.annotations.readOnlyHint,false);assert.equal(apply.annotations.destructiveHint,true);assert.equal(apply.annotations.idempotentHint,true);
   }
  }
  assert.equal(reads,0);
  const noAuth=await invoke(h,'get_task',{task_id:ID},null);assert.equal(noAuth.result.isError,true);assert.ok(noAuth.result._meta['mcp/www_authenticate'][0].includes('resource_metadata'));assert.equal(reads,0);
+});
+test('snapshot treats missing and inconsistent pages as unconfirmed and forwards only the scoped token',async()=>{
+ const [{createHandler}]=await modules;
+ const work_date='2026-11-22',cursor='25:'+'a'.repeat(64),name='read_morning_priority_snapshot';
+ const page={schema_version:'oaktown.morning-priority-snapshot.v1',work_date,timezone:'America/New_York',
+  total_active:26,offset:0,tasks:Array.from({length:25},()=>({task_id:ID})),has_more:true,next_cursor:cursor};
+ let tokenReads=0,response=page;
+ const h=createHandler({supabaseUrl:SUPABASE,publishableKey:'fictional-public',verifyToken:async()=>({sub:ID}),fetchImpl:async(url,options)=>{
+  tokenReads++;
+  assert.equal(url,SUPABASE+'/rest/v1/rpc/ops_task_agent');
+  assert.equal(options.headers.Authorization,'Bearer fictional-token');
+  assert.deepEqual(JSON.parse(options.body),{action:'morning_priority_snapshot',payload:{work_date}});
+  return Response.json(response);
+ }});
+ assert.equal((await invoke(h,name,{work_date},null)).result.structuredContent.error,'authentication_required');
+ assert.equal(tokenReads,0);
+ assert.deepEqual((await invoke(h,name,{work_date})).result.structuredContent,page);
+ for(const invalid of [null,{...page,tasks:[]},{...page,has_more:false},{...page,offset:25},{...page,next_cursor:'50:'+'a'.repeat(64)}]){
+  response=invalid;
+  assert.equal((await invoke(h,name,{work_date})).result.isError,true);
+ }
 });
 test('ChatGPT wildcard Accept probes discover MCP without HTTP 406 or opening task data',async()=>{
  const [{createHandler}]=await modules;let reads=0;
