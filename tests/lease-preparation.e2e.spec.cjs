@@ -28,7 +28,8 @@ test('fictional one-bedroom rehearsal is locally reviewable and cannot carry int
  await expect(page.locator('#newlease-progress')).toContainText('Step 2 of 5');
  await expect(page.locator('#newlease-unit')).toHaveValue('');
  await expect(page.locator('#newlease-rent')).toHaveValue('1025.00');
- await expect(page.locator('#newlease-deposit')).toHaveValue('1150.00');
+ await expect(page.locator('#newlease-deposit')).toHaveValue('1000.00');
+ await expect(page.locator('#newlease-rehearsal-status')).toContainText('$1,150 total');
  await expect(page.locator('#newlease-securityDeposit')).toHaveValue('1000.00');
  await expect(page.locator('#newlease-petDeposit')).toHaveValue('150.00');
  await step(page,2);await expect(page.locator('#newlease-tenantName')).toHaveValue('Avery Example (DEMO)');
