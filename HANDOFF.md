@@ -1,8 +1,11 @@
-## Active lease rehearsal UX PR — 2026-11-22
+## Active lease rehearsal UX PR #94 — 2026-11-22
 
-- **Owner:** chatgpt. **Branch:** `chatgpt/lease-rehearsal-ux`. **Base:** main d4e4df5ff8455e7cd5641e818cb98cc0e1c3d4b7. **Claim:** 2026-11-22T07:11:00.293Z to 2026-11-22T07:41:00.296Z UTC.
-- **Scope:** a staff-only, fictional one-bedroom rehearsal launcher; clearer preparation steps and review/action UI. No real tenant data, Supabase migration, template rewrite, approval, deployment, or merge.
-- **NEXT STEP:** open draft PR, implement progressive rehearsal UI in existing `lease-preparation.js` and `lease-preparation.css`, add fictional browser checks, run/inspect GitHub checks and leave exact handoff.
+- **Owner:** chatgpt. **Branch:** `chatgpt/lease-rehearsal-ux`. **Base:** main d4e4df5ff8455e7cd5641e818cb98cc0e1c3d4b7. **Claim:** 2026-11-22T07:16:22.837Z to 2026-11-22T07:46:22.837Z UTC.
+- **Scope:** staff-only fictional one-bedroom rehearsal UI; no real tenant details or approved master PDFs committed; no runtime backend/schema change, operational write, approval, deployment or merge.
+- **Completed:** rehearsal launcher (no unit linked), print-vs-pet deposit distinction, five-step progress, advanced room placement collapsed, review issue edit links, style/version updates, fictional regression test and `docs/LEASE-REHEARSAL-UX.md`. `TASKS.md` tracks the draft PR.
+- **Static checks:** modified JS and browser test parse successfully; CSS braces balanced; changed code/docs/test free of real applicant and Cherokee identifying strings. CI `checks` and `portfolio-schema` passed at earlier implementation and current head `0e5a2098cf8a`; `browser-downloads` was running at 2026-11-22T07:16:22.837Z.
+- **Current last implementation tip:** `0e5a2098cf8a160e551d7236778a1f47bd7294de` (before this handoff-only commit).
+- **NEXT STEP:** review exact final-head GitHub Actions browser result and fictional Page 8 preview, fix any failure, then request staff UX acceptance. Keep PR draft and do not merge or deploy without separate authorization; separate clean-master and Supabase migration activation remain outstanding.
 
 ## Individual task archive
 
