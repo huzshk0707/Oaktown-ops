@@ -2,7 +2,12 @@
 
 **Active delivery index · 2026-11-22.** Authoritative for new work until reviewed/superseded. Historical checklist snapshots below are retained for investigation but must not be re-executed solely because an old box is unchecked. This is **planning, not production write or merge permission**. Consult [ROADMAP](docs/ROADMAP.md), [HANDOFF](HANDOFF.md), [AGENTS](AGENTS.md), and current main/PR status before a new task is claimed.
 
-## P0 — activation and acceptance of released code (operator-gated)
+## First build — Morning Command Center
+
+- [ ] **OPS-SHIFT-BRIEF.1:** In [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89), put urgent work, waiting dependencies and the exact Focus task above the Start of Day and assignment details. Check the first desktop view, the one-click Focus handoff, unavailable/empty states, themes and keyboard navigation with fictional records.
+- [ ] **OPS-SHIFT-BRIEF.2:** Rehearse Friday on the reviewed screen. Check the statement, Gary’s queued hours and the resume note. Plan durable per-user focus and recurring work after the first slice.
+
+## P0 — operational activation and acceptance
 
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.1 — inspect live OAuth setup:** Confirm OAuth server, existing access-token-hook composition, approved registered client/redirect, signing algorithm, enabled admin client and least-privilege grants. Edge Function v3 is ACTIVE but the inspected scoped-client and consent counts are zero. Do not create secrets in Git/chat. **Exit:** written evidence of which parts are actually activated.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.2 — read-only acceptance:** With authorized staff login/consent, search/read a known fictional task via the scoped ChatGPT connector. Verify exact identity/history and deny privileged/direct access. **Exit:** readback, no operational changes.
@@ -10,18 +15,18 @@
 - [ ] **OPS-LEASE-PAGE8.ACTIVATE.1 — backend:** Compare exact staged migration `20261116060547` with live history; seek separate operator authorization and safely apply only after preflight. Confirm RLS, grants, schema/RPC and unchanged existing records. **Not yet live at latest check.**
 - [ ] **OPS-LEASE-PAGE8.ACTIVATE.2 — original-source acceptance:** Verify clean unsigned approved full master, page-7/disclosure/deposit choices, five completed examples and exact page-8 mapping. Treat saved preparation approval, unsigned PDF and an executed lease as distinct states.
 
-## P1 — next Codex delivery: one-task-at-a-time Daily Work Readiness
+## P1 — one-task-at-a-time Daily Work Readiness
 
 - [ ] **OPS-PLANNING-DATA.1 — inspect/accept scope:** Review existing Needs Planning, `OpsToday`, Morning, Focus, task editor/RPC, EOD constraints and task metadata. Capture representative fictional before/after screens. Propose minimal additive flow; no parallel dashboard/task storage.
 - [ ] **OPS-PLANNING-DATA.2 — reviewed metadata:** For a selected active task, surface saved owner, next action, waiting-on/blocker, due and follow-up state; explicitly choose a confirmed follow-up/check date or **no date needed**. Missing information remains unknown; no inferred dates, owners, property links or payments. Review exact changed fields before save.
 - [ ] **OPS-PLANNING-DATA.3 — unify execution:** Read back approved changes through existing authorized/version-checked task workflow and shared snapshot. Waiting tasks remain visible but not falsely “ready to execute”. Preserve old due dates/history and task stable IDs. Refresh Today/Morning/Focus consistently.
-- [ ] **OPS-PLANNING-DATA.4 — acceptance:** Fictional unit/browser/security tests for reviewed save, stale/replayed request, incomplete or intentionally unscheduled task, dependency, Eastern date, auth/sign-out and reduced motion/six themes. Document real-staff acceptance separately; do not mass-edit the 34 unscheduled production tasks.
+- [ ] **OPS-PLANNING-DATA.4 — acceptance:** Fictional unit/browser/security tests for reviewed save, stale/replayed request, incomplete or intentionally unscheduled task, dependency, Eastern date, auth/sign-out and reduced motion/six themes. Document staff acceptance separately. The dated field count below is insufficient to classify all unscheduled work.
 
 ## P1 — trustworthy personal EOD
 
 - [ ] **OPS-PERSONAL-WORK.1:** Define/implement native reviewed Record Work and Complete with actual performer, Eastern work date, concrete action and evidence, even when the parent task remains active.
 - [ ] **OPS-PERSONAL-WORK.2:** Extend scoped connector only after separate auth/approval review; verify event idempotency, source attribution and exact readback.
-- [ ] **OPS-PERSONAL-WORK.3:** Validate that Huzy's personal EOD includes only his verified work, not tasks completed by Leslie or unsent drafts.
+- [ ] **OPS-PERSONAL-WORK.3:** Verify the Friday statement’s two distinct actions on one task across local midnight, Gary’s actual progress and Huzy’s next-shift priority. Attribute Leslie’s inspection to Leslie and Huzy’s PDF filing to Huzy.
 
 ## P2 — intelligent intake and reliability
 
@@ -37,6 +42,11 @@
 - [ ] **OPS-PIPELINES:** Ground maintenance, leads/listings and application handoffs in actual staff workflow; assess APIs, permissions and work-order data before building.
 - [ ] **OPS-ACCOUNTING:** Progress [issue #83](https://github.com/huzshk0707/Oaktown-ops/issues/83) from discovery only after REI Hub evidence/loan-split workflow confirmation; never invent chart-of-accounts categories or claim Ops performed financial postings.
 
+## Future projects
+
+- [ ] **OAKTOWN-RECORDS:** Create the dedicated private GitHub repository and verify that “closing the day” writes and updates one shift record, with source links and revision readback.
+- [ ] **OAKTOWN-BRAIN:** Curate SOPs and verify retrieval in a fresh chat with citations, corrections and unknowns.
+
 ## Recently completed — do not restart
 
 - [x] **OPS-FOCUS-RELEASE:** PR #84 merged; Focus Board, safe Complete/Defer/Undo and reviewed Morning release available.
@@ -44,13 +54,13 @@
 - [x] **OPS-LEASE-PAGE8 frontend and source provenance:** PR #85 and #87 merged and published. Backend installation and actual full-master acceptance **remain open P0**.
 - [x] **OPS-PHASE6 source:** Morning plan review migration registered as `20261116051226`; task Edge Function v3 ACTIVE. **Do not interpret as verified active ChatGPT OAuth/consent.**
 - [x] **OPS-MASTER-BACKLOG historical import:** Live migration registered `20261108084954`; do not reimport the same workbook without a source-key/idempotence review.
-- [x] **OPS-ROADMAP-SYNC:** November 22 documentation plan prepared in a reviewable PR; publication on main is not complete until approved merge.
+- [x] **OPS-ROADMAP-SYNC:** November 22 documentation plan reviewed in PR #88 with the latest first-screen priority.
 
 ## Dated live readiness snapshot (read only)
 
 As inspected 2026-11-22: 46 tasks total, 36 active (4 waiting), 34 active without `due_at` and `intake_details.follow_up`; zero registered scoped task clients; no recorded `morning_plan_approved_v1` events. Counts can change. Do not derive deadlines or completion from these aggregates.
 
-**NEXT STEP:** Owner/operator starts `OPS-ACTIVATE-TASK-CONNECTION.1` (read-only Auth/OAuth activation assessment). The next **Codex build** is `OPS-PLANNING-DATA.1` on a separate branch/draft PR after activation assessment. Preserve historical work below for provenance.
+**NEXT STEP:** Verify `OPS-SHIFT-BRIEF.1` in PR #89. The operator’s read-only OAuth assessment and lease activation are tracked separately above.
 
 ---
 

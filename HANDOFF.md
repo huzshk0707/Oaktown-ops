@@ -1,12 +1,6 @@
-## Review for PR #88
-
-- Owner codex, heartbeat 2026-11-22 00:30 UTC, claim valid through 01:00 UTC. User authorized aligning and merging PR #88.
-- Branch `chatgpt/roadmap-2026-11-22`, base `b91b4c7`, reviewed predecessor `e026aee`. Previous claim released.
-- NEXT STEP: reconcile the three roadmap documents with the first-screen work in PR #89, Friday’s EOD and the separate Records and Brain plans. Verify and merge the reviewed docs.
-
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 
-**Status:** Documentation synchronization prepared in [draft PR #88](https://github.com/huzshk0707/Oaktown-ops/pull/88), branch `chatgpt/roadmap-2026-11-22`, based on main `b91b4c7df2920a03df1670d28a67ee8ae5a148a3`. **Not merged or deployed.** This section supersedes the November 17 completion/merge instructions below. Owner: ChatGPT for this docs-only PR; claim released after pushing verified docs. No active feature-owner claim or production operator assignment is implied.
+**Status:** [PR #88](https://github.com/huzshk0707/Oaktown-ops/pull/88) reconciles the November 22 plan with Huzy’s first-screen direction. Huzy authorized merging the documentation after review. Codex reviewed the three documentation files against main `b91b4c7`, the agreed Friday workflow and the current Morning implementation. The UI work has its own handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89).
 
 ## What is already finished
 
@@ -28,19 +22,16 @@ For Huzy's **7 PM–5 AM IST** shift (Louisville working hours), start with curr
 
 ## Active priority and precise handoff
 
-1. **P0: OPS-ACTIVATE-TASK-CONNECTION.1 (operator assessment, no code changes required).** Inspect actual Supabase OAuth-server status, signing/token hook and registered client/redirect. Start read-only. Record missing setup; do not use a service-role or management SQL connection for real task changes. Only after safe authorization, test fictional exact-task read, preview, Huzy approval, scoped save, audit and readback. Do not claim success before verified.
-2. **P0: OPS-LEASE-PAGE8.ACTIVATE.1 (separate operator gate).** Reconcile exact staged migration hash and live history, request authorization before applying. Confirm RLS/grants/zero unintended data writes; compare clean unsigned master and the five original examples before staff acceptance/full export.
-3. **P1: OPS-PLANNING-DATA.1 (next Codex feature after activation assessment).** On a **new independent branch/draft PR**, first inspect Needs Planning, task editor, `OpsToday`, Morning and Focus. Design the smallest review-before-save scheduling/owner/next-action flow; preserve IDs/history and data uncertainty. No live mass edits. Then implement bounded fictional tests and screenshot review in subsequent numbered subtasks.
-4. **P1/P2:** Personal EOD work attribution, then intelligent ChatGPT Gmail/text task-intake plus quick capture; keep actual sources and approvals explicit.
-5. **P2/P3:** Atomic renewal event writes/security/recovery, reviewed ten-page lease/document handoffs, maintenance/leads and [Accounting issue #83](https://github.com/huzshk0707/Oaktown-ops/issues/83) only after workflow discovery.
+1. **First build: OPS-SHIFT-BRIEF.1 in PR #89.** Confirm that Morning immediately shows what needs attention, who is holding the next action, and the exact task to open in Focus. Keep SOD drafting and approved-plan review available.
+2. **Operational gates:** Assess OAuth registration and consent read-only before the fictional ChatGPT task connection test. Reconcile and verify the Page 8 backend and approved original sources through a separate operator step.
+3. **Follow-up build:** Improve the existing Needs Planning workflow one task at a time. Finish actual-performer EOD attribution and rehearse the statement and Gary’s hours across the Friday shift. Keep the external timesheet as the time record.
+4. **Later work:** Quick capture and reviewed intake in the same daily ChatGPT Project, property inspection-to-maintenance, and separate Oaktown Records and Brain projects.
 
-**NEXT STEP for the reader of this handoff:** Review and merge documentation-only PR #88 if desired. Before taking on the next task, re-check current main, PRs, live Supabase status and any other owner's current branch claim. **The first operational action is OPS-ACTIVATE-TASK-CONNECTION.1; the first new Codex build is OPS-PLANNING-DATA.1.** Do not rerun the Master Backlog import or re-merge Focus/Page 8 code.
+**NEXT STEP:** Review the first-screen implementation and fictional desktop preview in PR #89. The wider plan and exact acceptance criteria are in [the roadmap](docs/ROADMAP.md) and [TASKS.md](TASKS.md).
 
-## Documentation PR verification and release state
+## Documentation review
 
-- Review provenance: main `b91b4c7`, latest successful hosted CI/Pages linked above; read-only migrations, Edge Function, tasks and task-client counts cross-checked.
-- Draft PR #88 is intentionally left unmerged. Source changes are Markdown-only; no CI result is treated as a live staff acceptance or operational authorization.
-- Changes must be read back from the **PR branch** after pushing and verified against its diff before marking the draft ready.
+- Baseline evidence is dated November 22. This review changes the roadmap, task index and handoff. PR #88 branch ownership is released after the documentation checkpoint.
 
 ---
 
