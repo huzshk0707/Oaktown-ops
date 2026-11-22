@@ -46,7 +46,13 @@ test('desktop first view answers the three questions and enters the displayed ta
  const selected=await page.locator('.focus-card[data-offset="0"]').getAttribute('data-task-id');
  await page.locator('#focus-return-morning').click();
  await expect(page.locator('#daily-pickup')).toContainText('Last shown in Focus');
- await expect(page.locator('#daily-pickup')).toContainText(s.tasks.find(task=>task.id===selected).task_title);
+ const savedTask=s.tasks.find(task=>task.id===selected);
+ await expect(page.locator('#daily-pickup')).toContainText(savedTask.task_title);
+ await page.setViewportSize({width:1280,height:640});
+ savedTask.intake_details.next_action='Review the saved source before continuing. '.repeat(22);
+ await page.locator('#morning-command-refresh').click();
+ await expect(page.locator('#daily-pickup .daily-pickup-action')).toHaveText(savedTask.intake_details.next_action.trim());
+ await expect(page.locator('#daily-start')).toBeInViewport({ratio:1});
  expect(s.writes).toEqual([]);
 });
 module.exports={saved};

@@ -60,15 +60,15 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  .daily-brief-count {flex:none;min-width:27px;padding:2px 7px;text-align:center;border:1px solid #3d596a;border-radius:5px;color:#c8e5ef;font:13px/1.5 ui-monospace,monospace}
  .daily-priorities-panel .daily-brief-count {color:#f0cca1;border-color:#625848}
  .daily-brief .daily-task {padding-top:7px;padding-bottom:7px}
- html[data-ops-theme] .daily-brief .daily-task .daily-task-title {display:block;max-width:100%;font-size:14px;line-height:1.45;overflow-wrap:anywhere;text-decoration:underline;text-decoration-color:#588094;text-underline-offset:3px}
- .daily-dependency {display:block;margin-bottom:3px;color:#abdfdf;font:600 13px/1.4 system-ui,sans-serif;overflow-wrap:anywhere}
+ html[data-ops-theme] .daily-brief .daily-task .daily-task-title {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-width:100%;font-size:14px;line-height:1.45;overflow-wrap:anywhere;text-decoration:underline;text-decoration-color:#588094;text-underline-offset:3px}
+ .daily-dependency {display:block;margin-bottom:3px;color:#abdfdf;font:600 13px/1.4 system-ui,sans-serif;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
  html[data-ops-theme] .morning-mode .daily-brief .daily-show-all {padding:4px 10px;min-height:32px;margin-top:6px;font-size:12px}
  .daily-brief .daily-pickup-panel {display:flex;flex-direction:column;position:relative;isolation:isolate;border-color:#598e90;background:radial-gradient(ellipse at 100% 0%,#26565860,transparent 72%),#10232e}
  .daily-pickup-panel::before {content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:repeating-radial-gradient(circle at 100% 0%,transparent 0 33px,#8fc6c914 34px 35px,transparent 36px 48px);pointer-events:none}
  .daily-pickup-label {margin:10px 0 6px;color:#b1ddd8;font:12px/1.5 ui-monospace,monospace}
- .morning-center #daily-pickup h3 {color:#f1f9fb;font:600 clamp(20px,1.8vw,27px)/1.2 system-ui,sans-serif;letter-spacing:-.025em;margin:0 0 12px;overflow-wrap:anywhere}
+ .morning-center #daily-pickup h3 {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#f1f9fb;font:600 clamp(20px,1.8vw,27px)/1.2 system-ui,sans-serif;letter-spacing:-.025em;margin:0 0 12px;overflow-wrap:anywhere}
  #daily-pickup .daily-task-meta {margin:0;font-size:12px}
- .daily-pickup-action {margin:2px 0 14px;font-size:14px;color:#d5e6ee;overflow-wrap:anywhere}
+ .daily-pickup-action {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:2px 0 14px;font-size:14px;color:#d5e6ee;overflow-wrap:anywhere}
  html[data-ops-theme] .morning-mode #daily-start {align-self:flex-start;margin-top:auto;color:#102729;background:#bce5df;border-color:#bce5df;border-radius:8px;font-size:13px}
  .daily-plan-panel {border-color:#527d87;max-height:900px;background:radial-gradient(ellipse at 100% 0%,#27515133,transparent 55%),#122331}
  .daily-plan-panel .daily-tag[data-state="approved"] {background:#19392f;color:#bcebd7;border-color:#477e69}
