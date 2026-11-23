@@ -1,6 +1,6 @@
 ## Friday workflow checkpoint
 
-Owner Codex. Reviewed Record Work and optional completion now feed the personal EOD through Task Intake. Both fictional Friday Chromium rehearsals passed locally. The additive SQL change is staged for review. Next step: verify hosted browser and disposable database checks. Production rollout requires separate approval.
+Owner Codex. Reviewed Record Work and optional completion now feed the personal EOD through Task Intake. Both fictional Friday Chromium rehearsals passed locally. The additive SQL change is staged for review. The disposable database test passed on 4ed1797. The final rehearsal now completes the statement through the same native form, records Leslie’s revision request separately, and verifies Huzy’s EOD excludes it. Both Friday tests passed locally again. Claim released for review. Next step: check final hosted CI, then obtain release approval. Production rollout requires separate approval.
 
 ## Earlier Friday checkpoint
 

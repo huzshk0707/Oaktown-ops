@@ -38,7 +38,7 @@ async function friday(page) {
   return { state, statement, hours };
 }
 
-function update(task, reference, source, recordedAt, changes, { clear = [], work } = {}) {
+function update(task, reference, source, recordedAt, changes, { clear = [], work, performer } = {}) {
   return {
     schema_version: Intake.VERSION,
     batch_ref: 'friday-' + reference,
@@ -56,7 +56,7 @@ function update(task, reference, source, recordedAt, changes, { clear = [], work
     }],
     activities: work ? [{
       activity_ref: 'work-' + reference, task_id: task.id, work_date: WORK_DATE,
-      summary: work, completed_by: 'Huzy', duration_basis: 'not_provided', minutes: null, source_refs: ['source-' + reference],
+      summary: work, completed_by: performer, duration_basis: 'not_provided', minutes: null, source_refs: ['source-' + reference],
     }] : [],
     questions: [],
   };
@@ -86,7 +86,7 @@ function intakeFixture(state) {
         !task || payload.expected_versions[task.id] !== task.updated_at) {
       return reply({ message: 'Fictional update needs review' }, 409);
     }
-    const savedAt = new Date(raw.sources[0].occurred_at).toISOString();
+    const savedAt = new Date(raw.sources[0].occurred_at || (raw.proposals.length ? SENT_TO_ATTORNEY : GARY_PROGRESS)).toISOString();
     const { task_title, status, priority, assigned_label, ...details } = group.after;
     if(raw.proposals.length) Object.assign(task, {
       task_title, status, priority, assigned_label, intake_details: details,
@@ -145,6 +145,23 @@ async function approveUpdate(page, proposal, { clearWaiting = false } = {}) {
   await expect(page.locator('#task-status')).toContainText('Saved to Ops');
 }
 
+async function prepareWork(page, task, summary, evidence, complete=false) {
+  await page.locator('#work-entry > summary').click();
+  await page.locator('#work-task').selectOption(task.id);
+  await page.getByLabel('Performed by').fill('Huzy');
+  await page.getByLabel('What did they do?').fill(summary);
+  await page.getByLabel('Supporting evidence').fill(evidence);
+  if(complete) await page.locator('#work-complete').check();
+  await page.getByRole('button',{name:'Review work',exact:true}).click();
+  await expect(page.locator('#task-review')).toContainText(WORK_DATE+' · Huzy · '+summary);
+}
+
+async function confirmWork(page) {
+  await page.locator('#task-confirm').check();
+  await page.locator('#task-save').click();
+  await expect(page.locator('#task-status')).toContainText('Saved to Ops');
+}
+
 test('Friday routes one statement through Leslie’s review, then resumes Gary from saved work', async ({ page }) => {
   await page.clock.setFixedTime(new Date(START));
   const { state, statement, hours } = await friday(page);
@@ -165,7 +182,7 @@ test('Friday routes one statement through Leslie’s review, then resumes Gary f
   await page.clock.setFixedTime(new Date(SENT_FOR_REVIEW));
   await approveUpdate(page, update(statement, 'sent-for-review', PREPARED, SENT_FOR_REVIEW, {
     status: 'waiting', waiting_on: 'Leslie', next_action: 'Review Leslie’s response when it arrives.',
-  }, { work: PREPARED }));
+  }, { work: PREPARED, performer: 'Huzy' }));
   await page.locator('[data-workspace="morning"]').click();
   await expect(page.locator('#daily-followups')).toContainText('Leslie');
   await expect(page.locator('#daily-followups')).toContainText(STATEMENT);
@@ -176,7 +193,7 @@ test('Friday routes one statement through Leslie’s review, then resumes Gary f
   await page.clock.setFixedTime(new Date(REVISION_REQUEST));
   await approveUpdate(page, update(statement, 'revision-request', 'Leslie requested a correction and delivery to the attorney.', REVISION_REQUEST, {
     status: 'in_progress', next_action: 'Revise the statement and deliver the updated copy.',
-  }, { clear: ['waiting_on'] }), { clearWaiting: true });
+  }, { clear: ['waiting_on'], work: 'Requested a correction to the statement.', performer: 'Leslie' }), { clearWaiting: true });
   await page.locator('[data-workspace="morning"]').click();
   await expect(page.locator('#daily-pickup')).toContainText('Revise the statement and deliver the updated copy.');
   await expect(page.locator('#daily-followups')).not.toContainText('Leslie');
@@ -184,10 +201,9 @@ test('Friday routes one statement through Leslie’s review, then resumes Gary f
   await page.locator('#daily-counts').click();
   await page.locator('#task-tab-intake').click();
   await page.clock.setFixedTime(new Date(SENT_TO_ATTORNEY));
-  const delivered = update(statement, 'sent-to-attorney', DELIVERED, SENT_TO_ATTORNEY, {
-    status: 'completed', completion_summary: DELIVERED, next_action: 'Delivery complete.',
-  }, { work: DELIVERED });
-  await approveUpdate(page, delivered);
+  await prepareWork(page, statement, DELIVERED, 'Reviewed the revised statement and delivery confirmation.', true);
+  const delivered = JSON.parse(await page.locator('#task-json').inputValue());
+  await confirmWork(page);
   await addToReview(page, delivered);
   await expect(page.locator('#task-review')).toContainText('2 previously imported item(s)');
   await expect(page.locator('#task-save')).toBeDisabled();
@@ -195,23 +211,15 @@ test('Friday routes one statement through Leslie’s review, then resumes Gary f
   await approveUpdate(page, update(hours, 'hours-progress', CHECKED, GARY_PROGRESS, {
     status: 'in_progress', next_action: RESUME,
   }));
-  await page.locator('#work-entry > summary').click();
-  await page.locator('#work-task').selectOption(hours.id);
-  await page.getByLabel('Performed by').fill('Huzy');
-  await page.getByLabel('What did they do?').fill(CHECKED);
-  await page.getByLabel('Supporting evidence').fill('Reviewed the fictional Monday–Wednesday timesheet.');
-  await page.getByRole('button',{name:'Review work',exact:true}).click();
-  await expect(page.locator('#task-review')).toContainText(WORK_DATE+' · Huzy · '+CHECKED);
-  await page.locator('#task-confirm').check();
-  await page.locator('#task-save').click();
-  await expect(page.locator('#task-status')).toContainText('Saved to Ops');
+  await prepareWork(page, hours, CHECKED, 'Reviewed the fictional Monday–Wednesday timesheet.');
+  await confirmWork(page);
   await expect(page.locator('#task-history')).toContainText(WORK_DATE+' · Huzy · '+CHECKED);
   expect(hours.status).toBe('in_progress');
 
   expect(state.tasks).toHaveLength(2);
   expect(statement.status).toBe('completed');
   expect(receipts.filter(r => r.proposals[0]?.task_id === statement.id)).toHaveLength(3);
-  expect(workEvents.map(event => event.event_metadata.activity.work_date)).toEqual(Array(3).fill(WORK_DATE));
+  expect(workEvents.map(event => event.event_metadata.activity.work_date)).toEqual(Array(4).fill(WORK_DATE));
 
   await page.locator('[data-workspace="morning"]').click();
   await page.reload();
@@ -220,6 +228,7 @@ test('Friday routes one statement through Leslie’s review, then resumes Gary f
   await expect(page.locator('#daily-priorities')).not.toContainText(STATEMENT);
   await page.locator('#morning-command-exit').click();
   await page.locator('#eod-generate').click();
+  await expect(page.locator('#eod-report')).not.toContainText('Requested a correction to the statement.');
   for(const action of [PREPARED, DELIVERED, CHECKED])await expect(page.locator('#eod-report')).toContainText(action);
 });
 

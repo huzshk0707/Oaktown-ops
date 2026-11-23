@@ -303,7 +303,7 @@
 <label>Eastern work date<input id="work-date" type="date" required></label>
 <label>What did they do?<textarea id="work-summary" required maxlength="2000"></textarea></label>
 <label>Supporting evidence<textarea id="work-evidence" required maxlength="8000"></textarea></label>
-<label><input type="checkbox" id="work-complete"> Also mark this task completed</label>
+<label class="task-check"><input type="checkbox" id="work-complete"> Also mark this task completed</label>
 <button type="submit" class="button">Review work</button></fieldset></form></details>
 <section class="task-card"><h2>Paste the export</h2><label for="task-json">Task JSON from your AI<textarea id="task-json" spellcheck="false" placeholder="Paste the JSON object only"></textarea></label><p class="task-muted">Preview does not save anything. Pasted content stays in memory and clears when you sign out or reload. Keep your original export until a save is confirmed.</p><button id="task-preview" class="button primary" type="button">Preview task changes</button></section>
 <div id="task-review" aria-live="polite"></div>
