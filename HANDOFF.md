@@ -1,3 +1,7 @@
+## Current checkpoint — Codex
+
+Claim 2026-11-23 02:40 UTC through 03:10 UTC. Next step: Repair and verify the responsive Morning header.
+
 ## PR #89 responsive reconciliation — 2026-11-23
 
 - Merging current main into the Morning shift brief branch preserves task archiving, scoped Morning Plan integration, and lease-rehearsal changes.
