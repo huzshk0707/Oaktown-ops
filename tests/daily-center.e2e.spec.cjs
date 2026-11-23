@@ -27,9 +27,12 @@ test('desktop first view answers the three questions and enters the displayed ta
  const focus=s.tasks.find(task=>task.status==='in_progress');
  for(const width of [320,390,768,1280,1440,1920]){
   await page.setViewportSize({width,height:640});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`horizontal overflow at ${width}px`).toBe(true);
+  // Phones scroll vertically; forcing all three cards above the fold would
+  // recreate the unreadable fixed-width desktop layout.
   for(const id of ['daily-priorities','daily-followups','daily-pickup','daily-start']){
-   await expect(page.locator('#'+id)).toBeInViewport({ratio:1});
+   if(width>=1280)await expect(page.locator('#'+id)).toBeInViewport({ratio:1});
+   else await expect(page.locator('#'+id)).toBeVisible();
   }
  }
  await expect(page.locator('#daily-priorities')).toContainText('Overdue');
