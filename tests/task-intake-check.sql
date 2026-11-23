@@ -58,6 +58,17 @@ begin
  bad:=jsonb_set(bad,'{resolutions}','{"P201":{"property_id":null,"unit_id":null}}');
  r:=public.ops_task_intake('save',sid,bad);
  if not exists(select 1 from public.ops_tasks where id=(r->'proposals'->0->>'task_id')::uuid and property_id is null and workflow_key='general' and due_at is null and intake_details->'due'->>'date'='2026-11-03') then raise exception 'General/date-only task incorrect';end if;
+ -- The recorder and performer may differ. Activity-only saves preserve the parent state.
+ bad:=jsonb_set(req,'{export,batch_ref}','"WORK_ONLY"');
+ bad:=jsonb_set(bad,'{export,proposals}','[]');
+ bad:=jsonb_set(bad,'{export,activities}',jsonb_build_array(
+  ((req->'export'->'activities'->0) - 'proposal_ref') || jsonb_build_object('activity_ref','A202','task_id',t,'completed_by','Leslie')));
+ perform public.ops_task_intake('save',sid,bad);
+ if not exists(select 1 from public.ops_events where entity_id=t and event_type='task_work_recorded'
+  and event_metadata->'activity'->>'completed_by'='Leslie' and actor_id=auth.uid()) then raise exception 'Performer or recorder missing';end if;
+ if not exists(select 1 from public.ops_tasks where id=t and status='pending') then raise exception 'Recording work closed its task';end if;
+ if not exists(select 1 from jsonb_array_elements(public.ops_task_intake('state',sid)->'items') i
+  where i->>'ref'='A202' and i->'payload'->>'completed_by'='Leslie') then raise exception 'Activity readback missing';end if;
  -- Direct private-ledger writes must be denied, even to an editor.
  begin execute 'select * from ops_intake_private.items';raise exception 'Private ledger exposed';exception when insufficient_privilege then null;end;
 end $$;

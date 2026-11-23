@@ -16,14 +16,20 @@ async function copyText(content){
   $('task-receipt').focus();return false;
  }
 }
-function controls(){for(const id of ['task-session','task-new-session','task-snapshot','task-preview','task-json','task-refresh'])$(id).disabled=busy||!cloud.user;
+function clearWork(){
+ $('work-form').reset();
+ $('work-task').replaceChildren(new Option('Choose a task',''));
+ $('work-date').value=window.OpsTodayModel.today();
+}
+function controls(){
+ $('work-fields').disabled=busy||!session||!cloud.user||!!pendingRequest;for(const id of ['task-session','task-new-session','task-snapshot','task-preview','task-json','task-refresh'])$(id).disabled=busy||!cloud.user;
 $('task-copy-receipt').disabled=busy||!cloud.user||!R.validReceipt(receipt);
 for(const button of $('task-history').querySelectorAll('button'))button.disabled=busy||!cloud.user||(button.id==='task-delete-all-archived'&&!!draft);
 $('task-delete-archived-confirm').disabled=busy||!cloud.user||!deleteSnapshot.length;
 $('task-delete-archived-cancel').disabled=busy;
 updateSave();}
 function updateSave(){let okay=false;try{okay=!!draft&&!!session&&R.preview(draft,state,decisions).pending.length>0&&!R.preview(draft,state,decisions).warnings.length&&$('task-confirm').checked}catch{}$('task-save').disabled=busy||!cloud.user||!okay}
-function reset(){epoch++;busy=false;msg(cloud.user?'Choose an intake session to continue.':'Sign in to review and save task imports.');session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;morningPrepared=false;showArchived=false;deleteSnapshot=[];if($('task-delete-archived-dialog').open)$('task-delete-archived-dialog').close();$('task-delete-archived-list').replaceChildren();$('task-delete-archived-scope').textContent='';$('task-delete-archived-status').textContent='';$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
+function reset(){clearWork();epoch++;busy=false;msg(cloud.user?'Choose an intake session to continue.':'Sign in to review and save task imports.');session=null;state={tasks:[],items:[],receipts:[]};draft=null;decisions={};receipt=null;pendingRequest=null;morningPrepared=false;showArchived=false;deleteSnapshot=[];if($('task-delete-archived-dialog').open)$('task-delete-archived-dialog').close();$('task-delete-archived-list').replaceChildren();$('task-delete-archived-scope').textContent='';$('task-delete-archived-status').textContent='';$('task-json').value='';$('task-session').replaceChildren(new Option('Choose an intake session',''));$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-history').replaceChildren();$('task-confirm').checked=false;controls()}
 function fail(e){msg(e.code==='PGRST202'||e.status===404?'Cloud task saving is not enabled yet. The reviewed database setup must be deployed first. You can still preview an export while signed in.':e.message)}
 async function action(fn){if(busy)return;busy=true;const ticket=epoch;controls();try{await fn(ticket)}catch(e){if(ticket===epoch)fail(e)}finally{if(ticket===epoch){busy=false;controls()}}}
 async function listSessions(){
@@ -36,6 +42,11 @@ async function refresh(){if(!session)return;const ticket=epoch;const data=await 
 function renderHistory(){
  const host=$('task-history');host.replaceChildren();
  if(!session)return;
+ const selected=$('work-task').value;
+ $('work-task').replaceChildren(new Option('Choose a task',''));
+ for(const task of state.tasks.filter(task=>!task.archived_at))$('work-task').add(new Option(task.task_title,task.id));
+ $('work-task').value=selected;
+ if(!$('work-date').value)$('work-date').value=window.OpsTodayModel.today();
  const display=R.splitTasks(state.tasks,state.items,showArchived);
  const title=el('h3','Tasks imported in this session ('+display.session.length+')');
  host.append(title,el('p','Existing portfolio tasks are listed separately so they do not bury your new imports. Archive hides a task from the active list; it does not erase evidence or work history.','task-muted'));
@@ -70,7 +81,7 @@ function renderHistory(){
  if(display.archived.length){const remove=el('button','Delete all archived tasks','button danger');remove.type='button';remove.id='task-delete-all-archived';remove.addEventListener('click',openArchivedDelete);archivedGroup.append(remove)}
  for(const t of display.archived)appendTask(t,archivedGroup);host.append(archivedGroup)}
  const work=state.items.filter(i=>i.kind==='activity');
- if(work.length){const d=el('details',undefined,'task-other');d.append(el('summary','Work recorded in this session ('+work.length+')'));for(const i of work){const a=i.payload;d.append(el('p',a.work_date+' · '+a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}host.append(d)}
+ if(work.length){const d=el('details',undefined,'task-other');d.append(el('summary','Work recorded in this session ('+work.length+')'));for(const i of work){const a=i.payload;d.append(el('p',a.work_date+' · '+(a.completed_by||'Performer unrecorded')+' · '+a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}host.append(d)}
  // A previous PL/pgSQL name collision caused [null] to be returned for receipts.
  // Never overwrite a valid receipt with a null placeholder.
  const newest=(state.receipts||[]).find(R.validReceipt);
@@ -150,15 +161,41 @@ function renderReview(){
   const diff=el('div',undefined,'task-diff'),before=el('div'),after=el('div');before.append(el('strong','Saved state'),fields(g.before));after.append(el('strong','After your review'),fields(g.after));diff.append(before,after);card.append(diff);
   for(const c of g.clears)card.append(checkbox('Approve clearing '+c.fields.map(fieldLabel).join(', ')+' ('+c.ref+')',decisions.accept_clears.includes(c.ref),on=>{decisions.accept_clears=decisions.accept_clears.filter(x=>x!==c.ref);if(on)decisions.accept_clears.push(c.ref);pendingRequest=null;$('task-confirm').checked=false;renderReview()}));
   for(const ref of g.suggestions){const p=draft.proposals.find(p=>p.proposal_ref===ref);card.append(checkbox('Accept suggestion: '+Object.entries(p.suggestions).map(([k,v])=>fieldLabel(k)+': '+(typeof v==='object'?v.date+(v.time?' '+v.time:''):v)).join('; ')+' ('+ref+')',decisions.accept_suggestions.includes(ref),on=>{decisions.accept_suggestions=decisions.accept_suggestions.filter(x=>x!==ref);if(on)decisions.accept_suggestions.push(ref);pendingRequest=null;$('task-confirm').checked=false;renderReview()}));}
-  if(g.activities.length){card.append(el('h3','Work to record'));for(const a of g.activities)card.append(el('p',a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}
+  if(g.activities.length){card.append(el('h3','Work to record'));for(const a of g.activities)card.append(el('p',a.work_date+' · '+(a.completed_by||'Performer unrecorded')+' · '+a.summary+' · '+(a.minutes===null?'Duration not provided':a.minutes+' minutes ('+(a.duration_basis==='user_estimate'?'estimated by you':'reported')+')')))}
   const evidence=el('details',undefined,'task-evidence');evidence.append(el('summary','Original evidence and proposal history'));
   for(const o of g.observations){evidence.append(el('p',o.ref+' · '+o.operation+' · '+o.reason));for(const ref of o.sources){const s=draft.sources.find(s=>s.source_ref===ref);evidence.append(el('blockquote',s.label+': '+s.evidence_excerpt))}}
+  for(const a of g.activities)for(const ref of a.source_refs){
+   const source=draft.sources.find(s=>s.source_ref===ref);
+   evidence.append(el('blockquote',source.label+': '+source.evidence_excerpt));
+  }
   card.append(evidence);host.append(card);
  }
  if(draft.questions.length){host.append(el('h3','Questions from the export'));for(const q of draft.questions)host.append(el('p',q))}
  for(const w of preview.warnings)host.append(el('p',w,'task-alert'));
  updateSave();
 }
+$('work-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const task=state.tasks.find(t=>t.id===$('work-task').value&&!t.archived_at);
+ if(!task||busy||!session||!cloud.user||pendingRequest)return;
+ if($('task-json').value&&!confirm('Replace the current preview with this work entry?'))return;
+ const id=crypto.randomUUID(),workDate=$('work-date').value,summary=$('work-summary').value.trim();
+ const sourceRefs=['source-'+id],complete=$('work-complete').checked;
+ const proposal={proposal_ref:'complete-'+id,operation:'update',task_id:task.id,
+  expected_updated_at:task.updated_at,match_reason:'Selected existing task',
+  context:{workflow_key:task.workflow_key,context_label:'Existing task'},
+  changes:{status:'completed',completion_summary:summary},suggestions:{},source_refs:sourceRefs,
+  proposed_clear_fields:['waiting_on','blocked_reason'].filter(key=>task.intake_details?.[key])};
+ const record={schema_version:R.VERSION,session_id:session,batch_ref:'work-'+id,work_date:workDate,timezone:R.ZONE,
+  sources:[{source_ref:sourceRefs[0],kind:'text',label:'Work evidence',occurred_at:null,evidence_excerpt:$('work-evidence').value.trim()}],
+  proposals:complete?[proposal]:[],activities:[{activity_ref:'action-'+id,task_id:task.id,work_date:workDate,
+   completed_by:$('work-performer').value.trim(),summary,minutes:null,duration_basis:'not_provided',source_refs:sourceRefs}],questions:[]};
+ try{R.parse(record)}catch(error){fail(error);return}
+ morningPrepared=false;
+ $('task-json').value=JSON.stringify(record,null,2);
+ $('task-preview').click();
+ if(draft){$('work-form').reset();$('work-date').value=window.OpsTodayModel.today();$('work-entry').open=false}
+});
 $('task-preview').addEventListener('click',()=>{
  try{draft=R.parse($('task-json').value);if(draft.session_id&&draft.session_id!==session)throw Error('Choose the intake session specified by this export');
  decisions={resolutions:{},accept_clears:[],accept_suggestions:[]};pendingRequest=null;$('task-confirm').checked=false;renderReview();msg('Preview only. Review every task, source and clearing proposal before saving.');
@@ -171,13 +208,13 @@ function retainMorningProposal(retained,prefix){draft=retained;decisions={resolu
 $('task-new-session').addEventListener('click',()=>action(async ticket=>{
  if(session&&$('task-json').value&&!confirm(morningPrepared?'Start a separate intake session? The morning proposal will be kept for review.':'Start a separate intake session? Unsaved pasted text will be cleared.'))return;
  const retained=morningPrepared?draft:null;
- const data=await rpc('new',{},null);if(ticket!==epoch)return;session=data.session_id;draft=null;decisions={};pendingRequest=null;$('task-json').value='';$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-confirm').checked=false;
+ const data=await rpc('new',{},null);if(ticket!==epoch)return;clearWork();session=data.session_id;draft=null;decisions={};pendingRequest=null;$('task-json').value='';$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-confirm').checked=false;
  await listSessions();if(ticket!==epoch)return;await refresh();if(ticket!==epoch)return;
  if(retained)retainMorningProposal(retained,'New intake session created.');else msg('New intake session created. Copy the session brief for your AI chat.');
 }));
 $('task-session').addEventListener('change',()=>action(async ticket=>{
  const retained=morningPrepared?draft:null;
- session=$('task-session').value||null;draft=null;decisions={};pendingRequest=null;$('task-json').value='';$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-confirm').checked=false;state={tasks:[],items:[],receipts:[]};await refresh();if(ticket!==epoch)return;
+ clearWork();session=$('task-session').value||null;draft=null;decisions={};pendingRequest=null;$('task-json').value='';$('task-review').replaceChildren();$('task-receipt').textContent='';$('task-confirm').checked=false;state={tasks:[],items:[],receipts:[]};await refresh();if(ticket!==epoch)return;
  if(retained)retainMorningProposal(retained,session?'Session loaded.':'Choose an intake session.');else msg(session?'Session loaded. Paste the export from this AI conversation.':'Choose an intake session.');
 }));
 $('task-refresh').addEventListener('click',()=>action(async()=>{await listSessions();await refresh();msg('Saved records refreshed. Review again before saving.');$('task-confirm').checked=false}));

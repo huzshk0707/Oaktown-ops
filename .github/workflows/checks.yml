@@ -191,6 +191,7 @@ jobs:
             -f supabase/migrations/20261103211729_lease_reference_document_library.sql \
             -f tests/lease-reference-documents-check.sql \
             -f tests/portfolio-hardening-check.sql \
+            -f supabase/migrations/20261123030000_reviewed_activity_performer.sql \
             -f tests/task-intake-check.sql \
             -f tests/task-cleanup-check.sql \
             -f tests/today-task-editor-check.sql \

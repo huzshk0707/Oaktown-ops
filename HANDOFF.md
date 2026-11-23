@@ -1,8 +1,17 @@
-## Current checkpoint — Codex
+## Friday workflow checkpoint
 
-Claim 2026-11-23 02:40 UTC through 03:10 UTC. Next step: Repair and verify the responsive Morning header.
-Verified no horizontal overflow at 320, 390, 768, 1280, 1440 and 1920 pixels in Chromium. Awaiting GitHub checks.
+Owner Codex. Reviewed Record Work and optional completion now feed the personal EOD through Task Intake. Both fictional Friday Chromium rehearsals passed locally. The additive SQL change is staged for review. The disposable database test passed on 4ed1797. The final rehearsal now completes the statement through the same native form, records Leslie’s revision request separately, and verifies Huzy’s EOD excludes it. Both Friday tests passed locally again. Claim released for review. Next step: check final hosted CI, then obtain release approval. Production rollout requires separate approval.
 
+## Earlier Friday checkpoint
+
+# Friday shift rehearsal completed
+
+- Task OPS-SHIFT-BRIEF.2, branch `codex/friday-rehearsal`, [PR #90](https://github.com/huzshk0707/Oaktown-ops/pull/90). Owner codex, claim released after local verification. Review against screen PR #89 at `68bed16`.
+- A fictional Friday run uses the Morning and Focus entry points and reviewed Task Intake. The statement keeps its ID through waiting for Leslie, revision and delivery. Replaying the delivery export adds no action. Gary’s saved next step appears after reload because his task is in progress.
+- The EOD draft keeps preceding work when the statement closes and removes a matching completion summary. It lists Gary’s recorded progress and accepts typed next-shift priorities. The test crosses local midnight and uses Friday’s saved Eastern work date.
+- Task Intake v1 does not collect a performer. The first browser test verifies those new activity rows cannot be credited as personal work. A separate fixture explicitly attributes work to test the draft, including excluding Leslie’s action. See [Friday EOD preview](docs/ui-review/friday-rehearsal/eod-friday.png).
+- Checks: `node --test tests/*.test.cjs` (240 passed), workflow inventory (30 families, 69 scripts), and 48 Chromium cases across Friday rehearsal and Today. The EOD screenshot case also passed on the final status copy. Fictional fixtures only.
+- NEXT STEP: in OPS-PERSONAL-WORK.1, design reviewed Record Work on an existing task. Save the actual performer, Eastern work date, explicit action and evidence, including progress while the task stays open. Verify the saved ID and show it in the EOD.
 ## PR #89 responsive reconciliation — 2026-11-23
 
 - Merging current main into the Morning shift brief branch preserves task archiving, scoped Morning Plan integration, and lease-rehearsal changes.
