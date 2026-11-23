@@ -1,6 +1,7 @@
 ## Current checkpoint — Codex
 
 Claim 2026-11-23 02:40 UTC through 03:10 UTC. Next step: Repair and verify the responsive Morning header.
+Verified no horizontal overflow at 320, 390, 768, 1280, 1440 and 1920 pixels in Chromium. Awaiting GitHub checks.
 
 ## PR #89 responsive reconciliation — 2026-11-23
 

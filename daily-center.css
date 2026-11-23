@@ -146,11 +146,13 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  .morning-grid {grid-template-columns:minmax(0,1fr)}
  .morning-center .morning-column {max-height:none}
 }
-@media screen and (max-width:740px) {
+@media screen and (max-width:1240px) {
  html[data-ops-theme] .morning-mode .topbar {display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:center;padding:10px 12px!important;gap:8px}
- .morning-mode .workspace-clocks {margin:0;flex:1 1 100%;min-width:0;justify-content:space-between;gap:8px}
- .morning-mode .workspace-clock {min-width:0}
+ html[data-ops-theme] .morning-mode .workspace-clocks {margin:0;flex:1 1 100%;min-width:0;justify-content:space-between;gap:8px}
+ html[data-ops-theme] .morning-mode .workspace-clock {min-width:0}
  html[data-ops-theme] .morning-mode .topbar :is(button,.operations-search) {min-width:0;white-space:normal}
+}
+@media screen and (max-width:740px) {
  .morning-center {padding:18px 12px 32px}
  .morning-heading {padding-bottom:14px}
  .morning-heading h1 {font-size:clamp(26px,8vw,36px)}
