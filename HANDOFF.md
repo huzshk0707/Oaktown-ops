@@ -1,3 +1,7 @@
+## PR #91 documentation reconciliation
+
+Codex claim 2026-11-23 02:48–03:18 UTC. Next step: reconcile the dated activation assessment with the newer Morning Plan guide.
+
 # Current handoff — OPS-ACTIVATE-TASK-CONNECTION
 
 - Owner: codex
