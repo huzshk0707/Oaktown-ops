@@ -56,7 +56,7 @@ function update(task, reference, source, recordedAt, changes, { clear = [], work
     }],
     activities: work ? [{
       activity_ref: 'work-' + reference, task_id: task.id, work_date: WORK_DATE,
-      summary: work, duration_basis: 'not_provided', minutes: null, source_refs: ['source-' + reference],
+      summary: work, completed_by: 'Huzy', duration_basis: 'not_provided', minutes: null, source_refs: ['source-' + reference],
     }] : [],
     questions: [],
   };
@@ -88,7 +88,7 @@ function intakeFixture(state) {
     }
     const savedAt = new Date(raw.sources[0].occurred_at).toISOString();
     const { task_title, status, priority, assigned_label, ...details } = group.after;
-    Object.assign(task, {
+    if(raw.proposals.length) Object.assign(task, {
       task_title, status, priority, assigned_label, intake_details: details,
       updated_at: savedAt, completed_at: status === 'completed' ? savedAt : null,
     });
@@ -98,7 +98,6 @@ function intakeFixture(state) {
     })));
     for (const activity of raw.activities) {
       items.push({ kind: 'activity', ref: activity.activity_ref, payload: activity, task_id: task.id });
-      // The v1 intake format records work and evidence without a performer field.
       workEvents.push(workEvent(activity.activity_ref, task.id, savedAt, activity));
     }
     const receipt = {
@@ -195,11 +194,23 @@ test('Friday routes one statement through Leslie’s review, then resumes Gary f
   await page.clock.setFixedTime(new Date(GARY_PROGRESS));
   await approveUpdate(page, update(hours, 'hours-progress', CHECKED, GARY_PROGRESS, {
     status: 'in_progress', next_action: RESUME,
-  }, { work: CHECKED }));
+  }));
+  await page.locator('#work-entry > summary').click();
+  await page.locator('#work-task').selectOption(hours.id);
+  await page.getByLabel('Performed by').fill('Huzy');
+  await page.getByLabel('What did they do?').fill(CHECKED);
+  await page.getByLabel('Supporting evidence').fill('Reviewed the fictional Monday–Wednesday timesheet.');
+  await page.getByRole('button',{name:'Review work',exact:true}).click();
+  await expect(page.locator('#task-review')).toContainText(WORK_DATE+' · Huzy · '+CHECKED);
+  await page.locator('#task-confirm').check();
+  await page.locator('#task-save').click();
+  await expect(page.locator('#task-status')).toContainText('Saved to Ops');
+  await expect(page.locator('#task-history')).toContainText(WORK_DATE+' · Huzy · '+CHECKED);
+  expect(hours.status).toBe('in_progress');
 
   expect(state.tasks).toHaveLength(2);
   expect(statement.status).toBe('completed');
-  expect(receipts.filter(r => r.proposals[0].task_id === statement.id)).toHaveLength(3);
+  expect(receipts.filter(r => r.proposals[0]?.task_id === statement.id)).toHaveLength(3);
   expect(workEvents.map(event => event.event_metadata.activity.work_date)).toEqual(Array(3).fill(WORK_DATE));
 
   await page.locator('[data-workspace="morning"]').click();
@@ -209,7 +220,7 @@ test('Friday routes one statement through Leslie’s review, then resumes Gary f
   await expect(page.locator('#daily-priorities')).not.toContainText(STATEMENT);
   await page.locator('#morning-command-exit').click();
   await page.locator('#eod-generate').click();
-  await expect(page.locator('#eod-report')).toContainText('No personal completed work recorded');
+  for(const action of [PREPARED, DELIVERED, CHECKED])await expect(page.locator('#eod-report')).toContainText(action);
 });
 
 test('Friday EOD keeps both attributed statement actions and the next-shift priority across local midnight', async ({ page }, testInfo) => {
@@ -221,7 +232,7 @@ test('Friday EOD keeps both attributed statement actions and the next-shift prio
   hours.status = 'in_progress';
   hours.intake_details.next_action = RESUME;
 
-  // These represent previously attributed records. The native v1 intake tested above does not add this field.
+  // These represent previously attributed records. The first rehearsal exercises reviewed capture and readback.
   const activity = (summary, completedBy) => ({
     work_date: WORK_DATE, summary, completed_by: completedBy, duration_basis: 'not_provided', minutes: null,
   });

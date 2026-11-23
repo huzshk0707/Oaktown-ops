@@ -1,6 +1,8 @@
-## Current checkpoint — Codex
+## Friday workflow checkpoint
 
-Claim 2026-11-23 02:40 UTC through 03:10 UTC. Next step: Integrate Morning and verify reviewed work attribution through EOD.
+Owner Codex. Reviewed Record Work and optional completion now feed the personal EOD through Task Intake. Both fictional Friday Chromium rehearsals passed locally. The additive SQL change is staged for review. Next step: verify hosted browser and disposable database checks. Production rollout requires separate approval.
+
+## Earlier Friday checkpoint
 
 # Friday shift rehearsal completed
 

@@ -9,7 +9,7 @@
 ## First build — Morning Command Center
 
 - [x] **OPS-SHIFT-BRIEF.1:** Implemented the first desktop view and the exact Focus Board handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89). Verified the layout, unavailable and empty states, themes and keyboard navigation with fictional records.
-- [x] **OPS-SHIFT-BRIEF.2:** Rehearsed Friday with fictional records in [PR #90](https://github.com/huzshk0707/Oaktown-ops/pull/90). Verified task review, the saved resume step after reload and the EOD draft with attributed fixtures. The missing native performer field is tracked in OPS-PERSONAL-WORK.1.
+- [x] **OPS-SHIFT-BRIEF.2:** Rehearsed Friday with fictional records in [PR #90](https://github.com/huzshk0707/Oaktown-ops/pull/90). Verified task review, the saved resume step after reload and the EOD draft with attributed fixtures. Native capture and readback are covered in OPS-PERSONAL-WORK.1.
 - [ ] **OPS-SHIFT-BRIEF.3:** Persist an explicit Focus choice for the staff member and shift. Reopen the same eligible task and its current saved next action after reload. Check sign-out, changed access and tasks closed elsewhere.
 - [ ] **OPS-SHIFT-BRIEF.4:** Let staff configure the Friday hours commitment. Create or surface one occurrence per applicable work date and keep retries and refreshes from duplicating it.
 
@@ -34,7 +34,7 @@
 
 ## P1 — trustworthy personal EOD
 
-- [ ] **OPS-PERSONAL-WORK.1:** Define/implement native reviewed Record Work and Complete with actual performer, Eastern work date, concrete action and evidence, even when the parent task remains active.
+- [x] **OPS-PERSONAL-WORK.1:** Implemented in PR #90 (pending release): native reviewed Record Work and Complete with actual performer, Eastern work date, concrete action and evidence, even when the parent task remains active.
 - [ ] **OPS-PERSONAL-WORK.2:** Extend scoped connector only after separate auth/approval review; verify event idempotency, source attribution and exact readback.
 - [ ] **OPS-PERSONAL-WORK.3:** Verify the Friday statement’s two distinct actions on one task across local midnight, Gary’s actual progress and Huzy’s next-shift priority. Attribute Leslie’s inspection to Leslie and Huzy’s PDF filing to Huzy.
 
