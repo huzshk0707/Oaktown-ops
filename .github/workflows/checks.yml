@@ -173,6 +173,8 @@ jobs:
         run: npm ci --no-fund --no-audit --prefix supabase/functions/oaktown-task-api
       - name: Install disposable database test tooling
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Verify isolated SQL write, readback and rollback smoke test
+        run: psql -v ON_ERROR_STOP=1 -f tests/sql-write-smoke.sql
       - name: Verify historical portfolio migrations and existing workspace APIs
         shell: bash
         run: |
@@ -213,7 +215,7 @@ jobs:
             -f tests/task-agent-check.sql
       - name: Reject duplicate concurrent saves and stale competing proposals
         run: node tests/task-agent-concurrency.cjs
-      - name: Verify scoped plan consent, native review, concurrency and guarded rollback
+      - name: Verify scoped Morning snapshot, plan consent, native review, concurrency and guarded rollback
         run: node tests/plan-review-database.cjs
       - name: Verify private lease preparation, native approval, replay and guarded rollback
         run: node tests/lease-preparation-database.cjs

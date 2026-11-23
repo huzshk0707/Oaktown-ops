@@ -1,4 +1,5 @@
 const {test,expect}=require('@playwright/test');
+const AxeBuilder=require('@axe-core/playwright').default;
 const {morningMock,signIn,ORIGIN,USER}=require('./morning-fixtures.cjs');
 const T=require('../today-model.js');
 const {saved}=require('./daily-fixtures.cjs');
@@ -24,11 +25,14 @@ test('unapproved staff role cannot sign in or see private dashboard records',asy
 test('desktop first view answers the three questions and enters the displayed task in Focus',async({page})=>{
  const s=await open(page);
  const focus=s.tasks.find(task=>task.status==='in_progress');
- for(const width of [1280,1440,1920]){
+ for(const width of [320,390,768,1280,1440,1920]){
   await page.setViewportSize({width,height:640});
-  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`horizontal overflow at ${width}px`).toBe(true);
+  // Phones scroll vertically; forcing all three cards above the fold would
+  // recreate the unreadable fixed-width desktop layout.
   for(const id of ['daily-priorities','daily-followups','daily-pickup','daily-start']){
-   await expect(page.locator('#'+id)).toBeInViewport({ratio:1});
+   if(width>=1280)await expect(page.locator('#'+id)).toBeInViewport({ratio:1});
+   else await expect(page.locator('#'+id)).toBeVisible();
   }
  }
  await expect(page.locator('#daily-priorities')).toContainText('Overdue');
@@ -62,4 +66,36 @@ test('approval pagination finds a valid plan beyond invalid rows and keeps the s
 });
 test('session expiration clears dashboard tasks, the pickup step and approved source text',async({page})=>{
  const s=await open(page);s.fail=true;s.failStatus=401;s.expireSession=true;await page.locator('#morning-command-refresh').click();await expect(page.locator('#daily-dashboard')).not.toBeVisible();await expect(page.locator('#daily-priorities')).toBeEmpty();await expect(page.locator('#daily-pickup')).toBeEmpty();await expect(page.locator('#daily-plan')).not.toContainText('Fictional');expect(s.writes).toEqual([]);
+});
+
+test('high-priority actionable undated tasks appear in attention without inventing waiting dependencies',async({page})=>{
+ const s=await open(page,2);
+ const mk=(id,code,title,status,priority,details)=>({id,task_code:code,task_title:title,status,priority,assigned_label:null,assigned_user_id:null,due_at:null,archived_at:null,property_id:null,unit_id:null,tenancy_id:null,lease_id:null,workflow_key:'maintenance',intake_details:details});
+ const a06=mk('a0600000-0000-4000-8000-000000000001','A06','Mockernut Lane inspection follow-up repairs','pending','high',{next_action:'Confirm repair provider and exact Monday access time.'});
+ const contact=mk('a0600000-0000-4000-8000-000000000002','DEMO-CALL','Contact tenant for access','pending','high',{next_action:'Call tenant to request an access window.'});
+ const blocked=mk('a0600000-0000-4000-8000-000000000003','DEMO-BLOCK','Await contractor availability','blocked','high',{next_action:'Check the repair schedule.',blocked_reason:'Contractor availability not confirmed.'});
+ const completed=mk('a0600000-0000-4000-8000-000000000004','DEMO-DONE','Completed repair','completed','high',{next_action:'Already completed.'});
+ s.tasks.push(a06,contact,blocked,completed);
+ await page.locator('#morning-command-refresh').click();
+ await page.locator('#daily-priorities .daily-show-all').click();
+ for(const width of [1280,1440,1920]){
+  await page.setViewportSize({width,height:640});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await expect(page.locator('#daily-priorities')).toContainText('A06');
+  await expect(page.locator('#daily-priorities')).toContainText('High priority · actionable');
+ }
+ await expect(page.locator('#daily-priorities')).toContainText('Contact tenant for access');
+ for(const theme of ['veyra','oryn','nilo','ember','verdant','pearl']){
+  await page.locator('#workspace-appearance-open').click();
+  await page.getByLabel('Workspace theme').selectOption(theme);
+  await page.locator('#workspace-appearance-dialog').getByRole('button',{name:'Close',exact:true}).click();
+  const audit=await new AxeBuilder({page}).include('.topbar').include('#morning-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+  expect(audit.violations.map(v=>({id:v.id,nodes:v.nodes.map(n=>n.target)})),theme).toEqual([]);
+ }
+ await expect(page.locator('#daily-priorities')).not.toContainText('Await contractor availability');
+ await expect(page.locator('#daily-priorities')).not.toContainText('Completed repair');
+ await expect(page.locator('#daily-followups')).toContainText('Await contractor availability');
+ await expect(page.locator('#daily-followups')).not.toContainText('A06');
+ await expect(page.locator('#daily-followups')).not.toContainText('Contact tenant for access');
+ expect(s.writes).toEqual([]);
 });

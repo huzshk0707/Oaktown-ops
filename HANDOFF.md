@@ -6,6 +6,27 @@
 - Task Intake v1 does not collect a performer. The first browser test verifies those new activity rows cannot be credited as personal work. A separate fixture explicitly attributes work to test the draft, including excluding Leslie’s action. See [Friday EOD preview](docs/ui-review/friday-rehearsal/eod-friday.png).
 - Checks: `node --test tests/*.test.cjs` (240 passed), workflow inventory (30 families, 69 scripts), and 48 Chromium cases across Friday rehearsal and Today. The EOD screenshot case also passed on the final status copy. Fictional fixtures only.
 - NEXT STEP: in OPS-PERSONAL-WORK.1, design reviewed Record Work on an existing task. Save the actual performer, Eastern work date, explicit action and evidence, including progress while the task stays open. Verify the saved ID and show it in the EOD.
+## PR #89 responsive reconciliation — 2026-11-23
+
+- Merging current main into the Morning shift brief branch preserves task archiving, scoped Morning Plan integration, and lease-rehearsal changes.
+- Removed the inherited 1180px Morning minimum width and added phone/tablet layout for the shift cards, topbar, controls and review forms.
+- Browser checks now require no horizontal overflow at all six widths. Small screens may scroll vertically; desktop retains the above-the-fold three-question check.
+- Final hosted CI and screenshots are required before merging PR #89. No production records, migrations, Auth settings or live site were changed.
+
+---
+
+# PR #89 operational classification follow-up — 2026-11-22
+
+- Rehearsal finding: the shift brief's attention projection previously used only overdue, due-today and urgent Focus lanes. High-priority, actionable undated tasks such as fictional A06 were omitted.
+- Fix in review: preserve Focus Board lane/order and selection; additionally surface active high-priority tasks with a non-empty saved next_action in Morning attention, provided no recorded dependency exists. Label them **High priority · actionable**, not urgent.
+- Dependency semantics: only saved waiting/blocked status, non-empty waiting_on, or non-empty blocked_reason qualify for the waiting section. A pending task whose next action is to call/contact someone remains actionable work; the UI does not invent a waiting party, owner, due date or urgency.
+- SOD section projection follows the same rule: high-priority actionable undated tasks map to Immediate priorities unless a recorded dependency places them in Pending and blocked. Approval validation, task IDs, source versions and saved records are unchanged.
+- Regression coverage added for A06-like work, contact initiation, external dependencies, blocked tasks, high-priority tasks with no next action, and completed tasks. A browser regression checks the Morning display at 320/390/768/1280/1440/1920 widths, no horizontal overflow, and axe WCAG 2.1 AA rules under all six workspace themes (veyra, oryn, nilo, ember, verdant, pearl).
+- SQL smoke test added to the existing disposable GitHub Actions Postgres service. It refuses any database other than oaktown_portfolio_ci, performs the temporary-table insert/update/readback and rolls back, then asserts the temporary table is gone. It is not run against Supabase production.
+- Supabase production schema inspection: ops_tasks and ops_events have RLS enabled. Staff policies restrict task reads to active memberships and task inserts/updates to active admin/editor memberships; event reads require active membership and event inserts require active admin/editor membership. authenticated has table grants (tasks SELECT/INSERT/UPDATE; events SELECT/INSERT), while the scoped oaktown_task_agent role is not granted direct table access by the reviewed connection design.
+- Scoped ChatGPT OAuth task connection is not established: no registered active ChatGPT client/consent was verified in the existing handoff. Existing SQL/API CI tests use fictional identities and mocks; they are not a real ChatGPT OAuth integration test. Do not substitute administrative SQL for this workflow.
+- No production data, A06, migrations, production authorization, or deployed code changed. PR remains unmerged.
+- NEXT STEP: review the latest hosted Node/browser/Postgres checks and the fictional Morning screenshot artifact. Then verify the scoped OAuth client/consent before any real task-API integration rehearsal. Separately activate and verify the intended scoped OAuth client/consent before running a real fictional General Operations task API rehearsal; do not create a task until the connection is proven.
 
 ---
 
@@ -18,6 +39,34 @@
 - NEXT STEP: review the first-view preview in PR #89 and inspect the checks for its latest commit. After UI review, run the full Friday rehearsal in OPS-SHIFT-BRIEF.2.
 
 ---
+
+## PR #94 browser regression fix — 2026-11-22T07:23:58.308Z
+
+- Owner: chatgpt; claim 2026-11-22T07:23:58.308Z – 2026-11-22T07:53:58.308Z. Existing PR head before claim: 915c3425e163d35ebc21492b2417847735f4dff8.
+- Verified: browser job failed 1/305 tests due to intentional advanced room-position collapse; test tried selecting hidden #newlease-roomSection in tests/lease-template.e2e.spec.cjs:20. Prior run: 304 passed.
+- NEXT STEP: Expand .lease-draft-placement in the existing browser test, rerun exact-head CI, inspect before any authorized merge. No backend/production writes.
+
+## Active lease rehearsal UX PR #94 — 2026-11-22
+
+- **Owner:** chatgpt. **Branch:** `chatgpt/lease-rehearsal-ux`. **Base:** main d4e4df5ff8455e7cd5641e818cb98cc0e1c3d4b7. **Claim:** 2026-11-22T07:16:22.837Z to 2026-11-22T07:46:22.837Z UTC.
+- **Scope:** staff-only fictional one-bedroom rehearsal UI; no real tenant details or approved master PDFs committed; no runtime backend/schema change, operational write, approval, deployment or merge.
+- **Completed:** rehearsal launcher (no unit linked), print-vs-pet deposit distinction, five-step progress, advanced room placement collapsed, review issue edit links, style/version updates, fictional regression test and `docs/LEASE-REHEARSAL-UX.md`. `TASKS.md` tracks the draft PR.
+- **Static checks:** modified JS and browser test parse successfully; CSS braces balanced; changed code/docs/test free of real applicant and Cherokee identifying strings. CI `checks` and `portfolio-schema` passed at earlier implementation and current head `0e5a2098cf8a`; `browser-downloads` was running at 2026-11-22T07:16:22.837Z.
+- **Current last implementation tip:** `0e5a2098cf8a160e551d7236778a1f47bd7294de` (before this handoff-only commit).
+- **Claim released at 2026-11-22T07:17:17.723Z. NEXT STEP:** review exact final-head GitHub Actions browser result and fictional Page 8 preview, fix any failure, then request staff UX acceptance. Keep PR draft and do not merge or deploy without separate authorization; separate clean-master and Supabase migration activation remain outstanding.
+
+## ChatGPT Morning Plan integration
+
+- Owner felix. Claim released 2026-11-22 07:12 UTC after implementation and local verification. [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) targets `main` from `felix/morning-plan-consent`. The verified personal-consent migration from `93001e3` is preserved.
+- `read_morning_priority_snapshot` reads the complete active priority pool through the scoped task RPC. Its 25-row pages carry a total and cursor. A change in the pool invalidates the cursor. The three plan tools keep exact proposal submission, native staff review and independent approval readback.
+- Verified with 240 Node tests, workflow inventory, Deno type check, the disposable PostgreSQL 16 workflow, and 61 targeted Chromium cases. The database test compares snapshot ordering to the browser model and checks stale versions, duplicate intent, authorization denial and existing scoped task create and update.
+- **NEXT STEP:** Review PR #93 and its final GitHub Actions run, then use [the manual rollout steps](docs/CHATGPT-TASK-CONNECTION.md#manual-rollout-after-pr-review) after separate authorization.
+
+## Individual task archive
+
+[PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) targets main from `codex/single-task-archive`. Owner Codex, claim released after local verification. The task editor shared by Tasks and Focus offers More actions → Archive task. Its confirmation uses the saved title, checks editor access and the reviewed version, and verifies the one-task receipt against refreshed data. Existing History Restore verifies identity, version and saved status. Bulk settings and connector permissions are outside this change.
+
+Local verification passed for 239 Node tests, workflow inventory and 58 Chromium cases in the Today suite (57 together plus the Focus Center entry case). The disposable database job passed for the archive/restore field, history and isolation assertions in checkpoint `3150157`. NEXT STEP: review PR #92 and its final checks. After separate deployment approval, staff can manually archive the designated fictional task and restore it through Tasks → History.
 
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 

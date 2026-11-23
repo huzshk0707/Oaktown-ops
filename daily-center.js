@@ -48,7 +48,7 @@
    const followUp=info.follow_up?.date;
    if(T.validDate(followUp))copy.append(node('span','Follow-up · '+followUp,'daily-task-meta'));
   }else{
-   const urgency=F.appearance(task,day).label;
+   const urgency=F.lane(task,day)==='remaining'&&String(task.priority||'').toLowerCase()==='high'?'High priority · actionable':F.appearance(task,day).label;
    copy.append(button);
    if(view==='attention'){
     copy.append(node('span',urgency+(schedule?' · '+schedule.date:''),'daily-task-meta'));
