@@ -1,3 +1,42 @@
+## Current checkpoint — Codex
+
+Claim 2026-11-23 02:40 UTC through 03:10 UTC. Next step: Repair and verify the responsive Morning header.
+Verified no horizontal overflow at 320, 390, 768, 1280, 1440 and 1920 pixels in Chromium. Awaiting GitHub checks.
+
+## PR #89 responsive reconciliation — 2026-11-23
+
+- Merging current main into the Morning shift brief branch preserves task archiving, scoped Morning Plan integration, and lease-rehearsal changes.
+- Removed the inherited 1180px Morning minimum width and added phone/tablet layout for the shift cards, topbar, controls and review forms.
+- Browser checks now require no horizontal overflow at all six widths. Small screens may scroll vertically; desktop retains the above-the-fold three-question check.
+- Final hosted CI and screenshots are required before merging PR #89. No production records, migrations, Auth settings or live site were changed.
+
+---
+
+# PR #89 operational classification follow-up — 2026-11-22
+
+- Rehearsal finding: the shift brief's attention projection previously used only overdue, due-today and urgent Focus lanes. High-priority, actionable undated tasks such as fictional A06 were omitted.
+- Fix in review: preserve Focus Board lane/order and selection; additionally surface active high-priority tasks with a non-empty saved next_action in Morning attention, provided no recorded dependency exists. Label them **High priority · actionable**, not urgent.
+- Dependency semantics: only saved waiting/blocked status, non-empty waiting_on, or non-empty blocked_reason qualify for the waiting section. A pending task whose next action is to call/contact someone remains actionable work; the UI does not invent a waiting party, owner, due date or urgency.
+- SOD section projection follows the same rule: high-priority actionable undated tasks map to Immediate priorities unless a recorded dependency places them in Pending and blocked. Approval validation, task IDs, source versions and saved records are unchanged.
+- Regression coverage added for A06-like work, contact initiation, external dependencies, blocked tasks, high-priority tasks with no next action, and completed tasks. A browser regression checks the Morning display at 320/390/768/1280/1440/1920 widths, no horizontal overflow, and axe WCAG 2.1 AA rules under all six workspace themes (veyra, oryn, nilo, ember, verdant, pearl).
+- SQL smoke test added to the existing disposable GitHub Actions Postgres service. It refuses any database other than oaktown_portfolio_ci, performs the temporary-table insert/update/readback and rolls back, then asserts the temporary table is gone. It is not run against Supabase production.
+- Supabase production schema inspection: ops_tasks and ops_events have RLS enabled. Staff policies restrict task reads to active memberships and task inserts/updates to active admin/editor memberships; event reads require active membership and event inserts require active admin/editor membership. authenticated has table grants (tasks SELECT/INSERT/UPDATE; events SELECT/INSERT), while the scoped oaktown_task_agent role is not granted direct table access by the reviewed connection design.
+- Scoped ChatGPT OAuth task connection is not established: no registered active ChatGPT client/consent was verified in the existing handoff. Existing SQL/API CI tests use fictional identities and mocks; they are not a real ChatGPT OAuth integration test. Do not substitute administrative SQL for this workflow.
+- No production data, A06, migrations, production authorization, or deployed code changed. PR remains unmerged.
+- NEXT STEP: review the latest hosted Node/browser/Postgres checks and the fictional Morning screenshot artifact. Then verify the scoped OAuth client/consent before any real task-API integration rehearsal. Separately activate and verify the intended scoped OAuth client/consent before running a real fictional General Operations task API rehearsal; do not create a task until the connection is proven.
+
+---
+
+# Morning Command Center shift brief — review complete
+
+- Task OPS-SHIFT-BRIEF.1, branch `codex/morning-shift-brief`, [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89). Owner codex, claim released after local verification. Merged roadmap PR #88 is included through main `bea1f97`.
+- The first desktop view shows due and urgent work, recorded dependencies and one task with its saved next action. The button opens that exact task on the existing Focus Board. Start of Day and approvals are available on the same route.
+- The brief remembers the most recent eligible Focus task in the current session and labels suggestions. Long text is previewed in the brief and available in the task. Durable resume across sessions and quick capture are follow-up tasks.
+- Local verification: `node --test tests/*.test.cjs` (240 passed), `node scripts/workflow-states.cjs --check` (30 families, 69 scripts), 81 distinct Playwright cases across eight Morning, plan, Focus and routing suites. Twelve Morning/Daily cases passed again after tightening text fit. The [desktop preview](docs/ui-review/morning-motion/shift-brief-desktop.png) uses fictional records.
+- NEXT STEP: review the first-view preview in PR #89 and inspect the checks for its latest commit. After UI review, run the full Friday rehearsal in OPS-SHIFT-BRIEF.2.
+
+---
+
 ## PR #94 browser regression fix — 2026-11-22T07:23:58.308Z
 
 - Owner: chatgpt; claim 2026-11-22T07:23:58.308Z – 2026-11-22T07:53:58.308Z. Existing PR head before claim: 915c3425e163d35ebc21492b2417847735f4dff8.

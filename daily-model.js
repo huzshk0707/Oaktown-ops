@@ -18,11 +18,23 @@
  // Server approval time orders different plans; a draft revision is local to its plan ID.
  const fraction=value=>(value.match(/\.(\d+)/)?.[1]||'').padEnd(9,'0');
  function latest(rows,day){return rows.filter(r=>validApproval(r,day)).sort((a,b)=>Date.parse(b.occurred_at)-Date.parse(a.occurred_at)||fraction(b.occurred_at).localeCompare(fraction(a.occurred_at))||b.id.localeCompare(a.id))[0]||null}
- function project(tasks,day){
+ function chooseFocus(tasks,selectedId){
+  const selected=tasks.find(task=>task.id===selectedId);
+  if(selected)return {task:selected,label:'Last shown in Focus'};
+  const inProgress=tasks.find(task=>task.status==='in_progress');
+  if(inProgress)return {task:inProgress,label:'In progress'};
+  return tasks.length?{task:tasks[0],label:'Suggested focus'}:null;
+ }
+ function project(tasks,day,selectedId=null){
   const active=F.order(tasks,day),owners=new Map();
   for(const t of active){const key=t.assigned_user_id?'user:'+t.assigned_user_id:t.assigned_label?'label:'+t.assigned_label:'unassigned';if(!owners.has(key))owners.set(key,{key,label:t.assigned_label||t.assigned_user_id||'Unassigned',tasks:[]});owners.get(key).tasks.push(t)}
-  const followups=active.filter(t=>['waiting','blocked'].includes(t.status)||t.intake_details?.waiting_on||t.intake_details?.blocked_reason||T.scheduled(t)?.type==='Follow-up');
-  return {active,owners:[...owners.values()],followups,attention:active.filter(t=>F.lane(t,day)!=='remaining').length};
+  return {
+   active,
+   owners:[...owners.values()],
+   waiting:active.filter(T.hasDependency),
+   attention:active.filter(task=>F.lane(task,day)!=='remaining'||(String(task.priority||'').toLowerCase()==='high'&&T.actionable(task)&&!T.hasDependency(task))),
+   focus:chooseFocus(active.filter(task=>!T.hasDependency(task)),selectedId)
+  };
  }
  return Object.freeze({validApproval,latest,project});
 });

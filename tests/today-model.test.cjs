@@ -58,3 +58,13 @@ test('planning respects recorded schedules and owners without inventing dates',(
  assert.equal(M.needsPlanning({assigned_label:'Example staff',due_at:'2026-11-15T15:00:00Z'}),false);
  assert.equal(M.needsPlanning({assigned_label:'Example staff',intake_details:{}}),true);
 });
+
+test('actionability and dependencies require recorded fields or waiting status',()=>{
+ const callTenant={status:'pending',intake_details:{next_action:'Call tenant to request access.'}};
+ const awaitingTenant={status:'pending',intake_details:{waiting_on:'Tenant'}};
+ const blocked={status:'blocked',intake_details:{blocked_reason:'Awaiting contractor availability.'}};
+ const empty={status:'pending',intake_details:{}};
+ assert.equal(M.actionable(callTenant),true);assert.equal(M.hasDependency(callTenant),false);
+ assert.equal(M.hasDependency(awaitingTenant),true);assert.equal(M.hasDependency(blocked),true);
+ assert.equal(M.actionable(empty),false);assert.equal(M.hasDependency(empty),false);
+});

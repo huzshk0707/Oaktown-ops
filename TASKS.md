@@ -8,7 +8,7 @@
 
 ## First build — Morning Command Center
 
-- [ ] **OPS-SHIFT-BRIEF.1:** In [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89), put urgent work, waiting dependencies and the exact Focus task above the Start of Day and assignment details. Check the first desktop view, the one-click Focus handoff, unavailable/empty states, themes and keyboard navigation with fictional records.
+- [x] **OPS-SHIFT-BRIEF.1:** Implemented the first desktop view and the exact Focus Board handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89). Verified the layout, unavailable and empty states, themes and keyboard navigation with fictional records.
 - [ ] **OPS-SHIFT-BRIEF.2:** Rehearse Friday on the reviewed screen. Check the statement, Gary’s queued hours and the resume note. Plan durable per-user focus and recurring work after the first slice.
 
 ## P0 — operational activation and acceptance
