@@ -1,3 +1,7 @@
+## Current checkpoint — Codex
+
+Claim 2026-11-23 02:40 UTC through 03:10 UTC. Next step: Integrate Morning and verify reviewed work attribution through EOD.
+
 # Friday shift rehearsal completed
 
 - Task OPS-SHIFT-BRIEF.2, branch `codex/friday-rehearsal`, [PR #90](https://github.com/huzshk0707/Oaktown-ops/pull/90). Owner codex, claim released after local verification. Review against screen PR #89 at `68bed16`.
