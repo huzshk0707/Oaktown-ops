@@ -1,3 +1,42 @@
+## Activation guide reconciled
+
+The dated read-only assessment and the later Morning Plan instructions are both retained. The diff against Friday contains documentation only. Claim released. Next step: verify hosted CI and merge after Friday.
+
+## PR #91 documentation reconciliation
+
+Codex claim 2026-11-23 02:48–03:18 UTC. Next step: reconcile the dated activation assessment with the newer Morning Plan guide.
+
+# Current handoff — OPS-ACTIVATE-TASK-CONNECTION
+
+- Owner: codex
+- Branch: `codex/ops-activate-task-connection`
+- Base: `main` at `bea1f979de54f371ac39e972f198b51fe938d979`
+- Claim: released after documentation checkpoint; 2026-11-22 UTC
+- Scope completed: documentation and read-only activation investigation only; no production Auth changes, migrations, deployments or task writes.
+- Done: read AGENTS.md, current HANDOFF.md, TASKS.md, connection docs, Oaktownbrain procedure and active PRs; inspected live Supabase project, Edge Function, OAuth client/consent counts, scoped client registry, role grants, RLS policies and token-hook functions; confirmed account-plan limitation from current OpenAI documentation.
+- Verification: read back all three changed files and reviewed the complete PR diff. No runtime tests were needed for documentation-only changes.
+- NEXT STEP: Huzy chooses an eligible Business/Enterprise/Edu workspace or the Go-compatible manual approval fallback; account-owner action is required before OAuth setup.
+
+## Read-only activation findings — 2026-11-22
+
+- ChatGPT Go cannot create/use the required write-capable custom MCP connection under current OpenAI plan availability. Business or Enterprise/Edu is required for full write MCP; Pro is read/fetch-only. No Oaktown task MCP tools are present in this Go conversation.
+- Supabase project `wjdzaexhhjsjtdgxivyw` is ACTIVE_HEALTHY. `oaktown-task-api` is ACTIVE v3; the API uses its own scoped JWT verification (gateway `verify_jwt=false`).
+- Supabase Auth contains one manually registered confidential client named `Oaktown ChatGPT Tasks`, authorization-code + refresh-token grants, `client_secret_basic`, and redirect URI `https://chatgpt.com/connector/oauth/CR_Fqd9rVoRb`.
+- Auth OAuth consent count is 0. Oaktown `ops_agent_private.clients` allowlist count is 0 (no enabled/write client). The token-hook functions exist, but Auth dashboard hook configuration and signing algorithm cannot be verified through the available Supabase tools.
+- `oaktown_task_agent` is NOLOGIN/NOINHERIT with no direct table grants. `ops_tasks` and `ops_events` have RLS. Staff admin/editor task write policies and the Task Intake UI remain available; they have not been disabled.
+- **No scoped task read was possible** because this ChatGPT Go conversation has no Oaktown MCP connection/token. A privileged SQL read is not a substitute. No fictional task or real task was written.
+- The existing ChatGPT plugin catalogue includes the Supabase admin connector, but it is not the Oaktown scoped task API.
+
+## Exact owner decision / next step
+
+1. Choose whether to use an eligible Business/Enterprise/Edu workspace for the intended ChatGPT write workflow, or remain on Go and use ChatGPT only to prepare proposals that are reviewed/saved in Oaktown Ops.
+2. If using an eligible workspace, have the Supabase owner verify OAuth Server settings, authorization path `/`, Site URL, Custom Access Token Hook `public.ops_task_agent_token_hook`, existing hook composition, and ES256/RS256 signing. Reuse the existing OAuth client only if its secret is securely available and the exact redirect URI matches; otherwise rotate/register a replacement securely.
+3. Have an Oaktown administrator add the client in Tasks → Settings & connections → ChatGPT task connection with read-only access first. Install/connect the MCP server in ChatGPT, complete staff OAuth and consent, then prove scoped read and direct-access denial before enabling writes.
+4. Only after those gates, prepare a fictional General Operations write proposal for explicit Huzy approval. No production Auth, RLS, task or deployment changes are authorized by this report.
+
+**NEXT STEP:** Huzy chooses an eligible ChatGPT workspace or the Go-compatible manual approval fallback. Stop here for account-owner interaction.
+
+---
 ## Friday workflow checkpoint
 
 Owner Codex. Reviewed Record Work and optional completion now feed the personal EOD through Task Intake. Both fictional Friday Chromium rehearsals passed locally. The additive SQL change is staged for review. The disposable database test passed on 4ed1797. The final rehearsal now completes the statement through the same native form, records Leslie’s revision request separately, and verifies Huzy’s EOD excludes it. Both Friday tests passed locally again. Claim released for review. Next step: check final hosted CI, then obtain release approval. Production rollout requires separate approval.

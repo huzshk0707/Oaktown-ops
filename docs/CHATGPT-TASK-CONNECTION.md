@@ -1,9 +1,24 @@
 # ChatGPT task connection
 
 This adds the Oaktown side of a scoped OAuth task plugin. It does not make an
-ordinary ChatGPT Project acquire tools automatically. The user confirmed access
-to **Custom MCP servers / Create plugins**; use that flow, rather than build a
-new custom GPT around retiring Actions functionality.
+ordinary ChatGPT Project acquire tools automatically. **Check the active ChatGPT
+plan before setup:** as of 2026-11-22, OpenAI documents full custom MCP support,
+including write actions, for Business and Enterprise/Edu; Pro custom MCP is
+read/fetch-only; Go is not listed as eligible. A Go account cannot use this
+write-capable connection. Do not treat a connected Supabase administration
+plugin as the scoped Oaktown task plugin.
+
+## Activation assessment — 2026-11-22 (read-only)
+
+- Current ChatGPT account plan: **Go**. The custom MCP write connection described here is not available on this plan under OpenAI's current published availability. Pro's documented custom MCP access is read/fetch-only; Business or Enterprise/Edu is required for the intended write workflow.
+- Supabase project is `ACTIVE_HEALTHY`; `oaktown-task-api` is **ACTIVE v3** with gateway JWT verification disabled because the function performs its own scoped asymmetric-token verification.
+- Supabase Auth has **one** manually registered confidential OAuth client named `Oaktown ChatGPT Tasks`. Its grant types are authorization code + refresh token, its token endpoint auth method is `client_secret_basic`, and its registered redirect URI is `https://chatgpt.com/connector/oauth/CR_Fqd9rVoRb`. The client record exists; this is not evidence of a completed ChatGPT connection. Do not expose or commit its secret.
+- `auth.oauth_consents` contains **0** consent records. `ops_agent_private.clients` contains **0** client allowlist records (0 enabled, 0 write-enabled). Thus the OAuth client has not been enabled in Oaktown's task-agent allowlist and no ChatGPT user consent is recorded.
+- The SQL functions `public.ops_task_agent_token_hook` and `ops_agent_private.token_hook` exist. The private hook checks the enabled client and active admin/editor membership before adding the task-agent role/audience. The available Supabase tools do not expose the Auth dashboard hook setting, so whether Supabase Auth is currently configured to invoke this function is **not verified**. Signing algorithm and live OAuth discovery/consent are likewise not proven by the database record.
+- The role `oaktown_task_agent` is NOLOGIN/NOINHERIT, has no direct table grants, and is intended to call only the scoped task RPC. `ops_tasks` and `ops_events` have RLS. Ordinary authenticated staff still have editor/admin RLS paths for task creation/update; those legacy paths are a separate UI-permission project and have not been disabled.
+- No Oaktown task MCP tools are connected in the current ChatGPT Go conversation. The available Supabase plugin is an administrative database connector, not a substitute for this scoped OAuth connection.
+
+**Read-only acceptance was not run:** there is no scoped ChatGPT token/tool in this conversation. No admin SQL query is represented as a scoped task read. No task or audit record was written.
 
 ## What it does
 
@@ -131,10 +146,7 @@ Server URL:
 
 `https://wjdzaexhhjsjtdgxivyw.supabase.co/functions/v1/oaktown-task-api/mcp`
 
-1. Confirm the deployment record below. The database migration and Edge Function
-   are already deployed; do not reapply the migration. Gateway JWT verification
-   is **off** because the function performs its own asymmetric JWT verification.
-   Metadata/tool discovery is public; task operations require scoped OAuth.
+1. **Plan gate first.** Stop on ChatGPT Go. Upgrade/use an eligible Business workspace (or Enterprise/Edu) for write-capable custom MCP. Pro is insufficient for writes. Confirm the custom MCP server creation permission in that workspace. The backend migration and Edge Function are already deployed; do not reapply the migration. Gateway JWT verification is **off** because the function performs its own asymmetric JWT verification. Metadata/tool discovery is public; task operations require scoped OAuth.
 2. In Supabase → Authentication → OAuth Server, enable OAuth and set the
    authorization path to `/` with Site URL
    `https://huzshk0707.github.io/Oaktown-ops/`. This serves the consent dialog at
@@ -145,15 +157,22 @@ Server URL:
    existing hook deliberately rather than silently replacing it. Ordinary
    browser sessions are returned unchanged. Use an asymmetric signing key;
    legacy HS256 tokens are intentionally rejected by the task endpoint.
-4. Create the ChatGPT custom MCP connection/plugin with the server URL. Use a
-   predefined OAuth client in Supabase, with the **exact redirect URI displayed
-   by ChatGPT**. Keep dynamic registration disabled for this initial internal
-   setup. Enter its client ID/secret only in the secure ChatGPT connection form,
-   never in chat, Git, the Oaktown client-access form or plugin manifests.
-5. In Oaktown's administrator panel, register that public client ID and name.
-   Start with read-only access, then enable reviewed task changes after the
-   smoke checks below. Complete OAuth in ChatGPT and explicitly approve the
-   Oaktown connection. Only known enabled clients are accepted by the consent UI.
+4. Reuse the existing Supabase OAuth client `Oaktown ChatGPT Tasks` if its
+   secret is securely available and the ChatGPT connection still displays the
+   registered redirect URI above. If ChatGPT displays a different redirect URI,
+   register/rotate the OAuth client through Supabase Auth owner settings to use
+   that exact URI. Keep dynamic registration disabled for this internal setup.
+   Enter client ID/secret only in ChatGPT's secure OAuth connection form, never
+   in chat, Git, the Oaktown client-access form or plugin manifests. If the
+   original secret is unavailable, do not attempt to recover the stored hash;
+   have the owner rotate/create a new confidential client securely.
+5. In Oaktown Ops → Tasks → Settings & connections → ChatGPT task connection,
+   have an authorized administrator register the public OAuth client ID and
+   label. Start with **enabled + read-only** (`can_write=false`). Complete OAuth
+   in ChatGPT using an active Oaktown admin/editor staff account and explicitly
+   approve the Oaktown consent dialog. Only known enabled clients are accepted.
+   After successful scoped read and denial checks, obtain separate approval to
+   enable reviewed task writes (`can_write=true`).
 6. Add the bundled `plugins/oaktown-ops/skills/task-dashboard/SKILL.md` to the
    plugin's instructions. The portable plugin manifest/MCP config are in the
    same folder; they contain no registered app IDs or secrets. Packaging source
