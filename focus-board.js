@@ -152,7 +152,14 @@
  new MutationObserver(stopMotion).observe(document.documentElement,{attributes:true,attributeFilter:['data-ops-motion']});matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',stopMotion);
  setInterval(()=>{if(active&&!document.hidden&&reference!==T.today()){reference=T.today();render()}},60000);
  document.addEventListener('visibilitychange',()=>{if(active&&!document.hidden){reference=T.today();render()}});
- window.OpsFocusBoard=Object.freeze({getSelected:()=>detailId||selectedId,getNext:id=>{const all=rows(),at=all.findIndex(t=>t.id===id);return all[at+1]?.id||all[at-1]?.id||null},restoreFocus:()=>selectedButton()?.focus({preventScroll:true})});
+ function openTask(id){
+  if(!window.OpsCloud.user||store.getState()!=='ready'||!rows().some(task=>task.id===id))return false;
+  selectedId=id;
+  reviewReturn=null;
+  if(active)render();else window.OpsWorkspace.navigate('focus');
+  return true;
+ }
+ window.OpsFocusBoard=Object.freeze({openTask,getSelected:()=>detailId||selectedId,getNext:id=>{const all=rows(),at=all.findIndex(t=>t.id===id);return all[at+1]?.id||all[at-1]?.id||null},restoreFocus:()=>selectedButton()?.focus({preventScroll:true})});
  window.addEventListener('ops-focus-action-saved',event=>{
   const all=rows(),{id,kind,nextId}=event.detail,chosen=kind==='complete'?(all.find(t=>t.id===nextId)||all[0]):all.find(t=>t.id===id);
   selectedId=chosen?.id||null;

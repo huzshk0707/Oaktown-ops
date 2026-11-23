@@ -1,7 +1,7 @@
 /* Daily dashboard: OpsToday owns all task reads; OpsCloud owns the staff session. */
 (()=>{'use strict';
  const $=id=>document.getElementById(id),cloud=window.OpsCloud,store=window.OpsToday,M=window.OpsDailyModel,T=window.OpsTodayModel,W=window.OpsReviewedWrite;
- let day=T.today(),record=null,phase='idle',issue='',lastRefresh=null,ticket=0,lastLocalId=null,highlighted=new Set();
+ let day=T.today(),record=null,phase='idle',issue='',lastRefresh=null,ticket=0,lastLocalId=null,pickupId=null,highlighted=new Set();
  const readable=()=>!!cloud.user&&store.getState()==='ready'&&!!store.getData();
  const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=String(text);if(cls)n.className=cls;return n};
  const stamp=value=>new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'}).format(new Date(value));
@@ -34,20 +34,63 @@
   for(const [name,state,label] of states){$('daily-'+name+'-step').dataset.state=state;$('daily-'+name+'-state').textContent=label}
   $('daily-dashboard').setAttribute('aria-busy',String(loading));
  }
- function taskRow(task){
-  const row=node('li',null,'daily-task'),copy=node('div'),button=node('button',(task.task_code?task.task_code+' · ':'')+task.task_title,'daily-task-title');button.type='button';button.onclick=()=>openTask(task.id);
-  row.dataset.urgency=window.OpsFocusBoardModel.lane(task,day);
-  copy.append(button,node('span',window.OpsFocusBoardModel.appearance(task,day).label+' · '+task.status+' · '+(task.assigned_label||task.assigned_user_id||'Unassigned'),'daily-task-meta'));
-  const info=task.intake_details||{},next=info.blocked_reason||info.waiting_on||info.next_action;if(next)copy.append(node('p',next));
-  const schedule=T.scheduled(task);if(schedule)copy.append(node('span',schedule.type+' · '+schedule.date,'daily-task-meta'));
-  row.append(copy);if(highlighted.has(task.id))row.append(node('span','In approved SOD','daily-tag'));return row;
+ function taskTitle(task){return (task.task_code?task.task_code+' · ':'')+(task.task_title||'Untitled task')}
+ function taskRow(task,view){
+  const F=window.OpsFocusBoardModel,info=task.intake_details||{},schedule=T.scheduled(task);
+  const row=node('li',null,'daily-task'),copy=node('div'),button=node('button',taskTitle(task),'daily-task-title');button.type='button';button.onclick=()=>openTask(task.id);
+  row.dataset.urgency=F.lane(task,day);
+  row.append(copy);
+  if(view==='waiting'){
+   const who=typeof info.waiting_on==='string'?info.waiting_on.trim():'';
+   const reason=typeof info.blocked_reason==='string'?info.blocked_reason.trim():'';
+   const blocker=reason?'Blocked · '+reason:task.status==='blocked'?'Blocked · reason not recorded':'Waiting contact not recorded';
+   copy.append(node('strong',who||blocker,'daily-dependency'),button);
+   const followUp=info.follow_up?.date;
+   if(T.validDate(followUp))copy.append(node('span','Follow-up · '+followUp,'daily-task-meta'));
+  }else{
+   const urgency=F.lane(task,day)==='remaining'&&String(task.priority||'').toLowerCase()==='high'?'High priority · actionable':F.appearance(task,day).label;
+   copy.append(button);
+   if(view==='attention'){
+    copy.append(node('span',urgency+(schedule?' · '+schedule.date:''),'daily-task-meta'));
+   }else{
+    copy.append(node('span',urgency+' · '+task.status+' · '+(task.assigned_label||task.assigned_user_id||'Unassigned'),'daily-task-meta'));
+    const next=info.blocked_reason||info.waiting_on||info.next_action;
+    if(next)copy.append(node('p',next));
+    if(schedule)copy.append(node('span',schedule.type+' · '+schedule.date,'daily-task-meta'));
+    if(highlighted.has(task.id))row.append(node('span','In approved SOD','daily-tag'));
+   }
+  }
+  return row;
  }
- function taskList(host,tasks,empty,limit=6){
+ function taskList(host,tasks,empty,{limit=3,view}={}){
   host.replaceChildren();if(!tasks.length){host.append(node('p',empty,'daily-empty'));return}
-  const list=node('ul',null,'daily-task-list');tasks.slice(0,limit).forEach(t=>list.append(taskRow(t)));host.append(list);
-  if(tasks.length>limit){const more=node('button','Show all '+tasks.length+' tasks','button');more.type='button';more.onclick=()=>taskList(host,tasks,empty,tasks.length);host.append(more)}
+  const list=node('ul',null,'daily-task-list');
+  for(const task of tasks.slice(0,limit))list.append(taskRow(task,view));
+  host.append(list);
+  if(tasks.length>limit){
+   const more=node('button','Show all '+tasks.length+' tasks','button daily-show-all');
+   more.type='button';more.onclick=()=>{
+    for(const task of tasks.slice(limit))list.append(taskRow(task,view));
+    more.remove();list.children[limit].querySelector('button').focus();
+   };
+   host.append(more);
+  }
  }
- function approvedTaskIds(){if(!readable()||!record||phase!=='ready'||day!==T.today())return [];const active=new Set(M.project(store.getData().tasks,day).active.map(t=>t.id));return record.event_metadata.plan.rows.filter(r=>r.type==='task'&&active.has(r.id)).map(r=>r.id)}
+ function renderPickup(p){
+  const host=$('daily-pickup'),start=$('daily-start'),focus=p?.focus;
+  pickupId=focus?.task.id||null;
+  host.replaceChildren();
+  start.disabled=!p?.active.length;
+  start.textContent=focus?'Open task in Focus Board →':'Open Focus Board →';
+  if(!p)return;
+  if(!focus){
+   host.append(node('p',p.active.length?'Every active task is waiting or blocked.':'No active tasks to pick up.','daily-empty'));
+   return;
+  }
+  const task=focus.task,action=task.intake_details?.next_action;
+  host.append(node('p',focus.label,'daily-pickup-label'),node('h3',taskTitle(task)),node('p','Next action','daily-task-meta'),node('p',typeof action==='string'&&action.trim()?action.trim():'Next action not recorded.','daily-pickup-action'));
+ }
+ function approvedTaskIds(){if(!readable()||!record||phase!=='ready'||day!==T.today())return [];const active=new Set(T.classify(store.getData().tasks,day).all.map(t=>t.id));return record.event_metadata.plan.rows.filter(r=>r.type==='task'&&active.has(r.id)).map(r=>r.id)}
  function renderFocusPlan(){
   const on=window.OpsWorkspace.getRoute().workflow==='focus',p=record?.event_metadata.plan,show=on&&readable()&&phase==='ready'&&day===T.today()&&!!p;
   $('focus-morning-plan').hidden=!show;
@@ -59,17 +102,23 @@
   const taskState=store.getState(),stale=taskState==='error'||['error','denied'].includes(phase),planState=taskState==='loading'?'loading':taskState==='error'?'error':phase;
   readiness(taskState,access,stale);
   $('daily-prepare').disabled=!access;
-  $('daily-state').textContent=!cloud.user?'':taskState==='loading'||phase==='loading'?'Refreshing authorized records…':!access?'Shared task data unavailable. Refresh to retry.':stale?'Refresh incomplete. Last known records are stale; retry Refresh.':issue||'Authorized staff records · no automatic task or financial changes';
+  $('daily-state').textContent=!cloud.user?'':taskState==='loading'||phase==='loading'?'Refreshing authorized records…':!access?'Shared task data unavailable. Refresh to retry.':stale?'Refresh incomplete. Last known records are stale; retry Refresh.':issue;
   last.textContent=lastRefresh?'Last successful refresh · '+stamp(lastRefresh)+(stale?' · stale':''):'No successful refresh';
-  $('daily-start').disabled=!access;$('daily-date').disabled=!cloud.user;
-  if(!access){for(const id of ['daily-priorities','daily-assignments','daily-followups'])$(id).replaceChildren();$('daily-counts').textContent='';for(const id of ['active','attention','followup'])$('daily-'+id+'-count').textContent='—';}
+  $('daily-date').disabled=!cloud.user;
+  $('daily-brief').hidden=!access;
+  const p=access?M.project(data.tasks,day,window.OpsFocusBoard.getSelected()):null;
+  $('daily-active-count').textContent=p?.active.length??'—';
+  $('daily-active-label').textContent=p?.active.length===1?' active task':' active tasks';
+  $('daily-attention-count').textContent=p?.attention.length??'—';
+  $('daily-followup-count').textContent=p?.waiting.length??'—';
+  renderPickup(p);
+  if(!p){for(const id of ['daily-priorities','daily-assignments','daily-followups'])$(id).replaceChildren()}
   else{
-   const p=M.project(data.tasks,day);$('daily-active-count').textContent=p.active.length;$('daily-attention-count').textContent=p.attention;$('daily-followup-count').textContent=p.followups.length;$('daily-counts').textContent=p.active.length+' active tasks / '+p.attention+' need attention / '+p.followups.length+' follow-ups';
-   taskList($('daily-priorities'),p.active,'No active saved tasks.');
+   taskList($('daily-priorities'),p.attention,'No overdue, due or urgent tasks.',{view:'attention'});
+   taskList($('daily-followups'),p.waiting,'No waiting or blocked tasks recorded.',{view:'waiting'});
    const owners=$('daily-assignments');owners.replaceChildren();
-   for(const group of p.owners){const section=node('details',null,'daily-owner');section.open=true;section.append(node('summary',group.label+' · '+group.tasks.length+' active'));const list=node('div');taskList(list,group.tasks,'',3);section.append(list);owners.append(section)}
+   for(const group of p.owners){const section=node('details',null,'daily-owner');section.open=true;section.append(node('summary',group.label+' · '+group.tasks.length+' active'));const list=node('div');taskList(list,group.tasks,'');section.append(list);owners.append(section)}
    if(!p.owners.length)owners.append(node('p','No saved assignments.','daily-empty'));
-   taskList($('daily-followups'),p.followups,'No waiting, blocked or follow-up tasks recorded.',5);
   }
   const planHost=$('daily-plan');planHost.replaceChildren();
   $('daily-plan-status').textContent=planState==='ready'?(record?'Approved':'No approved SOD'):planState==='loading'?'Loading':planState==='denied'?'Access denied':planState==='error'?'Stale / unavailable':'Not loaded';
@@ -108,7 +157,11 @@
   }
  }
  $('daily-date').onchange=()=>{if(!T.validDate($('daily-date').value)){$('daily-date').value=day;return}day=$('daily-date').value;ticket++;record=null;lastRefresh=null;phase='idle';render();refreshPlan()};
- $('daily-start').onclick=()=>{if(readable())window.OpsWorkspace.navigate('focus')};
+ $('daily-start').onclick=()=>{
+  if(!readable())return;
+  if(!pickupId)window.OpsWorkspace.navigate('focus');
+  else if(!window.OpsFocusBoard.openTask(pickupId))render();
+ };
  window.addEventListener('ops-today-state',()=>{if(store.getState()==='error'){ticket++;phase='error'}render()});
  window.addEventListener('ops-sod-change',()=>{const saved=window.OpsSod.getApproved();if(readable()&&M.validApproval(saved,day)&&saved.id!==lastLocalId){lastLocalId=saved.id;if(!record||M.latest([record,saved],day)===saved){record=saved;phase='ready'}}render()});
  window.addEventListener('ops-workspace-change',render);

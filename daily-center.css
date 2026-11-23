@@ -1,13 +1,10 @@
 /* Desktop command dashboard, sharing the existing Morning HUD palette. */
-.daily-controls {display:flex;align-items:center;gap:24px;margin:12px 0 22px;padding:18px 22px;border:1px solid #3e6077;border-radius:10px;background:linear-gradient(110deg,#142c3c,#0f1c2a)}
-.daily-controls>div {flex:1}.daily-controls p {margin:0;color:#d4e5ef;font-size:13px}
+.daily-controls {display:flex;align-items:center}
 .daily-controls label {white-space:nowrap;display:flex;align-items:center;gap:12px;font-size:12px;color:#c5d9e7}
 .daily-controls input {background:#102333;color:#e4f3fb;border:1px solid #527189;border-radius:5px;padding:10px;color-scheme:dark}
-.daily-grid {display:grid;grid-template-columns:minmax(300px,1.2fr) minmax(360px,1.4fr) minmax(270px,1fr);gap:18px;align-items:start}
 .daily-panel {min-width:0;border:1px solid #304e64;border-top:2px solid #5e98a7;background:#101e2c;border-radius:10px;padding:22px;box-shadow:0 15px 40px #0003;color:#d9e7f0;font-size:13px;line-height:1.6;max-height:620px;overflow:auto;scrollbar-color:#50738c #101e2c}
 .daily-panel header {margin-bottom:18px}.daily-panel h2 {font:550 21px/1.3 system-ui,sans-serif;letter-spacing:-.025em;color:#f0f7fc;margin:4px 0 8px}.daily-panel header p {margin:0;font-size:12px;color:#a9c2d4}
-.daily-plan-panel {grid-column:2;grid-row:1 / span 2;max-height:1000px;border-top-color:#b0e4ed;background:linear-gradient(160deg,#142737,#101e2c)}
-.daily-blockers-panel {grid-column:3;grid-row:2}.daily-task-list {padding:0;margin:0;list-style:none}
+.daily-task-list {padding:0;margin:0;list-style:none}
 .daily-task {display:flex;gap:10px;justify-content:space-between;padding:13px 0;border-bottom:1px solid #2e4558}.daily-task:last-child {border:0}.daily-task>div {min-width:0}.daily-task p {margin:5px 0;color:#c4d9e7;font-size:12px}
 html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box-shadow:none;border-radius:2px;padding:0;text-align:left;white-space:normal;color:#eef7fb;font:600 13px/1.5 system-ui,sans-serif;cursor:pointer;text-decoration:underline;text-underline-offset:4px;text-decoration-color:#588094}
 .daily-task-meta {display:block;font:11px/1.7 ui-monospace,monospace;color:#aec6d7;overflow-wrap:anywhere}
@@ -24,19 +21,16 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
 /* Morning UX: one visible planning surface, live readiness, no animation gates. */
 @media screen {
  .morning-mode .topbar {position:sticky;top:0;z-index:20}
- .morning-center {padding:36px 32px 48px;background:radial-gradient(ellipse at 78% 0%,#1e52552b,transparent 48%),#080e17}
- .morning-heading {position:relative;min-height:138px;padding:0 0 28px;isolation:isolate}
- .morning-heading h1 {font-size:clamp(34px,3.1vw,48px);font-weight:500;line-height:1.08;letter-spacing:-.045em;margin:12px 0 16px}
- .morning-heading h1 span {color:#a9c4d0}
- .morning-heading>div>p:last-child {font-size:14px}
- .morning-heading .morning-badge {align-self:flex-start;margin-top:12px;border-radius:20px;background:#0e232b;color:#c1e7df;border-color:#385e62}
- .morning-signal {position:absolute;width:144px;height:144px;right:27%;top:0;display:grid;place-items:center;z-index:-1;color:#bfeced;opacity:.75}
+ .morning-center {padding:30px 32px 48px;background:radial-gradient(ellipse at 78% 0%,#1e52552b,transparent 48%),#080e17}
+ .morning-heading {position:relative;padding:0 0 18px;isolation:isolate}
+ .morning-heading h1 {font-size:clamp(34px,3.1vw,48px);font-weight:500;line-height:1.08;letter-spacing:-.045em;margin:8px 0 0}
+ .morning-signal {position:absolute;width:110px;height:110px;right:3%;top:-14px;display:grid;place-items:center;z-index:-1;color:#bfeced;opacity:.55}
  .morning-signal i {position:absolute;inset:8px;border:1px solid #76b6c03d;border-radius:50%;transform:rotate(-24deg) scaleY(.7)}
  .morning-signal i:nth-child(2){inset:22px;transform:rotate(30deg) scaleY(.75);border-color:#84d0c777}
  .morning-signal i:nth-child(3){inset:38px;transform:rotate(85deg) scaleY(.8);border-color:#afe7ee99}
  .morning-signal span {font:300 38px/1 system-ui,sans-serif;letter-spacing:-.1em;text-shadow:0 0 28px #a9e7ff70}
- .daily-readiness {list-style:none;margin:8px 0 18px;padding:0;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #2b414f;border-radius:10px;background:#0d1822;overflow:hidden}
- .daily-readiness li {position:relative;display:flex;gap:12px;align-items:center;padding:14px 20px;color:#a7c1d0;font:11px/1.5 system-ui,sans-serif}
+ .daily-readiness {list-style:none;margin:14px 0 24px;padding:0;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #2b414f;border-radius:10px;background:#0d1822;overflow:hidden}
+ .daily-readiness li {position:relative;display:flex;gap:10px;align-items:center;padding:10px 16px;color:#a7c1d0;font:11px/1.5 system-ui,sans-serif}
  .daily-readiness li+li {border-left:1px solid #2b414f}
  .daily-readiness strong {display:block;font-size:12px;font-weight:500;color:#d8e7ef}
  .daily-step-dot {width:7px;height:7px;border-radius:50%;background:#6e8190;box-shadow:0 0 0 5px #8197a210;flex:none}
@@ -47,24 +41,36 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  .morning-center[data-load-state="loading"] .morning-signal i {animation:morning-orbit 2.1s ease-in-out 2}
  .morning-center[data-load-state="loading"] .morning-signal i:nth-child(2){animation-delay:.12s}
  .morning-center[data-load-state="loading"] .morning-signal i:nth-child(3){animation-delay:.24s}
- .morning-mode #daily-state {margin:0;min-height:20px;font-size:11px;color:#b2c9d6}
- .daily-controls {gap:12px;padding:16px 0;margin:0;border:0;background:transparent;box-shadow:none}
- .daily-controls>div {min-width:0}.daily-controls .morning-eyebrow {font-size:9px;color:#a3b7c6}
- .daily-controls p {font-size:12px}.daily-controls label {gap:8px;font-size:11px}
+ .morning-mode #daily-state {margin:0 0 8px;font-size:12px;color:#b2c9d6}
+ .morning-mode #daily-state:empty {display:none}
+ .daily-controls {gap:12px;padding:0 0 16px}
+ #daily-counts {margin-right:auto;padding:8px 0;color:#b9d2e1;font-size:13px;text-underline-offset:4px}
+ #daily-counts strong {color:#eff7fb;font-weight:600;font-variant-numeric:tabular-nums}
+ .daily-controls label {gap:8px;font-size:12px}
  .daily-controls input {max-width:145px;min-height:42px}
  html[data-ops-theme] .morning-mode .daily-controls .button {min-height:44px;font-size:12px;padding:11px 16px;border-radius:8px}
- html[data-ops-theme] .morning-mode #daily-start {color:#102729;background:#bce5df;border-color:#bce5df}
- .daily-metrics {display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:0 0 24px}
- .daily-metrics>div {display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 16px;padding:16px 20px;border:1px solid #2a414f;border-radius:10px;background:linear-gradient(120deg,#122330,#0e1a25)}
- .daily-metrics span {color:#cadce8;font:500 12px/1.5 system-ui,sans-serif}
- .daily-metrics strong {grid-column:2;grid-row:1/span 2;color:#e2eff7;font:400 30px/1.1 system-ui,sans-serif;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
- .daily-metrics small {color:#a7bdcc;font:11px/1.5 system-ui,sans-serif}
- .daily-metrics>div:nth-child(2) strong {color:#efc793}
- .daily-grid {grid-template-columns:minmax(300px,1.15fr) minmax(360px,1.4fr) minmax(270px,.95fr);gap:16px}
+ .daily-brief {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.17fr);gap:14px}
+ .daily-more {display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+ .daily-more-aside {display:grid;gap:16px}
  .daily-panel {padding:22px;border-color:#2c4556;border-top-width:1px;max-height:540px;border-radius:12px;background:linear-gradient(155deg,#112332,#0e1b27 65%);box-shadow:0 16px 44px #0002}
  .daily-panel h2 {font-size:20px;font-weight:500}.daily-panel header{margin-bottom:14px}
+ .daily-brief .daily-panel {min-height:278px;max-height:none;overflow:visible;padding:18px 20px}
+ .daily-brief header {display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 8px}
+ .daily-brief h2 {margin:0;font:600 18px/1.3 system-ui,sans-serif;letter-spacing:-.02em}
+ .daily-brief-count {flex:none;min-width:27px;padding:2px 7px;text-align:center;border:1px solid #3d596a;border-radius:5px;color:#c8e5ef;font:13px/1.5 ui-monospace,monospace}
+ .daily-priorities-panel .daily-brief-count {color:#f0cca1;border-color:#625848}
+ .daily-brief .daily-task {padding-top:7px;padding-bottom:7px}
+ html[data-ops-theme] .daily-brief .daily-task .daily-task-title {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;max-width:100%;font-size:14px;line-height:1.45;overflow-wrap:anywhere;text-decoration:underline;text-decoration-color:#588094;text-underline-offset:3px}
+ .daily-dependency {display:block;margin-bottom:3px;color:#abdfdf;font:600 13px/1.4 system-ui,sans-serif;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+ html[data-ops-theme] .morning-mode .daily-brief .daily-show-all {padding:4px 10px;min-height:32px;margin-top:6px;font-size:12px}
+ .daily-brief .daily-pickup-panel {display:flex;flex-direction:column;position:relative;isolation:isolate;border-color:#598e90;background:radial-gradient(ellipse at 100% 0%,#26565860,transparent 72%),#10232e}
+ .daily-pickup-panel::before {content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;background:repeating-radial-gradient(circle at 100% 0%,transparent 0 33px,#8fc6c914 34px 35px,transparent 36px 48px);pointer-events:none}
+ .daily-pickup-label {margin:10px 0 6px;color:#b1ddd8;font:12px/1.5 ui-monospace,monospace}
+ .morning-center #daily-pickup h3 {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;color:#f1f9fb;font:600 clamp(20px,1.8vw,27px)/1.2 system-ui,sans-serif;letter-spacing:-.025em;margin:0 0 12px;overflow-wrap:anywhere}
+ #daily-pickup .daily-task-meta {margin:0;font-size:12px}
+ .daily-pickup-action {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:2px 0 14px;font-size:14px;color:#d5e6ee;overflow-wrap:anywhere}
+ html[data-ops-theme] .morning-mode #daily-start {align-self:flex-start;margin-top:auto;color:#102729;background:#bce5df;border-color:#bce5df;border-radius:8px;font-size:13px}
  .daily-plan-panel {border-color:#527d87;max-height:900px;background:radial-gradient(ellipse at 100% 0%,#27515133,transparent 55%),#122331}
- .daily-blockers-panel {grid-column:3;grid-row:1}.daily-deposit-panel{grid-column:3;grid-row:2}.daily-assignments-panel{grid-column:1;grid-row:2}
  .daily-plan-panel .daily-tag[data-state="approved"] {background:#19392f;color:#bcebd7;border-color:#477e69}
  .daily-plan-panel .daily-tag:is([data-state="denied"],[data-state="error"]) {color:#f3c1b7;border-color:#965b55;background:#302323}
  .daily-plan-text {font-size:14px;line-height:1.9;border-left-color:#7bc6c0;border-radius:0 8px 8px 0;padding:20px}
@@ -92,8 +98,7 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  #morning-signin {margin:18px 0}
  /* Entry is finite and never delays controls or announces pretend processing. */
  .morning-center:not([hidden]) .morning-heading {animation:morning-arrive .5s cubic-bezier(.2,.8,.2,1) both}
- .daily-grid>.daily-panel {animation:morning-arrive .45s cubic-bezier(.2,.8,.2,1) both}
- .daily-grid>.daily-panel:nth-child(2){animation-delay:.045s}.daily-grid>.daily-panel:nth-child(3){animation-delay:.09s}
+ .daily-brief>.daily-panel {animation:morning-arrive .45s cubic-bezier(.2,.8,.2,1)}
  #morning-secondary[open] .morning-column {animation:morning-arrive .35s cubic-bezier(.2,.8,.2,1) both}
  .morning-dialog[open],.focus-action-dialog[open] {animation:morning-arrive .2s ease-out}
  .ops-workspace .workspace-main>section:not([hidden]):not(#morning-workflow):not(#focus-workflow) {animation:morning-arrive .18s ease-out}
@@ -106,9 +111,7 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
 @media screen {
  .morning-center.planning-open .morning-heading {min-height:0;padding-bottom:12px}
  .morning-center.planning-open .morning-heading h1 {font-size:30px;margin:8px 0}
- .morning-center.planning-open .morning-heading h1 br {display:none}
- .morning-center.planning-open .morning-heading h1 span::before {content:' '}
- .morning-center.planning-open .morning-signal,.morning-center.planning-open .daily-metrics {display:none}
+ .morning-center.planning-open .morning-signal {display:none}
  .morning-center.planning-open .morning-secondary {margin-top:0}
  .daily-controls [hidden] {display:none!important}
 }
@@ -117,14 +120,55 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  .morning-center #sod-output:focus {border-color:#a6d8d9}
 }
 @media screen {
- .morning-heading {min-height:0;padding-bottom:18px}
- .morning-heading h1 br {display:none}
- .morning-heading h1 span::before {content:' '}
- .morning-signal {width:110px;height:110px;right:23%;top:-8px;opacity:.5}
  .daily-readiness [data-state="empty"] .daily-step-dot {background:#e7c58e;box-shadow:0 0 0 5px #e7c58e10}
  .focus-board-mode .focus-board-heading,.focus-board-mode .focus-morning-plan {animation:morning-arrive .28s ease-out}
 }
 @media screen {
  html:has(body.morning-mode) {scroll-padding-top:92px}
  .morning-column {scroll-padding-top:76px}
+}
+
+/* PR #89: allow Morning's inherited desktop shell to shrink rather than
+   forcing an 1180px-wide page. Phone layout scrolls vertically, not sideways. */
+@media screen {
+ .morning-center {min-width:0;width:100%;max-width:100%}
+ .morning-mode .shell,.morning-mode .workspace-main,
+ .morning-center .daily-grid,.morning-center .daily-brief,
+ .morning-center .daily-more,.morning-center .daily-more-aside {min-width:0;max-width:100%}
+ .daily-brief>.daily-panel,.daily-more>.daily-panel,.daily-more-aside>.daily-panel {min-width:0}
+ .daily-task>div,.daily-brief header h2,.daily-controls>* {min-width:0}
+}
+@media screen and (max-width:1050px) {
+ .morning-center {padding:22px 18px 36px}
+ .daily-brief {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .daily-brief .daily-pickup-panel {grid-column:1/-1}
+ .daily-more {grid-template-columns:minmax(0,1fr)}
+ .morning-grid {grid-template-columns:minmax(0,1fr)}
+ .morning-center .morning-column {max-height:none}
+}
+@media screen and (max-width:1240px) {
+ html[data-ops-theme] .morning-mode .topbar {display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:center;padding:10px 12px!important;gap:8px}
+ html[data-ops-theme] .morning-mode .workspace-clocks {margin:0;flex:1 1 100%;min-width:0;justify-content:space-between;gap:8px}
+ html[data-ops-theme] .morning-mode .workspace-clock {min-width:0}
+ html[data-ops-theme] .morning-mode .topbar :is(button,.operations-search) {min-width:0;white-space:normal}
+}
+@media screen and (max-width:740px) {
+ .morning-center {padding:18px 12px 32px}
+ .morning-heading {padding-bottom:14px}
+ .morning-heading h1 {font-size:clamp(26px,8vw,36px)}
+ .morning-signal {display:none}
+ .daily-controls {flex-wrap:wrap;align-items:stretch;gap:8px}
+ #daily-counts {flex:1 1 100%;margin:0}
+ .daily-controls label {flex:1 1 145px;min-width:0;white-space:normal}
+ .daily-controls input {max-width:100%}
+ .daily-brief {grid-template-columns:minmax(0,1fr)}
+ .daily-brief .daily-pickup-panel {grid-column:auto}
+ .daily-brief .daily-panel {min-height:0}
+ .daily-readiness {grid-template-columns:minmax(0,1fr)}
+ .daily-readiness li+li {border-left:0;border-top:1px solid #2b414f}
+ .daily-more {grid-template-columns:minmax(0,1fr)}
+ .morning-secondary>summary span {display:block;margin:4px 0 0}
+ .morning-review-grid {grid-template-columns:minmax(0,1fr)}
+ html[data-ops-theme] .morning-mode .morning-dialog {width:calc(100vw - 24px);padding:18px;max-height:calc(100dvh - 24px)}
+ .morning-dialog footer {flex-wrap:wrap}
 }

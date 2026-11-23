@@ -58,8 +58,8 @@
   return {key:item.id,type:'planning',subject:r.title,action:r.category==='Deposit report'?'Report only — '+stageLabels[stage]+'. '+r.action:r.action,section:r.category==='Deposit report'?'Deposits and payments':r.category==='Staff instruction'?'Staff assignments':r.category==='Property request'?'Property operations':r.urgency==='urgent'?'Immediate priorities':'Additional work',source:citation(item),taskId:item.taskId||null};
  }
  function taskSection(task,day=T.today()){
-  if(['waiting','blocked'].includes(task.status))return 'Pending and blocked';
-  if(['overdue','today','urgent'].includes(F.lane(task,day)))return 'Immediate priorities';
+  if(T.hasDependency(task))return 'Pending and blocked';
+  if(['overdue','today','urgent'].includes(F.lane(task,day))||(String(task.priority||'').toLowerCase()==='high'&&T.actionable(task)))return 'Immediate priorities';
   return ['properties','maintenance','notices','renewal','listings'].includes(task.workflow_key)?'Property operations':'Additional work';
  }
  function taskSource(task){return {id:'task:'+task.id,label:task.task_code||task.task_title,kind:'saved_task',taskId:task.id,version:task.updated_at||null,verification:'Saved task record; review its business facts'}}

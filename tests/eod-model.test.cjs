@@ -13,8 +13,17 @@ test('completed tasks without work entries never invent time',()=>{
 test('EOD focuses on work done by default and requires explicit time inclusion',()=>{
  const r=M.build([work('a',90)],[task('a')],date);assert.match(r.text,/Fictional batch work/);assert.match(r.text,/Fictional details/);assert.doesNotMatch(r.text,/minutes|Recorded time|recorded time/);
 });
-test('completed work is listed once without repeating the linked activity duration in the default report',()=>{
- const entry=work('e',90);entry.entity_id='t';entry.event_metadata.activity.summary='Fictional batch; 90 estimated minutes';const r=M.build([entry],[task('t')],date);assert.match(r.text,/Fictional details/);assert.doesNotMatch(r.text,/90|minutes/);assert.equal(r.workCount,1);
+test('EOD keeps distinct linked actions and suppresses only a matching task completion summary',()=>{
+ const first=work('prepare',10,'reported'),second=work('deliver',5,'reported');
+ first.entity_id=second.entity_id='t';
+ first.event_metadata.activity.summary='Prepared the fictional statement.';
+ second.event_metadata.activity.summary='Fictional details';
+ const r=M.build([first,second],[task('t'),task('other')],date);
+ assert.equal(r.actionCount,3);
+ assert.equal(r.workCount,2);
+ assert.equal(r.reported,15);
+ assert.match(r.text,/- Prepared the fictional statement\.\n- Fictional details\n- Fictional completed task: Fictional details/);
+ assert.doesNotMatch(r.text,/minutes/);
 });
 test('work date and Eastern completion date are independent, including DST transitions',()=>{
  const tasks=[task('before','2026-11-01T03:59:00Z'),task('first','2026-11-01T05:30:00Z'),task('second','2026-11-01T06:30:00Z'),task('next','2026-11-02T05:00:00Z')];

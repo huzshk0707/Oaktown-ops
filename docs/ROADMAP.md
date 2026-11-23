@@ -32,6 +32,7 @@ Huzy's shift is 7 PM–5 AM Asia/Kolkata, which overlaps Louisville business hou
 - **OPS-SHIFT-BRIEF** is the first build. Put three answers in the first desktop view: **What needs attention now? Who am I waiting on? Where do I pick up?** Show overdue, due and urgent work, recorded dependencies and follow-up dates, then one actionable task and its saved next action. Identify suggested focus clearly and open the exact displayed task in the existing Focus Board.
 - Use the existing shared task snapshot. Keep Start of Day as an optional draft for Leslie and preserve the reviewed plan, Tasks/History/Add or import, and full workspace routes. Review with fictional tasks at desktop sizes. The navy/cyan instrument and restrained motion from the command-console walkthrough guide the presentation.
 - [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89) tracks the screen change. Its fictional rehearsal can proceed while the live connector and lease activation are assessed separately.
+- [PR #90](https://github.com/huzshk0707/Oaktown-ops/pull/90) rehearses the Friday handoffs and integrates the EOD rendering fix on the reviewed screen branch. The next EOD build is reviewed personal work capture with explicit performer attribution. Durable focus choice and configured Friday recurrence have separate entries in [TASKS.md](../TASKS.md).
 
 ### Operational activation — parallel with the first screen
 1. **OPS-ACTIVATE-TASK-CONNECTION:** Operator verifies OAuth-server settings, asymmetric token hook, client/redirect registration, exact scoped roles and explicit Huzy consent. Start **read-only**. Run a staff-authorized fictional task search/preview/approval/save/audit/readback test, plus revoke/stale/replay/denial checks before enabling real use. Never substitute management SQL or service-role shortcuts. Document observed outcome, not just a green source test.
@@ -47,7 +48,7 @@ Huzy's shift is 7 PM–5 AM Asia/Kolkata, which overlaps Louisville business hou
 
 ### Phase 2 — Personal work and trustworthy EOD
 - **OPS-PERSONAL-WORK:** Record a Huzy-performed action on an existing task **without requiring the whole task to be closed**; independently attribute Leslie's work to Leslie. Capture actual performer, America/New_York work date, concrete action, source/evidence, audited event and verified readback. Extend native editor and scoped task-connection contract only with separately reviewed security tests.
-- **Acceptance:** Friday’s statement stays one task. Huzy’s preparation and delivery to Leslie, then revision and delivery to the attorney, appear as two distinct actions in the shift’s EOD even across local midnight. Gary’s entry shows confirmed progress and the saved resume step. Work performed by others is attributed in the property history. Existing reporting changes on [the EOD review branch](https://github.com/huzshk0707/Oaktown-ops/commit/8d697ea78bc838299ce41f2504fc3f1b126d20b2) await integration and end-to-end acceptance.
+- **Acceptance:** Friday’s statement stays one task. Huzy’s preparation and delivery to Leslie, then revision and delivery to the attorney, appear as two distinct actions in the shift’s EOD even across local midnight. Gary’s entry shows confirmed progress and the saved resume step. Work performed by others is attributed in the property history. The rehearsal verifies the draft with explicitly attributed fixtures. Native work capture must still produce those attributed records through review and readback.
 
 ### Phase 3 — Intelligent incoming-work review and quick capture
 - **OPS-AI-INTAKE:** In ChatGPT, retrieve authorized Gmail messages/attachments when explicitly invoked, accept Huzy-pasted Leslie texts/call transcripts, check exact Supabase task IDs and history, consult Oaktownbrain procedures, and propose create/update/waiting/follow-up decisions before a human-reviewed scoped write. Duplicate detection and precise source references are mandatory. No unapproved polling or external sends.
@@ -72,7 +73,7 @@ Huzy's shift is 7 PM–5 AM Asia/Kolkata, which overlaps Louisville business hou
 
 **Next operator action:** Begin `OPS-ACTIVATE-TASK-CONNECTION.1` with read-only verification of actual Auth/OAuth configuration, registered client and scoped session. Record missing setup. After safe consent and test-read checks, run the approved fictional write acceptance; do not act on real tasks as a smoke test.
 
-**Next Codex step:** Verify the three answers in the Morning Command Center with fictional tasks in PR #89. Follow up in Needs Planning with reviewed scheduling and next-action changes for one task at a time. See [TASKS.md](../TASKS.md) and [HANDOFF.md](../HANDOFF.md).
+**Next Codex step:** Review the Friday rehearsal in PR #90. Start OPS-PERSONAL-WORK.1 with a reviewed action on an existing task, explicit performer and work date, then verify the saved action in EOD. See [TASKS.md](../TASKS.md) and [HANDOFF.md](../HANDOFF.md).
 
 ---
 
