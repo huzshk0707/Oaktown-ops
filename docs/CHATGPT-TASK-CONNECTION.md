@@ -22,8 +22,9 @@ plugin as the scoped Oaktown task plugin.
 
 ## What it does
 
-The five tools find saved tasks, read an exact record/history, prepare a proposal,
-and save an approved proposal with independent read-back. The sequence is:
+The task tools find saved tasks, read an exact record/history, prepare a proposal,
+and save an approved proposal with independent read-back. The Morning tools
+support the separate workflow below. For task changes, the sequence is:
 
 **Find → Preview → User approval → Save → Audit → Read back → Verify.**
 
@@ -58,12 +59,86 @@ approval of individual changes.
 - JWT verification requires ES256/RS256, the project's exact issuer, the exact
   resource audience, a nonanonymous staff identity, role, client and session.
 - Every scoped OAuth task call rechecks active editor/admin membership, the enabled client,
-  write permission, live Auth session and unrevoked OAuth consent. Disabling a
+  live Auth session and unrevoked OAuth consent. Task preview and apply also
+  require write permission. Disabling a
   client or revoking the OAuth grant blocks later calls. Private configuration,
   proposals and receipts have RLS and no client table access. Public functions
   are invoker wrappers around narrowly checked private implementations.
 - Administrators manage client access in Tasks → Settings & connections → ChatGPT task connection.
   This configures a client; it does not prove a successful ChatGPT connection.
+
+## Morning Priority Snapshot and SOD
+
+1. Call `read_morning_priority_snapshot` with the Louisville/Eastern `work_date`
+   and no cursor. Pass each `next_cursor` back with the same date. Stop after
+   `has_more: false` and verify the number collected against `total_active`.
+   Each page has at most 25 tasks and reports its starting `offset`. A task
+   change between pages invalidates the cursor. Discard the earlier pages and
+   restart when the service reports a changed snapshot.
+2. Call `read_daily_plan` for the same date and keep the current `approval_id`,
+   including null when the day has no approval. Draft Huzy's SOD for Leslie and
+   show him the exact text and sources. Use **Good Morning Leslie,** and choose
+   specific daily priorities plus relevant recurring responsibilities. Keep
+   workers and vendors in their recorded assignment or dependency roles. Pick
+   the maintenance items that matter to the shift.
+3. On Huzy's request, submit the reviewed text with `submit_daily_plan`. Include
+   the current `expected_approval_id` and use snapshot `task_id` and
+   `updated_at` as each selected task's ID and `expected_updated_at`. Give the
+   proposal a unique `request_ref` and reuse that reference and payload on retry.
+   The response records a pending staff review.
+4. Huzy opens **Morning → Plans awaiting staff review**, reviews the exact
+   text and evidence, then approves in his native staff session. Call
+   `get_plan_submission` for the same request and report approval only when
+   `approved` and `verified` are both true. The tool independently checks the
+   immutable journal event. Use `read_daily_plan` again to confirm the current
+   daily head. Email delivery is a separate action.
+
+The snapshot follows the Morning and Focus ordering of overdue, today, urgent,
+then remaining work. The earliest recorded deadline or follow-up sets the
+schedule. Categories can overlap and identify urgent, overdue, due today, high
+priority with a saved next action and no dependency, scheduled follow-up, waiting
+or blocked, and other active work. The result includes the approved task fields
+for planning, including saved assignment labels, property/unit links, dates and
+exact versions. Blank fields preserve unknown values. Archived and terminal tasks
+are excluded. The snapshot reads current tasks relative to the requested date,
+so a past date is not an historical reconstruction.
+
+The snapshot works with task OAuth read access. Plan reads and submission use
+separate administrator-enabled capabilities and Huzy's own native consent in
+**Tasks → Settings & connections → ChatGPT task connection → Your daily-plan
+access**. Choose at most 50 task and planning-only rows for a proposal. Source
+notes remain available for native review, while the scoped plan read returns
+references. Use the minimum reviewed information in the SOD text.
+
+### Manual rollout after PR review
+
+1. On project `wjdzaexhhjsjtdgxivyw`, check the migration catalog and compare the
+   installed definitions of `ops_agent_private.morning_plan(text,jsonb)` and
+   `ops_agent_private.run(text,jsonb)` with the PR's expected SQL. Record their
+   owners, grants, and security settings. The snapshot migration uses PostgreSQL
+   16 or later.
+2. Apply the reviewed `20261122064143_morning_plan_personal_consent_alias.sql`
+   and `20261122070313_morning_priority_snapshot.sql`, in that order, through the
+   approved Supabase migration path. Record the actual registered versions.
+   For a linked CLI push, check `supabase db push --linked --dry-run` first and
+   proceed only if it lists these exact pending files. With a catalog mismatch,
+   use the approved single-migration path for each file. An unexpected installed
+   definition causes the corresponding migration to abort.
+3. After both migrations are verified, deploy the reviewed `oaktown-task-api`
+   Edge Function. Preserve the existing gateway JWT-verification setting and
+   OAuth configuration. Check `/health` for version `1.2.0` and refresh tools
+   in the connected ChatGPT host. Confirm `tools/list` includes the read-only,
+   OAuth-scoped snapshot and the existing three plan tools.
+4. Verify personal consent listing in native Oaktown, and use an authorized
+   scoped OAuth session to read all snapshot pages and the daily head. Verify the
+   complete proposal/review/readback loop with fictional data in a test project
+   or separately authorized staff acceptance session.
+
+If rollout is interrupted after the database step, the previously deployed Edge
+Function can continue to use the existing task and plan actions. Recover a failed
+Edge deployment by restoring the previous Edge release while investigating.
+Disposable PostgreSQL and browser tests do not establish live ChatGPT consent or
+production deployment.
 
 ## One-time activation
 

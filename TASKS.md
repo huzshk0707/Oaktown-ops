@@ -2,6 +2,10 @@
 
 **Active delivery index · 2026-11-22.** Authoritative for new work until reviewed/superseded. Historical checklist snapshots below are retained for investigation but must not be re-executed solely because an old box is unchecked. This is **planning, not production write or merge permission**. Consult [ROADMAP](docs/ROADMAP.md), [HANDOFF](HANDOFF.md), [AGENTS](AGENTS.md), and current main/PR status before a new task is claimed.
 
+## Individual task archiving
+
+- [x] Implemented in [PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) for review. The fictional browser round trip verifies that the selected task returns to active work as In Progress. Staff manual acceptance follows approved release.
+
 ## First build — Morning Command Center
 
 - [ ] **OPS-SHIFT-BRIEF.1:** In [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89), put urgent work, waiting dependencies and the exact Focus task above the Start of Day and assignment details. Check the first desktop view, the one-click Focus handoff, unavailable/empty states, themes and keyboard navigation with fictional records.
@@ -9,6 +13,10 @@
 
 ## P0 — operational activation and acceptance
 
+- **ChatGPT Morning Plan integration** in [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93).
+  1. [x] Preserve the personal-consent alias repair and add the scoped, complete Morning Priority Snapshot.
+  2. [x] Verify the snapshot-to-proposal flow, native approval, independent readback and task API regressions with fictional data.
+  3. [ ] Review the final PR and run the separate operator rollout in the documented order.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.1 — inspect live OAuth setup:** ChatGPT Go is not eligible for the write-capable custom MCP flow under current OpenAI availability; Pro is read/fetch-only. Supabase has one manually registered confidential OAuth client (`Oaktown ChatGPT Tasks`) and its redirect URI is recorded in the connection guide, but the Oaktown client allowlist is empty and OAuth consent count is zero. The token-hook SQL function exists; Auth hook activation/signing algorithm still require owner-dashboard verification. Edge Function v3 is ACTIVE. **Exit:** owner selects an eligible ChatGPT workspace or Go fallback and verifies Auth settings.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.2 — read-only acceptance:** With authorized staff login/consent, search/read a known fictional task via the scoped ChatGPT connector. Verify exact identity/history and deny privileged/direct access. **Exit:** readback, no operational changes.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.3 — approved fictional write acceptance:** Only after the read-only check, preview, explicitly approve, write, audit/readback and replay-test one disposable General Operations task. Test stale version, revoked grant and read-only denial. Confirm exact Ops refresh. **Exit:** verified receipt and audit evidence, no real tenant task touched.
@@ -37,6 +45,9 @@
 - [ ] **OPS-RECOVERY / OPS-INTEGRITY:** Platform/Auth/provider/document restore plan, security-advisor disposition, nullable record-link integrity and provenance controls.
 
 ## P3 — larger workbenches, discovery first
+
+- [ ] **OPS-LEASE-REHEARSAL-UX:** [Draft PR #94](https://github.com/huzshk0707/Oaktown-ops/pull/94) adds fictional one-bedroom rehearsal, clearer deposits, advanced-layout disclosure, progress and issue-to-edit navigation. Verify CI + desktop staff rehearsal before merge; real lease export still awaits clean master and backend acceptance.
+
 
 - [ ] **OPS-LEASE-EXPORT / OPS-RESUMABLE-CASES:** Finish verified clean-master ten-page export and saved application/deposit/lease lifecycle after source and policy acceptance.
 - [ ] **OPS-PIPELINES:** Ground maintenance, leads/listings and application handoffs in actual staff workflow; assess APIs, permissions and work-order data before building.

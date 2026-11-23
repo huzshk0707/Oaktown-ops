@@ -33,6 +33,33 @@ Codex claim 2026-11-23 02:48–03:18 UTC. Next step: reconcile the dated activat
 **NEXT STEP:** Huzy chooses an eligible ChatGPT workspace or the Go-compatible manual approval fallback. Stop here for account-owner interaction.
 
 ---
+## PR #94 browser regression fix — 2026-11-22T07:23:58.308Z
+
+- Owner: chatgpt; claim 2026-11-22T07:23:58.308Z – 2026-11-22T07:53:58.308Z. Existing PR head before claim: 915c3425e163d35ebc21492b2417847735f4dff8.
+- Verified: browser job failed 1/305 tests due to intentional advanced room-position collapse; test tried selecting hidden #newlease-roomSection in tests/lease-template.e2e.spec.cjs:20. Prior run: 304 passed.
+- NEXT STEP: Expand .lease-draft-placement in the existing browser test, rerun exact-head CI, inspect before any authorized merge. No backend/production writes.
+
+## Active lease rehearsal UX PR #94 — 2026-11-22
+
+- **Owner:** chatgpt. **Branch:** `chatgpt/lease-rehearsal-ux`. **Base:** main d4e4df5ff8455e7cd5641e818cb98cc0e1c3d4b7. **Claim:** 2026-11-22T07:16:22.837Z to 2026-11-22T07:46:22.837Z UTC.
+- **Scope:** staff-only fictional one-bedroom rehearsal UI; no real tenant details or approved master PDFs committed; no runtime backend/schema change, operational write, approval, deployment or merge.
+- **Completed:** rehearsal launcher (no unit linked), print-vs-pet deposit distinction, five-step progress, advanced room placement collapsed, review issue edit links, style/version updates, fictional regression test and `docs/LEASE-REHEARSAL-UX.md`. `TASKS.md` tracks the draft PR.
+- **Static checks:** modified JS and browser test parse successfully; CSS braces balanced; changed code/docs/test free of real applicant and Cherokee identifying strings. CI `checks` and `portfolio-schema` passed at earlier implementation and current head `0e5a2098cf8a`; `browser-downloads` was running at 2026-11-22T07:16:22.837Z.
+- **Current last implementation tip:** `0e5a2098cf8a160e551d7236778a1f47bd7294de` (before this handoff-only commit).
+- **Claim released at 2026-11-22T07:17:17.723Z. NEXT STEP:** review exact final-head GitHub Actions browser result and fictional Page 8 preview, fix any failure, then request staff UX acceptance. Keep PR draft and do not merge or deploy without separate authorization; separate clean-master and Supabase migration activation remain outstanding.
+
+## ChatGPT Morning Plan integration
+
+- Owner felix. Claim released 2026-11-22 07:12 UTC after implementation and local verification. [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93) targets `main` from `felix/morning-plan-consent`. The verified personal-consent migration from `93001e3` is preserved.
+- `read_morning_priority_snapshot` reads the complete active priority pool through the scoped task RPC. Its 25-row pages carry a total and cursor. A change in the pool invalidates the cursor. The three plan tools keep exact proposal submission, native staff review and independent approval readback.
+- Verified with 240 Node tests, workflow inventory, Deno type check, the disposable PostgreSQL 16 workflow, and 61 targeted Chromium cases. The database test compares snapshot ordering to the browser model and checks stale versions, duplicate intent, authorization denial and existing scoped task create and update.
+- **NEXT STEP:** Review PR #93 and its final GitHub Actions run, then use [the manual rollout steps](docs/CHATGPT-TASK-CONNECTION.md#manual-rollout-after-pr-review) after separate authorization.
+
+## Individual task archive
+
+[PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) targets main from `codex/single-task-archive`. Owner Codex, claim released after local verification. The task editor shared by Tasks and Focus offers More actions → Archive task. Its confirmation uses the saved title, checks editor access and the reviewed version, and verifies the one-task receipt against refreshed data. Existing History Restore verifies identity, version and saved status. Bulk settings and connector permissions are outside this change.
+
+Local verification passed for 239 Node tests, workflow inventory and 58 Chromium cases in the Today suite (57 together plus the Focus Center entry case). The disposable database job passed for the archive/restore field, history and isolation assertions in checkpoint `3150157`. NEXT STEP: review PR #92 and its final checks. After separate deployment approval, staff can manually archive the designated fictional task and restore it through Tasks → History.
 
 # Current handoff — 2026-11-22 Oaktown Ops delivery plan
 

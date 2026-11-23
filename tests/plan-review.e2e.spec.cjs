@@ -5,9 +5,11 @@ const {saved}=require('./daily-fixtures.cjs'),{openAdvanced}=require('./ui-helpe
 test.use({viewport:{width:1440,height:1080}});
 async function open(page,s){await page.goto(ORIGIN+'/#/morning');await signIn(page);await expect(page.locator('#daily-counts')).toContainText('active tasks');await page.locator('#plan-pending-panel').evaluate(n=>n.open=true);await page.locator('#plan-pending-refresh').click();return s}
 test('ChatGPT proposal requires native review and exact confirmation; cancellation preserves the draft and writes no approval',async({page})=>{
- const s=await morningMock(page);const p=saved(s).event_metadata.plan;p.text='Fictional ChatGPT SOD. Review source evidence before execution.';const request=s.addPlanProposal(p);await open(page,s);
+ const s=await morningMock(page);const p=saved(s).event_metadata.plan;
+ p.text="Good Morning Leslie,\n\nHope you're doing well!\n\nI'm getting started for the day. My priorities today are:\n- Fictional evidence: Verify the saved source.\n- Tenant Communications: Review new messages.";
+ const request=s.addPlanProposal(p);await open(page,s);
  await page.locator('#morning-secondary').evaluate(n=>n.open=true);await draft(page);const wording=await page.locator('#sod-output').inputValue();
- const review=page.locator('#plan-pending-list').getByRole('button',{name:'Review plan'});await review.click();await expect(page.locator('#morning-approve-preview')).toHaveText(p.text);await expect(page.locator('#morning-approve-save')).toBeDisabled();await expect(page.locator('#morning-approve-source-list')).toContainText(s.tasks[0].task_code);
+ const review=page.locator('#plan-pending-list').getByRole('button',{name:'Review plan'});await review.click();await expect(page.locator('#morning-approve-preview')).toHaveText(p.text);await expect(page.locator('#morning-approve-save')).toBeDisabled();await expect(page.locator('#morning-approve-source-list')).toContainText(s.tasks[0].task_code);expect(s.events).toEqual([]);
  await page.keyboard.press('Escape');await expect(review).toBeFocused();expect(s.events).toEqual([]);expect(s.approvalPosts).toEqual([]);await expect(page.locator('#sod-output')).toHaveValue(wording);
  await review.click();await page.locator('#morning-approve-confirm').check();await page.locator('#morning-approve-save').click();await expect(page.locator('#morning-approve-dialog')).toBeHidden();await expect(page.locator('#daily-plan')).toContainText(p.text);await expect(page.locator('#sod-output')).toHaveValue(wording);
  expect(s.events).toHaveLength(1);expect(s.events[0].review_proof.request_id).toBe(request.review.proposal_id);expect(s.events[0].actor_id).toBe(USER);expect(s.planCalls.some(c=>c.action==='get'&&c.payload.event_id===s.events[0].id)).toBe(true);expect(s.writes.every(w=>JSON.parse(w.body).action==='approve')).toBe(true);expect(s.rawJournal.filter(r=>r.method==='POST')).toEqual([]);
@@ -37,6 +39,24 @@ test('administrator capability and per-user native consent are independent, expl
  const s=await morningMock(page);await page.route('**/rest/v1/rpc/ops_task_agent',async route=>{const a=route.request().postDataJSON().action;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(a==='connections'?{schema_version:'oaktown.task-connection.v1',can_manage:true,clients:[{client_id:'fictional-chatgpt',label:'Fictional ChatGPT',enabled:true,can_write:false}]}:[])})});await page.goto(ORIGIN);await signIn(page);await expect(page.locator('#today-status')).toContainText('Updated');await openAdvanced(page);await page.locator('#task-connection>summary').click();await page.locator('#task-connection-admin>summary').click();await page.locator('#plan-capabilities>summary').click();await expect(page.locator('#plan-capability-status')).toContainText('Saved settings loaded');await expect(page.locator('#plan-capability-read')).not.toBeChecked();await expect(page.locator('#plan-capability-submit')).not.toBeChecked();
  await page.locator('#plan-capability-submit').check();await page.locator('#plan-capability-confirm').check();await page.locator('#plan-capability-form button').click();await expect(page.locator('#plan-capability-status')).toContainText('requires explicit read');expect(s.planCalls.filter(c=>c.action==='configure')).toHaveLength(0);
  await page.locator('#plan-capability-read').check();await page.locator('#plan-capability-form button').click();await expect(page.locator('#plan-capability-status')).toContainText('saved and verified');expect(s.planClients[0].my_can_read_plans).toBe(false);
- await page.locator('#plan-consent-panel>summary').click();const form=page.getByRole('form',{name:'Fictional ChatGPT plan access'});await expect(form).toBeVisible();expect(s.planCalls.filter(c=>c.action==='consent')).toHaveLength(0);await form.getByLabel('Allow this connection to read approved SODs').check();await form.getByLabel('Allow this connection to submit proposals for my review').check();await form.getByLabel('I reviewed these permissions',{exact:true}).check();await form.getByRole('button',{name:'Save my plan consent'}).click();await expect(form.getByRole('status')).toContainText('saved and verified');expect(s.planClients[0].my_can_submit_plans).toBe(true);await form.getByRole('button',{name:'Revoke my plan consent'}).click();await expect(form.getByRole('status')).toContainText('revoked and verified');expect(s.planClients[0].my_can_submit_plans).toBe(false);
+ await page.locator('#plan-consent-panel>summary').click();
+ const form=page.getByRole('form',{name:'Fictional ChatGPT plan access'});
+ const read=form.getByLabel('Allow this connection to read approved SODs');
+ const submit=form.getByLabel('Allow this connection to submit proposals for my review');
+ await expect(form.getByText('Client capabilities: read + proposal submission',{exact:true})).toBeVisible();
+ await expect(read).not.toBeChecked();
+ await expect(submit).not.toBeChecked();
+ expect(s.planCalls.filter(c=>c.action==='consent')).toHaveLength(0);
+ await read.check();
+ await submit.check();
+ await form.getByLabel('I reviewed these permissions',{exact:true}).check();
+ await form.getByRole('button',{name:'Save my plan consent'}).click();
+ await expect(form.getByRole('status')).toContainText('saved and verified');
+ expect(s.planClients[0].my_can_submit_plans).toBe(true);
+ await form.getByRole('button',{name:'Revoke my plan consent'}).click();
+ await expect(form.getByRole('status')).toContainText('revoked and verified');
+ await expect(read).not.toBeChecked();
+ await expect(submit).not.toBeChecked();
+ expect(s.planClients[0].my_can_submit_plans).toBe(false);
  const scan=await new AxeBuilder({page}).include('#plan-consent-panel').include('#plan-capabilities').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(scan.violations.map(v=>v.id)).toEqual([]);await page.evaluate(()=>window.OpsCloud.signOut());await expect(page.locator('#plan-consent-list')).toBeEmpty();await expect(page.locator('#plan-capability-client')).toBeEmpty();expect(s.writes).toEqual([]);
 });

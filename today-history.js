@@ -29,7 +29,7 @@ async function restore(t){
   await window.OpsToday?.refresh();
   if(ticket!==epoch||cloud.user?.id!==id)return;
   const saved=window.OpsToday?.getData()?.tasks?.find(row=>row.id===t.id);
-  if(!saved||saved.archived_at)throw Error('Restore may have saved, but the latest task state is not verified');
+  if(!saved||saved.archived_at!==null||saved.status!==t.status||!window.OpsReviewedWrite.sameVersion(saved.updated_at,receipt.updated_at))throw Error('Restore may have saved, but the latest task state is not verified');
   status('Restored from archive and verified. The saved status and activity history were preserved.');
   window.dispatchEvent(new Event('ops-task-archive-change'));
  }catch(error){

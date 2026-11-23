@@ -14,11 +14,16 @@ test('plan read is scoped, requires a server proof and omits original message bo
  const bad=await handler(()=>Response.json({schema_version:'oaktown.daily-plan-head.v1',work_date:plan.workDate,approval_id:EVENT,event:{...event,review_proof:null}}));assert.equal((await invoke(bad,'read_daily_plan',{work_date:plan.workDate})).result.isError,true);
 });
 test('submission saves only a pending request and cannot return a native review token or claim approval',async()=>{
- const calls=[],h=await handler(({action,payload})=>{calls.push(action);assert.equal(payload.expected_approval_id,null);return Response.json({schema_version:'oaktown.plan-submission.v1',proposal_id:P,state:'pending_staff_review',work_date:plan.workDate,content_hash:HASH,review_token:'forbidden-native-token',receipt:null})});
+ const calls=[],h=await handler(({action,payload})=>{calls.push(action);assert.equal(payload.expected_approval_id,null);return Response.json({schema_version:'oaktown.plan-submission.v1',proposal_id:P,state:'pending_staff_review',work_date:plan.workDate,text:plan.text,expected_approval_id:null,content_hash:HASH,review_token:'forbidden-native-token',receipt:null})});
  const args={request_ref:'fictional-daily-plan',expected_approval_id:null,work_date:plan.workDate,text:plan.text,tasks:[],planning_items:[{title:'Verify report',action:'Review original source',section:'Additional work',source_ref:'fictional-note',source_note:'Manually reported; not verified.'}]};
  const r=await invoke(h,'submit_daily_plan',args);assert.equal(r.result.structuredContent.approved,false);assert.equal(r.result.structuredContent.outcome,'pending_staff_review');assert.deepEqual(calls,['submit']);assert.ok(!JSON.stringify(r).includes('forbidden-native-token'));
  const bad=await invoke(h,'submit_daily_plan',{...args,tasks:[{task_id:ID,expected_updated_at:WHEN,action:'Review',section:'Additional work',status:'completed'}]});assert.equal(bad.result.isError,true);assert.deepEqual(calls,['submit']);
  await invoke(h,'approve_daily_plan',{proposal_id:P,reviewed:true});assert.deepEqual(calls,['submit'],'No OAuth approval tool may be registered');
+ for(const mismatch of [{text:plan.text+' changed'},{expected_approval_id:EVENT}]){
+  const inconsistent=await handler(()=>Response.json({schema_version:'oaktown.plan-submission.v1',proposal_id:P,
+   state:'pending_staff_review',work_date:plan.workDate,text:plan.text,expected_approval_id:null,...mismatch}));
+  assert.equal((await invoke(inconsistent,'submit_daily_plan',args)).result.isError,true);
+ }
 });
 test('approved submission requires matching immutable receipt and separate event readback',async()=>{
  const [,{verifiedPlanReceipt}]=await modules;assert.equal(verifiedPlanReceipt(receipt,event,P),true);assert.equal(verifiedPlanReceipt({...receipt,reviewer_id:P},event,P),false);
