@@ -127,3 +127,46 @@ html[data-ops-theme] .daily-task .daily-task-title {border:0;background:none;box
  html:has(body.morning-mode) {scroll-padding-top:92px}
  .morning-column {scroll-padding-top:76px}
 }
+
+/* PR #89: allow Morning's inherited desktop shell to shrink rather than
+   forcing an 1180px-wide page. Phone layout scrolls vertically, not sideways. */
+@media screen {
+ .morning-center {min-width:0;width:100%;max-width:100%}
+ .morning-mode .shell,.morning-mode .workspace-main,
+ .morning-center .daily-grid,.morning-center .daily-brief,
+ .morning-center .daily-more,.morning-center .daily-more-aside {min-width:0;max-width:100%}
+ .daily-brief>.daily-panel,.daily-more>.daily-panel,.daily-more-aside>.daily-panel {min-width:0}
+ .daily-task>div,.daily-brief header h2,.daily-controls>* {min-width:0}
+}
+@media screen and (max-width:1050px) {
+ .morning-center {padding:22px 18px 36px}
+ .daily-brief {grid-template-columns:repeat(2,minmax(0,1fr))}
+ .daily-brief .daily-pickup-panel {grid-column:1/-1}
+ .daily-more {grid-template-columns:minmax(0,1fr)}
+ .morning-grid {grid-template-columns:minmax(0,1fr)}
+ .morning-center .morning-column {max-height:none}
+}
+@media screen and (max-width:740px) {
+ html[data-ops-theme] .morning-mode .topbar {display:flex;flex-wrap:wrap;justify-content:flex-start;align-items:center;padding:10px 12px!important;gap:8px}
+ .morning-mode .workspace-clocks {margin:0;flex:1 1 100%;min-width:0;justify-content:space-between;gap:8px}
+ .morning-mode .workspace-clock {min-width:0}
+ html[data-ops-theme] .morning-mode .topbar :is(button,.operations-search) {min-width:0;white-space:normal}
+ .morning-center {padding:18px 12px 32px}
+ .morning-heading {padding-bottom:14px}
+ .morning-heading h1 {font-size:clamp(26px,8vw,36px)}
+ .morning-signal {display:none}
+ .daily-controls {flex-wrap:wrap;align-items:stretch;gap:8px}
+ #daily-counts {flex:1 1 100%;margin:0}
+ .daily-controls label {flex:1 1 145px;min-width:0;white-space:normal}
+ .daily-controls input {max-width:100%}
+ .daily-brief {grid-template-columns:minmax(0,1fr)}
+ .daily-brief .daily-pickup-panel {grid-column:auto}
+ .daily-brief .daily-panel {min-height:0}
+ .daily-readiness {grid-template-columns:minmax(0,1fr)}
+ .daily-readiness li+li {border-left:0;border-top:1px solid #2b414f}
+ .daily-more {grid-template-columns:minmax(0,1fr)}
+ .morning-secondary>summary span {display:block;margin:4px 0 0}
+ .morning-review-grid {grid-template-columns:minmax(0,1fr)}
+ html[data-ops-theme] .morning-mode .morning-dialog {width:calc(100vw - 24px);padding:18px;max-height:calc(100dvh - 24px)}
+ .morning-dialog footer {flex-wrap:wrap}
+}
