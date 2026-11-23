@@ -166,7 +166,7 @@ async function refresh(){
  }catch(error){
   if(ticket!==generation)return;
   viewData=null;window.dispatchEvent(new CustomEvent('ops-today-data',{detail:null}));$('today-kpis').replaceChildren();$('today-queue').replaceChildren();$('today-completed').replaceChildren();$('today-completed-count').textContent='';$('today-renewals').replaceChildren();$('today-renewal-watch').textContent='';
-  text('today-status','Could not load the dashboard: '+error.message+'. No tasks were changed.');
+  text('today-status','Could not load the dashboard: '+error.message+'. Refresh to check saved tasks.');
   queueControlState();resetSchedule('Task breakdown unavailable.');notifyState('error');
  }finally{if(ticket===generation){busy=false;accessControls()}}
 }

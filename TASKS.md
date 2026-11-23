@@ -2,6 +2,10 @@
 
 **Active delivery index · 2026-11-22.** Authoritative for new work until reviewed/superseded. Historical checklist snapshots below are retained for investigation but must not be re-executed solely because an old box is unchecked. This is **planning, not production write or merge permission**. Consult [ROADMAP](docs/ROADMAP.md), [HANDOFF](HANDOFF.md), [AGENTS](AGENTS.md), and current main/PR status before a new task is claimed.
 
+## Individual task archiving
+
+- [x] Implemented in [PR #92](https://github.com/huzshk0707/Oaktown-ops/pull/92) for review. The fictional browser round trip verifies that the selected task returns to active work as In Progress. Staff manual acceptance follows approved release.
+
 ## First build — Morning Command Center
 
 - [x] **OPS-SHIFT-BRIEF.1:** Implemented the first desktop view and the exact Focus Board handoff in [PR #89](https://github.com/huzshk0707/Oaktown-ops/pull/89). Verified the layout, unavailable and empty states, themes and keyboard navigation with fictional records.
@@ -9,6 +13,10 @@
 
 ## P0 — operational activation and acceptance
 
+- **ChatGPT Morning Plan integration** in [PR #93](https://github.com/huzshk0707/Oaktown-ops/pull/93).
+  1. [x] Preserve the personal-consent alias repair and add the scoped, complete Morning Priority Snapshot.
+  2. [x] Verify the snapshot-to-proposal flow, native approval, independent readback and task API regressions with fictional data.
+  3. [ ] Review the final PR and run the separate operator rollout in the documented order.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.1 — inspect live OAuth setup:** Confirm OAuth server, existing access-token-hook composition, approved registered client/redirect, signing algorithm, enabled admin client and least-privilege grants. Edge Function v3 is ACTIVE but the inspected scoped-client and consent counts are zero. Do not create secrets in Git/chat. **Exit:** written evidence of which parts are actually activated.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.2 — read-only acceptance:** With authorized staff login/consent, search/read a known fictional task via the scoped ChatGPT connector. Verify exact identity/history and deny privileged/direct access. **Exit:** readback, no operational changes.
 - [ ] **OPS-ACTIVATE-TASK-CONNECTION.3 — approved fictional write acceptance:** Only after the read-only check, preview, explicitly approve, write, audit/readback and replay-test one disposable General Operations task. Test stale version, revoked grant and read-only denial. Confirm exact Ops refresh. **Exit:** verified receipt and audit evidence, no real tenant task touched.
@@ -37,6 +45,9 @@
 - [ ] **OPS-RECOVERY / OPS-INTEGRITY:** Platform/Auth/provider/document restore plan, security-advisor disposition, nullable record-link integrity and provenance controls.
 
 ## P3 — larger workbenches, discovery first
+
+- [ ] **OPS-LEASE-REHEARSAL-UX:** [Draft PR #94](https://github.com/huzshk0707/Oaktown-ops/pull/94) adds fictional one-bedroom rehearsal, clearer deposits, advanced-layout disclosure, progress and issue-to-edit navigation. Verify CI + desktop staff rehearsal before merge; real lease export still awaits clean master and backend acceptance.
+
 
 - [ ] **OPS-LEASE-EXPORT / OPS-RESUMABLE-CASES:** Finish verified clean-master ten-page export and saved application/deposit/lease lifecycle after source and policy acceptance.
 - [ ] **OPS-PIPELINES:** Ground maintenance, leads/listings and application handoffs in actual staff workflow; assess APIs, permissions and work-order data before building.

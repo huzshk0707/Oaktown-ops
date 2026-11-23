@@ -25,13 +25,15 @@ export function registerPlanTools({register,rpc}){
    if(head.event?.id!==head.approval_id)throw Error('Daily plan identity not confirmed');return {work_date:args.work_date,approval_id:head.approval_id,approved_plan:publicPlan(head.event)};
   });
  register('submit_daily_plan','Submit a draft plan for native staff review',
-  'Submit only the exact draft the user requested, with source references and current task versions. Read the current daily approval first and use its exact expected_approval_id (null for an empty day). Reuse an immutable request_ref and identical payload on retry. This saves a review request, not an approved SOD or any task change. The user must open Oaktown Ops and approve in their native staff session; this OAuth tool cannot approve. Do not infer owners, deadlines, funds clearance or completed work.',
+  'Submit only the exact draft the user reviewed, with source references and current task versions. Use the complete Morning Priority Snapshot to select relevant tasks. Use the exact approval_id from read_daily_plan (null for an empty day). Reuse an immutable request_ref and identical payload on retry. This saves a review request. The user approves in their native Oaktown Ops staff session. Do not infer owners, deadlines, funds clearance or completed work.',
   {request_ref:z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/),expected_approval_id:uuid.nullable(),work_date:day,text:z.string().min(1).max(24000),
    tasks:z.array(z.object({task_id:uuid,expected_updated_at:z.string().min(1).max(80),action:z.string().min(1).max(820),section}).strict()).max(50),
    planning_items:z.array(z.object({title:z.string().min(1).max(220),action:z.string().min(1).max(820),section,source_ref:z.string().min(1).max(240),source_note:z.string().min(1).max(2000)}).strict()).max(50)},
   {readOnlyHint:false,destructiveHint:false,idempotentHint:true,openWorldHint:false},async args=>{
    const p=await rpc('submit',args);
-   if(p?.schema_version!=='oaktown.plan-submission.v1'||!isUuid(p.proposal_id)||!['pending_staff_review','approved'].includes(p.state)||p.work_date!==args.work_date)throw Error('Plan submission not confirmed; retry only the identical request reference');
+   if(p?.schema_version!=='oaktown.plan-submission.v1'||!isUuid(p.proposal_id)||!['pending_staff_review','approved'].includes(p.state)||
+      p.work_date!==args.work_date||p.text!==args.text||p.expected_approval_id!==args.expected_approval_id)
+    throw Error('Plan submission not confirmed; retry only the identical request reference');
    return {outcome:p.state==='approved'?'previously_reviewed':'pending_staff_review',approved:false,proposal_id:p.proposal_id,expires_at:p.expires_at,work_date:p.work_date,content_hash:p.content_hash,
     review_url:'https://huzshk0707.github.io/Oaktown-ops/#/morning',next_step:'Open Plans awaiting staff review in Oaktown Ops. Only the native staff review workflow can approve. Use get_plan_submission to verify any later approval.'};
   });
